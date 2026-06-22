@@ -316,16 +316,30 @@ function PrimaryButton({
 }
 
 /* ------------ Field ------------ */
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children, error }: { label: string; children: ReactNode; error?: string | null }) {
   return (
-    <div className="rounded-2xl px-5 pt-4 pb-4" style={{ background: INPUT_BG }}>
-      <div className="text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-        {label}
+    <div>
+      <div
+        className="rounded-2xl px-5 pt-4 pb-4"
+        style={{
+          background: INPUT_BG,
+          border: error ? "1px solid #DC2626" : "1px solid transparent",
+        }}
+      >
+        <div className="text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
+          {label}
+        </div>
+        <div className="mt-1.5">{children}</div>
       </div>
-      <div className="mt-1.5">{children}</div>
+      {error && (
+        <div className="mt-1.5 ml-1 text-[13px]" style={{ color: "#DC2626" }} role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 }
+
 
 const inputClass = "w-full bg-transparent outline-none text-[17px]";
 
