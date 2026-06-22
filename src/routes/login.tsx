@@ -54,8 +54,8 @@ function LoginPage() {
         <span>actara</span>
       </div>
 
-      {/* Spacer pushes content down */}
-      <div className="flex-1" />
+      <div className="mt-10" />
+
 
       {/* Welcome */}
       <h1 className="text-[44px] font-bold tracking-tight leading-[1.05]">
