@@ -1054,28 +1054,25 @@ function StartingPointStep({
 }) {
   return (
     <div>
-      <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">Capture your starting point</h1>
+      <h1 className="text-[32px] font-bold tracking-tight leading-[1.05]">Capture your starting point</h1>
       <p className="mt-3 text-[15px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-        Completely private — only you can see this. You'll be amazed when you look back.
-      </p>
-      <p className="mt-3 text-[14px]" style={{ color: LABEL }}>
-        Full body works best — front and side angles tell the real story.
+        Completely private — only you can see this. Full body, front and side, tells the real story.
       </p>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <div className="mt-6 grid grid-cols-2 gap-3">
         <PhotoSlot label="Front" photo={frontPhoto} setPhoto={setFrontPhoto} />
         <PhotoSlot label="Side" photo={sidePhoto} setPhoto={setSidePhoto} />
       </div>
 
-      <button className="mt-4 flex items-center gap-2 text-[15px] font-semibold" style={{ color: PURPLE }}>
-        <Plus size={18} /> Add another angle
+      <button className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold" style={{ color: PURPLE }}>
+        <Plus size={16} /> Add another angle
       </button>
 
-      <div className="mt-7">
-        <div className="text-[15px] font-semibold">
+      <div className="mt-7 rounded-2xl p-5" style={{ border: "1px solid #ECECEC", background: "#FAFAF9" }}>
+        <label className="text-[15px] font-semibold">
           Starting weight <span className="font-normal" style={{ color: TEXT_MUTED }}>(optional)</span>
-        </div>
-        <div className="mt-2 rounded-2xl px-5 py-4 flex items-center" style={{ border: "1px solid #ECECEC" }}>
+        </label>
+        <div className="mt-2 rounded-xl px-4 py-3 flex items-center bg-white" style={{ border: "1px solid #ECECEC" }}>
           <input
             inputMode="decimal"
             placeholder="185"
@@ -1083,13 +1080,13 @@ function StartingPointStep({
             onChange={(e) => setStartWeight(e.target.value.replace(/[^\d.]/g, ""))}
             className="flex-1 bg-transparent outline-none text-[17px]"
           />
-          <span className="text-[15px]" style={{ color: TEXT_MUTED }}>
+          <span className="text-[14px] font-medium" style={{ color: TEXT_MUTED }}>
             lbs
           </span>
         </div>
-        <div className="mt-3 flex items-start gap-2 text-[13px] leading-[1.45]" style={{ color: LABEL }}>
-          <Lock size={14} className="mt-0.5 shrink-0" />
-          <span>Your group will never see this. At the end of your challenge, you can choose to share your transformation.</span>
+        <div className="mt-3 flex items-start gap-2 text-[12.5px] leading-[1.45]" style={{ color: LABEL }}>
+          <Lock size={13} className="mt-0.5 shrink-0" />
+          <span>Your group will never see this. You can choose to share your transformation at the end.</span>
         </div>
       </div>
     </div>
