@@ -130,16 +130,22 @@ function LoginPage() {
       </button>
 
 
+      {error && (
+        <div className="mt-3 text-[13px] text-red-600" role="alert">{error}</div>
+      )}
+
       {/* Sign in button */}
       <button
         type="button"
-        className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99]"
+        onClick={handleSignIn}
+        disabled={submitting || !email || !password}
+        className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
         style={{
           background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
           boxShadow: "0 10px 30px -10px rgba(124, 58, 237, 0.55)",
         }}
       >
-        Sign in <ArrowRight size={20} />
+        {submitting ? <Loader2 size={20} className="animate-spin" /> : <>Sign in <ArrowRight size={20} /></>}
       </button>
 
       {/* Footer */}
