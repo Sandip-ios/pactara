@@ -1290,12 +1290,9 @@ function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: stri
         <p className="mt-5 text-[17px] leading-[1.5] max-w-[28ch]" style={{ color: TEXT }}>
           Your {days}-day commitment is locked in.
         </p>
-        <p className="mt-2 text-[15px] leading-[1.5] max-w-[28ch]" style={{ color: TEXT_MUTED }}>
-          Here's how it works.
-        </p>
       </div>
 
-      <PrimaryButton onClick={onContinue} label="Continue" withArrow />
+      <PrimaryButton onClick={onContinue} label="See how it works" withArrow />
     </div>
   );
 }
