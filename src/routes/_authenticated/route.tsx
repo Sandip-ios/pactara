@@ -8,5 +8,8 @@ export const Route = createFileRoute("/_authenticated")({
     if (error || !data.user) throw redirect({ to: "/login" });
     return { user: data.user };
   },
+  pendingComponent: () => (
+    <div className="min-h-[100dvh] w-full" style={{ background: "#F5F2EE" }} />
+  ),
   component: () => <Outlet />,
 });
