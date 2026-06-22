@@ -1109,32 +1109,35 @@ function PhotoSlot({
     setPhoto(URL.createObjectURL(f));
   };
   return (
-    <div className="flex flex-col items-center">
+    <div className="relative">
       <button
         type="button"
         onClick={() => ref.current?.click()}
-        className="w-full aspect-[4/5] rounded-2xl flex flex-col items-center justify-center overflow-hidden"
-        style={{ border: "2px dashed #D6D3D1" }}
+        className="relative w-full aspect-[3/4] rounded-2xl flex flex-col items-center justify-center overflow-hidden"
+        style={{ border: photo ? "1px solid #ECECEC" : "2px dashed #D6D3D1" }}
       >
         {photo ? (
           <img src={photo} alt={label} className="w-full h-full object-cover" />
         ) : (
           <>
             <div
-              className="w-11 h-11 rounded-full flex items-center justify-center"
+              className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{ border: "1.5px solid #B8B3AD", color: "#9A958E" }}
             >
-              <Plus size={20} />
+              <Plus size={18} />
             </div>
-            <div className="mt-2 text-[14px]" style={{ color: TEXT_MUTED }}>
+            <div className="mt-1.5 text-[13px] font-medium" style={{ color: TEXT_MUTED }}>
               Add photo
             </div>
           </>
         )}
+        <span
+          className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-white/90 backdrop-blur"
+          style={{ color: LABEL, border: "1px solid #ECECEC" }}
+        >
+          {label}
+        </span>
       </button>
-      <div className="mt-2 text-[14px] italic" style={{ color: TEXT_MUTED }}>
-        {label}
-      </div>
       <input ref={ref} type="file" accept="image/*" className="hidden" onChange={onPick} />
     </div>
   );
