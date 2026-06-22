@@ -211,7 +211,21 @@ function SignupFlow() {
     return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
-    return <HowItWorksStep onDone={finish} onBack={back} />;
+    return (
+      <>
+        <HowItWorksStep onDone={finish} onBack={back} />
+        {finishing && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">Creating your account…</div>
+          </div>
+        )}
+        {finishError && (
+          <div className="fixed bottom-6 inset-x-6 z-50 rounded-xl bg-red-600 text-white px-4 py-3 text-[14px]" role="alert">
+            {finishError}
+          </div>
+        )}
+      </>
+    );
   }
 
   return (
