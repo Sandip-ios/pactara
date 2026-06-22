@@ -208,6 +208,7 @@ function SignupFlow() {
         {step === "commitment" && (
           <CommitmentStep
             goalLabel={goalLabel.toLowerCase()}
+            goalId={goal}
             duration={duration}
             setDuration={setDuration}
             customDays={customDays}
@@ -218,6 +219,7 @@ function SignupFlow() {
             setDaysPerWeek={setDaysPerWeek}
           />
         )}
+
         {step === "invite" && <InviteStep />}
         {step === "notify" && <NotifyStep onAllow={next} />}
         {step === "password" && (
