@@ -45,7 +45,7 @@ function LoginPage() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-5 pb-8"
+      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
       {/* Wordmark */}
@@ -54,7 +54,8 @@ function LoginPage() {
         <span>actara</span>
       </div>
 
-      <div className="mt-5" />
+      {/* Spacer pushes content down */}
+      <div className="flex-1" />
 
 
       {/* Welcome */}
