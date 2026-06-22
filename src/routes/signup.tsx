@@ -316,16 +316,30 @@ function PrimaryButton({
 }
 
 /* ------------ Field ------------ */
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({ label, children, error }: { label: string; children: ReactNode; error?: string | null }) {
   return (
-    <div className="rounded-2xl px-5 pt-4 pb-4" style={{ background: INPUT_BG }}>
-      <div className="text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-        {label}
+    <div>
+      <div
+        className="rounded-2xl px-5 pt-4 pb-4"
+        style={{
+          background: INPUT_BG,
+          border: error ? "1px solid #DC2626" : "1px solid transparent",
+        }}
+      >
+        <div className="text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
+          {label}
+        </div>
+        <div className="mt-1.5">{children}</div>
       </div>
-      <div className="mt-1.5">{children}</div>
+      {error && (
+        <div className="mt-1.5 ml-1 text-[13px]" style={{ color: "#DC2626" }} role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 }
+
 
 const inputClass = "w-full bg-transparent outline-none text-[17px]";
 
@@ -341,6 +355,8 @@ function NameStep({
   lastName: string;
   setLastName: (v: string) => void;
 }) {
+  const [touched, setTouched] = useState(false);
+  const firstError = touched && firstName.trim().length === 0 ? "Please enter your first name." : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your name?</h1>
@@ -348,13 +364,15 @@ function NameStep({
         This is how your group will know you.
       </p>
       <div className="mt-7 flex flex-col gap-4">
-        <Field label="FIRST NAME">
+        <Field label="FIRST NAME" error={firstError}>
           <input
             className={inputClass}
             placeholder="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
+            onBlur={() => setTouched(true)}
             autoFocus
+            aria-invalid={!!firstError}
           />
         </Field>
         <Field label="LAST NAME">
@@ -375,6 +393,14 @@ function EmailStep({
   email: string;
   setEmail: (v: string) => void;
 }) {
+  const [touched, setTouched] = useState(false);
+  const error = touched
+    ? email.trim().length === 0
+      ? "Please enter your email."
+      : !/\S+@\S+\.\S+/.test(email)
+        ? "That doesn't look like a valid email."
+        : null
+    : null;
   return (
     <div>
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
@@ -384,7 +410,7 @@ function EmailStep({
         You'll use this to log in and receive important updates.
       </p>
       <div className="mt-7">
-        <Field label="EMAIL ADDRESS">
+        <Field label="EMAIL ADDRESS" error={error}>
           <input
             className={inputClass}
             type="email"
@@ -393,13 +419,16 @@ function EmailStep({
             placeholder="you@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setTouched(true)}
             autoFocus
+            aria-invalid={!!error}
           />
         </Field>
       </div>
     </div>
   );
 }
+
 
 /* ------------ Step: Photo ------------ */
 function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: string | null) => void }) {
@@ -574,20 +603,40 @@ function GroupStep({
         </div>
       </div>
 
-      <div className="mt-5">
-        <Field label="GROUP NAME">
-          <div className="flex items-center gap-2">
-            <span className="text-[18px]">{goalEmoji}</span>
-            <input
-              className={inputClass}
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              placeholder={`${goalLabel} Crew`}
-              autoFocus
-            />
-          </div>
-        </Field>
-      </div>
+      <GroupNameField groupName={groupName} setGroupName={setGroupName} goalLabel={goalLabel} goalEmoji={goalEmoji} />
+    </div>
+  );
+}
+
+function GroupNameField({
+  groupName,
+  setGroupName,
+  goalLabel,
+  goalEmoji,
+}: {
+  groupName: string;
+  setGroupName: (v: string) => void;
+  goalLabel: string;
+  goalEmoji: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const error = touched && groupName.trim().length === 0 ? "Please name your group." : null;
+  return (
+    <div className="mt-5">
+      <Field label="GROUP NAME" error={error}>
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">{goalEmoji}</span>
+          <input
+            className={inputClass}
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            onBlur={() => setTouched(true)}
+            placeholder={`${goalLabel} Crew`}
+            autoFocus
+            aria-invalid={!!error}
+          />
+        </div>
+      </Field>
     </div>
   );
 }
@@ -823,6 +872,10 @@ function PasswordStep({
 }) {
   const [show1, setShow1] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [touched1, setTouched1] = useState(false);
+  const [touched2, setTouched2] = useState(false);
+  const pwError = touched1 && password.length > 0 && password.length < 8 ? "Password must be at least 8 characters." : touched1 && password.length === 0 ? "Please create a password." : null;
+  const confirmError = touched2 && confirmPw.length > 0 && confirmPw !== password ? "Passwords don't match." : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">
@@ -833,7 +886,7 @@ function PasswordStep({
       </p>
 
       <div className="mt-7 flex flex-col gap-4">
-        <Field label="PASSWORD">
+        <Field label="PASSWORD" error={pwError}>
           <div className="flex items-center gap-2">
             <input
               className={inputClass}
@@ -841,14 +894,16 @@ function PasswordStep({
               placeholder="At least 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => setTouched1(true)}
               autoFocus
+              aria-invalid={!!pwError}
             />
             <button type="button" onClick={() => setShow1((s) => !s)} className="text-stone-500">
               {show1 ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </Field>
-        <Field label="CONFIRM PASSWORD">
+        <Field label="CONFIRM PASSWORD" error={confirmError}>
           <div className="flex items-center gap-2">
             <input
               className={inputClass}
@@ -856,6 +911,8 @@ function PasswordStep({
               placeholder="Repeat your password"
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
+              onBlur={() => setTouched2(true)}
+              aria-invalid={!!confirmError}
             />
             <button type="button" onClick={() => setShow2((s) => !s)} className="text-stone-500">
               {show2 ? <EyeOff size={20} /> : <Eye size={20} />}
