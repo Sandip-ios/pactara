@@ -135,7 +135,7 @@ function SignupFlow() {
   const canContinue = (() => {
     switch (step) {
       case "name":
-        return firstName.trim().length > 0;
+        return firstName.trim().length > 0 && lastName.trim().length > 0;
       case "email":
         return /\S+@\S+\.\S+/.test(email);
       case "photo":
