@@ -186,7 +186,7 @@ function SignupFlow() {
       </div>
 
       {/* Content */}
-      <div className="mt-10 flex-1">
+      <div className="mt-10 flex-1 flex flex-col min-h-0">
         {step === "name" && (
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
