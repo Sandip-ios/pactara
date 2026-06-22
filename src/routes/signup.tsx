@@ -1104,7 +1104,31 @@ function PaywallStep({
           ))}
         </div>
         <p className="mt-2 text-[14px] italic leading-[1.5]" style={{ color: "#334155" }}>
-          "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck. Pactara is the first thing that's actually worked, and honestly it's not even close. When my group sees I didn't check in, someone texts. That's it. That's the whole thing. 90 days in and I haven't missed once."
+          {quoteExpanded ? (
+            <>
+              "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck. Pactara is the first thing that's actually worked, and honestly it's not even close. When my group sees I didn't check in, someone texts. That's it. That's the whole thing. 90 days in and I haven't missed once."{" "}
+              <button
+                type="button"
+                onClick={() => setQuoteExpanded(false)}
+                className="not-italic font-semibold"
+                style={{ color: PURPLE }}
+              >
+                Show less
+              </button>
+            </>
+          ) : (
+            <>
+              "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck…"{" "}
+              <button
+                type="button"
+                onClick={() => setQuoteExpanded(true)}
+                className="not-italic font-semibold"
+                style={{ color: PURPLE }}
+              >
+                Show more
+              </button>
+            </>
+          )}
         </p>
         <p
           className="mt-3 text-[11px] font-bold uppercase tracking-wider"
