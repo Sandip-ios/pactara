@@ -20,12 +20,23 @@ function HomePage() {
     queryFn: () => getMyGroupStatus(),
   });
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   useEffect(() => {
     const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
     if (status && !dismissed && (!status.hasGroup || status.memberCount <= 1)) {
       navigate({ to: "/invite", replace: true });
+      return;
+    }
+    if (status && typeof localStorage !== "undefined" && !localStorage.getItem("onboarded")) {
+      setShowOnboarding(true);
     }
   }, [status, navigate]);
+
+  const dismissOnboarding = () => {
+    if (typeof localStorage !== "undefined") localStorage.setItem("onboarded", "1");
+    setShowOnboarding(false);
+  };
 
   if (isLoading || !status) {
     return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
