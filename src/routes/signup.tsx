@@ -1229,12 +1229,10 @@ function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => 
   ];
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
-      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
+      className="min-h-screen w-full flex flex-col px-6 pb-8"
+      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
-      <div className="mt-2 h-[30px]" />
-
-      <h1 className="mt-6 text-[40px] font-bold tracking-tight leading-[1.05]">Here's how it works</h1>
+      <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Here's how it works</h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
         Three simple steps. Every single day.
       </p>
