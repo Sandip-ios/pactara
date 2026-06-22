@@ -135,7 +135,43 @@ function SignupFlow() {
     if (stepIdx === 0) navigate({ to: "/" });
     else setStepIdx((i) => i - 1);
   };
-  const finish = () => navigate({ to: "/" });
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
+
+  const finish = async () => {
+    if (finishing) return;
+    setFinishError(null);
+    setFinishing(true);
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      // Sign up (or sign in if the account already exists for this email).
+      let session = (await supabase.auth.getSession()).data.session;
+      if (!session) {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { name: fullName } },
+        });
+        if (error) throw error;
+        session = data.session;
+        if (!session) {
+          // Auto-confirm is on but in case it's off, try sign in.
+          const signIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+          if (signIn.error) throw signIn.error;
+          session = signIn.data.session;
+        }
+      }
+      await setMyName({ data: { name: fullName } });
+      const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
+      await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+      navigate({ to: "/home" });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Something went wrong";
+      setFinishError(msg);
+      setFinishing(false);
+    }
+  };
 
   const canContinue = (() => {
     switch (step) {
