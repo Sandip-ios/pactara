@@ -1151,9 +1151,7 @@ function GreetingStep({ firstName, onContinue, onBack }: { firstName: string; on
       className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
-      <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 mt-2 w-fit">
-        <ChevronLeft size={22} />
-      </button>
+      <div className="mt-2 h-[30px]" />
 
       <div className="flex-1 flex flex-col items-center justify-center text-center">
         <div className="text-[64px]">👋</div>
@@ -1179,21 +1177,21 @@ function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => 
   const steps = [
     {
       n: "1",
-      emoji: "✅",
-      title: "Check in every day",
-      text: "Open the app, share a quick photo or note. Your group sees you showed up.",
+      emoji: "🌅",
+      title: "Set your morning ritual",
+      text: "Each morning, commit to one daily action with your group. Small daily moves are how big goals actually happen.",
     },
     {
       n: "2",
-      emoji: "👀",
-      title: "See your group in real time",
-      text: "Watch the streak grow as your crew checks in alongside you.",
+      emoji: "📸",
+      title: "Check in with proof",
+      text: "Snap a quick photo or note showing you did the thing. Your group sees it the moment you post.",
     },
     {
       n: "3",
-      emoji: "🏆",
-      title: "Finish what you started",
-      text: "Hit your commitment together. Celebrate the transformation.",
+      emoji: "🤝",
+      title: "Show up for your group",
+      text: "React, cheer, nudge. The group keeps you accountable, and you do the same for them.",
     },
   ];
   return (
@@ -1201,9 +1199,7 @@ function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => 
       className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
-      <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 mt-2 w-fit">
-        <ChevronLeft size={22} />
-      </button>
+      <div className="mt-2 h-[30px]" />
 
       <h1 className="mt-6 text-[40px] font-bold tracking-tight leading-[1.05]">Here's how it works</h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
