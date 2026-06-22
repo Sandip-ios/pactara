@@ -242,16 +242,23 @@ function StepPhoto() {
             <div className="text-[12px] text-neutral-500">just now · 🏆 <span className="text-green-600 font-semibold">Crushed it</span></div>
           </div>
         </div>
-        <div className="mt-3 pl-2 border-l-2 border-amber-300 space-y-2">
-          <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3">
-            <div className="text-[13px] font-bold text-amber-700">🌅 Morning Ritual</div>
-            <div className="text-[13px] text-amber-900">"Hit the gym before 8am today"</div>
+        <div className="mt-3 flex gap-3">
+          <div className="relative w-3 flex flex-col items-center py-1">
+            <span className="h-3 w-3 rounded-full border-2 border-amber-400 bg-white z-10" />
+            <span className="flex-1 w-0.5 bg-gradient-to-b from-amber-400 to-purple-500" />
+            <span className="h-3 w-3 rounded-full border-2 border-purple-500 bg-white z-10" />
           </div>
-          <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-3 flex items-center gap-3">
-            <Camera size={20} style={{ color: PURPLE }} />
-            <div>
-              <div className="text-[13px] font-bold" style={{ color: PURPLE }}>💪 Workout · Day 14</div>
-              <div className="text-[12px] text-neutral-600">Post-workout selfie</div>
+          <div className="flex-1 space-y-2">
+            <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3">
+              <div className="text-[13px] font-bold text-amber-700">🌅 Morning Ritual</div>
+              <div className="text-[13px] text-amber-900">"Hit the gym before 8am today"</div>
+            </div>
+            <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-3 flex items-center gap-3">
+              <Camera size={20} style={{ color: PURPLE }} />
+              <div>
+                <div className="text-[13px] font-bold" style={{ color: PURPLE }}>💪 Workout · Day 14</div>
+                <div className="text-[12px] text-neutral-600">Post-workout selfie</div>
+              </div>
             </div>
           </div>
         </div>
