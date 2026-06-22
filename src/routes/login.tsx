@@ -101,14 +101,16 @@ function LoginPage() {
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
         </div>
-        <button
-          type="button"
-          className="mt-3 text-[14px] font-medium"
-          style={{ color: PURPLE }}
-        >
-          Forgot password?
-        </button>
       </div>
+
+      <button
+        type="button"
+        className="mt-3 self-start text-[14px] font-medium"
+        style={{ color: PURPLE }}
+      >
+        Forgot password?
+      </button>
+
 
       {/* Sign in button */}
       <button
