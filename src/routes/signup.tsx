@@ -186,7 +186,7 @@ function SignupFlow() {
       </div>
 
       {/* Content */}
-      <div className="mt-10 flex-1">
+      <div className="mt-10 flex-1 flex flex-col min-h-0">
         {step === "name" && (
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
@@ -451,13 +451,13 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
   };
 
   return (
-    <div>
+    <div className="h-full flex flex-col">
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Add a profile photo</h1>
       <p className="mt-3 text-[16px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
         Groups with photos are 3× more likely to stay accountable.
       </p>
 
-      <div className="mt-12 flex justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
