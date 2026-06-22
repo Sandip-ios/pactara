@@ -341,6 +341,8 @@ function NameStep({
   lastName: string;
   setLastName: (v: string) => void;
 }) {
+  const [touched, setTouched] = useState(false);
+  const firstError = touched && firstName.trim().length === 0 ? "Please enter your first name." : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your name?</h1>
@@ -348,13 +350,15 @@ function NameStep({
         This is how your group will know you.
       </p>
       <div className="mt-7 flex flex-col gap-4">
-        <Field label="FIRST NAME">
+        <Field label="FIRST NAME" error={firstError}>
           <input
             className={inputClass}
             placeholder="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
+            onBlur={() => setTouched(true)}
             autoFocus
+            aria-invalid={!!firstError}
           />
         </Field>
         <Field label="LAST NAME">
@@ -375,6 +379,14 @@ function EmailStep({
   email: string;
   setEmail: (v: string) => void;
 }) {
+  const [touched, setTouched] = useState(false);
+  const error = touched
+    ? email.trim().length === 0
+      ? "Please enter your email."
+      : !/\S+@\S+\.\S+/.test(email)
+        ? "That doesn't look like a valid email."
+        : null
+    : null;
   return (
     <div>
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
@@ -384,7 +396,7 @@ function EmailStep({
         You'll use this to log in and receive important updates.
       </p>
       <div className="mt-7">
-        <Field label="EMAIL ADDRESS">
+        <Field label="EMAIL ADDRESS" error={error}>
           <input
             className={inputClass}
             type="email"
@@ -393,13 +405,16 @@ function EmailStep({
             placeholder="you@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={() => setTouched(true)}
             autoFocus
+            aria-invalid={!!error}
           />
         </Field>
       </div>
     </div>
   );
 }
+
 
 /* ------------ Step: Photo ------------ */
 function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: string | null) => void }) {
