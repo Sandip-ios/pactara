@@ -1132,7 +1132,7 @@ function PaywallStep({
         </p>
         <p
           className="mt-3 text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: PURPLE }}
+          style={{ color: "#64748B" }}
         >
           — Jamie R., lost 18 lbs in 90 days
         </p>
