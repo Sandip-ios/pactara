@@ -164,7 +164,13 @@ function SignupFlow() {
     return <PaywallStep onTrial={next} onFree={next} onBack={back} />;
   }
   if (step === "greeting") {
-    return <GreetingStep firstName={firstName} onContinue={next} onBack={back} />;
+    const days =
+      goal === "75-hard"
+        ? 75
+        : duration === "custom"
+          ? parseInt(customDays, 10) || 30
+          : duration;
+    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
     return <HowItWorksStep onDone={finish} onBack={back} />;
