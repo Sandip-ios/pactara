@@ -1103,13 +1103,13 @@ function PaywallStep({
           ))}
         </div>
         <p className="mt-2 text-[14px] italic leading-[1.5]" style={{ color: "#334155" }}>
-          "I've tried everything. Pactara is the first thing that actually worked. I lost 18 lbs and I'm still going."
+          "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck. Pactara is the first thing that's actually worked, and honestly it's not even close. When my group sees I didn't check in, someone texts. That's it. That's the whole thing. 90 days in and I haven't missed once."
         </p>
         <p
           className="mt-3 text-[11px] font-bold uppercase tracking-wider"
           style={{ color: PURPLE }}
         >
-          — Marcus, down 18 lbs in 60 days
+          — Jamie R., lost 18 lbs in 90 days
         </p>
       </div>
 
