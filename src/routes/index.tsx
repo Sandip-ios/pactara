@@ -119,7 +119,7 @@ function Index() {
         {/* Footer actions */}
         <div className="flex flex-col items-center gap-4">
           <button
-            onClick={() => (index < total - 1 ? goNext() : navigate({ to: "/login" }))}
+            onClick={() => (index < total - 1 ? goNext() : navigate({ to: "/signup" }))}
             className="w-full rounded-2xl py-5 text-[17px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.6)] transition-transform active:scale-[0.98]"
             style={{ backgroundColor: PURPLE }}
           >
