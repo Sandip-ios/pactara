@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 export const Route = createFileRoute("/")({
@@ -33,9 +33,11 @@ type Slide = {
 };
 
 function Index() {
+  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const slides = useSlides();
   const total = slides.length;
+
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, total - 1));
@@ -117,13 +119,16 @@ function Index() {
         {/* Footer actions */}
         <div className="flex flex-col items-center gap-4">
           <button
-            onClick={() => (index < total - 1 ? goNext() : null)}
+            onClick={() => (index < total - 1 ? goNext() : navigate({ to: "/login" }))}
             className="w-full rounded-2xl py-5 text-[17px] font-semibold text-white shadow-[0_8px_24px_-8px_rgba(124,58,237,0.6)] transition-transform active:scale-[0.98]"
             style={{ backgroundColor: PURPLE }}
           >
             {slides[index].cta}
           </button>
-          <button className="text-[15px] font-medium text-neutral-400 hover:text-neutral-600">
+          <button
+            onClick={() => navigate({ to: "/login" })}
+            className="text-[15px] font-medium text-neutral-400 hover:text-neutral-600"
+          >
             Log in
           </button>
         </div>
