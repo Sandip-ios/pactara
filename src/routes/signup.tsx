@@ -1271,11 +1271,6 @@ function PhotoSlot({
 }
 
 /* ------------ Step: Greeting (Jose, you're in) ------------ */
-function GreetingStep({ firstName, onContinue, onBack }: { firstName: string; onContinue: () => void; onBack: () => void }) {
-  const name = firstName || "friend";
-  return (
-    <div
-      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
 function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: string; days: number; onContinue: () => void; onBack: () => void }) {
   const name = firstName || "friend";
   return (
