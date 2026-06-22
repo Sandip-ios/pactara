@@ -253,12 +253,14 @@ function SignupFlow() {
         ) : step === "invite" ? (
           <>
             <PrimaryButton onClick={next} label="Invite your people" icon={<Share2 size={18} />} />
-            <button onClick={next} className="mt-3 text-[15px] font-medium underline" style={{ color: TEXT_MUTED }}>
-              Skip for now
-            </button>
-            <p className="text-[13px] text-center mt-1" style={{ color: LABEL }}>
-              You can invite people later from inside the app.
-            </p>
+            <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
+              <button onClick={next} className="text-[15px] font-medium underline" style={{ color: TEXT_MUTED }}>
+                Skip for now
+              </button>
+              <p className="text-[13px] text-center" style={{ color: LABEL }}>
+                You can invite people later from inside the app.
+              </p>
+            </div>
           </>
         ) : step === "notify" ? (
           <PrimaryButton onClick={next} label="Allow notifications" withArrow />
