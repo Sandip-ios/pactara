@@ -176,20 +176,22 @@ function SignupFlow() {
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
-      <div className="flex items-center gap-3">
-        <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
-          <ChevronLeft size={22} />
-        </button>
-        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
-          <div
-            className="h-full rounded-full transition-all duration-300"
-            style={{ width: `${progress}%`, background: PURPLE }}
-          />
+      {step !== "starting" && (
+        <div className="flex items-center gap-3">
+          <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
+            <ChevronLeft size={22} />
+          </button>
+          <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
+            <div
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, background: PURPLE }}
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
-      <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
+      <div className={`${step === "starting" ? "" : "mt-10"} flex-1 flex flex-col min-h-0 overflow-y-auto`}>
         {step === "name" && (
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
