@@ -76,16 +76,19 @@ export const createGroupForUser = createServerFn({ method: "POST" })
     return { name, emoji: input.emoji.slice(0, 8) || "🔥" };
   })
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
+    // Use the admin client to bypass RLS — we've already validated the user
+    // via requireSupabaseAuth and set owner_id from the verified JWT claims.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: group, error: gErr } = await supabase
+    const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
       .insert({ name: data.name, emoji: data.emoji, owner_id: userId })
       .select("id, name, emoji")
       .single();
     if (gErr) throw new Error(gErr.message);
 
-    const { error: mErr } = await supabase
+    const { error: mErr } = await supabaseAdmin
       .from("group_members")
       .insert({ group_id: group.id, user_id: userId });
     if (mErr) throw new Error(mErr.message);
