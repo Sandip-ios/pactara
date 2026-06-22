@@ -125,9 +125,9 @@ function LoginPage() {
       {/* Footer */}
       <p className="mt-6 text-center text-[15px]" style={{ color: TEXT_MUTED }}>
         New to Pactara?{" "}
-        <a href="#" className="font-semibold" style={{ color: PURPLE }}>
+        <Link to="/signup" className="font-semibold" style={{ color: PURPLE }}>
           Create a free account
-        </a>
+        </Link>
       </p>
     </div>
   );
