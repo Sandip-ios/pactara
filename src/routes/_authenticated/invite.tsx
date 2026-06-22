@@ -1,10 +1,10 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { UserPlus, Copy, Check } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 
 export const Route = createFileRoute("/_authenticated/invite")({
-  loader: async () => await getMyGroupStatus(),
   component: InvitePage,
 });
 
@@ -14,7 +14,11 @@ const PURPLE_SOFT = "#F3EEFF";
 const TEXT_MUTED = "#6B6660";
 
 function InvitePage() {
-  const status = Route.useLoaderData();
+  const { data: statusData, isLoading } = useQuery({
+    queryKey: ["my-group-status"],
+    queryFn: () => getMyGroupStatus(),
+  });
+  const status = statusData ?? { hasGroup: false as const, memberCount: 0, firstName: "there", group: null };
   const router = useRouter();
   const navigate = useNavigate();
   const [copied, setCopied] = useState(false);

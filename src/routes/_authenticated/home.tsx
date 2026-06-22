@@ -1,5 +1,6 @@
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Home, Users, Zap, MessageCircle, User as UserIcon, MoreVertical, Share2, MessageSquare, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
@@ -8,18 +9,25 @@ const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
 
 export const Route = createFileRoute("/_authenticated/home")({
-  loader: async () => {
-    const status = await getMyGroupStatus();
-    if (!status.hasGroup || status.memberCount <= 1) {
-      throw redirect({ to: "/invite" });
-    }
-    return status;
-  },
   component: HomePage,
 });
 
 function HomePage() {
-  const status = Route.useLoaderData();
+  const navigate = useNavigate();
+  const { data: status, isLoading } = useQuery({
+    queryKey: ["my-group-status"],
+    queryFn: () => getMyGroupStatus(),
+  });
+
+  useEffect(() => {
+    if (status && (!status.hasGroup || status.memberCount <= 1)) {
+      navigate({ to: "/invite", replace: true });
+    }
+  }, [status, navigate]);
+
+  if (isLoading || !status) {
+    return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
+  }
   const initials = (status.firstName || "U").slice(0, 1).toUpperCase();
 
   return (
