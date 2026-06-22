@@ -216,7 +216,7 @@ function SignupFlow() {
           />
         )}
         {step === "invite" && <InviteStep />}
-        {step === "notify" && <NotifyStep />}
+        {step === "notify" && <NotifyStep onAllow={next} />}
         {step === "password" && (
           <PasswordStep
             password={password}
