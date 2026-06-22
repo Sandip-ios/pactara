@@ -72,30 +72,14 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="mx-4 mt-6 rounded-2xl bg-white p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
-            {initials}
-          </div>
-          <div className="flex-1">
-            <div className="text-[15px] font-bold">{status.firstName} <span className="font-medium text-orange-600">joined {status.group?.name}</span></div>
-            <div className="text-[12px] text-neutral-400">just now</div>
-          </div>
-          <MoreVertical size={18} className="text-neutral-400" />
+      <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
+        <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
+          <MessageSquare size={24} style={{ color: PURPLE }} />
         </div>
-        <div className="mt-4 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3">
-          <div className="text-[14px] font-bold text-orange-700">{status.group?.emoji} {status.group?.name}</div>
-          <div className="text-[13px] text-orange-700/80 mt-0.5">Day 1 — let's get started</div>
+        <div className="text-[16px] font-bold">Your feed is empty</div>
+        <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
+          Share what's on your mind or check in to start your streak.
         </div>
-        <div className="mt-4 flex items-center justify-between border-t border-neutral-100 pt-3">
-          <div className="flex items-center gap-2">
-            {["🔥","💪","❤️","👏"].map(e => (
-              <button key={e} className="h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center text-[15px]">{e}</button>
-            ))}
-          </div>
-          <button className="flex items-center gap-1.5 text-[13px] text-neutral-500"><Share2 size={14}/>Share</button>
-        </div>
-        <button className="mt-2 flex items-center gap-2 text-[13px] text-neutral-500"><MessageSquare size={14}/>Comment</button>
       </div>
 
       <BottomTabs />
