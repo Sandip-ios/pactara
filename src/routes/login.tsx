@@ -123,19 +123,11 @@ function LoginPage() {
       </button>
 
       {/* Footer */}
-      <Link
-        to="/signup"
-        className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center text-[17px] font-semibold transition-transform active:scale-[0.99]"
-        style={{
-          background: "white",
-          color: PURPLE,
-          border: `1.5px solid ${PURPLE}`,
-        }}
-      >
-        Create a free account
-      </Link>
-      <p className="mt-4 text-center text-[13px]" style={{ color: TEXT_MUTED }}>
-        Takes about a minute. No credit card required.
+      <p className="mt-5 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
+        New to Pactara?{" "}
+        <Link to="/signup" className="font-semibold" style={{ color: PURPLE }}>
+          Create a free account
+        </Link>
       </p>
     </div>
   );
