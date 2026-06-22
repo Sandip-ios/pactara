@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   Camera,
   Check,
+  CheckCircle2,
   Scale,
   Share2,
   Eye,
@@ -12,7 +13,9 @@ import {
   Lock,
   Plus,
   Star,
+  TrendingUp,
   Users,
+  Flame,
 } from "lucide-react";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
 
