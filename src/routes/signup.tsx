@@ -902,7 +902,7 @@ function PasswordStep({
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">
-        Create a password <span aria-hidden>🔒</span>
+        Create a password
       </h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
         You'll use this to log in. At least 8 characters.
