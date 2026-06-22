@@ -1021,6 +1021,7 @@ function PaywallStep({
   onFree: () => void;
   onBack: () => void;
 }) {
+  const [quoteExpanded, setQuoteExpanded] = useState(false);
   const bullets = [
     {
       Icon: CheckCircle2,
