@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 
 const PURPLE = "#7C3AED";
-const PURPLE_SOFT = "#F3EEFF";
 const BG = "#F5F2EE";
 
 export const Route = createFileRoute("/_authenticated/home")({
