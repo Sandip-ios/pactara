@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Home, Users, Zap, MessageCircle, User as UserIcon, MessageSquare, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+import { OnboardingSheet } from "@/components/OnboardingSheet";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -19,12 +20,23 @@ function HomePage() {
     queryFn: () => getMyGroupStatus(),
   });
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
   useEffect(() => {
     const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
     if (status && !dismissed && (!status.hasGroup || status.memberCount <= 1)) {
       navigate({ to: "/invite", replace: true });
+      return;
+    }
+    if (status && typeof localStorage !== "undefined" && !localStorage.getItem("onboarded")) {
+      setShowOnboarding(true);
     }
   }, [status, navigate]);
+
+  const dismissOnboarding = () => {
+    if (typeof localStorage !== "undefined") localStorage.setItem("onboarded", "1");
+    setShowOnboarding(false);
+  };
 
   if (isLoading || !status) {
     return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
@@ -83,6 +95,7 @@ function HomePage() {
       </div>
 
       <BottomTabs />
+      {showOnboarding && <OnboardingSheet firstName={status.firstName || "there"} onClose={dismissOnboarding} />}
     </div>
   );
 }
