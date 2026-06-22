@@ -169,7 +169,7 @@ function SignupFlow() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pb-8"
+      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
