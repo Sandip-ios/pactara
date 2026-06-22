@@ -656,6 +656,7 @@ function GroupNameField({
 /* ------------ Step: Commitment ------------ */
 function CommitmentStep({
   goalLabel,
+  goalId,
   duration,
   setDuration,
   customDays,
@@ -666,6 +667,7 @@ function CommitmentStep({
   setDaysPerWeek,
 }: {
   goalLabel: string;
+  goalId: string | null;
   duration: 30 | 60 | 90 | "custom";
   setDuration: (v: 30 | 60 | 90 | "custom") => void;
   customDays: string;
@@ -680,6 +682,62 @@ function CommitmentStep({
     { val: 60, sub: "2 months" },
     { val: 90, sub: "3 months" },
   ];
+
+  const is75Hard = goalId === "75-hard";
+
+  if (is75Hard) {
+    return (
+      <div>
+        <h1 className="text-[40px] font-bold tracking-tight leading-[1.02]">How long is your challenge?</h1>
+        <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
+          75 Hard is a fixed 75-day program. The length is set for you.
+        </p>
+
+        <div className="mt-7 rounded-2xl px-5 py-6 flex items-center gap-4" style={{ background: PURPLE_SOFT, border: `2px solid ${PURPLE}` }}>
+          <div className="text-[32px]">🪖</div>
+          <div className="flex-1">
+            <div className="text-[24px] font-bold" style={{ color: PURPLE }}>75 days</div>
+            <div className="text-[13px] mt-1" style={{ color: TEXT_MUTED }}>Locked in for the 75 Hard program</div>
+          </div>
+        </div>
+
+        <div className="mt-7 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
+          CHECK-IN FREQUENCY
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <FreqCard selected={frequency === "daily"} onClick={() => setFrequency("daily")} emoji="🔥" title="Every day" sub="Daily check-ins" />
+          <FreqCard selected={frequency === "weekly"} onClick={() => setFrequency("weekly")} emoji="📅" title="Weekly" sub="Choose days/week" />
+        </div>
+
+        {frequency === "weekly" && (
+          <>
+            <div className="mt-6 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
+              DAYS PER WEEK
+            </div>
+            <div className="mt-3 grid grid-cols-7 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7].map((n) => {
+                const selected = daysPerWeek === n;
+                return (
+                  <button
+                    key={n}
+                    onClick={() => setDaysPerWeek(n)}
+                    className="aspect-square rounded-xl text-[16px] font-semibold transition"
+                    style={{
+                      background: selected ? PURPLE_SOFT : "white",
+                      border: selected ? `2px solid ${PURPLE}` : "1px solid #ECECEC",
+                      color: selected ? PURPLE : TEXT,
+                    }}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -740,6 +798,7 @@ function CommitmentStep({
           Custom duration
         </button>
       )}
+
 
       <div className="mt-7 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
         CHECK-IN FREQUENCY
