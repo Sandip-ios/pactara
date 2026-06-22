@@ -56,8 +56,12 @@ function Index() {
   const onTouchEnd = (e: React.TouchEvent) => {
     if (startX.current === null) return;
     const dx = e.changedTouches[0].clientX - startX.current;
-    if (dx < -40) goNext();
-    else if (dx > 40) goTo(index - 1);
+    if (dx < -40) {
+      if (index < total - 1) goNext();
+      else navigate({ to: "/signup" });
+    } else if (dx > 40) {
+      goTo(index - 1);
+    }
     startX.current = null;
   };
 
@@ -65,6 +69,8 @@ function Index() {
     <div
       className="min-h-screen w-full bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <div className="mx-auto flex min-h-screen w-full max-w-[440px] flex-col px-6 pb-8 pt-14">
         {/* Header */}
@@ -79,11 +85,8 @@ function Index() {
         </header>
 
         {/* Slide content */}
-        <main
-          className="flex flex-1 flex-col justify-center"
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-        >
+        <main className="flex flex-1 flex-col justify-center">
+
           <div key={index} className="animate-[fadeUp_400ms_ease-out]">
             <div className="mb-8 flex items-center justify-center">
               {slides[index].visual}
