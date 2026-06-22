@@ -95,6 +95,7 @@ function HomePage() {
       </div>
 
       <BottomTabs />
+      {showOnboarding && <OnboardingSheet firstName={status.firstName || "there"} onClose={dismissOnboarding} />}
     </div>
   );
 }
