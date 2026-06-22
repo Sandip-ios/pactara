@@ -18,6 +18,8 @@ import {
   Flame,
 } from "lucide-react";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -133,7 +135,43 @@ function SignupFlow() {
     if (stepIdx === 0) navigate({ to: "/" });
     else setStepIdx((i) => i - 1);
   };
-  const finish = () => navigate({ to: "/" });
+  const [finishing, setFinishing] = useState(false);
+  const [finishError, setFinishError] = useState<string | null>(null);
+
+  const finish = async () => {
+    if (finishing) return;
+    setFinishError(null);
+    setFinishing(true);
+    try {
+      const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+      // Sign up (or sign in if the account already exists for this email).
+      let session = (await supabase.auth.getSession()).data.session;
+      if (!session) {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: { data: { name: fullName } },
+        });
+        if (error) throw error;
+        session = data.session;
+        if (!session) {
+          // Auto-confirm is on but in case it's off, try sign in.
+          const signIn = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+          if (signIn.error) throw signIn.error;
+          session = signIn.data.session;
+        }
+      }
+      await setMyName({ data: { name: fullName } });
+      const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
+      await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
+      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+      navigate({ to: "/home" });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Something went wrong";
+      setFinishError(msg);
+      setFinishing(false);
+    }
+  };
 
   const canContinue = (() => {
     switch (step) {
@@ -173,7 +211,21 @@ function SignupFlow() {
     return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
-    return <HowItWorksStep onDone={finish} onBack={back} />;
+    return (
+      <>
+        <HowItWorksStep onDone={finish} onBack={back} />
+        {finishing && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">Creating your account…</div>
+          </div>
+        )}
+        {finishError && (
+          <div className="fixed bottom-6 inset-x-6 z-50 rounded-xl bg-red-600 text-white px-4 py-3 text-[14px]" role="alert">
+            {finishError}
+          </div>
+        )}
+      </>
+    );
   }
 
   return (

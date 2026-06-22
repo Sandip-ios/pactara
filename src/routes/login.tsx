@@ -1,6 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -21,9 +22,26 @@ const TEXT_MUTED = "#6B6660";
 const TEXT = "#0A0A0A";
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    if (submitting) return;
+    setError(null);
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setSubmitting(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+    navigate({ to: "/home" });
+  };
 
   return (
     <div
@@ -112,16 +130,22 @@ function LoginPage() {
       </button>
 
 
+      {error && (
+        <div className="mt-3 text-[13px] text-red-600" role="alert">{error}</div>
+      )}
+
       {/* Sign in button */}
       <button
         type="button"
-        className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99]"
+        onClick={handleSignIn}
+        disabled={submitting || !email || !password}
+        className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
         style={{
           background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
           boxShadow: "0 10px 30px -10px rgba(124, 58, 237, 0.55)",
         }}
       >
-        Sign in <ArrowRight size={20} />
+        {submitting ? <Loader2 size={20} className="animate-spin" /> : <>Sign in <ArrowRight size={20} /></>}
       </button>
 
       {/* Footer */}
