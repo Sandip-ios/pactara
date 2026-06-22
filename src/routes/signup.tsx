@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   Camera,
   Check,
+  CheckCircle2,
   Scale,
   Share2,
   Eye,
@@ -12,7 +13,9 @@ import {
   Lock,
   Plus,
   Star,
+  TrendingUp,
   Users,
+  Flame,
 } from "lucide-react";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
 
@@ -958,77 +961,107 @@ function PaywallStep({
   onBack: () => void;
 }) {
   const bullets = [
-    { emoji: "🏁", text: "Finally finish what you start — your group keeps you going" },
-    { emoji: "📈", text: "See real progress, week over week, not just intentions" },
-    { emoji: "💪", text: "Build the habit that changes everything — one day at a time" },
+    {
+      Icon: CheckCircle2,
+      title: "Finally finish what you start",
+      sub: "Your accountability group keeps you going.",
+    },
+    {
+      Icon: TrendingUp,
+      title: "See real progress",
+      sub: "Track results week over week, not just intentions.",
+    },
+    {
+      Icon: Flame,
+      title: "Build the habit",
+      sub: "Small daily wins that change everything.",
+    },
   ];
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
+      className="min-h-screen w-full flex flex-col px-6 pt-12 pb-6"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
-      <div className="mt-2">
-        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1">
+      <div>
+        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1" style={{ color: "#94A3B8" }}>
           <ChevronLeft size={22} />
         </button>
       </div>
 
-      <div className="mt-2 flex flex-col items-center text-center">
-        <div
-          className="w-[120px] h-[120px] rounded-[28px] flex items-center justify-center"
-          style={{ background: PURPLE_SOFT, boxShadow: "0 20px 40px -20px rgba(124,58,237,0.4)" }}
-        >
+      <div className="mt-4 flex flex-col items-center text-center">
+        <div className="relative">
           <div
-            className="w-[88px] h-[88px] rounded-[20px] flex items-center justify-center text-[44px]"
-            style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
+            className="absolute inset-0 rounded-[28px] blur-2xl opacity-30"
+            style={{ background: PURPLE }}
+          />
+          <div
+            className="relative w-[88px] h-[88px] rounded-[24px] flex items-center justify-center"
+            style={{
+              background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
+              boxShadow: "0 20px 40px -16px rgba(124,58,237,0.5)",
+            }}
           >
-            🔥
+            <Flame size={40} color="#FFFFFF" strokeWidth={2} />
           </div>
         </div>
-        <h1 className="mt-6 text-[36px] font-bold tracking-tight leading-[1.05]">
-          This is the year
-          <br /> you actually do it.
+        <h1 className="mt-7 text-[30px] font-extrabold tracking-tight leading-[1.1]">
+          This is the year you
+          <br /> actually do it.
         </h1>
-        <p className="mt-4 text-[15px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-          People who check in with a group are 3× more
-          <br /> likely to reach their goal. Try it free for 7 days.
+        <p className="mt-3 text-[14px] leading-[1.55] px-4" style={{ color: TEXT_MUTED }}>
+          People who check in with a group are 3× more likely to reach their goal. Try it free for 7 days.
         </p>
       </div>
 
-      <div className="mt-8 flex flex-col gap-4">
-        {bullets.map((b) => (
-          <div key={b.text} className="flex items-start gap-3">
+      <div className="mt-9 flex flex-col gap-5 px-1">
+        {bullets.map(({ Icon, title, sub }) => (
+          <div key={title} className="flex items-start gap-4">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-[20px] shrink-0"
-              style={{ background: PURPLE_SOFT }}
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: PURPLE_SOFT, color: PURPLE }}
             >
-              {b.emoji}
+              <Icon size={20} strokeWidth={2.5} />
             </div>
-            <div className="text-[15px] leading-[1.45] pt-1">{b.text}</div>
+            <div className="pt-0.5">
+              <div className="text-[15px] font-semibold leading-tight">{title}</div>
+              <div className="text-[13.5px] mt-1 leading-[1.4]" style={{ color: TEXT_MUTED }}>
+                {sub}
+              </div>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-7 rounded-2xl px-5 py-4" style={{ background: PURPLE_SOFT }}>
-        <div className="flex gap-0.5 text-[#F5B400]">
+      <div
+        className="mt-8 rounded-2xl px-5 py-4"
+        style={{ background: "#F8FAFC", border: "1px solid #F1F5F9" }}
+      >
+        <div className="flex gap-0.5">
           {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} size={16} fill="#F5B400" stroke="#F5B400" />
+            <Star key={i} size={14} fill="#F5B400" stroke="#F5B400" />
           ))}
         </div>
-        <p className="mt-2 text-[15px] italic leading-[1.45]">
+        <p className="mt-2 text-[14px] italic leading-[1.5]" style={{ color: "#334155" }}>
           "I've tried everything. Pactara is the first thing that actually worked. I lost 18 lbs and I'm still going."
         </p>
-        <p className="mt-3 text-[14px] font-semibold" style={{ color: PURPLE }}>
+        <p
+          className="mt-3 text-[11px] font-bold uppercase tracking-wider"
+          style={{ color: PURPLE }}
+        >
           — Marcus, down 18 lbs in 60 days
         </p>
       </div>
 
       <div className="mt-7 flex flex-col items-center gap-3">
         <PrimaryButton onClick={onTrial} label="Start free 7-day trial" withArrow />
-        <div className="text-[13px]" style={{ color: TEXT_MUTED }}>
+        <div className="text-[11px]" style={{ color: "#94A3B8" }}>
           Then $9.99/mo · Cancel anytime before Day 8
         </div>
-        <button onClick={onFree} className="mt-1 text-[15px] font-medium" style={{ color: PURPLE }}>
+        <button
+          onClick={onFree}
+          className="mt-1 text-[14px] font-semibold"
+          style={{ color: PURPLE }}
+        >
           No thanks, continue with Free plan
         </button>
       </div>
