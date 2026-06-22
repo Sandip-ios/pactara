@@ -262,9 +262,7 @@ function SignupFlow() {
               </p>
             </div>
           </>
-        ) : step === "notify" ? (
-          <PrimaryButton onClick={next} label="Allow notifications" withArrow />
-        ) : step === "starting" ? (
+        ) : step === "notify" ? null : step === "starting" ? (
           <>
             <PrimaryButton onClick={next} label="Continue" />
             <button onClick={next} className="text-[15px] font-medium" style={{ color: TEXT_MUTED }}>
