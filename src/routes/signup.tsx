@@ -451,7 +451,7 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0">
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Add a profile photo</h1>
       <p className="mt-3 text-[16px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
         Groups with photos are 3× more likely to stay accountable.
