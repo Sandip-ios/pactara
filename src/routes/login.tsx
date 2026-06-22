@@ -54,7 +54,8 @@ function LoginPage() {
         <span>actara</span>
       </div>
 
-      <div className="mt-5" />
+      {/* Spacer pushes content down */}
+      <div className="flex-1" />
 
 
       {/* Welcome */}
