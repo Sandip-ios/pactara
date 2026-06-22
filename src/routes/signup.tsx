@@ -828,7 +828,18 @@ function InviteStep() {
 }
 
 /* ------------ Step: Notify ------------ */
-function NotifyStep() {
+function NotifyStep({ onAllow }: { onAllow: () => void }) {
+  const handleAllow = async () => {
+    try {
+      if (typeof window !== "undefined" && "Notification" in window) {
+        await Notification.requestPermission();
+      }
+    } catch {
+      // ignore — proceed regardless of permission outcome
+    }
+    onAllow();
+  };
+
   return (
     <div>
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
@@ -852,9 +863,14 @@ function NotifyStep() {
           <div className="py-3.5 text-center text-[15px]" style={{ color: "#3A3A3A" }}>
             Don't Allow
           </div>
-          <div className="py-3.5 text-center text-[16px] font-semibold border-l border-black/10" style={{ background: "#DDEBFB", color: "#0A84FF" }}>
+          <button
+            type="button"
+            onClick={handleAllow}
+            className="py-3.5 text-center text-[16px] font-semibold border-l border-black/10 active:opacity-80"
+            style={{ background: "#DDEBFB", color: "#0A84FF" }}
+          >
             Allow
-          </div>
+          </button>
         </div>
       </div>
       <div className="mt-2 mx-auto max-w-[340px] flex">
