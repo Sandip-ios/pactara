@@ -164,7 +164,13 @@ function SignupFlow() {
     return <PaywallStep onTrial={next} onFree={next} onBack={back} />;
   }
   if (step === "greeting") {
-    return <GreetingStep firstName={firstName} onContinue={next} onBack={back} />;
+    const days =
+      goal === "75-hard"
+        ? 75
+        : duration === "custom"
+          ? parseInt(customDays, 10) || 30
+          : duration;
+    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
     return <HowItWorksStep onDone={finish} onBack={back} />;
@@ -1265,17 +1271,15 @@ function PhotoSlot({
 }
 
 /* ------------ Step: Greeting (Jose, you're in) ------------ */
-function GreetingStep({ firstName, onContinue, onBack }: { firstName: string; onContinue: () => void; onBack: () => void }) {
+function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: string; days: number; onContinue: () => void; onBack: () => void }) {
   const name = firstName || "friend";
   return (
     <div
       className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
-      <div className="mt-2 h-[30px]" />
-
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <div className="text-[64px]">👋</div>
+      <div className="flex-1 flex flex-col items-center text-center" style={{ paddingTop: "28vh" }}>
+        <div className="text-[64px] leading-none">🤝</div>
         <h1
           className="mt-6 text-[56px] leading-[0.95] tracking-tight"
           style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontWeight: 400 }}
@@ -1283,8 +1287,11 @@ function GreetingStep({ firstName, onContinue, onBack }: { firstName: string; on
           You're in,
           <br /> {name}.
         </h1>
-        <p className="mt-5 text-[16px] leading-[1.5] max-w-[34ch]" style={{ color: TEXT_MUTED }}>
-          Your group is set up and your commitment is locked in. Let's show you how this works.
+        <p className="mt-5 text-[17px] leading-[1.5] max-w-[28ch]" style={{ color: TEXT }}>
+          Your {days}-day commitment is locked in.
+        </p>
+        <p className="mt-2 text-[15px] leading-[1.5] max-w-[28ch]" style={{ color: TEXT_MUTED }}>
+          Here's how it works.
         </p>
       </div>
 
