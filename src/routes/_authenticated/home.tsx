@@ -20,7 +20,8 @@ function HomePage() {
   });
 
   useEffect(() => {
-    if (status && (!status.hasGroup || status.memberCount <= 1)) {
+    const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
+    if (status && !dismissed && (!status.hasGroup || status.memberCount <= 1)) {
       navigate({ to: "/invite", replace: true });
     }
   }, [status, navigate]);

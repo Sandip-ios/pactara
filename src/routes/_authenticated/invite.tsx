@@ -58,17 +58,11 @@ function InvitePage() {
   };
 
   const dismiss = () => {
-    // Mark dismissed for this tab so home doesn't redirect us back.
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.setItem("invite-dismissed", "1");
     }
-    // Briefly bypass the gating: go to home but skip the loader redirect by
-    // navigating directly. Home's loader will still redirect since member
-    // count is unchanged — so we route to a noop and rely on the user adding
-    // members later. For now: send them to the marketing index so they can
-    // explore the app shell without bouncing.
     router.invalidate();
-    navigate({ to: "/" });
+    navigate({ to: "/home", replace: true });
   };
 
   const groupName = status.group?.name ?? "your Crew";
