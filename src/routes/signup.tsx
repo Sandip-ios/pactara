@@ -135,7 +135,7 @@ function SignupFlow() {
   const canContinue = (() => {
     switch (step) {
       case "name":
-        return firstName.trim().length > 0;
+        return firstName.trim().length > 0 && lastName.trim().length > 0;
       case "email":
         return /\S+@\S+\.\S+/.test(email);
       case "photo":
@@ -356,7 +356,9 @@ function NameStep({
   setLastName: (v: string) => void;
 }) {
   const [touched, setTouched] = useState(false);
+  const [touchedLast, setTouchedLast] = useState(false);
   const firstError = touched && firstName.trim().length === 0 ? "Add your first name so your group knows who you are" : null;
+  const lastError = touchedLast && lastName.trim().length === 0 ? "Add your last name so your group knows who you are" : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your name?</h1>
@@ -375,8 +377,15 @@ function NameStep({
             aria-invalid={!!firstError}
           />
         </Field>
-        <Field label="LAST NAME">
-          <input className={inputClass} placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        <Field label="LAST NAME" error={lastError}>
+          <input
+            className={inputClass}
+            placeholder="Last name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            onBlur={() => setTouchedLast(true)}
+            aria-invalid={!!lastError}
+          />
         </Field>
       </div>
     </div>
