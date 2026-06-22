@@ -169,7 +169,7 @@ function SignupFlow() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pb-8"
+      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
@@ -489,13 +489,13 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
 /* ------------ Step: Goal ------------ */
 function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string) => void }) {
   return (
-    <div>
+    <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your fitness goal?</h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
         Your group will train toward this together.
       </p>
 
-      <div className="mt-6 flex flex-col gap-3 pb-2">
+      <div className="mt-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2 -mx-6 px-6">
         {GOALS.map((g) => {
           const selected = goal === g.id;
           return (
