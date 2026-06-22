@@ -18,6 +18,8 @@ import {
   Flame,
 } from "lucide-react";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
+import { supabase } from "@/integrations/supabase/client";
+import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
