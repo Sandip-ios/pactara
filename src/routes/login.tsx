@@ -54,7 +54,7 @@ function LoginPage() {
         <span>actara</span>
       </div>
 
-      <div className="mt-10" />
+      <div className="mt-5" />
 
 
       {/* Welcome */}
