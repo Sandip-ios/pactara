@@ -50,8 +50,15 @@ export function OnboardingSheet({ firstName, onClose }: Props) {
           <StepPhoto />
         )}
 
-        <div className="mt-6">
-          {step < total - 1 ? (
+        <div className="mt-6 space-y-3">
+          {step === 2 ? (
+            <button
+              onClick={() => setStep(3)}
+              className="w-full rounded-full py-4 bg-white border border-neutral-200 text-neutral-700 text-[16px] font-semibold flex items-center justify-center gap-2"
+            >
+              Continue tour <ChevronRight size={18} />
+            </button>
+          ) : step < total - 1 ? (
             <button
               onClick={() => setStep(step + 1)}
               className="w-full rounded-full py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 shadow-lg"
