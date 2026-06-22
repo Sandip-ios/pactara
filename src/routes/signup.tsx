@@ -169,11 +169,11 @@ function SignupFlow() {
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
-      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
+      className="min-h-screen w-full flex flex-col px-6 pb-8"
+      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
-      <div className="flex items-center gap-3 mt-6">
+      <div className="flex items-center gap-3">
         <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
           <ChevronLeft size={22} />
         </button>
