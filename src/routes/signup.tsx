@@ -845,7 +845,7 @@ function NotifyStep({ onAllow }: { onAllow: () => void }) {
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
         Know the moment your group checks in
       </h1>
-      <p className="mt-4 text-[16px] leading-[1.5] text-center max-w-[36ch] mx-auto" style={{ color: TEXT_MUTED }}>
+      <p className="mt-4 text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
         Real accountability happens in real time — don't miss a beat
       </p>
 
