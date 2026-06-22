@@ -801,7 +801,10 @@ function NotifyStep() {
           </div>
         </div>
       </div>
-      <div className="mt-2 text-center text-[28px]">👆</div>
+      <div className="mt-2 mx-auto max-w-[340px] flex">
+        <div className="w-1/2" />
+        <div className="w-1/2 text-center text-[28px]">👆</div>
+      </div>
     </div>
   );
 }
