@@ -603,20 +603,40 @@ function GroupStep({
         </div>
       </div>
 
-      <div className="mt-5">
-        <Field label="GROUP NAME">
-          <div className="flex items-center gap-2">
-            <span className="text-[18px]">{goalEmoji}</span>
-            <input
-              className={inputClass}
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-              placeholder={`${goalLabel} Crew`}
-              autoFocus
-            />
-          </div>
-        </Field>
-      </div>
+      <GroupNameField groupName={groupName} setGroupName={setGroupName} goalLabel={goalLabel} goalEmoji={goalEmoji} />
+    </div>
+  );
+}
+
+function GroupNameField({
+  groupName,
+  setGroupName,
+  goalLabel,
+  goalEmoji,
+}: {
+  groupName: string;
+  setGroupName: (v: string) => void;
+  goalLabel: string;
+  goalEmoji: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const error = touched && groupName.trim().length === 0 ? "Please name your group." : null;
+  return (
+    <div className="mt-5">
+      <Field label="GROUP NAME" error={error}>
+        <div className="flex items-center gap-2">
+          <span className="text-[18px]">{goalEmoji}</span>
+          <input
+            className={inputClass}
+            value={groupName}
+            onChange={(e) => setGroupName(e.target.value)}
+            onBlur={() => setTouched(true)}
+            placeholder={`${goalLabel} Crew`}
+            autoFocus
+            aria-invalid={!!error}
+          />
+        </div>
+      </Field>
     </div>
   );
 }
