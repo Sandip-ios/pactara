@@ -678,9 +678,9 @@ function CommitmentStep({
 
   return (
     <div>
-      <h1 className="text-[40px] font-bold tracking-tight leading-[1.02]">How long is your commitment?</h1>
+      <h1 className="text-[40px] font-bold tracking-tight leading-[1.02]">How long is your challenge?</h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
-        We recommend 30 days for {goalLabel}.
+        We recommend 30 days to build a lasting habit.
       </p>
 
       <div className="mt-7 grid grid-cols-3 gap-3">
