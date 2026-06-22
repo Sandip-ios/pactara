@@ -872,6 +872,10 @@ function PasswordStep({
 }) {
   const [show1, setShow1] = useState(false);
   const [show2, setShow2] = useState(false);
+  const [touched1, setTouched1] = useState(false);
+  const [touched2, setTouched2] = useState(false);
+  const pwError = touched1 && password.length > 0 && password.length < 8 ? "Password must be at least 8 characters." : touched1 && password.length === 0 ? "Please create a password." : null;
+  const confirmError = touched2 && confirmPw.length > 0 && confirmPw !== password ? "Passwords don't match." : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">
@@ -882,7 +886,7 @@ function PasswordStep({
       </p>
 
       <div className="mt-7 flex flex-col gap-4">
-        <Field label="PASSWORD">
+        <Field label="PASSWORD" error={pwError}>
           <div className="flex items-center gap-2">
             <input
               className={inputClass}
@@ -890,14 +894,16 @@ function PasswordStep({
               placeholder="At least 8 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onBlur={() => setTouched1(true)}
               autoFocus
+              aria-invalid={!!pwError}
             />
             <button type="button" onClick={() => setShow1((s) => !s)} className="text-stone-500">
               {show1 ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
         </Field>
-        <Field label="CONFIRM PASSWORD">
+        <Field label="CONFIRM PASSWORD" error={confirmError}>
           <div className="flex items-center gap-2">
             <input
               className={inputClass}
@@ -905,6 +911,8 @@ function PasswordStep({
               placeholder="Repeat your password"
               value={confirmPw}
               onChange={(e) => setConfirmPw(e.target.value)}
+              onBlur={() => setTouched2(true)}
+              aria-invalid={!!confirmError}
             />
             <button type="button" onClick={() => setShow2((s) => !s)} className="text-stone-500">
               {show2 ? <EyeOff size={20} /> : <Eye size={20} />}
