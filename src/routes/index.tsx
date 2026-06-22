@@ -33,9 +33,11 @@ type Slide = {
 };
 
 function Index() {
+  const navigate = useNavigate();
   const [index, setIndex] = useState(0);
   const slides = useSlides();
   const total = slides.length;
+
 
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, total - 1));
