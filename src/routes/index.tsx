@@ -489,9 +489,13 @@ function TestimonialCard() {
 
       <div className="mt-4 rounded-2xl bg-neutral-50 p-4">
         <p className="text-[14px] italic leading-[1.45] text-neutral-600">
-          "I've tried every app. Pactara is different because my group actually
-          notices when I skip."
+          "I've tried everything — Strava, Noom, three different trainers, two
+          gym memberships I never used. Nothing stuck. Pactara is the first
+          thing that's actually worked, and honestly it's not even close.
+          When my group sees I didn't check in, someone texts. That's it.
+          That's the whole thing. 90 days in and I haven't missed once."
         </p>
+
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2.5">
