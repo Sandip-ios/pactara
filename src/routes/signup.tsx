@@ -356,7 +356,7 @@ function NameStep({
   setLastName: (v: string) => void;
 }) {
   const [touched, setTouched] = useState(false);
-  const firstError = touched && firstName.trim().length === 0 ? "Please enter your first name." : null;
+  const firstError = touched && firstName.trim().length === 0 ? "Add your first name so your group knows who you are" : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your name?</h1>
@@ -396,9 +396,9 @@ function EmailStep({
   const [touched, setTouched] = useState(false);
   const error = touched
     ? email.trim().length === 0
-      ? "Please enter your email."
+      ? "We need your email to log you in"
       : !/\S+@\S+\.\S+/.test(email)
-        ? "That doesn't look like a valid email."
+        ? "Hmm, that email looks off — check for a missing @ or .com"
         : null
     : null;
   return (
@@ -620,7 +620,7 @@ function GroupNameField({
   goalEmoji: string;
 }) {
   const [touched, setTouched] = useState(false);
-  const error = touched && groupName.trim().length === 0 ? "Please name your group." : null;
+  const error = touched && groupName.trim().length === 0 ? "Give your group a name your friends will recognize" : null;
   return (
     <div className="mt-5">
       <Field label="GROUP NAME" error={error}>
@@ -874,8 +874,8 @@ function PasswordStep({
   const [show2, setShow2] = useState(false);
   const [touched1, setTouched1] = useState(false);
   const [touched2, setTouched2] = useState(false);
-  const pwError = touched1 && password.length > 0 && password.length < 8 ? "Password must be at least 8 characters." : touched1 && password.length === 0 ? "Please create a password." : null;
-  const confirmError = touched2 && confirmPw.length > 0 && confirmPw !== password ? "Passwords don't match." : null;
+  const pwError = touched1 && password.length > 0 && password.length < 8 ? "A few more characters — aim for 8 or more" : touched1 && password.length === 0 ? "Set a password to keep your account secure" : null;
+  const confirmError = touched2 && confirmPw.length > 0 && confirmPw !== password ? "These don't match yet — try retyping" : null;
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">
