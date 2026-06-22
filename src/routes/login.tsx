@@ -22,9 +22,26 @@ const TEXT_MUTED = "#6B6660";
 const TEXT = "#0A0A0A";
 
 function LoginPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    if (submitting) return;
+    setError(null);
+    setSubmitting(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setSubmitting(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+    navigate({ to: "/home" });
+  };
 
   return (
     <div
