@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { ListChecks, X, Circle, CheckCircle2 } from "lucide-react";
 
 const PURPLE = "#7C3AED";
-const ORANGE = "#F59E0B";
+const ORANGE = "#EA580C";
 
 type TaskId = "checkin" | "comment" | "chat" | "streak";
 
