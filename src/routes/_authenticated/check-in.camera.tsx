@@ -89,36 +89,38 @@ function CameraPage() {
         </div>
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 pb-10 pt-6 flex items-center justify-around">
+      <div className="absolute bottom-0 inset-x-0 pb-6 flex flex-col items-center">
+        <div className="w-full flex items-center justify-around pt-6">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
+            aria-label="Pick from library"
+          >
+            <ImagePlus size={22} />
+          </button>
+          <button
+            onClick={capture}
+            className="h-20 w-20 rounded-full bg-white/10 border-4 border-white flex items-center justify-center"
+            aria-label="Capture"
+          >
+            <span className="h-16 w-16 rounded-full bg-white/90" />
+          </button>
+          <button
+            onClick={() => setFacing((f) => (f === "user" ? "environment" : "user"))}
+            className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
+            aria-label="Flip camera"
+          >
+            <RefreshCw size={20} />
+          </button>
+        </div>
         <button
-          onClick={() => fileInputRef.current?.click()}
-          className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
-          aria-label="Pick from library"
+          onClick={() => navigate({ to: "/check-in/notes" })}
+          className="mt-4 text-[15px] font-medium text-white/90 px-4"
         >
-          <ImagePlus size={22} />
-        </button>
-        <button
-          onClick={capture}
-          className="h-20 w-20 rounded-full bg-white/10 border-4 border-white flex items-center justify-center"
-          aria-label="Capture"
-        >
-          <span className="h-16 w-16 rounded-full bg-white/90" />
-        </button>
-        <button
-          onClick={() => setFacing((f) => (f === "user" ? "environment" : "user"))}
-          className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
-          aria-label="Flip camera"
-        >
-          <RefreshCw size={20} />
+          Skip
         </button>
       </div>
 
-      <button
-        onClick={() => navigate({ to: "/check-in/notes" })}
-        className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[15px] font-medium text-white/90 py-2 px-4"
-      >
-        Skip
-      </button>
 
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
     </div>
