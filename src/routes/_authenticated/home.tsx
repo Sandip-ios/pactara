@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
+import { GettingStarted } from "@/components/GettingStarted";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -198,6 +199,8 @@ function HomePage() {
           Share what's on your mind or check in to start your streak.
         </div>
       </div>
+
+      <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />
 
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
     </div>
