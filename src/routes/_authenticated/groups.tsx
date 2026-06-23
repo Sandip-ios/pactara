@@ -57,7 +57,7 @@ function GroupsPage() {
   const [joinUrl, setJoinUrl] = useState("");
 
   if (isLoading || !data) {
-    return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
+    return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
   }
 
   const groups = data.groups;
@@ -65,8 +65,12 @@ function GroupsPage() {
 
   return (
     <div
-      className="min-h-[100dvh] w-full pb-28"
-      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
+      style={{
+        background: BG,
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: "#0A0A0A",
+      }}
     >
       <header className="bg-white px-6 pt-5 pb-4">
         <div className="text-[24px] font-black tracking-tight">
