@@ -86,7 +86,7 @@ function HomePage() {
             onClick={() => setComposerOpen(true)}
             className="flex-1 text-left rounded-full bg-neutral-100 px-4 py-3 text-[15px] text-neutral-400"
           >
-            What's on your mind, {status.firstName}?
+            What's on your mind, {firstName}?
           </button>
           <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
             <ImageIcon size={20} className="text-green-600" />
