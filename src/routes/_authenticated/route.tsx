@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { BottomTabs } from "@/components/BottomTabs";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -8,5 +9,16 @@ export const Route = createFileRoute("/_authenticated")({
     if (error || !data.user) throw redirect({ to: "/login" });
     return { user: data.user };
   },
-  component: () => <Outlet />,
+  component: AuthLayout,
 });
+
+function AuthLayout() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hideTabs = pathname.startsWith("/check-in");
+  return (
+    <>
+      <Outlet />
+      {!hideTabs && <BottomTabs />}
+    </>
+  );
+}

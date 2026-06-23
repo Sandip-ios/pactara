@@ -1,12 +1,7 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
-  Home,
-  Users,
-  Zap,
-  MessageCircle,
-  User as UserIcon,
   Plus,
   Link as LinkIcon,
   MoreHorizontal,
@@ -20,7 +15,6 @@ import {
   Flame,
   X,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { listMyGroups, renameGroup } from "@/lib/groups.functions";
 import {
   Popover,
@@ -164,10 +158,10 @@ function GroupsPage() {
         </button>
       </div>
 
-      <BottomTabs />
     </div>
   );
 }
+
 
 function GroupCard({
   group,
@@ -681,56 +675,3 @@ function EmptyGroups() {
   );
 }
 
-function BottomTabs() {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const handleSignOut = async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    navigate({ to: "/login", replace: true });
-  };
-  return (
-    <nav className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-neutral-200 px-2 pt-2 pb-6 grid grid-cols-5 items-end">
-      <TabItem icon={<Home size={22} />} label="Home" onClick={() => navigate({ to: "/home" })} />
-      <TabItem icon={<Users size={22} />} label="Groups" active />
-      <button onClick={() => navigate({ to: "/check-in" })} className="flex flex-col items-center gap-1 -mt-6">
-        <span
-          className="h-14 w-14 rounded-full flex items-center justify-center text-white"
-          style={{ background: PURPLE }}
-        >
-          <Zap size={24} />
-        </span>
-        <span className="text-[11px] font-medium">Check In</span>
-      </button>
-      <TabItem icon={<MessageCircle size={22} />} label="Chat" />
-      <button onClick={handleSignOut} className="flex flex-col items-center gap-1 text-neutral-400">
-        <UserIcon size={22} />
-        <span className="text-[11px] font-medium">Profile</span>
-      </button>
-    </nav>
-  );
-}
-
-function TabItem({
-  icon,
-  label,
-  active,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  active?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex flex-col items-center gap-1"
-      style={{ color: active ? PURPLE : "#A3A3A3" }}
-    >
-      {icon}
-      <span className="text-[11px] font-medium">{label}</span>
-    </button>
-  );
-}
