@@ -21,6 +21,7 @@ import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/c
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
+import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -84,16 +85,23 @@ const AuthenticatedCheckInCameraRoute =
     path: '/check-in/camera',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedChatGroupIdRoute =
+  AuthenticatedChatGroupIdRouteImport.update({
+    id: '/$groupId',
+    path: '/$groupId',
+    getParentRoute: () => AuthenticatedChatRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/chat': typeof AuthenticatedChatRoute
+  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -102,11 +110,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/chat': typeof AuthenticatedChatRoute
+  '/chat': typeof AuthenticatedChatRouteWithChildren
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
@@ -117,11 +126,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/_authenticated/chat': typeof AuthenticatedChatRoute
+  '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/invite'
     | '/profile'
+    | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
     | '/check-in/'
@@ -150,6 +161,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/invite'
     | '/profile'
+    | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
     | '/check-in'
@@ -164,6 +176,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/invite'
     | '/_authenticated/profile'
+    | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
     | '/_authenticated/check-in/'
@@ -262,11 +275,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckInCameraRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat/$groupId': {
+      id: '/_authenticated/chat/$groupId'
+      path: '/$groupId'
+      fullPath: '/chat/$groupId'
+      preLoaderRoute: typeof AuthenticatedChatGroupIdRouteImport
+      parentRoute: typeof AuthenticatedChatRoute
+    }
   }
 }
 
+interface AuthenticatedChatRouteChildren {
+  AuthenticatedChatGroupIdRoute: typeof AuthenticatedChatGroupIdRoute
+}
+
+const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
+  AuthenticatedChatGroupIdRoute: AuthenticatedChatGroupIdRoute,
+}
+
+const AuthenticatedChatRouteWithChildren =
+  AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
+  AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
@@ -277,7 +308,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedChatRoute: AuthenticatedChatRoute,
+  AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
