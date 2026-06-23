@@ -84,8 +84,8 @@ function HomePage() {
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
-          <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold" style={{ background: PURPLE }}>
-            {initials}
+          <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold overflow-hidden" style={{ background: PURPLE }}>
+            {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
           <button
             onClick={() => setComposerOpen(true)}
