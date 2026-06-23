@@ -6,7 +6,7 @@ import { listMyGroups } from "@/lib/groups.functions";
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 
-export const Route = createFileRoute("/_authenticated/chat")({
+export const Route = createFileRoute("/_authenticated/chat/")({
   component: ChatPage,
 });
 
@@ -48,7 +48,7 @@ function ChatPage() {
         {groups.map((g) => (
           <li key={g.id} className="border-b border-neutral-100">
             <button
-              onClick={() => navigate({ to: "/groups" })}
+              onClick={() => navigate({ to: "/chat/$groupId", params: { groupId: g.id } })}
               className="w-full flex items-center gap-4 px-6 py-4 text-left"
             >
               <span
