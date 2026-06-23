@@ -1,0 +1,1 @@
+ALTER TABLE public.check_ins DROP CONSTRAINT IF EXISTS check_ins_user_id_group_id_checkin_date_key;
