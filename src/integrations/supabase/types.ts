@@ -58,6 +58,63 @@ export type Database = {
           },
         ]
       }
+      daily_posts: {
+        Row: {
+          check_in_id: string | null
+          check_in_missed: boolean
+          created_at: string
+          group_id: string
+          id: string
+          local_date: string
+          morning_missed: boolean
+          morning_ritual_posted_at: string | null
+          morning_ritual_text: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          check_in_id?: string | null
+          check_in_missed?: boolean
+          created_at?: string
+          group_id: string
+          id?: string
+          local_date: string
+          morning_missed?: boolean
+          morning_ritual_posted_at?: string | null
+          morning_ritual_text?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          check_in_id?: string | null
+          check_in_missed?: boolean
+          created_at?: string
+          group_id?: string
+          id?: string
+          local_date?: string
+          morning_missed?: boolean
+          morning_ritual_posted_at?: string | null
+          morning_ritual_text?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_posts_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_posts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -153,6 +210,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          timezone: string
         }
         Insert: {
           avatar_color?: string
@@ -160,6 +218,7 @@ export type Database = {
           created_at?: string
           id: string
           name?: string
+          timezone?: string
         }
         Update: {
           avatar_color?: string
@@ -167,6 +226,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          timezone?: string
         }
         Relationships: []
       }

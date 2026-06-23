@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createCheckIn } from "@/lib/groups.functions";
+import { postMorningRitual } from "@/lib/daily-posts.functions";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -35,12 +35,13 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const [count, setCount] = useState(0);
   const MAX = 280;
 
-  const createCheckInFn = useServerFn(createCheckIn);
+  const postRitualFn = useServerFn(postMorningRitual);
   const mutation = useMutation({
-    mutationFn: createCheckInFn,
+    mutationFn: postRitualFn,
     onSuccess: () => {
       sessionStorage.setItem("morning-ritual-done", "1");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       onPosted();
     },
   });
@@ -53,7 +54,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const onPost = () => {
     const text = textareaRef.current?.value.trim();
     if (!text) return;
-    mutation.mutate({ data: { note: text } });
+    mutation.mutate({ data: { text } });
   };
 
   const canPost = count > 0 && count <= MAX && !mutation.isPending;

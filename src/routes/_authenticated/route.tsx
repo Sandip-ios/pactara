@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomTabs } from "@/components/BottomTabs";
+import { TimezoneSync } from "@/components/TimezoneSync";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -17,6 +18,7 @@ function AuthLayout() {
   const hideTabs = pathname.startsWith("/check-in/") || pathname === "/invite" || /^\/chat\/[^/]+/.test(pathname);
   return (
     <>
+      <TimezoneSync />
       <Outlet />
       {!hideTabs && <BottomTabs />}
     </>

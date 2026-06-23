@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
+import { getGroupFeed } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
+import { TimelineCard } from "@/components/TimelineCard";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -22,6 +24,11 @@ function HomePage() {
   const { data: pendingData } = useQuery({
     queryKey: ["pending-checkins"],
     queryFn: () => getPendingCheckIns(),
+  });
+  const { data: feedData } = useQuery({
+    queryKey: ["group-feed"],
+    queryFn: () => getGroupFeed(),
+    refetchOnWindowFocus: true,
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -190,15 +197,23 @@ function HomePage() {
         })}
       </div>
 
-      <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
-        <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-          <MessageSquare size={24} style={{ color: PURPLE }} />
+      {(feedData?.items.length ?? 0) > 0 ? (
+        <div className="pb-2">
+          {feedData!.items.map((item) => (
+            <TimelineCard key={item.id} item={item} />
+          ))}
         </div>
-        <div className="text-[16px] font-bold">Your feed is empty</div>
-        <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
-          Share what's on your mind or check in to start your streak.
+      ) : (
+        <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
+          <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
+            <MessageSquare size={24} style={{ color: PURPLE }} />
+          </div>
+          <div className="text-[16px] font-bold">Your feed is empty</div>
+          <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
+            Share what's on your mind or check in to start your streak.
+          </div>
         </div>
-      </div>
+      )}
 
       <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />
 

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createCheckIn } from "@/lib/groups.functions";
+import { recordCheckIn } from "@/lib/daily-posts.functions";
 import type { MoodId } from "./check-in.index";
 
 const PURPLE = "#7C3AED";
@@ -35,13 +35,14 @@ function NotesPage() {
     setPhoto(sessionStorage.getItem("checkin-photo"));
   }, []);
 
-  const createCheckInFn = useServerFn(createCheckIn);
+  const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: createCheckInFn,
+    mutationFn: recordCheckInFn,
     onSuccess: () => {
       sessionStorage.removeItem("checkin-mood");
       sessionStorage.removeItem("checkin-photo");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       navigate({ to: "/home" });
     },
   });
