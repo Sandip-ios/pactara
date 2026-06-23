@@ -159,8 +159,8 @@ export function TimelineCard({ item }: { item: FeedItem }) {
       <div className="px-4 pt-3 pb-3 relative">
         {nodes.length > 1 && (
           <div
-            className="absolute left-[31px] top-[36px] bottom-[36px] w-[3px] rounded-full"
-            style={{ background: "#E5E7EB" }}
+            className="absolute top-[36px] bottom-[36px] w-[3px] -translate-x-1/2 rounded-full"
+            style={{ left: "28px", background: "#E5E7EB" }}
           />
         )}
 
