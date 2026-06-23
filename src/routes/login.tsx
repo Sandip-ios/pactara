@@ -39,7 +39,10 @@ function LoginPage() {
       setError(error.message);
       return;
     }
-    if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem("invite-dismissed");
+      sessionStorage.removeItem("show-welcome");
+    }
     navigate({ to: "/home" });
   };
 
