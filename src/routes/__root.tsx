@@ -119,6 +119,35 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const RELOAD_KEY = "__chunk_reload_at";
+    const isChunkError = (msg: string) =>
+      /Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed/i.test(msg);
+    const maybeReload = (msg: string) => {
+      if (!isChunkError(msg)) return;
+      const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+      if (Date.now() - last < 10_000) return; // avoid reload loops
+      sessionStorage.setItem(RELOAD_KEY, String(Date.now()));
+      window.location.reload();
+    };
+    const onError = (e: ErrorEvent) => maybeReload(e.message || "");
+    const onRejection = (e: PromiseRejectionEvent) => {
+      const reason = e.reason;
+      const msg = typeof reason === "string" ? reason : reason?.message ?? "";
+      maybeReload(msg);
+    };
+    const onPreloadError = (e: Event) => maybeReload((e as CustomEvent).type + " preload");
+    window.addEventListener("error", onError);
+    window.addEventListener("unhandledrejection", onRejection);
+    window.addEventListener("vite:preloadError", onPreloadError as EventListener);
+    return () => {
+      window.removeEventListener("error", onError);
+      window.removeEventListener("unhandledrejection", onRejection);
+      window.removeEventListener("vite:preloadError", onPreloadError as EventListener);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
