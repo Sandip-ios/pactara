@@ -365,7 +365,7 @@ function BottomTabs() {
     navigate({ to: "/login", replace: true });
   };
   return (
-    <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 px-2 pt-2 pb-6 grid grid-cols-5 items-end">
+    <nav className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-neutral-200 px-2 pt-2 pb-6 grid grid-cols-5 items-end">
       <TabItem icon={<Home size={22} />} label="Home" onClick={() => navigate({ to: "/home" })} />
       <TabItem icon={<Users size={22} />} label="Groups" active />
       <button className="flex flex-col items-center gap-1 -mt-6">
