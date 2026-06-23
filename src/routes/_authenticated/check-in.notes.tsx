@@ -4,6 +4,7 @@ import { ChevronLeft } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { recordCheckIn } from "@/lib/daily-posts.functions";
+import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
 
 const PURPLE = "#7C3AED";
@@ -22,6 +23,28 @@ export const Route = createFileRoute("/_authenticated/check-in/notes")({
   component: NotesPage,
 });
 
+async function uploadCheckInPhoto(dataUrl: string): Promise<string | null> {
+  try {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return null;
+    const path = `${userId}/checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { error } = await supabase.storage
+      .from("chat-photos")
+      .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
+    if (error) {
+      console.error("photo upload failed", error);
+      return null;
+    }
+    return path;
+  } catch (e) {
+    console.error("photo upload error", e);
+    return null;
+  }
+}
+
 function NotesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -37,7 +60,8 @@ function NotesPage() {
 
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: recordCheckInFn,
+    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string }) =>
+      recordCheckInFn({ data: vars }),
     onSuccess: () => {
       sessionStorage.removeItem("checkin-mood");
       sessionStorage.removeItem("checkin-photo");
@@ -47,13 +71,19 @@ function NotesPage() {
     },
   });
 
-  const submit = () => {
+  const submit = async () => {
+    let photoUrl: string | undefined;
+    if (photo && photo.startsWith("data:")) {
+      const path = await uploadCheckInPhoto(photo);
+      if (path) photoUrl = path;
+    } else if (photo) {
+      photoUrl = photo;
+    }
     mutation.mutate({
-      data: {
-        note: note || undefined,
-        mood: mood || undefined,
-        activity: activity || undefined,
-      },
+      note: note || undefined,
+      mood: mood || undefined,
+      activity: activity || undefined,
+      photoUrl,
     });
   };
 
