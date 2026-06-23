@@ -455,6 +455,7 @@ function EditCommitmentDrawer({
 }) {
   const [localDuration, setLocalDuration] = useState(duration);
   const [localFreq, setLocalFreq] = useState<"daily" | "specific">(frequency);
+  const [daysPerWeek, setDaysPerWeek] = useState(7);
 
   const presets = [30, 60, 90];
 
