@@ -1,5 +1,5 @@
-import type { FeedItem } from "@/lib/daily-posts.functions";
-import { Hourglass, Flame, Share2, MessageCircle, ChevronDown } from "lucide-react";
+import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
+import { Hourglass, Flame, Share2, MessageCircle, ChevronDown, MessageSquare } from "lucide-react";
 
 const PURPLE = "#7C3AED";
 
@@ -20,7 +20,87 @@ const MOOD_META: Record<string, { label: string; emoji: string; color: string; b
   struggled: { label: "Struggled", emoji: "😤", color: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
 };
 
-function ReactionBar({ commentsOpen = false }: { commentsOpen?: boolean }) {
+type Visual = {
+  emoji: string;
+  label: string;
+  labelColor: string;
+  bg: string;
+  border: string;
+  dot: { fill: string; ring: string };
+  body?: string | null;
+  photoUrl?: string | null;
+  activity?: string | null;
+  time?: string;
+};
+
+function nodeVisual(node: TimelineNode): Visual | null {
+  switch (node.kind) {
+    case "ritual":
+      return {
+        emoji: "🌅",
+        label: "Morning Ritual",
+        labelColor: PURPLE,
+        bg: "#F4EEFF",
+        border: "#E5D9FE",
+        body: node.text,
+        time: timeAgo(node.at),
+        dot: { fill: PURPLE, ring: PURPLE },
+      };
+    case "ritual_missed":
+      return {
+        emoji: "😴",
+        label: "Missed Morning Ritual",
+        labelColor: "#B45309",
+        bg: "#FEF6E4",
+        border: "#FBE4B6",
+        body: "No plan was set for today",
+        time: timeAgo(node.at),
+        dot: { fill: "#F59E0B", ring: "#F59E0B" },
+      };
+    case "thought":
+      return {
+        emoji: "💭",
+        label: "Update",
+        labelColor: "#0F766E",
+        bg: "#ECFEFF",
+        border: "#CFFAFE",
+        body: node.text,
+        photoUrl: node.photoUrl,
+        time: timeAgo(node.at),
+        dot: { fill: "#0F766E", ring: "#0F766E" },
+      };
+    case "check_in": {
+      const mood = node.mood ? MOOD_META[node.mood] : null;
+      return {
+        emoji: mood?.emoji ?? "✅",
+        label: mood?.label ?? "Checked in",
+        labelColor: mood?.color ?? "#16A34A",
+        bg: mood?.bg ?? "#ECFDF3",
+        border: mood?.border ?? "#D1FADF",
+        body: node.note,
+        photoUrl: node.photoUrl,
+        activity: node.activity,
+        time: timeAgo(node.at),
+        dot: { fill: mood?.color ?? "#16A34A", ring: mood?.color ?? "#16A34A" },
+      };
+    }
+    case "check_in_missed":
+      return {
+        emoji: "❌",
+        label: "Missed Check-in",
+        labelColor: "#DC2626",
+        bg: "#FEF2F2",
+        border: "#FECACA",
+        body: "No check-in was recorded for this day",
+        time: timeAgo(node.at),
+        dot: { fill: "#FFFFFF", ring: "#DC2626" },
+      };
+    case "pending":
+      return null;
+  }
+}
+
+function ReactionBar() {
   return (
     <div className="border-t border-neutral-100 px-4 pt-3 pb-2">
       <div className="flex items-center justify-between">
@@ -51,58 +131,7 @@ function ReactionBar({ commentsOpen = false }: { commentsOpen?: boolean }) {
 
 export function TimelineCard({ item }: { item: FeedItem }) {
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
-  const ritualNode = item.ritual
-    ? {
-        emoji: "🌅",
-        label: "Morning Ritual",
-        labelColor: PURPLE,
-        bg: "#F4EEFF",
-        border: "#E5D9FE",
-        body: item.ritual.text,
-        time: timeAgo(item.ritual.postedAt),
-        dot: { fill: PURPLE, ring: PURPLE },
-        lineFromHere: PURPLE,
-      }
-    : item.ritualMissed
-      ? {
-          emoji: "😴",
-          label: "Missed Morning Ritual",
-          labelColor: "#B45309",
-          bg: "#FEF6E4",
-          border: "#FBE4B6",
-          body: "No plan was set for today",
-          time: timeAgo(item.updatedAt),
-          dot: { fill: "#F59E0B", ring: "#F59E0B" },
-          lineFromHere: item.checkInMissed ? "#DC2626" : "#F59E0B",
-        }
-      : null;
-
-  const mood = item.checkIn?.mood ? MOOD_META[item.checkIn.mood] : null;
-  const checkNode = item.checkIn
-    ? {
-        emoji: mood?.emoji ?? "✅",
-        label: mood?.label ?? "Checked in",
-        labelColor: mood?.color ?? "#16A34A",
-        bg: mood?.bg ?? "#ECFDF3",
-        border: mood?.border ?? "#D1FADF",
-        body: item.checkIn.note ?? "",
-        photoUrl: item.checkIn.photoUrl,
-        activity: item.checkIn.activity,
-        time: timeAgo(item.checkIn.createdAt),
-        dot: { fill: mood?.color ?? "#16A34A", ring: mood?.color ?? "#16A34A" },
-      }
-    : item.checkInMissed
-      ? {
-          emoji: "❌",
-          label: "Missed Check-in",
-          labelColor: "#DC2626",
-          bg: "#FEF2F2",
-          border: "#FECACA",
-          body: "No check-in was recorded for this day",
-          time: timeAgo(item.updatedAt),
-          dot: { fill: "#FFFFFF", ring: "#DC2626" },
-        }
-      : { pending: true as const };
+  const nodes = item.nodes;
 
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
@@ -128,96 +157,82 @@ export function TimelineCard({ item }: { item: FeedItem }) {
 
       {/* Timeline */}
       <div className="px-4 pt-3 pb-3 relative">
-        {/* Vertical line */}
-        <div
-          className="absolute left-[31px] top-[36px] bottom-[36px] w-[3px] rounded-full"
-          style={{ background: ritualNode?.lineFromHere ?? "#E5E7EB" }}
-        />
-
-        {/* Row 1: ritual */}
-        {ritualNode && (
-          <div className="flex gap-3 items-start">
-            <div className="relative w-6 h-6 mt-3 shrink-0">
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: ritualNode.dot.fill,
-                  boxShadow: `0 0 0 3px ${ritualNode.dot.ring}`,
-                  border: "3px solid white",
-                }}
-              />
-            </div>
-            <div
-              className="flex-1 rounded-2xl border p-3"
-              style={{ background: ritualNode.bg, borderColor: ritualNode.border }}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[18px] leading-none">{ritualNode.emoji}</span>
-                  <span className="text-[15px] font-bold truncate" style={{ color: ritualNode.labelColor }}>
-                    {ritualNode.label}
-                  </span>
-                </div>
-                <span className="text-[12px] text-neutral-400 shrink-0">{ritualNode.time}</span>
-              </div>
-              {ritualNode.body && <div className="mt-1 text-[15px] text-neutral-900">{ritualNode.body}</div>}
-            </div>
-          </div>
+        {nodes.length > 1 && (
+          <div
+            className="absolute left-[31px] top-[36px] bottom-[36px] w-[3px] rounded-full"
+            style={{ background: "#E5E7EB" }}
+          />
         )}
 
-        {/* Row 2: check-in / pending / missed */}
-        <div className={`flex gap-3 items-start ${ritualNode ? "mt-3" : ""}`}>
-          <div className="relative w-6 h-6 mt-3 shrink-0">
-            {"pending" in checkNode ? (
-              <div
-                className="absolute inset-0 rounded-full bg-white"
-                style={{ boxShadow: `0 0 0 3px #D4D4D4`, border: "3px solid white" }}
-              />
-            ) : (
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: checkNode.dot.fill,
-                  boxShadow: `0 0 0 3px ${checkNode.dot.ring}`,
-                  border: "3px solid white",
-                }}
-              />
-            )}
-          </div>
-          {"pending" in checkNode ? (
-            <div className="flex-1 rounded-2xl border border-dashed border-neutral-300 p-3 flex items-center gap-2">
-              <Hourglass size={18} className="text-neutral-400" />
-              <span className="text-[15px] text-neutral-400">Check-in pending…</span>
-            </div>
-          ) : (
-            <div
-              className="flex-1 rounded-2xl border p-3"
-              style={{ background: checkNode.bg, borderColor: checkNode.border }}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[18px] leading-none">{checkNode.emoji}</span>
-                  <span className="text-[15px] font-bold truncate" style={{ color: checkNode.labelColor }}>
-                    {checkNode.label}
-                  </span>
-                </div>
-                <span className="text-[12px] text-neutral-400 shrink-0">{checkNode.time}</span>
+        {nodes.map((node, idx) => {
+          const visual = nodeVisual(node);
+          const isPending = node.kind === "pending";
+          return (
+            <div key={node.id} className={`flex gap-3 items-start ${idx > 0 ? "mt-3" : ""}`}>
+              <div className="relative w-6 h-6 mt-3 shrink-0">
+                {isPending || !visual ? (
+                  <div
+                    className="absolute inset-0 rounded-full bg-white"
+                    style={{ boxShadow: `0 0 0 3px #D4D4D4`, border: "3px solid white" }}
+                  />
+                ) : (
+                  <div
+                    className="absolute inset-0 rounded-full"
+                    style={{
+                      background: visual.dot.fill,
+                      boxShadow: `0 0 0 3px ${visual.dot.ring}`,
+                      border: "3px solid white",
+                    }}
+                  />
+                )}
               </div>
-              {checkNode.body && <div className="mt-1 text-[15px] text-neutral-900">{checkNode.body}</div>}
-              {"photoUrl" in checkNode && checkNode.photoUrl && (
-                <div className="mt-2 relative">
-                  <img src={checkNode.photoUrl} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
-                  {checkNode.activity && (
-                    <div className="absolute top-2 right-2 bg-black/70 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1">
-                      <Flame size={14} />
-                      {checkNode.activity[0].toUpperCase() + checkNode.activity.slice(1)}
+
+              {isPending || !visual ? (
+                <div className="flex-1 rounded-2xl border border-dashed border-neutral-300 p-3 flex items-center gap-2">
+                  <Hourglass size={18} className="text-neutral-400" />
+                  <span className="text-[15px] text-neutral-400">Check-in pending…</span>
+                </div>
+              ) : (
+                <div
+                  className="flex-1 rounded-2xl border p-3"
+                  style={{ background: visual.bg, borderColor: visual.border }}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-[18px] leading-none">{visual.emoji}</span>
+                      <span className="text-[15px] font-bold truncate" style={{ color: visual.labelColor }}>
+                        {visual.label}
+                      </span>
+                    </div>
+                    {visual.time && (
+                      <span className="text-[12px] text-neutral-400 shrink-0">{visual.time}</span>
+                    )}
+                  </div>
+                  {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
+                  {visual.photoUrl && (
+                    <div className="mt-2 relative">
+                      <img src={visual.photoUrl} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
+                      {visual.activity && (
+                        <div className="absolute top-2 right-2 bg-black/70 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1">
+                          <Flame size={14} />
+                          {visual.activity[0].toUpperCase() + visual.activity.slice(1)}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               )}
             </div>
-          )}
-        </div>
+          );
+        })}
+
+        {/* Hint shown when only a pending node renders. */}
+        {nodes.length === 0 && (
+          <div className="flex items-center gap-2 text-neutral-400 text-[14px]">
+            <MessageSquare size={16} />
+            Nothing shared yet
+          </div>
+        )}
       </div>
 
       <ReactionBar />
