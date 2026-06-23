@@ -5,7 +5,7 @@ import { getMyGroupStatus } from "@/lib/groups.functions";
 
 
 const PURPLE = "#7C3AED";
-const AVATAR_BG = "#22C55E";
+const AVATAR_BG = "#7C3AED";
 
 export function BottomTabs() {
   const navigate = useNavigate();
