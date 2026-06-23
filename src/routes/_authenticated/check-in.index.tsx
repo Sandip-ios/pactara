@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowRight, Check, X } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -180,5 +180,3 @@ function CheckInMood() {
   );
 }
 
-// Re-export so other routes importing MOODS / MoodId from this module keep working.
-useEffect; // no-op to satisfy unused import in some bundlers
