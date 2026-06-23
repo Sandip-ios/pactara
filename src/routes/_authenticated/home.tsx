@@ -207,11 +207,12 @@ function BottomTabs() {
   );
 }
 
-function TabItem({ icon, label, active }: { icon: React.ReactNode; label: string; active?: boolean }) {
+function TabItem({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active?: boolean; onClick?: () => void }) {
   return (
-    <button className="flex flex-col items-center gap-1" style={{ color: active ? PURPLE : "#A3A3A3" }}>
+    <button onClick={onClick} className="flex flex-col items-center gap-1" style={{ color: active ? PURPLE : "#A3A3A3" }}>
       {icon}
       <span className="text-[11px] font-medium">{label}</span>
     </button>
   );
 }
+
