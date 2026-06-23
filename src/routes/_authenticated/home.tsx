@@ -24,6 +24,21 @@ function HomePage() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState("");
   const composerRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const pickImage = () => {
+    setComposerOpen(true);
+    fileInputRef.current?.click();
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setImagePreview(url);
+    e.target.value = "";
+  };
 
   useEffect(() => {
     if (composerOpen) composerRef.current?.focus();
@@ -74,7 +89,7 @@ function HomePage() {
           >
             What's on your mind, {status.firstName}?
           </button>
-          <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+          <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
             <ImageIcon size={20} className="text-green-600" />
           </button>
         </div>
@@ -92,21 +107,35 @@ function HomePage() {
               className="flex-1 resize-none outline-none text-[15px] placeholder:text-neutral-400 min-h-[96px] bg-transparent"
             />
           </div>
+          {imagePreview && (
+            <div className="px-4 pb-3">
+              <div className="relative inline-block">
+                <img src={imagePreview} alt="Selected" className="max-h-48 rounded-lg" />
+                <button
+                  onClick={() => setImagePreview(null)}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full h-6 w-6 text-xs"
+                  aria-label="Remove image"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
           <div className="border-t border-neutral-100 px-3 py-2 flex items-center justify-between">
-            <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+            <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
               <ImageIcon size={20} className="text-green-600" />
             </button>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setComposerOpen(false); setComposerText(""); }}
+                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); }}
                 className="px-4 py-2 rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-700"
               >
                 Cancel
               </button>
               <button
-                disabled={!composerText.trim()}
+                disabled={!composerText.trim() && !imagePreview}
                 className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
-                style={{ background: composerText.trim() ? PURPLE : "#D4D4D4" }}
+                style={{ background: (composerText.trim() || imagePreview) ? PURPLE : "#D4D4D4" }}
               >
                 <Send size={16} />
                 Post
@@ -115,6 +144,7 @@ function HomePage() {
           </div>
         </div>
       )}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
       <div className="px-6 pt-6">
         <div className="text-[15px] font-bold">Waiting to check in <span className="text-neutral-400 font-normal">1</span></div>
