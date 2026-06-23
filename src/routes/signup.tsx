@@ -611,7 +611,7 @@ function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string)
 /* ------------ Step: Good Company (interstitial) ------------ */
 function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
   return (
-    <div className="min-h-screen w-full flex flex-col relative overflow-hidden" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="min-h-[100dvh] w-full flex flex-col relative overflow-hidden" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <img src={goodCompany.url} alt="Group of friends celebrating" className="absolute inset-0 w-full h-full object-cover" />
       <div
         className="absolute inset-0"
@@ -1118,7 +1118,7 @@ function PaywallStep({
   ];
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-12 pb-6"
+      className="min-h-[100dvh] w-full flex flex-col px-6 pt-12 pb-6"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
       <div>
@@ -1344,7 +1344,7 @@ function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: stri
   const name = firstName || "friend";
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pt-14 pb-8"
+      className="min-h-[100dvh] w-full flex flex-col px-6 pt-14 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
       <div className="flex-1 flex flex-col items-center text-center" style={{ paddingTop: "28vh" }}>
@@ -1390,7 +1390,7 @@ function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => 
   ];
   return (
     <div
-      className="min-h-screen w-full flex flex-col px-6 pb-8"
+      className="min-h-[100dvh] w-full flex flex-col px-6 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Here's how it works</h1>

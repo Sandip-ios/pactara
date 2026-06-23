@@ -73,12 +73,12 @@ function Index() {
 
   return (
     <div
-      className="min-h-screen w-full bg-white"
+      className="min-h-[100dvh] w-full bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="mx-auto flex min-h-screen w-full max-w-[440px] flex-col px-6 pb-8 pt-14">
+      <div className="mx-auto flex min-h-[100dvh] w-full max-w-[440px] flex-col px-6 pb-8 pt-14">
         {/* Header */}
         <header className="mb-2 flex items-center justify-between">
           <Wordmark />
