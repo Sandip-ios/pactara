@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
-import { getGroupFeed } from "@/lib/daily-posts.functions";
+import { getGroupFeed, postThought } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
@@ -37,6 +38,24 @@ function HomePage() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
+  const postThoughtFn = useServerFn(postThought);
+  const thoughtMutation = useMutation({
+    mutationFn: postThoughtFn,
+    onSuccess: () => {
+      setComposerOpen(false);
+      setComposerText("");
+      setImagePreview(null);
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+    },
+  });
+
+  const submitThought = () => {
+    const text = composerText.trim();
+    if (!text && !imagePreview) return;
+    thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: imagePreview || undefined } });
+  };
 
   const pickImage = () => {
     setComposerOpen(true);
@@ -144,12 +163,13 @@ function HomePage() {
                 Cancel
               </button>
               <button
-                disabled={!composerText.trim() && !imagePreview}
+                onClick={submitThought}
+                disabled={(!composerText.trim() && !imagePreview) || thoughtMutation.isPending}
                 className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
                 style={{ background: (composerText.trim() || imagePreview) ? PURPLE : "#D4D4D4" }}
               >
                 <Send size={16} />
-                Post
+                {thoughtMutation.isPending ? "Posting…" : "Post"}
               </button>
             </div>
           </div>

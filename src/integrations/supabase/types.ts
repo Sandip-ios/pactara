@@ -115,6 +115,44 @@ export type Database = {
           },
         ]
       }
+      daily_thoughts: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          local_date: string
+          photo_url: string | null
+          text: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          local_date: string
+          photo_url?: string | null
+          text?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          local_date?: string
+          photo_url?: string | null
+          text?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_thoughts_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
