@@ -54,7 +54,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const onPost = () => {
     const text = textareaRef.current?.value.trim();
     if (!text) return;
-    mutation.mutate({ data: { note: text } });
+    mutation.mutate({ data: { text } });
   };
 
   const canPost = count > 0 && count <= MAX && !mutation.isPending;
