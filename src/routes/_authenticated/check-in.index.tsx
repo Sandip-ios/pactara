@@ -89,8 +89,7 @@ function MorningRitual() {
           onInput={onInput}
           maxLength={MAX}
           placeholder="Run 5K before work, hit the gym at 6pm…"
-          className="w-full min-h-[180px] rounded-2xl bg-white p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
-          style={{ boxShadow: `0 0 0 2px ${PURPLE}` }}
+          className="w-full min-h-[180px] rounded-2xl bg-white p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400 ring-1 ring-neutral-200 focus:ring-2 focus:ring-[#7C3AED]"
         />
         <div className="mt-2 pr-1 text-right text-[13px] text-neutral-400">
           {count}/{MAX}
