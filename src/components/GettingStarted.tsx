@@ -102,7 +102,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
         className="fixed right-4 z-30 flex items-center gap-2 rounded-full pl-4 pr-2 py-2.5 text-white font-semibold shadow-lg"
         style={{
           background: ORANGE,
-          bottom: "88px",
+          bottom: "102px",
           boxShadow: `0 10px 30px -10px ${ORANGE}`,
         }}
         aria-label="Getting started"
