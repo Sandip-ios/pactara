@@ -50,7 +50,7 @@ export function BottomTabs() {
         </span>
         <span className="text-[11px] font-medium">Check In</span>
       </button>
-      <TabItem icon={<MessageCircle size={22} />} label="Chat" active={isActive("/chat")} />
+      <TabItem icon={<MessageCircle size={22} />} label="Chat" active={isActive("/chat")} onClick={() => navigate({ to: "/chat" })} />
       <button
         onClick={() => navigate({ to: "/profile" })}
         className="flex flex-col items-center gap-1"
