@@ -155,7 +155,7 @@ function HomePage() {
             {initials}
           </div>
           <div className="mt-2 text-[15px] font-semibold">You</div>
-          <button className="mt-3 w-full rounded-full py-2 text-white text-[14px] font-semibold" style={{ background: PURPLE }}>
+          <button onClick={() => navigate({ to: "/check-in" })} className="mt-3 w-full rounded-full py-2 text-white text-[14px] font-semibold" style={{ background: PURPLE }}>
             Check in
           </button>
         </div>
