@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Home, Users, Zap, MessageCircle, User as UserIcon, ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
