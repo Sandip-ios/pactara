@@ -104,12 +104,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         }
       : { pending: true as const };
 
-  const topMissed = item.ritualMissed && !item.ritual;
-  const headerSuffix = topMissed
-    ? { text: "missed morning ritual", color: "#B45309" }
-    : item.checkInMissed && !item.checkIn
-      ? { text: "missed check-in", color: "#DC2626" }
-      : null;
+  const headerSuffix = null;
 
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
