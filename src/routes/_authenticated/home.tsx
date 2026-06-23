@@ -59,10 +59,8 @@ function HomePage() {
     setShowOnboarding(false);
   };
 
-  if (isLoading || !status) {
-    return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
-  }
-  const initials = (status.firstName || "U").slice(0, 1).toUpperCase();
+  const initials = (status?.firstName || "U").slice(0, 1).toUpperCase();
+  const firstName = status?.firstName || "there";
 
   return (
     <div className="min-h-[100dvh] w-full pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -71,6 +69,8 @@ function HomePage() {
           <span style={{ color: PURPLE }}>P</span><span>actara</span>
         </div>
       </header>
+
+      {!status && <div aria-hidden className="px-6 pt-4 text-[13px] opacity-0">.</div>}
 
       <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
         <span className="font-semibold">Day 1 of 30</span>
