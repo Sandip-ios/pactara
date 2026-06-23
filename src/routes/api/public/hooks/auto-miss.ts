@@ -56,8 +56,9 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
-          // ── Missed morning ritual: past noon, no ritual posted today
-          if (hour >= 12) {
+          // ── Missed morning ritual: past noon, no ritual posted today.
+          // Only counts for days on/after the user joined the group.
+          if (hour >= 12 && today >= joinedLocalDate) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")
               .select("id, morning_ritual_posted_at, morning_missed")
@@ -84,9 +85,10 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           }
 
           // ── Missed check-in: it's now past midnight in their tz, so yesterday is closed.
-          // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight)
+          // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
+          // Only counts if the user was already a member on that day.
           const yesterday = localDateFor(tz, new Date(now.getTime() - 60 * 60 * 1000 * (hour + 1)));
-          if (yesterday !== today) {
+          if (yesterday !== today && yesterday >= joinedLocalDate) {
             const { data: y } = await supabaseAdmin
               .from("daily_posts")
               .select("id, check_in_id, check_in_missed")
