@@ -162,9 +162,9 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
                       aria-label={isDone ? "Mark incomplete" : "Mark complete"}
                     >
                       {isDone ? (
-                        <CheckCircle2 size={24} style={{ color: PURPLE }} />
+                        <CheckCircle2 size={24} style={{ color: ORANGE }} />
                       ) : (
-                        <Circle size={24} className="text-purple-300" />
+                        <Circle size={24} className="text-orange-300" />
                       )}
                     </button>
                     <div className="flex-1">
