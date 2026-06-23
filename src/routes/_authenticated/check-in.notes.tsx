@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createCheckIn } from "@/lib/groups.functions";
+import { recordCheckIn } from "@/lib/daily-posts.functions";
 import type { MoodId } from "./check-in.index";
 
 const PURPLE = "#7C3AED";
