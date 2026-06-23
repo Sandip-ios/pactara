@@ -18,18 +18,27 @@ import {
   Trash2,
   CalendarDays,
   Flame,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { listMyGroups } from "@/lib/groups.functions";
+import { listMyGroups, renameGroup } from "@/lib/groups.functions";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
 const PURPLE_SOFT = "#F3EEFF";
+const PURPLE_TINT = "#FDF4F5";
 const BG = "#F5F2EE";
 
 export const Route = createFileRoute("/_authenticated/groups")({
