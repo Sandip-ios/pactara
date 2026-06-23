@@ -3,8 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
+import { getGroupFeed } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
+import { TimelineCard } from "@/components/TimelineCard";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
