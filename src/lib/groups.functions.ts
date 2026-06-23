@@ -34,17 +34,22 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name")
+      .select("name, avatar_url")
       .eq("id", userId)
       .maybeSingle();
 
     const firstName = (profile?.name ?? "").split(" ")[0] || "there";
+    const avatarUrl = await signAvatar(
+      supabase,
+      (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null,
+    );
 
     if (!membership) {
       return {
         hasGroup: false as const,
         memberCount: 0,
         firstName,
+        avatarUrl,
         group: null,
       };
     }
@@ -66,6 +71,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
       hasGroup: true as const,
       memberCount: count ?? 0,
       firstName,
+      avatarUrl,
       group: group ?? null,
     };
   });
