@@ -80,36 +80,7 @@ function CheckInMood() {
         </button>
       </div>
 
-      <BottomTabs />
     </div>
   );
 }
 
-function BottomTabs() {
-  const navigate = useNavigate();
-  return (
-    <nav className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-neutral-200 px-2 pt-2 pb-6 grid grid-cols-5 items-end">
-      <TabItem icon={<Home size={22} />} label="Home" onClick={() => navigate({ to: "/home" })} />
-      <TabItem icon={<Users size={22} />} label="Groups" onClick={() => navigate({ to: "/groups" })} />
-      <button className="flex flex-col items-center gap-1 -mt-6">
-        <span className="h-14 w-14 rounded-full flex items-center justify-center text-white" style={{ background: PURPLE }}>
-          <Zap size={24} />
-        </span>
-        <span className="text-[11px] font-medium" style={{ color: PURPLE }}>Check In</span>
-      </button>
-      <TabItem icon={<MessageCircle size={22} />} label="Chat" />
-      <TabItem icon={<UserIcon size={22} />} label="Profile" badge />
-    </nav>
-  );
-}
-
-function TabItem({ icon, label, onClick, badge }: { icon: React.ReactNode; label: string; onClick?: () => void; badge?: boolean }) {
-  return (
-    <button onClick={onClick} className="flex flex-col items-center gap-1 text-neutral-400">
-      {badge ? (
-        <span className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[12px] font-bold" style={{ background: PURPLE }}>J</span>
-      ) : icon}
-      <span className="text-[11px] font-medium">{label}</span>
-    </button>
-  );
-}
