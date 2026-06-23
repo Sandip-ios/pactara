@@ -183,3 +183,27 @@ export const setMyName = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Renames a group. Only the owner can rename.
+ */
+export const renameGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId: string; name: string }) => {
+    if (!input || typeof input.groupId !== "string" || typeof input.name !== "string") {
+      throw new Error("Invalid input");
+    }
+    const name = input.name.trim().slice(0, 80);
+    if (!name) throw new Error("Group name required");
+    return { groupId: input.groupId, name };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("groups")
+      .update({ name: data.name })
+      .eq("id", data.groupId)
+      .eq("owner_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
