@@ -73,7 +73,7 @@ function CheckInMood() {
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
           style={{
             background: selected ? PURPLE : "#D9D6D1",
-            boxShadow: selected ? `0 12px 30px -10px ${mood?.color ?? PURPLE}80` : "none",
+            boxShadow: "none",
           }}
         >
           Continue <ArrowRight size={18} />
