@@ -282,6 +282,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     if (error) throw new Error(error.message);
     if (!posts || posts.length === 0) return { items: [] };
 
+    // Per-user timezones so we can derive "missed" without waiting for cron.
+    const { data: tzProfiles } = await supabase
+      .from("profiles")
+      .select("id, timezone")
+      .in("id", Array.from(new Set((posts ?? []).map((p) => p.user_id))));
+    const tzMap = new Map((tzProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
+    const now = new Date();
+
     const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
     const dates = Array.from(new Set(posts.map((p) => p.local_date)));
 
@@ -335,6 +343,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       const prof = profileMap.get(p.user_id);
       const nodes: TimelineNode[] = [];
 
+      const tz = tzMap.get(p.user_id) ?? "UTC";
+      const todayLocal = localDateFor(tz, now);
+      const localHour = localHourFor(tz, now);
+      const isToday = p.local_date === todayLocal;
+      const isPastDay = p.local_date < todayLocal;
+      const ritualMissed = !p.morning_ritual_text && (p.morning_missed || isPastDay || (isToday && localHour >= 12));
+      const checkInMissed = p.check_in_missed || isPastDay;
+
       // Morning ritual (or missed)
       if (p.morning_ritual_text) {
         nodes.push({
@@ -343,7 +359,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           text: p.morning_ritual_text,
           at: p.morning_ritual_posted_at ?? p.created_at,
         });
-      } else if (p.morning_missed) {
+      } else if (ritualMissed) {
         nodes.push({
           kind: "ritual_missed",
           id: `rm-${p.id}`,
@@ -382,7 +398,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       }
 
       if (myCheckIns.length === 0) {
-        if (p.check_in_missed) {
+        if (checkInMissed) {
           nodes.push({ kind: "check_in_missed", id: `cm-${p.id}`, at: p.updated_at });
         } else {
           nodes.push({ kind: "pending", id: `p-${p.id}` });
