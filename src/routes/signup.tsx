@@ -436,6 +436,7 @@ function NameStep({
 }) {
   const [touched, setTouched] = useState(false);
   const [touchedLast, setTouchedLast] = useState(false);
+  const firstRef = useClientAutoFocus<HTMLInputElement>();
   const firstError = touched && firstName.trim().length === 0 ? "Add your first name so your group knows who you are" : null;
   const lastError = touchedLast && lastName.trim().length === 0 ? "Add your last name so your group knows who you are" : null;
   return (
@@ -447,12 +448,12 @@ function NameStep({
       <div className="mt-7 flex flex-col gap-4">
         <Field label="FIRST NAME" error={firstError}>
           <input
+            ref={firstRef}
             className={inputClass}
             placeholder="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             onBlur={() => setTouched(true)}
-            autoFocus
             aria-invalid={!!firstError}
           />
         </Field>
