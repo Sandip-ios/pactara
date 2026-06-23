@@ -135,10 +135,11 @@ function NotesPage() {
       >
         <button
           onClick={submit}
-          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold"
+          disabled={mutation.isPending}
+          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE, boxShadow: `0 18px 40px -12px ${PURPLE}80` }}
         >
-          Share
+          {mutation.isPending ? "Sharing…" : "Share"}
         </button>
       </div>
     </div>
