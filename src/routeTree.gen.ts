@@ -16,6 +16,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
+import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
+import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
+import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -51,6 +54,24 @@ const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCheckInIndexRoute =
+  AuthenticatedCheckInIndexRouteImport.update({
+    id: '/check-in/',
+    path: '/check-in/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckInNotesRoute =
+  AuthenticatedCheckInNotesRouteImport.update({
+    id: '/check-in/notes',
+    path: '/check-in/notes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckInCameraRoute =
+  AuthenticatedCheckInCameraRouteImport.update({
+    id: '/check-in/camera',
+    path: '/check-in/camera',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +80,9 @@ export interface FileRoutesByFullPath {
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
+  '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
+  '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/check-in/': typeof AuthenticatedCheckInIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -67,6 +91,9 @@ export interface FileRoutesByTo {
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
+  '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
+  '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/check-in': typeof AuthenticatedCheckInIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,12 +104,33 @@ export interface FileRoutesById {
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
+  '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
+  '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup' | '/groups' | '/home' | '/invite'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/groups'
+    | '/home'
+    | '/invite'
+    | '/check-in/camera'
+    | '/check-in/notes'
+    | '/check-in/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup' | '/groups' | '/home' | '/invite'
+  to:
+    | '/'
+    | '/login'
+    | '/signup'
+    | '/groups'
+    | '/home'
+    | '/invite'
+    | '/check-in/camera'
+    | '/check-in/notes'
+    | '/check-in'
   id:
     | '__root__'
     | '/'
@@ -92,6 +140,9 @@ export interface FileRouteTypes {
     | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/invite'
+    | '/_authenticated/check-in/camera'
+    | '/_authenticated/check-in/notes'
+    | '/_authenticated/check-in/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,6 +203,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/check-in/': {
+      id: '/_authenticated/check-in/'
+      path: '/check-in'
+      fullPath: '/check-in/'
+      preLoaderRoute: typeof AuthenticatedCheckInIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/check-in/notes': {
+      id: '/_authenticated/check-in/notes'
+      path: '/check-in/notes'
+      fullPath: '/check-in/notes'
+      preLoaderRoute: typeof AuthenticatedCheckInNotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/check-in/camera': {
+      id: '/_authenticated/check-in/camera'
+      path: '/check-in/camera'
+      fullPath: '/check-in/camera'
+      preLoaderRoute: typeof AuthenticatedCheckInCameraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -159,12 +231,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
+  AuthenticatedCheckInCameraRoute: typeof AuthenticatedCheckInCameraRoute
+  AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
+  AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
+  AuthenticatedCheckInCameraRoute: AuthenticatedCheckInCameraRoute,
+  AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
+  AuthenticatedCheckInIndexRoute: AuthenticatedCheckInIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

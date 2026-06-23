@@ -192,7 +192,7 @@ function BottomTabs() {
       <TabItem icon={<Home size={22} />} label="Home" active />
       <TabItem icon={<Users size={22} />} label="Groups" onClick={() => navigate({ to: "/groups" })} />
 
-      <button className="flex flex-col items-center gap-1 -mt-6">
+      <button onClick={() => navigate({ to: "/check-in" })} className="flex flex-col items-center gap-1 -mt-6">
         <span className="h-14 w-14 rounded-full flex items-center justify-center text-white" style={{ background: PURPLE }}>
           <Zap size={24} />
         </span>
