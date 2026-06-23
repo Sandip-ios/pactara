@@ -58,10 +58,14 @@ export function BottomTabs() {
         aria-label="Profile"
       >
         <span
-          className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold"
+          className="h-7 w-7 rounded-full flex items-center justify-center text-white text-[13px] font-bold overflow-hidden"
           style={{ background: isProfile ? PURPLE : AVATAR_BG }}
         >
-          {initial}
+          {status?.avatarUrl ? (
+            <img src={status.avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+          ) : (
+            initial
+          )}
         </span>
         <span className="text-[11px] font-medium" style={{ color: isProfile ? PURPLE : "#A3A3A3" }}>Profile</span>
       </button>
