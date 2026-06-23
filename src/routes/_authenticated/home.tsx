@@ -142,9 +142,9 @@ function HomePage() {
               </button>
             </div>
           </div>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
         </div>
       )}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
       <div className="px-6 pt-6">
         <div className="text-[15px] font-bold">Waiting to check in <span className="text-neutral-400 font-normal">1</span></div>
