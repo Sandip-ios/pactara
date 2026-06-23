@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Home, Users, Zap, MessageCircle, User as UserIcon, MessageSquare, Image as ImageIcon } from "lucide-react";
+import { Home, Users, Zap, MessageCircle, User as UserIcon, MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
