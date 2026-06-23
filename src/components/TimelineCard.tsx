@@ -104,7 +104,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         }
       : { pending: true as const };
 
-  const headerSuffix = null;
+  const headerSuffix: { text: string; color: string } | null = null;
 
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
