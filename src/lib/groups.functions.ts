@@ -95,13 +95,18 @@ export const listMyGroups = createServerFn({ method: "GET" })
     if (!memberships || memberships.length === 0) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("name, avatar_color")
+        .select("name, avatar_color, avatar_url")
         .eq("id", userId)
         .maybeSingle();
+      const avatarUrl = await signAvatar(
+        supabase,
+        (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null,
+      );
       return {
         groups: [],
         firstName: (profile?.name ?? "").split(" ")[0] || "there",
         avatarColor: profile?.avatar_color ?? "#22C55E",
+        avatarUrl,
       };
     }
 
@@ -120,9 +125,13 @@ export const listMyGroups = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color")
+      .select("name, avatar_color, avatar_url")
       .eq("id", userId)
       .maybeSingle();
+    const avatarUrl = await signAvatar(
+      supabase,
+      (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null,
+    );
 
     const out = (groups ?? []).map((g) => {
       const members = (allMembers ?? []).filter((m) => m.group_id === g.id);
@@ -142,6 +151,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
       groups: out,
       firstName: (profile?.name ?? "").split(" ")[0] || "there",
       avatarColor: profile?.avatar_color ?? "#22C55E",
+      avatarUrl,
     };
   });
 
