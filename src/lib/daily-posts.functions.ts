@@ -280,6 +280,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
+    if (!posts || posts.length === 0) return { items: [] };
 
     // Per-user timezones so we can derive "missed" without waiting for cron.
     const { data: tzProfiles } = await supabase
