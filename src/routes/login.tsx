@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,17 +23,28 @@ const TEXT = "#0A0A0A";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [canSubmit, setCanSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleInput = () => {
+    setError(null);
+    setCanSubmit(
+      (emailRef.current?.value.trim().length ?? 0) > 0 &&
+        (passwordRef.current?.value.length ?? 0) > 0,
+    );
+  };
 
   const handleSignIn = async () => {
     if (submitting) return;
+    const email = emailRef.current?.value.trim() ?? "";
+    const password = passwordRef.current?.value ?? "";
     setError(null);
     setSubmitting(true);
-    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) {
       setError(error.message);
@@ -84,8 +95,9 @@ function LoginPage() {
           type="email"
           inputMode="email"
           autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          ref={emailRef}
+          defaultValue=""
+          onInput={handleInput}
           placeholder="you@example.com"
           className="mt-1.5 w-full bg-transparent outline-none text-[17px]"
           style={{ color: TEXT }}
@@ -107,8 +119,9 @@ function LoginPage() {
           <input
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            ref={passwordRef}
+            defaultValue=""
+            onInput={handleInput}
             placeholder="Your password"
             className="flex-1 bg-transparent outline-none text-[17px]"
             style={{ color: TEXT }}
@@ -142,7 +155,7 @@ function LoginPage() {
       <button
         type="button"
         onClick={handleSignIn}
-        disabled={submitting || !email || !password}
+        disabled={submitting || !canSubmit}
         className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
         style={{
           background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
