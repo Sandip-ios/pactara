@@ -343,6 +343,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       const prof = profileMap.get(p.user_id);
       const nodes: TimelineNode[] = [];
 
+      const tz = tzMap.get(p.user_id) ?? "UTC";
+      const todayLocal = localDateFor(tz, now);
+      const localHour = localHourFor(tz, now);
+      const isToday = p.local_date === todayLocal;
+      const isPastDay = p.local_date < todayLocal;
+      const ritualMissed = !p.morning_ritual_text && (p.morning_missed || isPastDay || (isToday && localHour >= 12));
+      const checkInMissed = p.check_in_missed || isPastDay;
+
       // Morning ritual (or missed)
       if (p.morning_ritual_text) {
         nodes.push({
@@ -351,7 +359,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           text: p.morning_ritual_text,
           at: p.morning_ritual_posted_at ?? p.created_at,
         });
-      } else if (p.morning_missed) {
+      } else if (ritualMissed) {
         nodes.push({
           kind: "ritual_missed",
           id: `rm-${p.id}`,
