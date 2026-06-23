@@ -280,6 +280,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
+
+    // Per-user timezones so we can derive "missed" without waiting for cron.
+    const { data: tzProfiles } = await supabase
+      .from("profiles")
+      .select("id, timezone")
+      .in("id", Array.from(new Set((posts ?? []).map((p) => p.user_id))));
+    const tzMap = new Map((tzProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
+    const now = new Date();
     if (!posts || posts.length === 0) return { items: [] };
 
     const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
