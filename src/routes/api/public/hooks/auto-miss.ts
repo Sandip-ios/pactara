@@ -32,9 +32,9 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
         }
 
         // Keep only the most recent membership per user (their "primary" group).
-        const primary = new Map<string, { groupId: string }>();
+        const primary = new Map<string, { groupId: string; joinedAt: string }>();
         for (const m of memberships ?? []) {
-          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id });
+          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id, joinedAt: m.joined_at });
         }
         const userIds = Array.from(primary.keys());
         if (userIds.length === 0) return Response.json({ ok: true, scanned: 0 });
@@ -51,8 +51,9 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         for (const prof of profs ?? []) {
           const tz = prof.timezone || "UTC";
-          const groupId = primary.get(prof.id)!.groupId;
+          const { groupId, joinedAt } = primary.get(prof.id)!;
           const today = localDateFor(tz, now);
+          const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
           // ── Missed morning ritual: past noon, no ritual posted today
