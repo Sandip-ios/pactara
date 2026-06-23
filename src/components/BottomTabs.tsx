@@ -1,8 +1,8 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Home, Users, Zap, MessageCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+
 
 const PURPLE = "#7C3AED";
 const AVATAR_BG = "#22C55E";
