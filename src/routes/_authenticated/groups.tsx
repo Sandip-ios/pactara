@@ -180,6 +180,12 @@ function GroupCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [renameOpen, setRenameOpen] = useState(false);
+  const [commitmentOpen, setCommitmentOpen] = useState(false);
+
+  // Presentation-only commitment state (not persisted yet)
+  const [duration, setDuration] = useState(30);
+  const [frequency, setFrequency] = useState<"daily" | "specific">("daily");
 
   const inviteLink =
     typeof window !== "undefined" ? `${window.location.origin}/join/${group.id}` : "";
@@ -211,10 +217,9 @@ function GroupCard({
     handleCopy();
   };
 
-  // Presentation-only: commitment metadata isn't stored yet
-  const duration = "30d · daily";
-  const daysLeft = 29;
+  const daysLeft = Math.max(0, duration - 1);
   const initials = (firstName || "U").slice(0, 1).toUpperCase();
+  const summary = `${duration}d · ${frequency === "daily" ? "daily" : "custom"}`;
 
   return (
     <div className="mx-4 rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -236,11 +241,22 @@ function GroupCard({
             align="end"
             className="w-56 rounded-2xl p-1 border-0 shadow-xl"
           >
-            <MenuButton icon={<Pencil size={18} style={{ color: PURPLE }} />} label="Rename group" />
+            <MenuButton
+              icon={<Pencil size={18} style={{ color: PURPLE }} />}
+              label="Rename group"
+              onClick={() => {
+                setMenuOpen(false);
+                setRenameOpen(true);
+              }}
+            />
             <Divider />
             <MenuButton
               icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
               label="Edit commitment"
+              onClick={() => {
+                setMenuOpen(false);
+                setCommitmentOpen(true);
+              }}
             />
             <Divider />
             <MenuButton
@@ -261,7 +277,7 @@ function GroupCard({
 
         <div className="absolute bottom-3 right-3 flex items-center gap-1.5 bg-white/15 text-white text-[12px] font-medium px-2.5 py-1 rounded-full">
           <SlidersHorizontal size={12} />
-          {duration}
+          {summary}
         </div>
       </div>
 
@@ -314,7 +330,278 @@ function GroupCard({
           Invite people
         </button>
       </div>
+
+      <RenameGroupDrawer
+        open={renameOpen}
+        onOpenChange={setRenameOpen}
+        groupId={group.id}
+        currentName={group.name}
+        emoji={group.emoji}
+      />
+      <EditCommitmentDrawer
+        open={commitmentOpen}
+        onOpenChange={setCommitmentOpen}
+        duration={duration}
+        frequency={frequency}
+        onSave={(d, f) => {
+          setDuration(d);
+          setFrequency(f);
+          setCommitmentOpen(false);
+        }}
+      />
     </div>
+  );
+}
+
+function RenameGroupDrawer({
+  open,
+  onOpenChange,
+  groupId,
+  currentName,
+  emoji,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  groupId: string;
+  currentName: string;
+  emoji: string;
+}) {
+  const [name, setName] = useState(currentName);
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+
+  const handleSave = async () => {
+    if (!name.trim() || saving) return;
+    setSaving(true);
+    try {
+      await renameGroup({ data: { groupId, name: name.trim() } });
+      await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+      onOpenChange(false);
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (v) setName(currentName);
+      }}
+    >
+      <DrawerContent className="px-6 pb-8 pt-2">
+        <DrawerHeader className="px-0 pt-2">
+          <DrawerTitle className="text-[22px] font-black tracking-tight">
+            Rename group
+          </DrawerTitle>
+          <DrawerDescription className="sr-only">
+            Update the name of your group
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div
+          className="mt-2 flex items-center gap-3 rounded-2xl px-4 py-4"
+          style={{ background: PURPLE_TINT, border: `1px solid ${PURPLE_SOFT}` }}
+        >
+          <span className="text-[22px] leading-none">{emoji || "🔥"}</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Group name"
+            className="flex-1 bg-transparent text-[17px] font-semibold outline-none placeholder:text-neutral-400"
+            autoFocus
+          />
+        </div>
+
+        <div className="mt-6 grid grid-cols-[1fr_2fr] gap-3">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="rounded-2xl py-4 text-[15px] font-semibold bg-neutral-100 text-neutral-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!name.trim() || saving}
+            className="rounded-2xl py-4 text-white text-[15px] font-bold disabled:opacity-50"
+            style={{
+              background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
+              boxShadow: "0 12px 24px -10px rgba(124, 58, 237, 0.55)",
+            }}
+          >
+            {saving ? "Saving…" : "Save name"}
+          </button>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function EditCommitmentDrawer({
+  open,
+  onOpenChange,
+  duration,
+  frequency,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  duration: number;
+  frequency: "daily" | "specific";
+  onSave: (duration: number, frequency: "daily" | "specific") => void;
+}) {
+  const [localDuration, setLocalDuration] = useState(duration);
+  const [localFreq, setLocalFreq] = useState<"daily" | "specific">(frequency);
+
+  const presets = [30, 60, 90];
+
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={(v) => {
+        onOpenChange(v);
+        if (v) {
+          setLocalDuration(duration);
+          setLocalFreq(frequency);
+        }
+      }}
+    >
+      <DrawerContent className="px-6 pb-8 pt-2">
+        <div className="relative">
+          <DrawerHeader className="px-0 pt-2 pr-12">
+            <DrawerTitle className="text-[26px] font-black tracking-tight">
+              Commitment
+            </DrawerTitle>
+            <DrawerDescription className="text-[14px] text-neutral-500">
+              Set your group's duration and check-in schedule
+            </DrawerDescription>
+          </DrawerHeader>
+          <button
+            aria-label="Close"
+            onClick={() => onOpenChange(false)}
+            className="absolute top-3 right-0 h-9 w-9 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="mt-4">
+          <div className="text-[12px] font-bold tracking-[0.12em] text-neutral-400">
+            DURATION
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            {presets.map((d) => {
+              const active = localDuration === d;
+              return (
+                <button
+                  key={d}
+                  onClick={() => setLocalDuration(d)}
+                  className="rounded-2xl py-4 text-[16px] font-bold"
+                  style={{
+                    background: active ? PURPLE_TINT : "#F4F1ED",
+                    border: active ? `1.5px solid ${PURPLE}` : "1.5px solid transparent",
+                    color: active ? PURPLE : "#0A0A0A",
+                  }}
+                >
+                  {d} days
+                </button>
+              );
+            })}
+          </div>
+          <div
+            className="mt-3 rounded-2xl px-5 py-4 flex items-center"
+            style={{ background: "#F4F1ED" }}
+          >
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={localDuration}
+              onChange={(e) => setLocalDuration(Math.max(1, Math.min(365, Number(e.target.value) || 0)))}
+              className="flex-1 bg-transparent text-[18px] font-bold outline-none"
+            />
+            <span className="text-[14px] text-neutral-500">days</span>
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <div className="text-[12px] font-bold tracking-[0.12em] text-neutral-400">
+            CHECK-IN FREQUENCY
+          </div>
+          <div className="mt-3 space-y-3">
+            <FrequencyOption
+              active={localFreq === "daily"}
+              onClick={() => setLocalFreq("daily")}
+              title="Every day"
+              subtitle="Check in daily"
+            />
+            <FrequencyOption
+              active={localFreq === "specific"}
+              onClick={() => setLocalFreq("specific")}
+              title="Specific days"
+              subtitle="Choose days per week"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6 pt-5 border-t border-neutral-100">
+          <button
+            onClick={() => onSave(localDuration, localFreq)}
+            className="w-full rounded-2xl py-4 text-white text-[16px] font-bold"
+            style={{
+              background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
+              boxShadow: "0 12px 24px -10px rgba(124, 58, 237, 0.55)",
+            }}
+          >
+            Save commitment
+          </button>
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
+function FrequencyOption({
+  active,
+  onClick,
+  title,
+  subtitle,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full rounded-2xl px-5 py-4 flex items-center text-left"
+      style={{
+        background: active ? PURPLE_TINT : "#F4F1ED",
+        border: active ? `1.5px solid ${PURPLE}` : "1.5px solid transparent",
+      }}
+    >
+      <div className="flex-1">
+        <div
+          className="text-[16px] font-bold leading-tight"
+          style={{ color: active ? PURPLE : "#0A0A0A" }}
+        >
+          {title}
+        </div>
+        <div className="text-[13px] text-neutral-500 mt-0.5">{subtitle}</div>
+      </div>
+      {active && (
+        <span
+          className="h-6 w-6 rounded-full flex items-center justify-center text-white"
+          style={{ background: PURPLE }}
+        >
+          <Check size={14} />
+        </span>
+      )}
+    </button>
   );
 }
 
