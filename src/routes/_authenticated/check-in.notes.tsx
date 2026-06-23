@@ -35,13 +35,14 @@ function NotesPage() {
     setPhoto(sessionStorage.getItem("checkin-photo"));
   }, []);
 
-  const createCheckInFn = useServerFn(createCheckIn);
+  const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: createCheckInFn,
+    mutationFn: recordCheckInFn,
     onSuccess: () => {
       sessionStorage.removeItem("checkin-mood");
       sessionStorage.removeItem("checkin-photo");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       navigate({ to: "/home" });
     },
   });
