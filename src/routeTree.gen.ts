@@ -22,6 +22,7 @@ import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
+import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -91,6 +92,11 @@ const AuthenticatedChatGroupIdRoute =
     path: '/chat/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
+  id: '/api/public/hooks/auto-miss',
+  path: '/api/public/hooks/auto-miss',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
+  '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
+  '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
+  '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,6 +160,7 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/chat/'
     | '/check-in/'
+    | '/api/public/hooks/auto-miss'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/chat'
     | '/check-in'
+    | '/api/public/hooks/auto-miss'
   id:
     | '__root__'
     | '/'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check-in/notes'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
+    | '/api/public/hooks/auto-miss'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -187,6 +199,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -282,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/auto-miss': {
+      id: '/api/public/hooks/auto-miss'
+      path: '/api/public/hooks/auto-miss'
+      fullPath: '/api/public/hooks/auto-miss'
+      preLoaderRoute: typeof ApiPublicHooksAutoMissRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -317,6 +337,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
