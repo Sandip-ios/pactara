@@ -104,8 +104,6 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         }
       : { pending: true as const };
 
-  const headerSuffix: { text: string; color: string } | null = null;
-
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
       {/* Header */}
@@ -123,11 +121,6 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-[17px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</span>
-            {headerSuffix && (
-              <span className="text-[15px] font-medium" style={{ color: headerSuffix.color }}>
-                {headerSuffix.text}
-              </span>
-            )}
           </div>
           <div className="text-[13px] text-neutral-400 mt-0.5">{timeAgo(item.updatedAt)}</div>
         </div>
