@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
-import { getMyGroupStatus } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 
 const PURPLE = "#7C3AED";
@@ -14,9 +14,13 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
-  const { data: status, isLoading } = useQuery({
+  const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
+  });
+  const { data: pendingData } = useQuery({
+    queryKey: ["pending-checkins"],
+    queryFn: () => getPendingCheckIns(),
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
