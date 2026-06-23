@@ -620,13 +620,16 @@ function MenuButton({
   icon,
   label,
   danger,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   danger?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-neutral-50"
       style={{ color: danger ? "#DC2626" : "#0A0A0A" }}
     >
