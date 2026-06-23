@@ -84,7 +84,7 @@ function HomePage() {
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
-          <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
+          <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold" style={{ background: PURPLE }}>
             {initials}
           </div>
           <button
