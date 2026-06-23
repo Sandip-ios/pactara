@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -15,7 +15,6 @@ import {
   Flame,
   X,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { listMyGroups, renameGroup } from "@/lib/groups.functions";
 import {
   Popover,
