@@ -74,7 +74,7 @@ function GroupsPage() {
       className="min-h-[100dvh] w-full pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
     >
-      <header className="bg-white px-6 pt-5 pb-6">
+      <header className="bg-white px-6 pt-5 pb-4">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
           <span>actara</span>
