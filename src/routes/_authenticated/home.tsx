@@ -25,6 +25,11 @@ function HomePage() {
     queryKey: ["pending-checkins"],
     queryFn: () => getPendingCheckIns(),
   });
+  const { data: feedData } = useQuery({
+    queryKey: ["group-feed"],
+    queryFn: () => getGroupFeed(),
+    refetchOnWindowFocus: true,
+  });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
