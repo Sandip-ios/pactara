@@ -348,8 +348,8 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       const localHour = localHourFor(tz, now);
       const isToday = p.local_date === todayLocal;
       const isPastDay = p.local_date < todayLocal;
-      const ritualMissed = !p.morning_ritual_text && (p.morning_missed || isPastDay || (isToday && localHour >= 12));
-      const checkInMissed = p.check_in_missed || isPastDay;
+      const ritualMissed = !p.morning_ritual_text && (isPastDay || (isToday && localHour >= 12));
+      const checkInMissed = isPastDay;
 
       // Morning ritual (or missed)
       if (p.morning_ritual_text) {
