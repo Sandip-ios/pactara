@@ -299,7 +299,7 @@ function GroupCard({
         </div>
 
         <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} />
+          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
           <div className="flex-1">
             <div className="text-[15px] font-bold leading-tight">You</div>
             <div className="text-[12px] text-neutral-500">{group.isAdmin ? "Admin" : "Member"}</div>
