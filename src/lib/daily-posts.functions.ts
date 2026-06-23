@@ -398,7 +398,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       }
 
       if (myCheckIns.length === 0) {
-        if (p.check_in_missed) {
+        if (checkInMissed) {
           nodes.push({ kind: "check_in_missed", id: `cm-${p.id}`, at: p.updated_at });
         } else {
           nodes.push({ kind: "pending", id: `p-${p.id}` });
