@@ -115,7 +115,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-end"
+          className="fixed inset-0 z-[70] flex items-end"
           style={{ fontFamily: "Inter, system-ui, sans-serif" }}
         >
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
