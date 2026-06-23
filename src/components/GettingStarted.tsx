@@ -143,7 +143,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
                   />
                 </div>
                 <button
-                  onClick={dismiss}
+                  onClick={() => setOpen(false)}
                   className="text-neutral-500"
                   aria-label="Close"
                 >
