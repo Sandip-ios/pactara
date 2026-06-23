@@ -120,7 +120,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
         >
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
           <div
-            className="relative w-full rounded-t-3xl bg-[#F5F0FF] pt-3 pb-8 max-h-[85dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+            className="relative w-full rounded-t-3xl bg-[#FFF7E6] pt-3 pb-8 max-h-[85dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
           >
             <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
 
@@ -135,10 +135,10 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <div className="w-20 h-1.5 rounded-full bg-purple-200 overflow-hidden">
+                <div className="w-20 h-1.5 rounded-full bg-orange-200 overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${(doneCount / total) * 100}%`, background: PURPLE }}
+                    style={{ width: `${(doneCount / total) * 100}%`, background: ORANGE }}
                   />
                 </div>
                 <button
@@ -151,7 +151,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
               </div>
             </div>
 
-            <div className="mt-4 divide-y divide-purple-100 bg-white/60">
+            <div className="mt-4 divide-y divide-orange-100 bg-white/60">
               {TASKS.map((t) => {
                 const isDone = done.has(t.id);
                 return (
