@@ -1,5 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+/**
+ * Focuses an input on mount, but only on the client AFTER React has hydrated.
+ * Using the `autoFocus` prop causes SSR to emit `autofocus=""` on the input,
+ * so the browser focuses it before hydration — characters typed during that
+ * window land in an uncontrolled DOM input and get wiped (and the keyboard
+ * dismissed) the moment React hydrates and forces `value=""`.
+ */
+function useClientAutoFocus<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    ref.current?.focus();
+  }, []);
+  return ref;
+}
 import {
   ArrowRight,
   ChevronLeft,
