@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { createCheckIn } from "@/lib/groups.functions";
 import type { MoodId } from "./check-in.index";
 
 const PURPLE = "#7C3AED";
@@ -21,20 +24,36 @@ export const Route = createFileRoute("/_authenticated/check-in/notes")({
 
 function NotesPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [, setMoodId] = useState<MoodId | null>(null);
+  const [mood, setMood] = useState<MoodId | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
 
   useEffect(() => {
-    setMoodId(sessionStorage.getItem("checkin-mood") as MoodId | null);
+    setMood(sessionStorage.getItem("checkin-mood") as MoodId | null);
     setPhoto(sessionStorage.getItem("checkin-photo"));
   }, []);
 
+  const createCheckInFn = useServerFn(createCheckIn);
+  const mutation = useMutation({
+    mutationFn: createCheckInFn,
+    onSuccess: () => {
+      sessionStorage.removeItem("checkin-mood");
+      sessionStorage.removeItem("checkin-photo");
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      navigate({ to: "/home" });
+    },
+  });
+
   const submit = () => {
-    sessionStorage.removeItem("checkin-mood");
-    sessionStorage.removeItem("checkin-photo");
-    navigate({ to: "/home" });
+    mutation.mutate({
+      data: {
+        note: note || undefined,
+        mood: mood || undefined,
+        activity: activity || undefined,
+      },
+    });
   };
 
   return (
