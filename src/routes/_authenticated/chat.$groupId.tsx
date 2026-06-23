@@ -204,6 +204,9 @@ function GroupChatPage() {
                         {m.body}
                       </div>
                     )}
+                    <span className={`text-[11px] text-neutral-400 mt-1 ${mine ? "mr-2" : "ml-2"}`}>
+                      {new Date(m.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                    </span>
                   </div>
                 </li>
               );
