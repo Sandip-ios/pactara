@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      check_ins: {
+        Row: {
+          activity: string | null
+          checkin_date: string
+          created_at: string
+          group_id: string
+          id: string
+          mood: string | null
+          note: string | null
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          activity?: string | null
+          checkin_date?: string
+          created_at?: string
+          group_id: string
+          id?: string
+          mood?: string | null
+          note?: string | null
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          activity?: string | null
+          checkin_date?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          mood?: string | null
+          note?: string | null
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string

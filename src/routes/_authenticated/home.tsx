@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
-import { getMyGroupStatus } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 
 const PURPLE = "#7C3AED";
@@ -14,9 +14,13 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
-  const { data: status, isLoading } = useQuery({
+  const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
+  });
+  const { data: pendingData } = useQuery({
+    queryKey: ["pending-checkins"],
+    queryFn: () => getPendingCheckIns(),
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -146,19 +150,43 @@ function HomePage() {
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
       <div className="px-6 pt-6">
-        <div className="text-[15px] font-bold">Waiting to check in <span className="text-neutral-400 font-normal">1</span></div>
+        <div className="text-[15px] font-bold">
+          Waiting to check in{" "}
+          <span className="text-neutral-400 font-normal">{pendingData?.pending.length ?? 0}</span>
+        </div>
       </div>
 
-      <div className="px-4 mt-3">
-        <div className="w-[160px] rounded-2xl bg-white border border-purple-100 p-4 flex flex-col items-center">
-          <div className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: "#22C55E" }}>
-            {initials}
-          </div>
-          <div className="mt-2 text-[15px] font-semibold">You</div>
-          <button onClick={() => navigate({ to: "/check-in" })} className="mt-3 w-full rounded-full py-2 text-white text-[14px] font-semibold" style={{ background: PURPLE }}>
-            Check in
-          </button>
-        </div>
+      <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {(pendingData?.pending ?? []).map((p) => {
+          const personInitials = (p.name || "U").slice(0, 1).toUpperCase();
+          return (
+            <div
+              key={p.id}
+              className="shrink-0 w-[160px] rounded-2xl bg-white border border-purple-100 p-4 flex flex-col items-center"
+            >
+              <div
+                className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                style={{ background: p.avatarColor || "#22C55E" }}
+              >
+                {personInitials}
+              </div>
+              <div className="mt-2 text-[15px] font-semibold">{p.isMe ? "You" : p.name.split(" ")[0]}</div>
+              {p.isMe ? (
+                <button
+                  onClick={() => navigate({ to: "/check-in" })}
+                  className="mt-3 w-full rounded-full py-2 text-white text-[14px] font-semibold"
+                  style={{ background: PURPLE }}
+                >
+                  Check in
+                </button>
+              ) : (
+                <div className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold text-neutral-400 text-center">
+                  Waiting…
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">

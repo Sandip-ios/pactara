@@ -207,3 +207,98 @@ export const renameGroup = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/**
+ * Lists group members who haven't yet checked in today (UTC date),
+ * excluding the current user if they've already checked in.
+ */
+export const getPendingCheckIns = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!membership) return { groupId: null, pending: [], iCheckedIn: false };
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const [{ data: members }, { data: checkins }] = await Promise.all([
+      supabase.from("group_members").select("user_id").eq("group_id", membership.group_id),
+      supabase
+        .from("check_ins")
+        .select("user_id")
+        .eq("group_id", membership.group_id)
+        .eq("checkin_date", today),
+    ]);
+
+    const checkedInIds = new Set((checkins ?? []).map((c) => c.user_id));
+    const memberIds = (members ?? []).map((m) => m.user_id);
+    const pendingIds = memberIds.filter((id) => !checkedInIds.has(id));
+
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_color")
+      .in("id", pendingIds.length ? pendingIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const pending = (profiles ?? []).map((p) => ({
+      id: p.id,
+      name: p.name,
+      avatarColor: p.avatar_color,
+      isMe: p.id === userId,
+    }));
+
+    return {
+      groupId: membership.group_id,
+      pending,
+      iCheckedIn: checkedInIds.has(userId),
+    };
+  });
+
+/**
+ * Creates a check-in for the current user in their most recent group for today.
+ */
+export const createCheckIn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { note?: string; photoUrl?: string; mood?: string; activity?: string }) => ({
+    note: input?.note?.slice(0, 500) ?? null,
+    photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
+    mood: input?.mood?.slice(0, 40) ?? null,
+    activity: input?.activity?.slice(0, 40) ?? null,
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!membership) throw new Error("You're not in a group yet");
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const { error } = await supabase.from("check_ins").upsert(
+      {
+        user_id: userId,
+        group_id: membership.group_id,
+        checkin_date: today,
+        note: data.note,
+        photo_url: data.photoUrl,
+        mood: data.mood,
+        activity: data.activity,
+      },
+      { onConflict: "user_id,group_id,checkin_date" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
