@@ -61,6 +61,75 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
   });
 
 /**
+ * Lists all groups the current user is a member of, with member counts and
+ * the user's role in each (admin/member).
+ */
+export const listMyGroups = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: memberships, error: mErr } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false });
+    if (mErr) throw new Error(mErr.message);
+
+    if (!memberships || memberships.length === 0) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name, avatar_color")
+        .eq("id", userId)
+        .maybeSingle();
+      return {
+        groups: [],
+        firstName: (profile?.name ?? "").split(" ")[0] || "there",
+        avatarColor: profile?.avatar_color ?? "#22C55E",
+      };
+    }
+
+    const groupIds = memberships.map((m) => m.group_id);
+    const { data: groups, error: gErr } = await supabase
+      .from("groups")
+      .select("id, name, emoji, owner_id, created_at")
+      .in("id", groupIds);
+    if (gErr) throw new Error(gErr.message);
+
+    const { data: allMembers, error: amErr } = await supabase
+      .from("group_members")
+      .select("group_id, user_id")
+      .in("group_id", groupIds);
+    if (amErr) throw new Error(amErr.message);
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, avatar_color")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const out = (groups ?? []).map((g) => {
+      const members = (allMembers ?? []).filter((m) => m.group_id === g.id);
+      return {
+        id: g.id,
+        name: g.name,
+        emoji: g.emoji,
+        isAdmin: g.owner_id === userId,
+        memberCount: members.length,
+        createdAt: g.created_at,
+      };
+    });
+    // Preserve membership order (most recently joined first)
+    out.sort((a, b) => groupIds.indexOf(a.id) - groupIds.indexOf(b.id));
+
+    return {
+      groups: out,
+      firstName: (profile?.name ?? "").split(" ")[0] || "there",
+      avatarColor: profile?.avatar_color ?? "#22C55E",
+    };
+  });
+
+/**
  * Creates a group owned by the current user and adds them as a member.
  * Idempotent-ish: if the user already owns a group with the same name we
  * skip creating a duplicate.

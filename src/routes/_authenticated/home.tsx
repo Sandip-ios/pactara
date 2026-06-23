@@ -190,7 +190,8 @@ function BottomTabs() {
   return (
     <nav className="fixed bottom-0 inset-x-0 bg-white border-t border-neutral-200 px-2 pt-2 pb-6 grid grid-cols-5 items-end">
       <TabItem icon={<Home size={22} />} label="Home" active />
-      <TabItem icon={<Users size={22} />} label="Groups" />
+      <TabItem icon={<Users size={22} />} label="Groups" onClick={() => navigate({ to: "/groups" })} />
+
       <button className="flex flex-col items-center gap-1 -mt-6">
         <span className="h-14 w-14 rounded-full flex items-center justify-center text-white" style={{ background: PURPLE }}>
           <Zap size={24} />
@@ -206,11 +207,12 @@ function BottomTabs() {
   );
 }
 
-function TabItem({ icon, label, active }: { icon: React.ReactNode; label: string; active?: boolean }) {
+function TabItem({ icon, label, active, onClick }: { icon: React.ReactNode; label: string; active?: boolean; onClick?: () => void }) {
   return (
-    <button className="flex flex-col items-center gap-1" style={{ color: active ? PURPLE : "#A3A3A3" }}>
+    <button onClick={onClick} className="flex flex-col items-center gap-1" style={{ color: active ? PURPLE : "#A3A3A3" }}>
       {icon}
       <span className="text-[11px] font-medium">{label}</span>
     </button>
   );
 }
+
