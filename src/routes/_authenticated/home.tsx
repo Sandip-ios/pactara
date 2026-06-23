@@ -100,7 +100,7 @@ function HomePage() {
       ) : (
         <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
           <div className="flex gap-3 p-4">
-            <div className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
+            <div className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-white font-bold" style={{ background: PURPLE }}>
               {initials}
             </div>
             <textarea
