@@ -89,7 +89,7 @@ function HomePage() {
           >
             What's on your mind, {status.firstName}?
           </button>
-          <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+          <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
             <ImageIcon size={20} className="text-green-600" />
           </button>
         </div>
