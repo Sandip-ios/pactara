@@ -1,5 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
+/**
+ * Focuses an input on mount, but only on the client AFTER React has hydrated.
+ * Using the `autoFocus` prop causes SSR to emit `autofocus=""` on the input,
+ * so the browser focuses it before hydration — characters typed during that
+ * window land in an uncontrolled DOM input and get wiped (and the keyboard
+ * dismissed) the moment React hydrates and forces `value=""`.
+ */
+function useClientAutoFocus<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    ref.current?.focus();
+  }, []);
+  return ref;
+}
 import {
   ArrowRight,
   ChevronLeft,
@@ -421,6 +436,7 @@ function NameStep({
 }) {
   const [touched, setTouched] = useState(false);
   const [touchedLast, setTouchedLast] = useState(false);
+  const firstRef = useClientAutoFocus<HTMLInputElement>();
   const firstError = touched && firstName.trim().length === 0 ? "Add your first name so your group knows who you are" : null;
   const lastError = touchedLast && lastName.trim().length === 0 ? "Add your last name so your group knows who you are" : null;
   return (
@@ -432,12 +448,12 @@ function NameStep({
       <div className="mt-7 flex flex-col gap-4">
         <Field label="FIRST NAME" error={firstError}>
           <input
+            ref={firstRef}
             className={inputClass}
             placeholder="First name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             onBlur={() => setTouched(true)}
-            autoFocus
             aria-invalid={!!firstError}
           />
         </Field>
