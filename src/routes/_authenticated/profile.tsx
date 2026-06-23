@@ -1,8 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { Flame, CalendarDays, Target, Zap, SlidersHorizontal, LogOut, ChevronRight, Camera, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getProfileOverview } from "@/lib/profile.functions";
+import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -18,6 +20,9 @@ export const Route = createFileRoute("/_authenticated/profile")({
 function ProfilePage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const saveAvatarPath = useServerFn(setAvatarPath);
 
   const { data } = useQuery({
     queryKey: ["profile-overview"],
@@ -31,10 +36,40 @@ function ProfilePage() {
     navigate({ to: "/login", replace: true });
   };
 
+  const openPicker = () => {
+    if (uploading) return;
+    fileInputRef.current?.click();
+  };
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    try {
+      setUploading(true);
+      const { data: userRes, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userRes.user) throw userErr ?? new Error("Not signed in");
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${userRes.user.id}/avatar-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("avatars")
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      await saveAvatarPath({ data: { path } });
+      await queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
+    } catch (err) {
+      console.error("Avatar upload failed", err);
+      alert("Couldn't update your photo. Please try again.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const name = data?.name || "";
   const firstName = name.split(" ")[0] || "You";
   const initial = (firstName || "U").slice(0, 1).toUpperCase();
   const goal = data?.groupName || "—";
+  const avatarUrl = data?.avatarUrl ?? null;
 
   const stat = (n: number) => (n > 0 ? String(n) : "—");
 
@@ -43,6 +78,13 @@ function ProfilePage() {
       className="min-h-[100dvh] w-full pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFileChange}
+      />
       <header className="bg-white px-6 pt-5 pb-4">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
@@ -53,15 +95,25 @@ function ProfilePage() {
       {/* Identity card */}
       <section className="bg-white px-6 py-5 flex items-center gap-4">
         <div className="relative">
-          <div
-            className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold"
+          <button
+            type="button"
+            onClick={openPicker}
+            aria-label="Change photo"
+            className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
             style={{ background: data?.avatarColor || PURPLE }}
           >
-            {initial}
-          </div>
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+            ) : (
+              initial
+            )}
+          </button>
           <button
+            type="button"
+            onClick={openPicker}
             aria-label="Change photo"
-            className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm"
+            disabled={uploading}
+            className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm disabled:opacity-60"
           >
             <Camera size={14} className="text-neutral-600" />
           </button>
@@ -71,12 +123,16 @@ function ProfilePage() {
           <div className="text-[14px] text-neutral-500 truncate">{goal}</div>
         </div>
         <button
-          className="px-3 py-2 rounded-full text-[13px] font-semibold"
+          type="button"
+          onClick={openPicker}
+          disabled={uploading}
+          className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE_SOFT, color: PURPLE }}
         >
-          Edit photo
+          {uploading ? "Uploading…" : "Edit photo"}
         </button>
       </section>
+
 
       {/* Activity */}
       <section className="px-5 pt-5">

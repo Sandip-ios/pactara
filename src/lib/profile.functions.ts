@@ -42,9 +42,18 @@ export const getProfileOverview = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color")
+      .select("name, avatar_color, avatar_url")
       .eq("id", userId)
       .maybeSingle();
+
+    let avatarSignedUrl: string | null = null;
+    const avatarPath = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
+    if (avatarPath) {
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrl(avatarPath, 60 * 60);
+      avatarSignedUrl = signed?.signedUrl ?? null;
+    }
 
     const { data: membership } = await supabase
       .from("group_members")
@@ -72,7 +81,6 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
     const { current, best } = computeStreaks(dates);
 
-    // past 7 days (oldest -> newest)
     const past7: { date: string; checked: boolean }[] = [];
     const set = new Set(dates);
     for (let i = 6; i >= 0; i--) {
@@ -85,10 +93,24 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     return {
       name: profile?.name ?? "",
       avatarColor: profile?.avatar_color ?? "#7C3AED",
+      avatarUrl: avatarSignedUrl,
       groupName,
       totalCheckIns: dates.length,
       currentStreak: current,
       bestStreak: best,
       past7,
     };
+  });
+
+export const setAvatarPath = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { path: string }) => input)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: data.path } as never)
+      .eq("id", userId);
+    if (error) throw error;
+    return { ok: true };
   });
