@@ -548,6 +548,32 @@ function EditCommitmentDrawer({
           </div>
         </div>
 
+        {localFreq === "specific" && (
+          <div className="mt-5">
+            <div className="text-[12px] font-bold tracking-[0.12em] text-neutral-400">
+              DAYS PER WEEK
+            </div>
+            <div className="mt-3 grid grid-cols-7 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7].map((d) => {
+                const active = daysPerWeek === d;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDaysPerWeek(d)}
+                    className="aspect-square rounded-xl text-[16px] font-bold flex items-center justify-center"
+                    style={{
+                      background: active ? PURPLE : "#F4F1ED",
+                      color: active ? "#FFFFFF" : "#0A0A0A",
+                    }}
+                  >
+                    {d}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="mt-6 pt-5 border-t border-neutral-100">
           <button
             onClick={() => onSave(localDuration, localFreq)}
