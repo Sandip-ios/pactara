@@ -375,9 +375,7 @@ function BottomTabs() {
         >
           <Zap size={24} />
         </span>
-        <span className="text-[11px] font-medium text-neutral-500">
-          Check In
-        </span>
+        <span className="text-[11px] font-medium">Check In</span>
 
       </button>
       <TabItem icon={<MessageCircle size={22} />} label="Chat" />
