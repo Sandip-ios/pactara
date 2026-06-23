@@ -127,21 +127,22 @@ function HomePage() {
             </button>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setComposerOpen(false); setComposerText(""); }}
+                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); }}
                 className="px-4 py-2 rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-700"
               >
                 Cancel
               </button>
               <button
-                disabled={!composerText.trim()}
+                disabled={!composerText.trim() && !imagePreview}
                 className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
-                style={{ background: composerText.trim() ? PURPLE : "#D4D4D4" }}
+                style={{ background: (composerText.trim() || imagePreview) ? PURPLE : "#D4D4D4" }}
               >
                 <Send size={16} />
                 Post
               </button>
             </div>
           </div>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
         </div>
       )}
 
