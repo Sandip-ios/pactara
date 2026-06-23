@@ -80,21 +80,28 @@ function NotesPage() {
         {/* Tag your activity */}
         <div className="pt-8">
           <h2 className="px-6 text-[17px] font-bold tracking-tight">Tag your activity</h2>
-          <div className="mt-3 flex gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div
+            className="mt-3 flex gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
+          >
             {ACTIVITIES.map((a) => {
               const selected = activity === a.id;
               return (
                 <button
                   key={a.id}
                   onClick={() => setActivity(selected ? null : a.id)}
+                  style={{
+                    scrollSnapAlign: "start",
+                    borderColor: selected ? PURPLE : undefined,
+                    color: selected ? PURPLE : undefined,
+                    backgroundColor: selected ? `${PURPLE}10` : undefined,
+                  }}
                   className={`shrink-0 rounded-full border px-4 py-2.5 flex items-center gap-2 text-[15px] font-medium transition-colors ${
-                    selected
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-300 bg-white text-neutral-900"
+                    selected ? "" : "border-neutral-300 bg-white text-neutral-900"
                   }`}
                 >
                   <span className="text-[16px] leading-none">{a.emoji}</span>
-                  <span>{a.label}</span>
+                  <span className="whitespace-nowrap">{a.label}</span>
                 </button>
               );
             })}
