@@ -156,7 +156,7 @@ function GroupChatPage() {
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3 flex items-center gap-2"
-        style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)" }}
+        style={{ paddingBottom: "12px" }}
       >
         <button
           type="button"
