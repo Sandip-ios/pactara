@@ -99,11 +99,10 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="fixed right-4 z-30 flex items-center gap-2 rounded-full pl-4 pr-2 py-2.5 text-white font-semibold shadow-lg"
+        className="fixed right-4 z-30 flex items-center gap-2 rounded-full pl-4 pr-2 py-2.5 text-white font-semibold"
         style={{
           background: ORANGE,
           bottom: "102px",
-          boxShadow: `0 10px 30px -10px ${ORANGE}`,
         }}
         aria-label="Getting started"
       >
