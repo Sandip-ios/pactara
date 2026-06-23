@@ -142,7 +142,7 @@ function GroupsPage() {
       <div className="mt-4 space-y-4">
         {groups.length === 0 && <EmptyGroups />}
         {groups.map((g) => (
-          <GroupCard key={g.id} group={g} avatarColor={data.avatarColor} firstName={data.firstName} />
+          <GroupCard key={g.id} group={g} avatarColor={data.avatarColor} firstName={data.firstName} avatarUrl={data.avatarUrl ?? null} />
         ))}
       </div>
 
