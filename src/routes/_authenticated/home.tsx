@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Home, Users, Zap, MessageCircle, User as UserIcon, MessageSquare, Image as ImageIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Home, Users, Zap, MessageCircle, User as UserIcon, MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
@@ -21,6 +21,13 @@ function HomePage() {
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerText, setComposerText] = useState("");
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (composerOpen) composerRef.current?.focus();
+  }, [composerOpen]);
 
   useEffect(() => {
     const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
@@ -56,17 +63,58 @@ function HomePage() {
         <span className="text-neutral-400">29d left</span>
       </div>
 
-      <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
-        <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
-          {initials}
+      {!composerOpen ? (
+        <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
+          <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
+            {initials}
+          </div>
+          <button
+            onClick={() => setComposerOpen(true)}
+            className="flex-1 text-left rounded-full bg-neutral-100 px-4 py-3 text-[15px] text-neutral-400"
+          >
+            What's on your mind, {status.firstName}?
+          </button>
+          <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+            <ImageIcon size={20} className="text-green-600" />
+          </button>
         </div>
-        <div className="flex-1 rounded-full bg-neutral-100 px-4 py-3 text-[15px] text-neutral-400">
-          What's on your mind, {status.firstName}?
+      ) : (
+        <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
+          <div className="flex gap-3 p-4">
+            <div className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-white font-bold" style={{ background: "#22C55E" }}>
+              {initials}
+            </div>
+            <textarea
+              ref={composerRef}
+              value={composerText}
+              onChange={(e) => setComposerText(e.target.value)}
+              placeholder={`What's on your mind, ${status.firstName}?`}
+              className="flex-1 resize-none outline-none text-[15px] placeholder:text-neutral-400 min-h-[96px] bg-transparent"
+            />
+          </div>
+          <div className="border-t border-neutral-100 px-3 py-2 flex items-center justify-between">
+            <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+              <ImageIcon size={20} className="text-green-600" />
+            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => { setComposerOpen(false); setComposerText(""); }}
+                className="px-4 py-2 rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-700"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!composerText.trim()}
+                className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                style={{ background: composerText.trim() ? PURPLE : "#D4D4D4" }}
+              >
+                <Send size={16} />
+                Post
+              </button>
+            </div>
+          </div>
         </div>
-        <button className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
-          <ImageIcon size={20} className="text-green-600" />
-        </button>
-      </div>
+      )}
 
       <div className="px-6 pt-6">
         <div className="text-[15px] font-bold">Waiting to check in <span className="text-neutral-400 font-normal">1</span></div>
