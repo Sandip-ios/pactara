@@ -21,6 +21,13 @@ function HomePage() {
   });
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerText, setComposerText] = useState("");
+  const composerRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (composerOpen) composerRef.current?.focus();
+  }, [composerOpen]);
 
   useEffect(() => {
     const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
