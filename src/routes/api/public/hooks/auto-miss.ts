@@ -32,9 +32,9 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
         }
 
         // Keep only the most recent membership per user (their "primary" group).
-        const primary = new Map<string, { groupId: string }>();
+        const primary = new Map<string, { groupId: string; joinedAt: string }>();
         for (const m of memberships ?? []) {
-          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id });
+          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id, joinedAt: m.joined_at });
         }
         const userIds = Array.from(primary.keys());
         if (userIds.length === 0) return Response.json({ ok: true, scanned: 0 });
@@ -51,12 +51,14 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         for (const prof of profs ?? []) {
           const tz = prof.timezone || "UTC";
-          const groupId = primary.get(prof.id)!.groupId;
+          const { groupId, joinedAt } = primary.get(prof.id)!;
           const today = localDateFor(tz, now);
+          const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
-          // ── Missed morning ritual: past noon, no ritual posted today
-          if (hour >= 12) {
+          // ── Missed morning ritual: past noon, no ritual posted today.
+          // Only counts for days on/after the user joined the group.
+          if (hour >= 12 && today >= joinedLocalDate) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")
               .select("id, morning_ritual_posted_at, morning_missed")
@@ -83,9 +85,10 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           }
 
           // ── Missed check-in: it's now past midnight in their tz, so yesterday is closed.
-          // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight)
+          // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
+          // Only counts if the user was already a member on that day.
           const yesterday = localDateFor(tz, new Date(now.getTime() - 60 * 60 * 1000 * (hour + 1)));
-          if (yesterday !== today) {
+          if (yesterday !== today && yesterday >= joinedLocalDate) {
             const { data: y } = await supabaseAdmin
               .from("daily_posts")
               .select("id, check_in_id, check_in_missed")
