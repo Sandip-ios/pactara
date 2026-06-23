@@ -630,13 +630,13 @@ function FrequencyOption({
   );
 }
 
-function Avatar({ color, initials }: { color: string; initials: string }) {
+function Avatar({ color, initials, url }: { color: string; initials: string; url?: string | null }) {
   return (
     <div
-      className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-[14px]"
+      className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-[14px] overflow-hidden"
       style={{ background: color }}
     >
-      {initials}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : initials}
     </div>
   );
 }
