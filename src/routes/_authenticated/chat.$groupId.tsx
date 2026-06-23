@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users } from "lucide-react";
+import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
 import { getGroupChat, sendGroupMessage } from "@/lib/chat.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 const BG = "#F5F2EE";
+const BUCKET = "chat-photos";
 
 export const Route = createFileRoute("/_authenticated/chat/$groupId")({
   component: GroupChatPage,
@@ -19,7 +20,12 @@ function GroupChatPage() {
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { data } = useQuery({
     queryKey: ["group-chat", groupId],
@@ -27,13 +33,22 @@ function GroupChatPage() {
   });
 
   const send = useMutation({
-    mutationFn: (body: string) => sendGroupMessage({ data: { groupId, body } }),
+    mutationFn: ({ body, imageUrl }: { body: string; imageUrl?: string }) =>
+      sendGroupMessage({ data: { groupId, body, imageUrl } }),
     onSuccess: () => {
       setText("");
+      clearPending();
       queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] });
       inputRef.current?.focus();
     },
+    onError: (e: Error) => setError(e.message),
   });
+
+  function clearPending() {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(null);
+    setPendingPreview(null);
+  }
 
   // Realtime updates
   useEffect(() => {
@@ -50,7 +65,6 @@ function GroupChatPage() {
     };
   }, [groupId, queryClient]);
 
-  // Auto-scroll to bottom on new messages
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -61,11 +75,51 @@ function GroupChatPage() {
   const messages = data?.messages ?? [];
   const currentUserId = data?.currentUserId;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please choose an image file");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError("Image must be under 10 MB");
+      return;
+    }
+    setError(null);
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(file);
+    setPendingPreview(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const t = text.trim();
-    if (!t || send.isPending) return;
-    send.mutate(t);
+    const body = text.trim();
+    if (send.isPending || uploading) return;
+    if (!body && !pendingFile) return;
+
+    let imageUrl: string | undefined;
+    if (pendingFile && currentUserId) {
+      setUploading(true);
+      setError(null);
+      try {
+        const ext = pendingFile.name.split(".").pop()?.toLowerCase() || "jpg";
+        const path = `${groupId}/${currentUserId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from(BUCKET)
+          .upload(path, pendingFile, { contentType: pendingFile.type, upsert: false });
+        if (upErr) throw upErr;
+        imageUrl = path;
+      } catch (err) {
+        setError((err as Error).message);
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    send.mutate({ body, imageUrl });
   };
 
   return (
@@ -137,14 +191,19 @@ function GroupChatPage() {
                     {!mine && (
                       <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
                     )}
-                    <div
-                      className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
-                        mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
-                      }`}
-                      style={mine ? { background: PURPLE } : undefined}
-                    >
-                      {m.body}
-                    </div>
+                    {m.imageUrl && (
+                      <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
+                    )}
+                    {m.body && (
+                      <div
+                        className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
+                          mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
+                        }`}
+                        style={mine ? { background: PURPLE } : undefined}
+                      >
+                        {m.body}
+                      </div>
+                    )}
                   </div>
                 </li>
               );
@@ -155,33 +214,83 @@ function GroupChatPage() {
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3 flex items-center gap-2"
+        className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
         style={{ paddingBottom: "12px" }}
       >
-        <button
-          type="button"
-          aria-label="Add photo"
-          className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0"
-        >
-          <ImageIcon size={20} className="text-neutral-500" />
-        </button>
-        <input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Message your group..."
-          className="flex-1 h-11 rounded-full bg-neutral-100 px-4 text-[15px] outline-none placeholder:text-neutral-400"
-        />
-        <button
-          type="submit"
-          disabled={!text.trim() || send.isPending}
-          aria-label="Send"
-          className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-50"
-          style={{ background: text.trim() ? PURPLE : "#E5E5E5" }}
-        >
-          <Send size={18} className={text.trim() ? "text-white" : "text-neutral-400"} />
-        </button>
+        {pendingPreview && (
+          <div className="mb-2 relative inline-block">
+            <img src={pendingPreview} alt="Selected" className="h-24 rounded-lg object-cover" />
+            <button
+              type="button"
+              onClick={clearPending}
+              aria-label="Remove image"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-neutral-900 text-white flex items-center justify-center"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        )}
+        {error && (
+          <div className="mb-2 text-[12px] text-red-500">{error}</div>
+        )}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label="Add photo"
+            onClick={() => fileInputRef.current?.click()}
+            className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0"
+          >
+            <ImageIcon size={20} className="text-neutral-500" />
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onFileChange}
+          />
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Message your group..."
+            className="flex-1 h-11 rounded-full bg-neutral-100 px-4 text-[15px] outline-none placeholder:text-neutral-400"
+          />
+          <button
+            type="submit"
+            disabled={(!text.trim() && !pendingFile) || send.isPending || uploading}
+            aria-label="Send"
+            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-50"
+            style={{ background: (text.trim() || pendingFile) ? PURPLE : "#E5E5E5" }}
+          >
+            {uploading || send.isPending ? (
+              <Loader2 size={18} className="text-white animate-spin" />
+            ) : (
+              <Send size={18} className={(text.trim() || pendingFile) ? "text-white" : "text-neutral-400"} />
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
+}
+
+function SignedImage({ path, className }: { path: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.storage
+      .from(BUCKET)
+      .createSignedUrl(path, 60 * 60)
+      .then(({ data }) => {
+        if (!cancelled) setUrl(data?.signedUrl ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [path]);
+  if (!url) {
+    return <div className={`bg-neutral-200 animate-pulse h-40 w-40 rounded-2xl ${className ?? ""}`} />;
+  }
+  return <img src={url} alt="" className={className} />;
 }
