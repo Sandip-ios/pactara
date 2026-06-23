@@ -23,11 +23,13 @@ export const Route = createFileRoute("/_authenticated/check-in/")({
 function CheckInRouter() {
   // Capture the current local hour on mount so the view doesn't flip during a session.
   const [isMorning] = useState(() => new Date().getHours() < 12);
-  return isMorning ? <MorningRitual /> : <CheckInMood />;
+  const [ritualDone, setRitualDone] = useState(
+    () => typeof sessionStorage !== "undefined" && sessionStorage.getItem("morning-ritual-done") === "1",
+  );
+  return isMorning && !ritualDone ? <MorningRitual onPosted={() => setRitualDone(true)} /> : <CheckInMood />;
 }
 
-function MorningRitual() {
-  const navigate = useNavigate();
+function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [count, setCount] = useState(0);
@@ -37,8 +39,9 @@ function MorningRitual() {
   const mutation = useMutation({
     mutationFn: createCheckInFn,
     onSuccess: () => {
+      sessionStorage.setItem("morning-ritual-done", "1");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
-      navigate({ to: "/home" });
+      onPosted();
     },
   });
 
