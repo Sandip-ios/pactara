@@ -164,10 +164,10 @@ function GroupsPage() {
         </button>
       </div>
 
-      <BottomTabs />
     </div>
   );
 }
+
 
 function GroupCard({
   group,
