@@ -1,10 +1,19 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ChevronLeft, X } from "lucide-react";
-import { MOODS, type MoodId } from "./check-in.index";
+import { ChevronLeft } from "lucide-react";
+import type { MoodId } from "./check-in.index";
 
-const BG = "#F5F2EE";
 const PURPLE = "#7C3AED";
+
+const ACTIVITIES = [
+  { id: "meal", emoji: "🥗", label: "Meal" },
+  { id: "workout", emoji: "💪", label: "Workout" },
+  { id: "run", emoji: "🏃", label: "Run" },
+  { id: "progress", emoji: "📸", label: "Progress" },
+  { id: "sleep", emoji: "😴", label: "Sleep" },
+  { id: "water", emoji: "💧", label: "Water" },
+  { id: "meditation", emoji: "🧘", label: "Meditation" },
+];
 
 export const Route = createFileRoute("/_authenticated/check-in/notes")({
   component: NotesPage,
@@ -14,14 +23,13 @@ function NotesPage() {
   const navigate = useNavigate();
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
-  const [moodId, setMoodId] = useState<MoodId | null>(null);
+  const [, setMoodId] = useState<MoodId | null>(null);
+  const [activity, setActivity] = useState<string | null>(null);
 
   useEffect(() => {
     setMoodId(sessionStorage.getItem("checkin-mood") as MoodId | null);
     setPhoto(sessionStorage.getItem("checkin-photo"));
   }, []);
-
-  const mood = MOODS.find((m) => m.id === moodId) ?? MOODS[0];
 
   const submit = () => {
     sessionStorage.removeItem("checkin-mood");
@@ -30,57 +38,81 @@ function NotesPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full pb-32" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div className="px-4 pt-5 flex items-center gap-3">
+    <div
+      className="min-h-[100dvh] w-full bg-white flex flex-col"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      {/* Header */}
+      <div className="relative h-14 flex items-center justify-center border-b border-neutral-200 px-4 shrink-0">
         <button
           onClick={() => navigate({ to: "/check-in/camera" })}
-          className="h-10 w-10 rounded-full bg-neutral-200/70 flex items-center justify-center"
+          className="absolute left-3 h-10 w-10 flex items-center justify-center"
           aria-label="Back"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={24} />
         </button>
-        <div className="rounded-full bg-neutral-200/70 px-4 py-2 flex items-center gap-2">
-          <span className="text-[18px] leading-none">{mood.emoji}</span>
-          <span className="text-[15px] font-semibold" style={{ color: mood.color }}>{mood.label}</span>
+        <h1 className="text-[17px] font-semibold tracking-tight">New check-in</h1>
+      </div>
+
+      <div className="flex-1 overflow-y-auto pb-40">
+        {/* Photo */}
+        {photo && (
+          <div className="px-6 pt-5 flex justify-center">
+            <img
+              src={photo}
+              alt="Check-in"
+              className="w-full max-w-[280px] aspect-[9/16] object-cover rounded-2xl"
+            />
+          </div>
+        )}
+
+        {/* Note */}
+        <div className="px-6 pt-5">
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add a note…"
+            className="w-full bg-transparent outline-none text-[18px] placeholder:text-neutral-400"
+          />
         </div>
-      </div>
 
-      <div className="px-6 pt-6">
-        <h1 className="text-[32px] font-black leading-tight tracking-tight">Anything to add?</h1>
-        <p className="text-neutral-500 text-[15px] mt-1">Optional — share what's on your mind</p>
-      </div>
-
-      {photo && (
-        <div className="px-4 mt-4">
-          <div className="relative inline-block">
-            <img src={photo} alt="Check-in" className="max-h-56 rounded-2xl" />
-            <button
-              onClick={() => { setPhoto(null); sessionStorage.removeItem("checkin-photo"); }}
-              className="absolute top-2 right-2 h-7 w-7 rounded-full bg-black/60 text-white flex items-center justify-center"
-              aria-label="Remove photo"
-            >
-              <X size={14} />
-            </button>
+        {/* Tag your activity */}
+        <div className="pt-8">
+          <h2 className="px-6 text-[17px] font-bold tracking-tight">Tag your activity</h2>
+          <div className="mt-3 flex gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {ACTIVITIES.map((a) => {
+              const selected = activity === a.id;
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => setActivity(selected ? null : a.id)}
+                  className={`shrink-0 rounded-full border px-4 py-2.5 flex items-center gap-2 text-[15px] font-medium transition-colors ${
+                    selected
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-neutral-300 bg-white text-neutral-900"
+                  }`}
+                >
+                  <span className="text-[16px] leading-none">{a.emoji}</span>
+                  <span>{a.label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      <div className="px-4 mt-4">
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="What happened today? How are you feeling?"
-          className="w-full min-h-[55dvh] rounded-2xl bg-white p-5 outline-none text-[16px] placeholder:text-neutral-400 resize-none"
-        />
       </div>
 
-      <div className="fixed bottom-6 inset-x-0 px-4 z-50">
+      {/* Share button */}
+      <div
+        className="fixed inset-x-0 px-4 z-50"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+      >
         <button
           onClick={submit}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold"
-          style={{ background: PURPLE, boxShadow: `0 12px 30px -10px ${PURPLE}80` }}
+          style={{ background: PURPLE, boxShadow: `0 18px 40px -12px ${PURPLE}80` }}
         >
-          Check In 🔥
+          Share
         </button>
       </div>
     </div>
