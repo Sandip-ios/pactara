@@ -2,11 +2,6 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
-  Home,
-  Users,
-  Zap,
-  MessageCircle,
-  User as UserIcon,
   Plus,
   Link as LinkIcon,
   MoreHorizontal,
