@@ -35,12 +35,13 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const [count, setCount] = useState(0);
   const MAX = 280;
 
-  const createCheckInFn = useServerFn(createCheckIn);
+  const postRitualFn = useServerFn(postMorningRitual);
   const mutation = useMutation({
-    mutationFn: createCheckInFn,
+    mutationFn: postRitualFn,
     onSuccess: () => {
       sessionStorage.setItem("morning-ritual-done", "1");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       onPosted();
     },
   });
