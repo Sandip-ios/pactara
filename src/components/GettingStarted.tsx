@@ -184,7 +184,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
                           navigate({ to: t.cta!.to });
                         }}
                         className="shrink-0 rounded-full px-4 py-2 text-white text-[13px] font-semibold"
-                        style={{ background: PURPLE }}
+                        style={{ background: ORANGE }}
                       >
                         {t.cta.label}
                       </button>
