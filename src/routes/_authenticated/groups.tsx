@@ -171,10 +171,12 @@ function GroupCard({
   group,
   avatarColor,
   firstName,
+  avatarUrl,
 }: {
   group: GroupItem;
   avatarColor: string;
   firstName: string;
+  avatarUrl: string | null;
 }) {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
