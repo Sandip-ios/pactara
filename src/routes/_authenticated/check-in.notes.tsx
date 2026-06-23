@@ -30,7 +30,16 @@ async function uploadCheckInPhoto(dataUrl: string): Promise<string | null> {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) return null;
-    const path = `${userId}/checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const groupId = membership?.group_id;
+    if (!groupId) return null;
+    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
     const { error } = await supabase.storage
       .from("chat-photos")
       .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
