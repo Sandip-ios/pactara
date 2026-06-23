@@ -70,7 +70,7 @@ function InvitePage() {
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col px-6 pt-14 pb-[120px]"
+      className="min-h-[100dvh] w-full flex flex-col px-6 pt-14 pb-10"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
     >
       <div className="flex-1 flex flex-col justify-center items-center text-center">

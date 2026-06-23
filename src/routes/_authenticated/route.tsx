@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideTabs = pathname.startsWith("/check-in/");
+  const hideTabs = pathname.startsWith("/check-in/") || pathname === "/invite";
   return (
     <>
       <Outlet />
