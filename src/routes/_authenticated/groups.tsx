@@ -284,7 +284,7 @@ function GroupCard({
       {/* Member rows */}
       <div className="divide-y divide-neutral-100">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} />
+          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
           <div className="flex-1 text-[14px] text-neutral-600">
             {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
           </div>
