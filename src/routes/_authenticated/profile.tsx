@@ -56,7 +56,11 @@ function ProfilePage() {
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       await saveAvatarPath({ data: { path } });
-      await queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["profile-overview"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-group-status"] }),
+        queryClient.invalidateQueries({ queryKey: ["my-groups"] }),
+      ]);
     } catch (err) {
       console.error("Avatar upload failed", err);
       alert("Couldn't update your photo. Please try again.");

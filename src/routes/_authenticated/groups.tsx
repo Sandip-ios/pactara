@@ -142,7 +142,7 @@ function GroupsPage() {
       <div className="mt-4 space-y-4">
         {groups.length === 0 && <EmptyGroups />}
         {groups.map((g) => (
-          <GroupCard key={g.id} group={g} avatarColor={data.avatarColor} firstName={data.firstName} />
+          <GroupCard key={g.id} group={g} avatarColor={data.avatarColor} firstName={data.firstName} avatarUrl={data.avatarUrl ?? null} />
         ))}
       </div>
 
@@ -171,10 +171,12 @@ function GroupCard({
   group,
   avatarColor,
   firstName,
+  avatarUrl,
 }: {
   group: GroupItem;
   avatarColor: string;
   firstName: string;
+  avatarUrl: string | null;
 }) {
   const [copied, setCopied] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -282,7 +284,7 @@ function GroupCard({
       {/* Member rows */}
       <div className="divide-y divide-neutral-100">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} />
+          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
           <div className="flex-1 text-[14px] text-neutral-600">
             {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
           </div>
@@ -297,7 +299,7 @@ function GroupCard({
         </div>
 
         <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} />
+          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
           <div className="flex-1">
             <div className="text-[15px] font-bold leading-tight">You</div>
             <div className="text-[12px] text-neutral-500">{group.isAdmin ? "Admin" : "Member"}</div>
@@ -630,13 +632,13 @@ function FrequencyOption({
   );
 }
 
-function Avatar({ color, initials }: { color: string; initials: string }) {
+function Avatar({ color, initials, url }: { color: string; initials: string; url?: string | null }) {
   return (
     <div
-      className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-[14px]"
+      className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-[14px] overflow-hidden"
       style={{ background: color }}
     >
-      {initials}
+      {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : initials}
     </div>
   );
 }
