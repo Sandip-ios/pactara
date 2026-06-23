@@ -165,6 +165,7 @@ function SignupFlow() {
       const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
       await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
+      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
       navigate({ to: "/home" });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
