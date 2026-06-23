@@ -6,7 +6,7 @@ import { listMyGroups } from "@/lib/groups.functions";
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 
-export const Route = createFileRoute("/_authenticated/chat")({
+export const Route = createFileRoute("/_authenticated/chat/")({
   component: ChatPage,
 });
 
