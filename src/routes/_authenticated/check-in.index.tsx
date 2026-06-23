@@ -66,7 +66,7 @@ function CheckInMood() {
         })}
       </div>
 
-      <div className="fixed bottom-28 inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 104px)" }}>
+      <div className="fixed inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 140px)" }}>
         <button
           onClick={onContinue}
           disabled={!selected}
