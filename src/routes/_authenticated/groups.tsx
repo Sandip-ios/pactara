@@ -404,7 +404,7 @@ function RenameGroupDrawer({
 
         <div
           className="mt-2 flex items-center gap-3 rounded-2xl px-4 py-4"
-          style={{ background: PURPLE_TINT, border: `1px solid ${PURPLE_SOFT}` }}
+          style={{ background: "#F4F1ED" }}
         >
           <span className="text-[22px] leading-none">{emoji || "🔥"}</span>
           <input
