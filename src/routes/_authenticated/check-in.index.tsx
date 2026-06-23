@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { createCheckIn } from "@/lib/groups.functions";
+import { postMorningRitual } from "@/lib/daily-posts.functions";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
