@@ -287,7 +287,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .select("id, timezone")
       .in("id", Array.from(new Set((posts ?? []).map((p) => p.user_id))));
     const tzMap = new Map((tzProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
-    const now = new Date();
+    if (!posts || posts.length === 0) return { items: [] };
     if (!posts || posts.length === 0) return { items: [] };
 
     const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
