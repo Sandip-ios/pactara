@@ -54,13 +54,13 @@ function HomePage() {
       navigate({ to: "/invite", replace: true });
       return;
     }
-    if (status && typeof localStorage !== "undefined" && !localStorage.getItem("onboarded")) {
+    if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
+      sessionStorage.removeItem("show-welcome");
       setShowOnboarding(true);
     }
   }, [status, navigate]);
 
   const dismissOnboarding = () => {
-    if (typeof localStorage !== "undefined") localStorage.setItem("onboarded", "1");
     setShowOnboarding(false);
   };
 
