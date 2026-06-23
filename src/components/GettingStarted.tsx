@@ -62,13 +62,9 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState<Set<TaskId>>(() => new Set());
-  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     setDone(readDone());
-    if (typeof localStorage !== "undefined") {
-      setDismissed(localStorage.getItem(DISMISS_KEY) === "1");
-    }
   }, []);
 
   // Sync check-in status from server state
@@ -87,7 +83,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
   const total = TASKS.length;
   const doneCount = done.size;
 
-  if (dismissed || doneCount === total) return null;
+  if (doneCount === total) return null;
 
   const toggle = (id: TaskId) => {
     setDone((prev) => {
@@ -99,12 +95,6 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
     });
   };
 
-  const dismiss = () => {
-    if (typeof localStorage !== "undefined") localStorage.setItem(DISMISS_KEY, "1");
-    setDismissed(true);
-    setOpen(false);
-  };
-
   return (
     <>
       <button
@@ -112,7 +102,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
         className="fixed right-4 z-30 flex items-center gap-2 rounded-full pl-4 pr-2 py-2.5 text-white font-semibold shadow-lg"
         style={{
           background: ORANGE,
-          bottom: "calc(env(safe-area-inset-bottom) + 88px)",
+          bottom: "88px",
           boxShadow: `0 10px 30px -10px ${ORANGE}`,
         }}
         aria-label="Getting started"
@@ -153,7 +143,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
                   />
                 </div>
                 <button
-                  onClick={dismiss}
+                  onClick={() => setOpen(false)}
                   className="text-neutral-500"
                   aria-label="Close"
                 >
