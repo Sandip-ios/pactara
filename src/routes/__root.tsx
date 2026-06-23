@@ -53,6 +53,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              const msg = error?.message || "";
+              if (/Failed to fetch dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk \d+ failed/i.test(msg)) {
+                window.location.reload();
+                return;
+              }
               router.invalidate();
               reset();
             }}
