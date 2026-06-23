@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { ArrowRight, Check, X } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { createCheckIn } from "@/lib/groups.functions";
@@ -60,15 +60,6 @@ function MorningRitual() {
       className="min-h-[100dvh] w-full pb-32"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <div className="flex justify-end px-4 pt-4">
-        <button
-          onClick={() => navigate({ to: "/home" })}
-          className="h-10 w-10 flex items-center justify-center text-neutral-500"
-          aria-label="Close"
-        >
-          <X size={24} />
-        </button>
-      </div>
 
       <div className="px-6 pt-2">
         <div className="text-[13px] font-bold" style={{ color: PURPLE }}>
