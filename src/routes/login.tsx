@@ -119,9 +119,9 @@ function LoginPage() {
           <input
             type={showPassword ? "text" : "password"}
             autoComplete="current-password"
-              ref={passwordRef}
-              defaultValue=""
-              onInput={handleInput}
+            ref={passwordRef}
+            defaultValue=""
+            onInput={handleInput}
             placeholder="Your password"
             className="flex-1 bg-transparent outline-none text-[17px]"
             style={{ color: TEXT }}
