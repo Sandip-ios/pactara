@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { recordCheckIn } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
+import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
 
 const PURPLE = "#7C3AED";
 
@@ -23,10 +24,8 @@ export const Route = createFileRoute("/_authenticated/check-in/notes")({
   component: NotesPage,
 });
 
-async function uploadCheckInPhoto(dataUrl: string): Promise<string | null> {
+async function uploadCheckInPhoto(blob: Blob): Promise<string | null> {
   try {
-    const res = await fetch(dataUrl);
-    const blob = await res.blob();
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) return null;
@@ -58,7 +57,7 @@ function NotesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
-  const [photo, setPhoto] = useState<string | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [mood, setMood] = useState<MoodId | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -66,7 +65,7 @@ function NotesPage() {
 
   useEffect(() => {
     setMood(sessionStorage.getItem("checkin-mood") as MoodId | null);
-    setPhoto(sessionStorage.getItem("checkin-photo"));
+    setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
   }, []);
 
   const recordCheckInFn = useServerFn(recordCheckIn);
@@ -75,7 +74,7 @@ function NotesPage() {
       recordCheckInFn({ data: vars }),
     onSuccess: () => {
       sessionStorage.removeItem("checkin-mood");
-      sessionStorage.removeItem("checkin-photo");
+      clearCheckInPhoto();
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       navigate({ to: "/home" });
@@ -88,11 +87,10 @@ function NotesPage() {
     setSubmitting(true);
     try {
       let photoUrl: string | undefined;
-      if (photo && photo.startsWith("data:")) {
-        const path = await uploadCheckInPhoto(photo);
+      const photo = getCheckInPhoto();
+      if (photo) {
+        const path = await uploadCheckInPhoto(photo.blob);
         if (path) photoUrl = path;
-      } else if (photo) {
-        photoUrl = photo;
       }
       await mutation.mutateAsync({
         note: note || undefined,
@@ -129,10 +127,10 @@ function NotesPage() {
 
       <div className="flex-1 overflow-y-auto pb-40">
         {/* Photo */}
-        {photo && (
+        {photoPreview && (
           <div className="px-6 pt-5 flex justify-center">
             <img
-              src={photo}
+              src={photoPreview}
               alt="Check-in"
               className="w-full max-w-[280px] aspect-[9/16] object-cover rounded-2xl"
             />
