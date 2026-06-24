@@ -69,6 +69,8 @@ function HomePage() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
   const postThoughtFn = useServerFn(postThought);
@@ -78,14 +80,22 @@ function HomePage() {
       setComposerOpen(false);
       setComposerText("");
       setImagePreview(null);
+      setImageFile(null);
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     },
   });
 
-  const submitThought = () => {
+  const submitThought = async () => {
     const text = composerText.trim();
-    if (!text && !imagePreview) return;
-    thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: imagePreview || undefined } });
+    if (!text && !imageFile) return;
+    let photoPath: string | null = null;
+    if (imageFile) {
+      setUploading(true);
+      photoPath = await uploadThoughtPhoto(imageFile);
+      setUploading(false);
+      if (!photoPath) return;
+    }
+    thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: photoPath || undefined } });
   };
 
   const pickImage = () => {
@@ -98,6 +108,7 @@ function HomePage() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setImagePreview(url);
+    setImageFile(file);
     e.target.value = "";
   };
 
