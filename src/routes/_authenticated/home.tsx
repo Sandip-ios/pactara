@@ -87,6 +87,20 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
     }
   }
 
+  // Ensure any card that contains a morning ritual also shows a check-in state.
+  // If grouping by the 4 AM timeline-day boundary leaves a ritual card without a
+  // check_in / check_in_missed / pending node, append a pending placeholder.
+  for (const card of grouped.values()) {
+    const hasRitual = card.nodes.some((n) => n.kind === "ritual");
+    if (!hasRitual) continue;
+    const hasCheckInState = card.nodes.some(
+      (n) => n.kind === "check_in" || n.kind === "check_in_missed" || n.kind === "pending",
+    );
+    if (!hasCheckInState) {
+      card.nodes.push({ kind: "pending", id: `p-${card.id}` } as TimelineNode);
+    }
+  }
+
   return Array.from(grouped.values()).sort((a, b) => {
     if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
     return a.updatedAt < b.updatedAt ? 1 : -1;
