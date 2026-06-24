@@ -8,6 +8,37 @@ import { getGroupFeed, postThought } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
+import { supabase } from "@/integrations/supabase/client";
+
+async function uploadThoughtPhoto(file: File): Promise<string | null> {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return null;
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const groupId = membership?.group_id;
+    if (!groupId) return null;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
+    const path = `${groupId}/${userId}-thought-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage
+      .from("chat-photos")
+      .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    if (error) {
+      console.error("thought photo upload failed", error);
+      return null;
+    }
+    return path;
+  } catch (e) {
+    console.error("thought photo upload error", e);
+    return null;
+  }
+}
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
