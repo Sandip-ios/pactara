@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
-import { getGroupFeed, postThought } from "@/lib/daily-posts.functions";
+import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
@@ -42,6 +42,56 @@ async function uploadThoughtPhoto(file: File): Promise<string | null> {
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
+const TIMELINE_DAY_START_HOUR = 4;
+
+function formatLocalDate(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function timelineDateFor(iso: string) {
+  const d = new Date(iso);
+  d.setHours(d.getHours() - TIMELINE_DAY_START_HOUR);
+  return formatLocalDate(d);
+}
+
+function nodeTimelineDate(item: FeedItem, node: TimelineNode) {
+  if (node.kind === "pending" || node.kind === "ritual_missed" || node.kind === "check_in_missed") {
+    return item.localDate;
+  }
+  return timelineDateFor(node.at);
+}
+
+function splitFeedIntoTimelineCards(items: FeedItem[]) {
+  const grouped = new Map<string, FeedItem>();
+
+  for (const item of items) {
+    const nodes = item.nodes.length > 0 ? item.nodes : [{ kind: "pending", id: `empty-${item.id}` } as TimelineNode];
+    for (const node of nodes) {
+      const localDate = nodeTimelineDate(item, node);
+      const key = `${item.userId}-${localDate}`;
+      const nodeAt = "at" in node ? node.at : item.updatedAt;
+      const existing = grouped.get(key);
+
+      if (existing) {
+        existing.nodes.push(node);
+        if (existing.updatedAt < nodeAt) existing.updatedAt = nodeAt;
+      } else {
+        grouped.set(key, {
+          ...item,
+          id: key,
+          localDate,
+          updatedAt: nodeAt,
+          nodes: [node],
+        });
+      }
+    }
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
+    return a.updatedAt < b.updatedAt ? 1 : -1;
+  });
+}
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
@@ -267,18 +317,12 @@ function HomePage() {
       {(feedData?.items.length ?? 0) > 0 ? (
         <div className="pb-2">
           {(() => {
-            // Sort by local_date desc, then updated_at desc, so each day forms its own timeline.
-            const sorted = [...feedData!.items].sort((a, b) => {
-              if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
-              return a.updatedAt < b.updatedAt ? 1 : -1;
-            });
+            const sorted = splitFeedIntoTimelineCards(feedData!.items);
             const today = new Date();
-            const fmtLocal = (d: Date) =>
-              `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-            const todayStr = fmtLocal(today);
+            const todayStr = formatLocalDate(today);
             const yesterday = new Date(today);
             yesterday.setDate(today.getDate() - 1);
-            const yesterdayStr = fmtLocal(yesterday);
+            const yesterdayStr = formatLocalDate(yesterday);
             const labelFor = (iso: string) => {
               if (iso === todayStr) return "Today";
               if (iso === yesterdayStr) return "Yesterday";
