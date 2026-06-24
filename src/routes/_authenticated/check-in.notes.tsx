@@ -152,7 +152,7 @@ function NotesPage() {
         <div className="pt-8">
           <h2 className="px-6 text-[17px] font-bold tracking-tight">Tag your activity</h2>
           <div
-            className="mt-3 flex gap-2 overflow-x-auto pl-2 pr-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="mt-3 flex gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
           >
             {ACTIVITIES.map((a) => {
