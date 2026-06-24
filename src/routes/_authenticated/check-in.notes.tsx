@@ -61,6 +61,8 @@ function NotesPage() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [mood, setMood] = useState<MoodId | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     setMood(sessionStorage.getItem("checkin-mood") as MoodId | null);
@@ -81,20 +83,32 @@ function NotesPage() {
   });
 
   const submit = async () => {
-    let photoUrl: string | undefined;
-    if (photo && photo.startsWith("data:")) {
-      const path = await uploadCheckInPhoto(photo);
-      if (path) photoUrl = path;
-    } else if (photo) {
-      photoUrl = photo;
+    if (submitting || mutation.isPending) return;
+    setSubmitError(null);
+    setSubmitting(true);
+    try {
+      let photoUrl: string | undefined;
+      if (photo && photo.startsWith("data:")) {
+        const path = await uploadCheckInPhoto(photo);
+        if (path) photoUrl = path;
+      } else if (photo) {
+        photoUrl = photo;
+      }
+      await mutation.mutateAsync({
+        note: note || undefined,
+        mood: mood || undefined,
+        activity: activity || undefined,
+        photoUrl,
+      });
+    } catch (err) {
+      console.error("check-in submit failed", err);
+      setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-    mutation.mutate({
-      note: note || undefined,
-      mood: mood || undefined,
-      activity: activity || undefined,
-      photoUrl,
-    });
   };
+
+  const isBusy = submitting || mutation.isPending;
 
   return (
     <div
@@ -173,13 +187,18 @@ function NotesPage() {
         className="fixed inset-x-0 px-4 z-50"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
       >
+        {submitError && (
+          <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-600 text-center">
+            {submitError}
+          </div>
+        )}
         <button
           onClick={submit}
-          disabled={mutation.isPending}
+          disabled={isBusy}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE, boxShadow: `0 18px 40px -12px ${PURPLE}80` }}
         >
-          {mutation.isPending ? "Sharing…" : "Share"}
+          {isBusy ? "Sharing…" : "Share"}
         </button>
       </div>
     </div>
