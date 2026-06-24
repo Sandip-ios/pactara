@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ImagePlus, RefreshCw } from "lucide-react";
 import { MOODS, type MoodId } from "./check-in.index";
+import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
   component: CameraPage,
@@ -50,20 +51,17 @@ function CameraPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     ctx.drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-    sessionStorage.setItem("checkin-photo", dataUrl);
-    navigate({ to: "/check-in/notes" });
+    canvas.toBlob((blob) => {
+      if (blob) setCheckInPhoto(blob);
+      navigate({ to: "/check-in/notes" });
+    }, "image/jpeg", 0.85);
   };
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      sessionStorage.setItem("checkin-photo", String(reader.result));
-      navigate({ to: "/check-in/notes" });
-    };
-    reader.readAsDataURL(file);
+    setCheckInPhoto(file);
+    navigate({ to: "/check-in/notes" });
   };
 
   return (
