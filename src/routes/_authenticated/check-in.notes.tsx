@@ -187,13 +187,18 @@ function NotesPage() {
         className="fixed inset-x-0 px-4 z-50"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
       >
+        {submitError && (
+          <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-600 text-center">
+            {submitError}
+          </div>
+        )}
         <button
           onClick={submit}
-          disabled={mutation.isPending}
+          disabled={isBusy}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE, boxShadow: `0 18px 40px -12px ${PURPLE}80` }}
         >
-          {mutation.isPending ? "Sharing…" : "Share"}
+          {isBusy ? "Sharing…" : "Share"}
         </button>
       </div>
     </div>
