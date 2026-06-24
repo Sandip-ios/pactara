@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
 import { getGroupFeed, postThought } from "@/lib/daily-posts.functions";
@@ -266,9 +266,46 @@ function HomePage() {
 
       {(feedData?.items.length ?? 0) > 0 ? (
         <div className="pb-2">
-          {feedData!.items.map((item) => (
-            <TimelineCard key={item.id} item={item} />
-          ))}
+          {(() => {
+            // Sort by local_date desc, then updated_at desc, so each day forms its own timeline.
+            const sorted = [...feedData!.items].sort((a, b) => {
+              if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
+              return a.updatedAt < b.updatedAt ? 1 : -1;
+            });
+            const today = new Date();
+            const fmtLocal = (d: Date) =>
+              `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+            const todayStr = fmtLocal(today);
+            const yesterday = new Date(today);
+            yesterday.setDate(today.getDate() - 1);
+            const yesterdayStr = fmtLocal(yesterday);
+            const labelFor = (iso: string) => {
+              if (iso === todayStr) return "Today";
+              if (iso === yesterdayStr) return "Yesterday";
+              const [y, m, d] = iso.split("-").map(Number);
+              return new Date(y, m - 1, d).toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              });
+            };
+            const out: ReactNode[] = [];
+            let lastDate: string | null = null;
+            for (const item of sorted) {
+              if (item.localDate !== lastDate) {
+                out.push(
+                  <div key={`hdr-${item.localDate}`} className="px-6 pt-6 pb-1">
+                    <div className="text-[13px] font-bold uppercase tracking-wide text-neutral-500">
+                      {labelFor(item.localDate)}
+                    </div>
+                  </div>,
+                );
+                lastDate = item.localDate;
+              }
+              out.push(<TimelineCard key={item.id} item={item} />);
+            }
+            return out;
+          })()}
         </div>
       ) : (
         <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
