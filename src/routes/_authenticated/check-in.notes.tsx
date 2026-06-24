@@ -132,7 +132,7 @@ function NotesPage() {
             <img
               src={photoPreview}
               alt="Check-in"
-              className="w-full max-w-[280px] aspect-[9/16] object-cover rounded-2xl"
+              className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
             />
           </div>
         )}
