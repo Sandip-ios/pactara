@@ -152,9 +152,10 @@ function NotesPage() {
         <div className="pt-8">
           <h2 className="px-6 text-[17px] font-bold tracking-tight">Tag your activity</h2>
           <div
-            className="mt-3 flex gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="ml-6 mt-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={{ WebkitOverflowScrolling: "touch", scrollSnapType: "x proximity" }}
           >
+            <div className="flex w-max gap-2 pr-6">
             {ACTIVITIES.map((a) => {
               const selected = activity === a.id;
               return (
@@ -176,6 +177,7 @@ function NotesPage() {
                 </button>
               );
             })}
+            </div>
           </div>
         </div>
       </div>
