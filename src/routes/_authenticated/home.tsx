@@ -101,6 +101,21 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
     }
   }
 
+  // Sort each card's nodes: ritual (or ritual_missed) pinned to top, then chronological.
+  for (const card of grouped.values()) {
+    card.nodes.sort((a, b) => {
+      const aRit = a.kind === "ritual" || a.kind === "ritual_missed" ? 0 : 1;
+      const bRit = b.kind === "ritual" || b.kind === "ritual_missed" ? 0 : 1;
+      if (aRit !== bRit) return aRit - bRit;
+      const aAt = "at" in a ? a.at : "";
+      const bAt = "at" in b ? b.at : "";
+      if (!aAt && !bAt) return 0;
+      if (!aAt) return 1;
+      if (!bAt) return -1;
+      return aAt < bAt ? -1 : aAt > bAt ? 1 : 0;
+    });
+  }
+
   return Array.from(grouped.values()).sort((a, b) => {
     if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
     return a.updatedAt < b.updatedAt ? 1 : -1;
