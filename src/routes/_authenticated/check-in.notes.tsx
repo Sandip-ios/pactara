@@ -132,7 +132,7 @@ function NotesPage() {
             <img
               src={photoPreview}
               alt="Check-in"
-              className="w-full max-w-[280px] aspect-[9/16] object-cover rounded-2xl"
+              className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
             />
           </div>
         )}
@@ -183,7 +183,7 @@ function NotesPage() {
       {/* Share button */}
       <div
         className="fixed inset-x-0 px-4 z-50"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 24px)" }}
       >
         {submitError && (
           <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-600 text-center">
