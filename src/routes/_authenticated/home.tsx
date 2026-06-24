@@ -8,6 +8,37 @@ import { getGroupFeed, postThought } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
+import { supabase } from "@/integrations/supabase/client";
+
+async function uploadThoughtPhoto(file: File): Promise<string | null> {
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData.user?.id;
+    if (!userId) return null;
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const groupId = membership?.group_id;
+    if (!groupId) return null;
+    const ext = (file.name.split(".").pop() || "jpg").toLowerCase().slice(0, 5);
+    const path = `${groupId}/${userId}-thought-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error } = await supabase.storage
+      .from("chat-photos")
+      .upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    if (error) {
+      console.error("thought photo upload failed", error);
+      return null;
+    }
+    return path;
+  } catch (e) {
+    console.error("thought photo upload error", e);
+    return null;
+  }
+}
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -38,6 +69,8 @@ function HomePage() {
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const queryClient = useQueryClient();
   const postThoughtFn = useServerFn(postThought);
@@ -47,14 +80,22 @@ function HomePage() {
       setComposerOpen(false);
       setComposerText("");
       setImagePreview(null);
+      setImageFile(null);
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     },
   });
 
-  const submitThought = () => {
+  const submitThought = async () => {
     const text = composerText.trim();
-    if (!text && !imagePreview) return;
-    thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: imagePreview || undefined } });
+    if (!text && !imageFile) return;
+    let photoPath: string | null = null;
+    if (imageFile) {
+      setUploading(true);
+      photoPath = await uploadThoughtPhoto(imageFile);
+      setUploading(false);
+      if (!photoPath) return;
+    }
+    thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: photoPath || undefined } });
   };
 
   const pickImage = () => {
@@ -67,6 +108,7 @@ function HomePage() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     setImagePreview(url);
+    setImageFile(file);
     e.target.value = "";
   };
 
@@ -142,7 +184,7 @@ function HomePage() {
               <div className="relative inline-block">
                 <img src={imagePreview} alt="Selected" className="max-h-48 rounded-lg" />
                 <button
-                  onClick={() => setImagePreview(null)}
+                  onClick={() => { setImagePreview(null); setImageFile(null); }}
                   className="absolute top-1 right-1 bg-black/60 text-white rounded-full h-6 w-6 text-xs"
                   aria-label="Remove image"
                 >
@@ -157,19 +199,19 @@ function HomePage() {
             </button>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); }}
+                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); setImageFile(null); }}
                 className="px-4 py-2 rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-700"
               >
                 Cancel
               </button>
               <button
                 onClick={submitThought}
-                disabled={(!composerText.trim() && !imagePreview) || thoughtMutation.isPending}
+                disabled={(!composerText.trim() && !imageFile) || thoughtMutation.isPending || uploading}
                 className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
-                style={{ background: (composerText.trim() || imagePreview) ? PURPLE : "#D4D4D4" }}
+                style={{ background: (composerText.trim() || imageFile) ? PURPLE : "#D4D4D4" }}
               >
                 <Send size={16} />
-                {thoughtMutation.isPending ? "Posting…" : "Post"}
+                {uploading ? "Uploading…" : thoughtMutation.isPending ? "Posting…" : "Post"}
               </button>
             </div>
           </div>
