@@ -112,7 +112,7 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
       if (!aAt && !bAt) return 0;
       if (!aAt) return 1;
       if (!bAt) return -1;
-      return aAt < bAt ? -1 : aAt > bAt ? 1 : 0;
+      return aAt < bAt ? 1 : aAt > bAt ? -1 : 0;
     });
   }
 
