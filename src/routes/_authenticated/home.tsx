@@ -289,7 +289,7 @@ function HomePage() {
                 day: "numeric",
               });
             };
-            const out: React.ReactNode[] = [];
+            const out: ReactNode[] = [];
             let lastDate: string | null = null;
             for (const item of sorted) {
               if (item.localDate !== lastDate) {
