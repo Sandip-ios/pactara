@@ -199,19 +199,19 @@ function HomePage() {
             </button>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); }}
+                onClick={() => { setComposerOpen(false); setComposerText(""); setImagePreview(null); setImageFile(null); }}
                 className="px-4 py-2 rounded-full bg-neutral-100 text-[14px] font-semibold text-neutral-700"
               >
                 Cancel
               </button>
               <button
                 onClick={submitThought}
-                disabled={(!composerText.trim() && !imagePreview) || thoughtMutation.isPending}
+                disabled={(!composerText.trim() && !imageFile) || thoughtMutation.isPending || uploading}
                 className="px-4 py-2 rounded-full text-white text-[14px] font-semibold flex items-center gap-1.5 disabled:opacity-50"
-                style={{ background: (composerText.trim() || imagePreview) ? PURPLE : "#D4D4D4" }}
+                style={{ background: (composerText.trim() || imageFile) ? PURPLE : "#D4D4D4" }}
               >
                 <Send size={16} />
-                {thoughtMutation.isPending ? "Posting…" : "Post"}
+                {uploading ? "Uploading…" : thoughtMutation.isPending ? "Posting…" : "Post"}
               </button>
             </div>
           </div>
