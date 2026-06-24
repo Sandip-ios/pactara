@@ -184,7 +184,7 @@ function HomePage() {
               <div className="relative inline-block">
                 <img src={imagePreview} alt="Selected" className="max-h-48 rounded-lg" />
                 <button
-                  onClick={() => setImagePreview(null)}
+                  onClick={() => { setImagePreview(null); setImageFile(null); }}
                   className="absolute top-1 right-1 bg-black/60 text-white rounded-full h-6 w-6 text-xs"
                   aria-label="Remove image"
                 >
