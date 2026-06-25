@@ -23,6 +23,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
         const subject = process.env.VAPID_SUBJECT || "mailto:reminders@pactara.lovable.app";
         if (!publicKey || !privateKey) {
           return Response.json({ error: "VAPID keys not configured" }, { status: 500 });
+        }
         const { default: webpush } = await import("web-push");
         webpush.setVapidDetails(subject, publicKey, privateKey);
 
