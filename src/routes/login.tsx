@@ -138,13 +138,13 @@ function LoginPage() {
         </div>
       </div>
 
-      <button
-        type="button"
+      <Link
+        to="/forgot-password"
         className="mt-3 self-start text-[14px] font-medium"
         style={{ color: PURPLE }}
       >
         Forgot password?
-      </button>
+      </Link>
 
 
       {error && (
