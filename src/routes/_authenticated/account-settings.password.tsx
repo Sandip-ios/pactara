@@ -155,6 +155,11 @@ function PasswordPage() {
             setConfirm(v);
             clearError("confirm");
           }}
+          onBlur={() => {
+            if (confirm && next && confirm !== next) {
+              setErrors((p) => ({ ...p, confirm: "Passwords don't match" }));
+            }
+          }}
           visible={visible.confirm}
           onToggle={() => toggle("confirm")}
           invalid={!!errors.confirm}
@@ -162,6 +167,7 @@ function PasswordPage() {
           placeholder="Re-enter new password"
         />
       </Field>
+
 
       <PrimaryButton
         disabled={!canSubmit}
