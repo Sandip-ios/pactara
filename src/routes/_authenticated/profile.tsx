@@ -188,7 +188,9 @@ function ProfilePage() {
             iconBg={PURPLE_SOFT}
             title="Account settings"
             subtitle="Name, email, password, privacy"
+            onClick={() => navigate({ to: "/account-settings" })}
           />
+
           <div className="h-px bg-neutral-100 ml-[68px]" />
           <button
             onClick={handleSignOut}
