@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import webpush from "web-push";
 import { localHourFor } from "@/lib/daily-posts.functions";
 
 /**
@@ -25,6 +24,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
         if (!publicKey || !privateKey) {
           return Response.json({ error: "VAPID keys not configured" }, { status: 500 });
         }
+        const { default: webpush } = await import("web-push");
         webpush.setVapidDetails(subject, publicKey, privateKey);
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
