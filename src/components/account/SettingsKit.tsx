@@ -60,9 +60,11 @@ export function SubPage({
 
 export function Field({
   label,
+  error,
   children,
 }: {
   label: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -74,6 +76,11 @@ export function Field({
         {label}
       </span>
       {children}
+      {error && (
+        <span className="block text-[12px] font-medium mt-1.5 text-red-600">
+          {error}
+        </span>
+      )}
     </label>
   );
 }
