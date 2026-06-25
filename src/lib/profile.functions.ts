@@ -156,3 +156,78 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+type NotificationPrefs = {
+  push_enabled: boolean;
+  email_enabled: boolean;
+  daily_reminder_enabled: boolean;
+  daily_reminder_time: string; // "HH:MM" or "HH:MM:SS"
+  group_activity_enabled: boolean;
+};
+
+const DEFAULT_PREFS: NotificationPrefs = {
+  push_enabled: true,
+  email_enabled: true,
+  daily_reminder_enabled: true,
+  daily_reminder_time: "09:00",
+  group_activity_enabled: true,
+};
+
+export const getNotificationPrefs = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data } = await (supabase as never as {
+      from: (t: string) => {
+        select: (s: string) => {
+          eq: (
+            c: string,
+            v: string,
+          ) => { maybeSingle: () => Promise<{ data: NotificationPrefs | null }> };
+        };
+      };
+    })
+      .from("notification_preferences")
+      .select(
+        "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled",
+      )
+      .eq("user_id", userId)
+      .maybeSingle();
+    const prefs = data ?? DEFAULT_PREFS;
+    return {
+      ...prefs,
+      daily_reminder_time: String(prefs.daily_reminder_time).slice(0, 5),
+    };
+  });
+
+export const updateNotificationPrefs = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: Partial<NotificationPrefs>) => {
+    const t = input.daily_reminder_time;
+    return {
+      push_enabled: input.push_enabled,
+      email_enabled: input.email_enabled,
+      daily_reminder_enabled: input.daily_reminder_enabled,
+      daily_reminder_time:
+        typeof t === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(t) ? t.slice(0, 5) : undefined,
+      group_activity_enabled: input.group_activity_enabled,
+    };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const payload: Record<string, unknown> = { user_id: userId };
+    for (const [k, v] of Object.entries(data)) if (v !== undefined) payload[k] = v;
+    const { error } = await (supabase as never as {
+      from: (t: string) => {
+        upsert: (
+          row: Record<string, unknown>,
+          opts: { onConflict: string },
+        ) => Promise<{ error: { message: string } | null }>;
+      };
+    })
+      .from("notification_preferences")
+      .upsert(payload, { onConflict: "user_id" });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
