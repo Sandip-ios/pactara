@@ -27,6 +27,7 @@ import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './rout
 import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
+import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 
 const SignupRoute = SignupRouteImport.update({
@@ -127,6 +128,12 @@ const AuthenticatedAccountSettingsEmailRoute =
     path: '/account-settings/email',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksMorningRitualReminderRoute =
+  ApiPublicHooksMorningRitualReminderRouteImport.update({
+    id: '/api/public/hooks/morning-ritual-reminder',
+    path: '/api/public/hooks/morning-ritual-reminder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
   id: '/api/public/hooks/auto-miss',
   path: '/api/public/hooks/auto-miss',
@@ -152,6 +159,7 @@ export interface FileRoutesByFullPath {
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
+  '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -172,6 +180,7 @@ export interface FileRoutesByTo {
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
+  '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -194,6 +203,7 @@ export interface FileRoutesById {
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
+  '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/chat/'
     | '/check-in/'
     | '/api/public/hooks/auto-miss'
+    | '/api/public/hooks/morning-ritual-reminder'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/check-in'
     | '/api/public/hooks/auto-miss'
+    | '/api/public/hooks/morning-ritual-reminder'
   id:
     | '__root__'
     | '/'
@@ -257,6 +269,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
     | '/api/public/hooks/auto-miss'
+    | '/api/public/hooks/morning-ritual-reminder'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -265,6 +278,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
+  ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -395,6 +409,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountSettingsEmailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/morning-ritual-reminder': {
+      id: '/api/public/hooks/morning-ritual-reminder'
+      path: '/api/public/hooks/morning-ritual-reminder'
+      fullPath: '/api/public/hooks/morning-ritual-reminder'
+      preLoaderRoute: typeof ApiPublicHooksMorningRitualReminderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/auto-miss': {
       id: '/api/public/hooks/auto-miss'
       path: '/api/public/hooks/auto-miss'
@@ -452,6 +473,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
+  ApiPublicHooksMorningRitualReminderRoute:
+    ApiPublicHooksMorningRitualReminderRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
