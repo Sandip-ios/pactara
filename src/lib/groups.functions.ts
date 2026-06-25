@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { localDateFor } from "@/lib/daily-posts.functions";
+
+async function getUserTimezone(supabase: SupabaseClient, userId: string): Promise<string> {
+  const { data } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+  return (data?.timezone as string | undefined) ?? "UTC";
+}
 
 async function signAvatar(
   supabase: SupabaseClient,
@@ -253,7 +259,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
 
     if (!membership) return { groupId: null, pending: [], iCheckedIn: false };
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateFor(await getUserTimezone(supabase, userId));
 
     const [{ data: members }, { data: checkins }] = await Promise.all([
       supabase.from("group_members").select("user_id").eq("group_id", membership.group_id),
@@ -311,7 +317,7 @@ export const createCheckIn = createServerFn({ method: "POST" })
 
     if (!membership) throw new Error("You're not in a group yet");
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateFor(await getUserTimezone(supabase, userId));
 
     const { error } = await supabase.from("check_ins").upsert(
       {
