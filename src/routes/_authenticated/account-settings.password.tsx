@@ -30,11 +30,37 @@ function PasswordPage() {
     next: false,
     confirm: false,
   });
+  const [verifying, setVerifying] = useState(false);
+  const lastVerifiedRef = useState<{ value: string; ok: boolean } | null>(null)[0];
+  const verifyState = { ref: lastVerifiedRef } as { ref: { value: string; ok: boolean } | null };
 
   const { data } = useQuery({
     queryKey: ["account-settings"],
     queryFn: () => getAccountSettings(),
   });
+
+  const verifyCurrent = async () => {
+    const pw = current;
+    if (!pw || !data?.email) return;
+    // skip if we've already verified this exact value
+    if (verifyState.ref && verifyState.ref.value === pw) {
+      if (!verifyState.ref.ok)
+        setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
+      return;
+    }
+    setVerifying(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: pw,
+    });
+    setVerifying(false);
+    verifyState.ref = { value: pw, ok: !error };
+    if (error) {
+      setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
+    } else {
+      setErrors((p) => ({ ...p, current: undefined }));
+    }
+  };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -68,6 +94,7 @@ function PasswordPage() {
       setConfirm("");
       setErrors({});
       setVisible({ current: false, next: false, confirm: false });
+      verifyState.ref = null;
       flash("ok", "Password updated");
     },
     onError: (e: Error) => flash("err", e.message),
