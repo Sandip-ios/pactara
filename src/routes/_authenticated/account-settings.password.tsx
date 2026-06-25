@@ -42,8 +42,8 @@ function PasswordPage() {
     const pw = current;
     if (!pw || !data?.email) return;
     // skip if we've already verified this exact value
-    if (verifyState.ref && verifyState.ref.value === pw) {
-      if (!verifyState.ref.ok)
+    if (verifiedRef.current && verifiedRef.current.value === pw) {
+      if (!verifiedRef.current.ok)
         setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
       return;
     }
@@ -53,7 +53,7 @@ function PasswordPage() {
       password: pw,
     });
     setVerifying(false);
-    verifyState.ref = { value: pw, ok: !error };
+    verifiedRef.current = { value: pw, ok: !error };
     if (error) {
       setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
     } else {
@@ -93,7 +93,7 @@ function PasswordPage() {
       setConfirm("");
       setErrors({});
       setVisible({ current: false, next: false, confirm: false });
-      verifyState.ref = null;
+      verifiedRef.current = null;
       flash("ok", "Password updated");
     },
     onError: (e: Error) => flash("err", e.message),
