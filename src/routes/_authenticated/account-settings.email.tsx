@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { getAccountSettings } from "@/lib/profile.functions";
 import { SubPage, Field, PrimaryButton, Flash, useFlash } from "@/components/account/SettingsKit";

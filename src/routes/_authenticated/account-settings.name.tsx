@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { getAccountSettings, updateProfileName } from "@/lib/profile.functions";
 import { SubPage, Field, PrimaryButton, Flash, useFlash } from "@/components/account/SettingsKit";
 
