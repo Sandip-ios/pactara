@@ -17,12 +17,16 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
-import { Route as AuthenticatedAccountSettingsRouteImport } from './routes/_authenticated/account-settings'
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
+import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './routes/_authenticated/account-settings.password'
+import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
+import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
+import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 
 const SignupRoute = SignupRouteImport.update({
@@ -64,12 +68,6 @@ const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAccountSettingsRoute =
-  AuthenticatedAccountSettingsRouteImport.update({
-    id: '/account-settings',
-    path: '/account-settings',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedCheckInIndexRoute =
   AuthenticatedCheckInIndexRouteImport.update({
     id: '/check-in/',
@@ -81,6 +79,12 @@ const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   path: '/chat/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAccountSettingsIndexRoute =
+  AuthenticatedAccountSettingsIndexRouteImport.update({
+    id: '/account-settings/',
+    path: '/account-settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCheckInNotesRoute =
   AuthenticatedCheckInNotesRouteImport.update({
     id: '/check-in/notes',
@@ -99,6 +103,30 @@ const AuthenticatedChatGroupIdRoute =
     path: '/chat/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAccountSettingsPasswordRoute =
+  AuthenticatedAccountSettingsPasswordRouteImport.update({
+    id: '/account-settings/password',
+    path: '/account-settings/password',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsNotificationsRoute =
+  AuthenticatedAccountSettingsNotificationsRouteImport.update({
+    id: '/account-settings/notifications',
+    path: '/account-settings/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsNameRoute =
+  AuthenticatedAccountSettingsNameRouteImport.update({
+    id: '/account-settings/name',
+    path: '/account-settings/name',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsEmailRoute =
+  AuthenticatedAccountSettingsEmailRouteImport.update({
+    id: '/account-settings/email',
+    path: '/account-settings/email',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
   id: '/api/public/hooks/auto-miss',
   path: '/api/public/hooks/auto-miss',
@@ -109,14 +137,18 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/account-settings': typeof AuthenticatedAccountSettingsRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
+  '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
+  '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
+  '/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
@@ -125,14 +157,18 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/account-settings': typeof AuthenticatedAccountSettingsRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
+  '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
+  '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
+  '/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
@@ -143,14 +179,18 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
-  '/_authenticated/account-settings': typeof AuthenticatedAccountSettingsRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
+  '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
+  '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
+  '/_authenticated/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
   '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
@@ -161,14 +201,18 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
-    | '/account-settings'
     | '/groups'
     | '/home'
     | '/invite'
     | '/profile'
+    | '/account-settings/email'
+    | '/account-settings/name'
+    | '/account-settings/notifications'
+    | '/account-settings/password'
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/account-settings/'
     | '/chat/'
     | '/check-in/'
     | '/api/public/hooks/auto-miss'
@@ -177,14 +221,18 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/signup'
-    | '/account-settings'
     | '/groups'
     | '/home'
     | '/invite'
     | '/profile'
+    | '/account-settings/email'
+    | '/account-settings/name'
+    | '/account-settings/notifications'
+    | '/account-settings/password'
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/account-settings'
     | '/chat'
     | '/check-in'
     | '/api/public/hooks/auto-miss'
@@ -194,14 +242,18 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/login'
     | '/signup'
-    | '/_authenticated/account-settings'
     | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/invite'
     | '/_authenticated/profile'
+    | '/_authenticated/account-settings/email'
+    | '/_authenticated/account-settings/name'
+    | '/_authenticated/account-settings/notifications'
+    | '/_authenticated/account-settings/password'
     | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
+    | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
     | '/api/public/hooks/auto-miss'
@@ -273,13 +325,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/account-settings': {
-      id: '/_authenticated/account-settings'
-      path: '/account-settings'
-      fullPath: '/account-settings'
-      preLoaderRoute: typeof AuthenticatedAccountSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/check-in/': {
       id: '/_authenticated/check-in/'
       path: '/check-in'
@@ -292,6 +337,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat/'
       preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account-settings/': {
+      id: '/_authenticated/account-settings/'
+      path: '/account-settings'
+      fullPath: '/account-settings/'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/check-in/notes': {
@@ -315,6 +367,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/account-settings/password': {
+      id: '/_authenticated/account-settings/password'
+      path: '/account-settings/password'
+      fullPath: '/account-settings/password'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsPasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account-settings/notifications': {
+      id: '/_authenticated/account-settings/notifications'
+      path: '/account-settings/notifications'
+      fullPath: '/account-settings/notifications'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account-settings/name': {
+      id: '/_authenticated/account-settings/name'
+      path: '/account-settings/name'
+      fullPath: '/account-settings/name'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsNameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account-settings/email': {
+      id: '/_authenticated/account-settings/email'
+      path: '/account-settings/email'
+      fullPath: '/account-settings/email'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsEmailRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/hooks/auto-miss': {
       id: '/api/public/hooks/auto-miss'
       path: '/api/public/hooks/auto-miss'
@@ -326,27 +406,39 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAccountSettingsRoute: typeof AuthenticatedAccountSettingsRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
+  AuthenticatedAccountSettingsNameRoute: typeof AuthenticatedAccountSettingsNameRoute
+  AuthenticatedAccountSettingsNotificationsRoute: typeof AuthenticatedAccountSettingsNotificationsRoute
+  AuthenticatedAccountSettingsPasswordRoute: typeof AuthenticatedAccountSettingsPasswordRoute
   AuthenticatedChatGroupIdRoute: typeof AuthenticatedChatGroupIdRoute
   AuthenticatedCheckInCameraRoute: typeof AuthenticatedCheckInCameraRoute
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
+  AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAccountSettingsRoute: AuthenticatedAccountSettingsRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedAccountSettingsEmailRoute:
+    AuthenticatedAccountSettingsEmailRoute,
+  AuthenticatedAccountSettingsNameRoute: AuthenticatedAccountSettingsNameRoute,
+  AuthenticatedAccountSettingsNotificationsRoute:
+    AuthenticatedAccountSettingsNotificationsRoute,
+  AuthenticatedAccountSettingsPasswordRoute:
+    AuthenticatedAccountSettingsPasswordRoute,
   AuthenticatedChatGroupIdRoute: AuthenticatedChatGroupIdRoute,
   AuthenticatedCheckInCameraRoute: AuthenticatedCheckInCameraRoute,
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
+  AuthenticatedAccountSettingsIndexRoute:
+    AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
   AuthenticatedCheckInIndexRoute: AuthenticatedCheckInIndexRoute,
 }
@@ -364,13 +456,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
