@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getAccountSettings } from "@/lib/profile.functions";
 import { SubPage, Field, PrimaryButton, Flash, useFlash } from "@/components/account/SettingsKit";
@@ -15,6 +16,8 @@ type FieldErrors = {
   confirm?: string;
 };
 
+type Visible = { current: boolean; next: boolean; confirm: boolean };
+
 function PasswordPage() {
   const navigate = useNavigate();
   const { msg, flash } = useFlash();
@@ -22,6 +25,11 @@ function PasswordPage() {
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [visible, setVisible] = useState<Visible>({
+    current: false,
+    next: false,
+    confirm: false,
+  });
 
   const { data } = useQuery({
     queryKey: ["account-settings"],
@@ -42,7 +50,6 @@ function PasswordPage() {
       }
       if (!data?.email) throw new Error("Couldn't load your account email");
 
-      // Re-authenticate to verify current password
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: current,
@@ -60,6 +67,7 @@ function PasswordPage() {
       setNext("");
       setConfirm("");
       setErrors({});
+      setVisible({ current: false, next: false, confirm: false });
       flash("ok", "Password updated");
     },
     onError: (e: Error) => flash("err", e.message),
@@ -69,60 +77,61 @@ function PasswordPage() {
     if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
   };
 
+  const toggle = (key: keyof Visible) =>
+    setVisible((v) => ({ ...v, [key]: !v[key] }));
+
   const canSubmit =
     current.length > 0 && next.length >= 8 && confirm.length >= 8 && !save.isPending;
 
   return (
     <SubPage title="Password" onBack={() => navigate({ to: "/account-settings" })}>
       <Flash msg={msg} />
+
       <Field label="Current password" error={errors.current}>
-        <input
-          type="password"
+        <PasswordInput
           value={current}
-          onChange={(e) => {
-            setCurrent(e.target.value);
+          onChange={(v) => {
+            setCurrent(v);
             clearError("current");
           }}
-          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
-            errors.current ? "ring-2 ring-red-500" : ""
-          }`}
+          visible={visible.current}
+          onToggle={() => toggle("current")}
+          invalid={!!errors.current}
           autoComplete="current-password"
           placeholder="Enter current password"
-          aria-invalid={!!errors.current}
         />
       </Field>
+
       <Field label="New password" error={errors.next}>
-        <input
-          type="password"
+        <PasswordInput
           value={next}
-          onChange={(e) => {
-            setNext(e.target.value);
+          onChange={(v) => {
+            setNext(v);
             clearError("next");
           }}
-          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
-            errors.next ? "ring-2 ring-red-500" : ""
-          }`}
+          visible={visible.next}
+          onToggle={() => toggle("next")}
+          invalid={!!errors.next}
           autoComplete="new-password"
           placeholder="At least 8 characters"
-          aria-invalid={!!errors.next}
         />
       </Field>
+
       <Field label="Confirm new password" error={errors.confirm}>
-        <input
-          type="password"
+        <PasswordInput
           value={confirm}
-          onChange={(e) => {
-            setConfirm(e.target.value);
+          onChange={(v) => {
+            setConfirm(v);
             clearError("confirm");
           }}
-          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
-            errors.confirm ? "ring-2 ring-red-500" : ""
-          }`}
+          visible={visible.confirm}
+          onToggle={() => toggle("confirm")}
+          invalid={!!errors.confirm}
           autoComplete="new-password"
           placeholder="Re-enter new password"
-          aria-invalid={!!errors.confirm}
         />
       </Field>
+
       <PrimaryButton
         disabled={!canSubmit}
         loading={save.isPending}
@@ -131,5 +140,48 @@ function PasswordPage() {
         Change password
       </PrimaryButton>
     </SubPage>
+  );
+}
+
+function PasswordInput({
+  value,
+  onChange,
+  visible,
+  onToggle,
+  invalid,
+  autoComplete,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  visible: boolean;
+  onToggle: () => void;
+  invalid: boolean;
+  autoComplete: string;
+  placeholder: string;
+}) {
+  return (
+    <div className="relative">
+      <input
+        type={visible ? "text" : "password"}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`w-full rounded-xl pl-4 pr-12 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
+          invalid ? "ring-2 ring-red-500" : ""
+        }`}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        aria-invalid={invalid}
+      />
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={visible ? "Hide password" : "Show password"}
+        aria-pressed={visible}
+        className="absolute top-1/2 right-2 -translate-y-1/2 h-9 w-9 flex items-center justify-center rounded-full text-neutral-500 hover:text-neutral-800"
+      >
+        {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
   );
 }
