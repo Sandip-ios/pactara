@@ -132,12 +132,14 @@ export const getAccountSettings = createServerFn({ method: "GET" })
 
 export const updateProfileName = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { name: string }) => ({
-    name: String(input?.name ?? "").trim().slice(0, 80),
-  }))
+  .inputValidator((input: { name: string }) => {
+    const name = String(input?.name ?? "").trim();
+    if (name.length === 0) throw new Error("Name can't be empty");
+    if (name.length > 80) throw new Error("Name must be 80 characters or fewer");
+    return { name };
+  })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    if (!data.name) throw new Error("Name can't be empty");
     const { error } = await supabase
       .from("profiles")
       .update({ name: data.name })
@@ -160,7 +162,7 @@ type NotificationPrefs = {
   push_enabled: boolean;
   email_enabled: boolean;
   daily_reminder_enabled: boolean;
-  daily_reminder_time: string; // "HH:MM" or "HH:MM:SS"
+  daily_reminder_time: string; // "HH:MM"
   group_activity_enabled: boolean;
 };
 
@@ -174,60 +176,56 @@ const DEFAULT_PREFS: NotificationPrefs = {
 
 export const getNotificationPrefs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<NotificationPrefs> => {
     const { supabase, userId } = context;
-    const { data } = await (supabase as never as {
-      from: (t: string) => {
-        select: (s: string) => {
-          eq: (
-            c: string,
-            v: string,
-          ) => { maybeSingle: () => Promise<{ data: NotificationPrefs | null }> };
-        };
-      };
-    })
+    const { data, error } = await supabase
       .from("notification_preferences")
       .select(
         "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled",
       )
       .eq("user_id", userId)
       .maybeSingle();
+    if (error) throw new Error(error.message);
     const prefs = data ?? DEFAULT_PREFS;
     return {
-      ...prefs,
+      push_enabled: !!prefs.push_enabled,
+      email_enabled: !!prefs.email_enabled,
+      daily_reminder_enabled: !!prefs.daily_reminder_enabled,
       daily_reminder_time: String(prefs.daily_reminder_time).slice(0, 5),
+      group_activity_enabled: !!prefs.group_activity_enabled,
     };
   });
 
 export const updateNotificationPrefs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: Partial<NotificationPrefs>) => {
-    const t = input.daily_reminder_time;
-    return {
-      push_enabled: input.push_enabled,
-      email_enabled: input.email_enabled,
-      daily_reminder_enabled: input.daily_reminder_enabled,
-      daily_reminder_time:
-        typeof t === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(t) ? t.slice(0, 5) : undefined,
-      group_activity_enabled: input.group_activity_enabled,
-    };
+    const out: Partial<NotificationPrefs> = {};
+    if (typeof input.push_enabled === "boolean") out.push_enabled = input.push_enabled;
+    if (typeof input.email_enabled === "boolean") out.email_enabled = input.email_enabled;
+    if (typeof input.daily_reminder_enabled === "boolean")
+      out.daily_reminder_enabled = input.daily_reminder_enabled;
+    if (typeof input.group_activity_enabled === "boolean")
+      out.group_activity_enabled = input.group_activity_enabled;
+    if (typeof input.daily_reminder_time === "string") {
+      const t = input.daily_reminder_time;
+      if (!/^\d{2}:\d{2}(:\d{2})?$/.test(t))
+        throw new Error("Invalid reminder time format");
+      const [hh, mm] = t.split(":").map(Number);
+      if (hh < 0 || hh > 23 || mm < 0 || mm > 59)
+        throw new Error("Invalid reminder time");
+      out.daily_reminder_time = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+    }
+    if (Object.keys(out).length === 0) throw new Error("No changes to save");
+    return out;
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const payload: Record<string, unknown> = { user_id: userId };
-    for (const [k, v] of Object.entries(data)) if (v !== undefined) payload[k] = v;
-    const { error } = await (supabase as never as {
-      from: (t: string) => {
-        upsert: (
-          row: Record<string, unknown>,
-          opts: { onConflict: string },
-        ) => Promise<{ error: { message: string } | null }>;
-      };
-    })
+    const { error } = await supabase
       .from("notification_preferences")
-      .upsert(payload, { onConflict: "user_id" });
+      .upsert({ user_id: userId, ...data }, { onConflict: "user_id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 
