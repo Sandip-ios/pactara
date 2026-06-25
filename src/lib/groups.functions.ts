@@ -317,7 +317,7 @@ export const createCheckIn = createServerFn({ method: "POST" })
 
     if (!membership) throw new Error("You're not in a group yet");
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateFor(await getUserTimezone(supabase, userId));
 
     const { error } = await supabase.from("check_ins").upsert(
       {
