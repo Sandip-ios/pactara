@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { localDateFor } from "@/lib/daily-posts.functions";
+
+async function getUserTimezone(supabase: SupabaseClient, userId: string): Promise<string> {
+  const { data } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+  return (data?.timezone as string | undefined) ?? "UTC";
+}
 
 async function signAvatar(
   supabase: SupabaseClient,
