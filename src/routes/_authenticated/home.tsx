@@ -316,11 +316,16 @@ function HomePage() {
                   className="shrink-0 w-[160px] rounded-2xl bg-white border border-purple-100 p-4 flex flex-col items-center"
                 >
                   <div
-                    className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-lg"
+                    className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden"
                     style={{ background: p.avatarColor || "#22C55E" }}
                   >
-                    {personInitials}
+                    {p.avatarUrl ? (
+                      <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      personInitials
+                    )}
                   </div>
+
                   <div className="mt-2 text-[15px] font-semibold">{p.isMe ? "You" : p.name.split(" ")[0]}</div>
                   {p.isMe ? (
                     <button
