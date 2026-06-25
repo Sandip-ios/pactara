@@ -123,6 +123,14 @@ function PasswordPage() {
           onChange={(v) => {
             setCurrent(v);
             clearError("current");
+            if (next && v === next) {
+              setErrors((p) => ({
+                ...p,
+                next: "New password must be different from current",
+              }));
+            } else if (errors.next === "New password must be different from current") {
+              setErrors((p) => ({ ...p, next: undefined }));
+            }
           }}
           onBlur={verifyCurrent}
           visible={visible.current}
@@ -138,7 +146,14 @@ function PasswordPage() {
           value={next}
           onChange={(v) => {
             setNext(v);
-            clearError("next");
+            if (current && v === current) {
+              setErrors((p) => ({
+                ...p,
+                next: "New password must be different from current",
+              }));
+            } else {
+              clearError("next");
+            }
           }}
           onBlur={() => {
             if (next && current && next === current) {
@@ -156,6 +171,7 @@ function PasswordPage() {
           autoComplete="new-password"
           placeholder="At least 8 characters"
         />
+
       </Field>
 
 
