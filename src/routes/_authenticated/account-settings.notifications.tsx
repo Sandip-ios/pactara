@@ -6,6 +6,17 @@ import {
   getNotificationPrefs,
   updateNotificationPrefs,
 } from "@/lib/profile.functions";
+import {
+  getVapidPublicKey,
+  savePushSubscription,
+  deletePushSubscription,
+} from "@/lib/push.functions";
+import {
+  enablePush,
+  disablePush,
+  pushSupported,
+  previewBlocked,
+} from "@/lib/push-client";
 import { SubPage, Flash, useFlash } from "@/components/account/SettingsKit";
 
 const PURPLE = "#7C3AED";
@@ -21,6 +32,7 @@ type Prefs = {
   daily_reminder_enabled: boolean;
   daily_reminder_time: string;
   group_activity_enabled: boolean;
+  morning_ritual_reminder_enabled: boolean;
 };
 
 function NotificationsPage() {
@@ -39,12 +51,76 @@ function NotificationsPage() {
   }, [data]);
 
   const updateFn = useServerFn(updateNotificationPrefs);
+  const getKeyFn = useServerFn(getVapidPublicKey);
+  const saveSubFn = useServerFn(savePushSubscription);
+  const deleteSubFn = useServerFn(deletePushSubscription);
+
   const save = useMutation({
     mutationFn: (patch: Partial<Prefs>) => updateFn({ data: patch }),
     onMutate: (patch) => {
       setPrefs((p) => (p ? { ...p, ...patch } : p));
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+    onError: (e: Error) => {
+      flash("err", e.message);
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+  });
+
+  const morningToggle = useMutation({
+    mutationFn: async (next: boolean) => {
+      if (next) {
+        if (!pushSupported()) {
+          throw new Error("Your browser doesn't support push notifications");
+        }
+        if (previewBlocked()) {
+          throw new Error("Push only works on the published app, not the preview");
+        }
+        const { publicKey } = await getKeyFn();
+        const result = await enablePush(publicKey);
+        if (!result.ok) {
+          if (result.reason === "denied")
+            throw new Error("Notification permission denied");
+          if (result.reason === "preview")
+            throw new Error("Push only works on the published app");
+          if (result.reason === "unsupported")
+            throw new Error("Your browser doesn't support push notifications");
+          if (result.reason === "no-key")
+            throw new Error("Push isn't configured yet");
+          throw new Error(result.message || "Couldn't enable push");
+        }
+        const sub = result.subscription;
+        await saveSubFn({
+          data: {
+            endpoint: sub.endpoint!,
+            keys: {
+              p256dh: sub.keys!.p256dh!,
+              auth: sub.keys!.auth!,
+            },
+            userAgent: navigator.userAgent,
+          },
+        });
+        await updateFn({
+          data: { morning_ritual_reminder_enabled: true, push_enabled: true },
+        });
+      } else {
+        const removed = await disablePush();
+        if (removed?.endpoint) {
+          await deleteSubFn({ data: { endpoint: removed.endpoint } });
+        }
+        await updateFn({
+          data: { morning_ritual_reminder_enabled: false },
+        });
+      }
+      return next;
+    },
+    onMutate: (next) => {
+      setPrefs((p) => (p ? { ...p, morning_ritual_reminder_enabled: next } : p));
+    },
+    onSuccess: (next) => {
+      flash("ok", next ? "Morning ritual reminder on" : "Reminder turned off");
       queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
     },
     onError: (e: Error) => {
@@ -79,6 +155,17 @@ function NotificationsPage() {
           subtitle="Get important updates by email"
           value={prefs.email_enabled}
           onChange={(v) => save.mutate({ email_enabled: v })}
+        />
+      </Card>
+
+      <SectionLabel>MORNING RITUAL</SectionLabel>
+      <Card>
+        <ToggleRow
+          title="Morning ritual reminder"
+          subtitle="A push at 10am in your local timezone"
+          value={prefs.morning_ritual_reminder_enabled}
+          disabled={morningToggle.isPending}
+          onChange={(v) => morningToggle.mutate(v)}
         />
       </Card>
 
@@ -152,17 +239,20 @@ function ToggleRow({
   subtitle,
   value,
   onChange,
+  disabled,
 }: {
   title: string;
   subtitle?: string;
   value: boolean;
   onChange: (v: boolean) => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
+      disabled={disabled}
       onClick={() => onChange(!value)}
-      className="w-full flex items-center justify-between px-4 py-3 text-left"
+      className="w-full flex items-center justify-between px-4 py-3 text-left disabled:opacity-60"
     >
       <div className="min-w-0 pr-3">
         <div className="text-[15px] font-semibold">{title}</div>
