@@ -113,13 +113,18 @@ function PasswordPage() {
     <SubPage title="Password" onBack={() => navigate({ to: "/account-settings" })}>
       <Flash msg={msg} />
 
-      <Field label="Current password" error={errors.current}>
+      <Field
+        label="Current password"
+        error={errors.current}
+        hint={verifying ? "Checking…" : undefined}
+      >
         <PasswordInput
           value={current}
           onChange={(v) => {
             setCurrent(v);
             clearError("current");
           }}
+          onBlur={verifyCurrent}
           visible={visible.current}
           onToggle={() => toggle("current")}
           invalid={!!errors.current}
@@ -172,6 +177,7 @@ function PasswordPage() {
 function PasswordInput({
   value,
   onChange,
+  onBlur,
   visible,
   onToggle,
   invalid,
@@ -180,6 +186,7 @@ function PasswordInput({
 }: {
   value: string;
   onChange: (v: string) => void;
+  onBlur?: () => void;
   visible: boolean;
   onToggle: () => void;
   invalid: boolean;
@@ -192,6 +199,7 @@ function PasswordInput({
         type={visible ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         className={`w-full rounded-xl pl-4 pr-12 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
           invalid ? "ring-2 ring-red-500" : ""
         }`}
