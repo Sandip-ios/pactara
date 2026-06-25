@@ -140,6 +140,16 @@ function PasswordPage() {
             setNext(v);
             clearError("next");
           }}
+          onBlur={() => {
+            if (next && current && next === current) {
+              setErrors((p) => ({
+                ...p,
+                next: "New password must be different from current",
+              }));
+            } else if (next && next.length < 8) {
+              setErrors((p) => ({ ...p, next: "Must be at least 8 characters" }));
+            }
+          }}
           visible={visible.next}
           onToggle={() => toggle("next")}
           invalid={!!errors.next}
@@ -147,6 +157,7 @@ function PasswordPage() {
           placeholder="At least 8 characters"
         />
       </Field>
+
 
       <Field label="Confirm new password" error={errors.confirm}>
         <PasswordInput
