@@ -274,14 +274,16 @@ function Row({
   iconBg,
   title,
   subtitle,
+  onClick,
 }: {
   icon: React.ReactNode;
   iconBg: string;
   title: string;
   subtitle: string;
+  onClick?: () => void;
 }) {
   return (
-    <button className="w-full flex items-center gap-4 px-4 py-4 text-left">
+    <button onClick={onClick} className="w-full flex items-center gap-4 px-4 py-4 text-left">
       <span
         className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ background: iconBg }}
