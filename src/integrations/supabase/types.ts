@@ -247,6 +247,7 @@ export type Database = {
           daily_reminder_time: string
           email_enabled: boolean
           group_activity_enabled: boolean
+          morning_ritual_reminder_enabled: boolean
           push_enabled: boolean
           updated_at: string
           user_id: string
@@ -256,6 +257,7 @@ export type Database = {
           daily_reminder_time?: string
           email_enabled?: boolean
           group_activity_enabled?: boolean
+          morning_ritual_reminder_enabled?: boolean
           push_enabled?: boolean
           updated_at?: string
           user_id: string
@@ -265,6 +267,7 @@ export type Database = {
           daily_reminder_time?: string
           email_enabled?: boolean
           group_activity_enabled?: boolean
+          morning_ritual_reminder_enabled?: boolean
           push_enabled?: boolean
           updated_at?: string
           user_id?: string
@@ -295,6 +298,39 @@ export type Database = {
           id?: string
           name?: string
           timezone?: string
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
         }
         Relationships: []
       }
