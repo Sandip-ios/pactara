@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,11 +30,36 @@ function PasswordPage() {
     next: false,
     confirm: false,
   });
+  const [verifying, setVerifying] = useState(false);
+  const verifiedRef = useRef<{ value: string; ok: boolean } | null>(null);
 
   const { data } = useQuery({
     queryKey: ["account-settings"],
     queryFn: () => getAccountSettings(),
   });
+
+  const verifyCurrent = async () => {
+    const pw = current;
+    if (!pw || !data?.email) return;
+    // skip if we've already verified this exact value
+    if (verifiedRef.current && verifiedRef.current.value === pw) {
+      if (!verifiedRef.current.ok)
+        setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
+      return;
+    }
+    setVerifying(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: pw,
+    });
+    setVerifying(false);
+    verifiedRef.current = { value: pw, ok: !error };
+    if (error) {
+      setErrors((p) => ({ ...p, current: "Current password is incorrect" }));
+    } else {
+      setErrors((p) => ({ ...p, current: undefined }));
+    }
+  };
 
   const save = useMutation({
     mutationFn: async () => {
@@ -68,6 +93,7 @@ function PasswordPage() {
       setConfirm("");
       setErrors({});
       setVisible({ current: false, next: false, confirm: false });
+      verifiedRef.current = null;
       flash("ok", "Password updated");
     },
     onError: (e: Error) => flash("err", e.message),
@@ -87,13 +113,18 @@ function PasswordPage() {
     <SubPage title="Password" onBack={() => navigate({ to: "/account-settings" })}>
       <Flash msg={msg} />
 
-      <Field label="Current password" error={errors.current}>
+      <Field
+        label="Current password"
+        error={errors.current}
+        hint={verifying ? "Checking…" : undefined}
+      >
         <PasswordInput
           value={current}
           onChange={(v) => {
             setCurrent(v);
             clearError("current");
           }}
+          onBlur={verifyCurrent}
           visible={visible.current}
           onToggle={() => toggle("current")}
           invalid={!!errors.current}
@@ -146,6 +177,7 @@ function PasswordPage() {
 function PasswordInput({
   value,
   onChange,
+  onBlur,
   visible,
   onToggle,
   invalid,
@@ -154,6 +186,7 @@ function PasswordInput({
 }: {
   value: string;
   onChange: (v: string) => void;
+  onBlur?: () => void;
   visible: boolean;
   onToggle: () => void;
   invalid: boolean;
@@ -166,6 +199,7 @@ function PasswordInput({
         type={visible ? "text" : "password"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
         className={`w-full rounded-xl pl-4 pr-12 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
           invalid ? "ring-2 ring-red-500" : ""
         }`}
