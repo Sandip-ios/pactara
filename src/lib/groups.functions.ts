@@ -276,15 +276,19 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, name, avatar_color")
+      .select("id, name, avatar_color, avatar_url")
       .in("id", pendingIds.length ? pendingIds : ["00000000-0000-0000-0000-000000000000"]);
 
-    const pending = (profiles ?? []).map((p) => ({
-      id: p.id,
-      name: p.name,
-      avatarColor: p.avatar_color,
-      isMe: p.id === userId,
-    }));
+    const pending = await Promise.all(
+      (profiles ?? []).map(async (p) => ({
+        id: p.id,
+        name: p.name,
+        avatarColor: p.avatar_color,
+        avatarUrl: await signAvatar(supabase, (p as { avatar_url?: string | null }).avatar_url ?? null),
+        isMe: p.id === userId,
+      })),
+    );
+
 
     return {
       groupId: membership.group_id,
