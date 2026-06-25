@@ -9,12 +9,19 @@ export const Route = createFileRoute("/_authenticated/account-settings/password"
   component: PasswordPage,
 });
 
+type FieldErrors = {
+  current?: string;
+  next?: string;
+  confirm?: string;
+};
+
 function PasswordPage() {
   const navigate = useNavigate();
   const { msg, flash } = useFlash();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [errors, setErrors] = useState<FieldErrors>({});
 
   const { data } = useQuery({
     queryKey: ["account-settings"],
@@ -23,10 +30,16 @@ function PasswordPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!current) throw new Error("Enter your current password");
-      if (next.length < 8) throw new Error("New password must be at least 8 characters");
-      if (next !== confirm) throw new Error("New passwords don't match");
-      if (next === current) throw new Error("New password must be different");
+      const e: FieldErrors = {};
+      if (!current) e.current = "Enter your current password";
+      if (next.length < 8) e.next = "Must be at least 8 characters";
+      if (next && confirm && next !== confirm) e.confirm = "Passwords don't match";
+      if (next && current && next === current)
+        e.next = "New password must be different from current";
+      if (Object.keys(e).length > 0) {
+        setErrors(e);
+        throw new Error("Please fix the highlighted fields");
+      }
       if (!data?.email) throw new Error("Couldn't load your account email");
 
       // Re-authenticate to verify current password
@@ -34,7 +47,10 @@ function PasswordPage() {
         email: data.email,
         password: current,
       });
-      if (signInErr) throw new Error("Current password is incorrect");
+      if (signInErr) {
+        setErrors({ current: "Current password is incorrect" });
+        throw new Error("Current password is incorrect");
+      }
 
       const { error } = await supabase.auth.updateUser({ password: next });
       if (error) throw error;
@@ -43,10 +59,15 @@ function PasswordPage() {
       setCurrent("");
       setNext("");
       setConfirm("");
+      setErrors({});
       flash("ok", "Password updated");
     },
     onError: (e: Error) => flash("err", e.message),
   });
+
+  const clearError = (key: keyof FieldErrors) => {
+    if (errors[key]) setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
 
   const canSubmit =
     current.length > 0 && next.length >= 8 && confirm.length >= 8 && !save.isPending;
@@ -54,34 +75,52 @@ function PasswordPage() {
   return (
     <SubPage title="Password" onBack={() => navigate({ to: "/account-settings" })}>
       <Flash msg={msg} />
-      <Field label="Current password">
+      <Field label="Current password" error={errors.current}>
         <input
           type="password"
           value={current}
-          onChange={(e) => setCurrent(e.target.value)}
-          className="w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA]"
+          onChange={(e) => {
+            setCurrent(e.target.value);
+            clearError("current");
+          }}
+          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
+            errors.current ? "ring-2 ring-red-500" : ""
+          }`}
           autoComplete="current-password"
           placeholder="Enter current password"
+          aria-invalid={!!errors.current}
         />
       </Field>
-      <Field label="New password">
+      <Field label="New password" error={errors.next}>
         <input
           type="password"
           value={next}
-          onChange={(e) => setNext(e.target.value)}
-          className="w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA]"
+          onChange={(e) => {
+            setNext(e.target.value);
+            clearError("next");
+          }}
+          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
+            errors.next ? "ring-2 ring-red-500" : ""
+          }`}
           autoComplete="new-password"
           placeholder="At least 8 characters"
+          aria-invalid={!!errors.next}
         />
       </Field>
-      <Field label="Confirm new password">
+      <Field label="Confirm new password" error={errors.confirm}>
         <input
           type="password"
           value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          className="w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA]"
+          onChange={(e) => {
+            setConfirm(e.target.value);
+            clearError("confirm");
+          }}
+          className={`w-full rounded-xl px-4 py-3 text-[15px] outline-none bg-[#EFEDEA] ${
+            errors.confirm ? "ring-2 ring-red-500" : ""
+          }`}
           autoComplete="new-password"
           placeholder="Re-enter new password"
+          aria-invalid={!!errors.confirm}
         />
       </Field>
       <PrimaryButton
