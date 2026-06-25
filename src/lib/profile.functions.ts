@@ -164,6 +164,7 @@ type NotificationPrefs = {
   daily_reminder_enabled: boolean;
   daily_reminder_time: string; // "HH:MM"
   group_activity_enabled: boolean;
+  morning_ritual_reminder_enabled: boolean;
 };
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -172,6 +173,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   daily_reminder_enabled: true,
   daily_reminder_time: "09:00",
   group_activity_enabled: true,
+  morning_ritual_reminder_enabled: false,
 };
 
 export const getNotificationPrefs = createServerFn({ method: "GET" })
@@ -181,18 +183,19 @@ export const getNotificationPrefs = createServerFn({ method: "GET" })
     const { data, error } = await supabase
       .from("notification_preferences")
       .select(
-        "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled",
+        "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled, morning_ritual_reminder_enabled",
       )
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    const prefs = data ?? DEFAULT_PREFS;
+    const prefs = (data ?? DEFAULT_PREFS) as NotificationPrefs;
     return {
       push_enabled: !!prefs.push_enabled,
       email_enabled: !!prefs.email_enabled,
       daily_reminder_enabled: !!prefs.daily_reminder_enabled,
       daily_reminder_time: String(prefs.daily_reminder_time).slice(0, 5),
       group_activity_enabled: !!prefs.group_activity_enabled,
+      morning_ritual_reminder_enabled: !!prefs.morning_ritual_reminder_enabled,
     };
   });
 
@@ -206,6 +209,8 @@ export const updateNotificationPrefs = createServerFn({ method: "POST" })
       out.daily_reminder_enabled = input.daily_reminder_enabled;
     if (typeof input.group_activity_enabled === "boolean")
       out.group_activity_enabled = input.group_activity_enabled;
+    if (typeof input.morning_ritual_reminder_enabled === "boolean")
+      out.morning_ritual_reminder_enabled = input.morning_ritual_reminder_enabled;
     if (typeof input.daily_reminder_time === "string") {
       const t = input.daily_reminder_time;
       if (!/^\d{2}:\d{2}(:\d{2})?$/.test(t))
@@ -226,6 +231,7 @@ export const updateNotificationPrefs = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 
 
