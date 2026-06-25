@@ -259,7 +259,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
 
     if (!membership) return { groupId: null, pending: [], iCheckedIn: false };
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateFor(await getUserTimezone(supabase, userId));
 
     const [{ data: members }, { data: checkins }] = await Promise.all([
       supabase.from("group_members").select("user_id").eq("group_id", membership.group_id),
