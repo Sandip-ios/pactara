@@ -26,6 +26,8 @@ function EmailPage() {
 
   const save = useMutation({
     mutationFn: async (newEmail: string) => {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail))
+        throw new Error("Enter a valid email address");
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
     },
@@ -33,7 +35,9 @@ function EmailPage() {
     onError: (e: Error) => flash("err", e.message),
   });
 
-  const changed = email.trim().length > 0 && email.trim() !== data?.email;
+  const trimmed = email.trim();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+  const changed = trimmed.length > 0 && trimmed !== data?.email && valid;
 
   return (
     <SubPage title="Email" onBack={() => navigate({ to: "/account-settings" })}>
