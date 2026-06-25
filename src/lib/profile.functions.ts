@@ -114,3 +114,45 @@ export const setAvatarPath = createServerFn({ method: "POST" })
     if (error) throw error;
     return { ok: true };
   });
+
+export const getAccountSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId, claims } = context;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name")
+      .eq("id", userId)
+      .maybeSingle();
+    return {
+      name: profile?.name ?? "",
+      email: (claims as { email?: string } | null)?.email ?? "",
+    };
+  });
+
+export const updateProfileName = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { name: string }) => ({
+    name: String(input?.name ?? "").trim().slice(0, 80),
+  }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    if (!data.name) throw new Error("Name can't be empty");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ name: data.name })
+      .eq("id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteMyAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
