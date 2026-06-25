@@ -1,0 +1,182 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  getNotificationPrefs,
+  updateNotificationPrefs,
+} from "@/lib/profile.functions";
+import { SubPage, Flash, useFlash } from "@/components/account/SettingsKit";
+
+const PURPLE = "#7C3AED";
+const LABEL = "#8A8580";
+
+export const Route = createFileRoute("/_authenticated/account-settings/notifications")({
+  component: NotificationsPage,
+});
+
+type Prefs = {
+  push_enabled: boolean;
+  email_enabled: boolean;
+  daily_reminder_enabled: boolean;
+  daily_reminder_time: string;
+  group_activity_enabled: boolean;
+};
+
+function NotificationsPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { msg, flash } = useFlash();
+
+  const { data } = useQuery({
+    queryKey: ["notification-prefs"],
+    queryFn: () => getNotificationPrefs(),
+  });
+
+  const [prefs, setPrefs] = useState<Prefs | null>(null);
+  useEffect(() => {
+    if (data) setPrefs(data);
+  }, [data]);
+
+  const updateFn = useServerFn(updateNotificationPrefs);
+  const save = useMutation({
+    mutationFn: (patch: Partial<Prefs>) => updateFn({ data: patch }),
+    onMutate: (patch) => {
+      setPrefs((p) => (p ? { ...p, ...patch } : p));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+    onError: (e: Error) => {
+      flash("err", e.message);
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+  });
+
+  if (!prefs) {
+    return (
+      <SubPage title="Notifications" onBack={() => navigate({ to: "/account-settings" })}>
+        <div className="text-[14px] text-neutral-500">Loading…</div>
+      </SubPage>
+    );
+  }
+
+  return (
+    <SubPage title="Notifications" onBack={() => navigate({ to: "/account-settings" })}>
+      <Flash msg={msg} />
+
+      <SectionLabel>CHANNELS</SectionLabel>
+      <Card>
+        <ToggleRow
+          title="Push notifications"
+          subtitle="Alerts on this device"
+          value={prefs.push_enabled}
+          onChange={(v) => save.mutate({ push_enabled: v })}
+        />
+        <Divider />
+        <ToggleRow
+          title="Email notifications"
+          subtitle="Get important updates by email"
+          value={prefs.email_enabled}
+          onChange={(v) => save.mutate({ email_enabled: v })}
+        />
+      </Card>
+
+      <SectionLabel>DAILY CHECK-IN REMINDER</SectionLabel>
+      <Card>
+        <ToggleRow
+          title="Remind me to check in"
+          subtitle="A nudge so you don't miss a day"
+          value={prefs.daily_reminder_enabled}
+          onChange={(v) => save.mutate({ daily_reminder_enabled: v })}
+        />
+        {prefs.daily_reminder_enabled && (
+          <>
+            <Divider />
+            <div className="flex items-center justify-between px-4 py-3">
+              <div>
+                <div className="text-[15px] font-semibold">Reminder time</div>
+                <div className="text-[13px] text-neutral-500">In your local timezone</div>
+              </div>
+              <input
+                type="time"
+                value={prefs.daily_reminder_time}
+                onChange={(e) =>
+                  save.mutate({ daily_reminder_time: e.target.value })
+                }
+                className="rounded-lg bg-[#EFEDEA] px-3 py-2 text-[15px] outline-none"
+              />
+            </div>
+          </>
+        )}
+      </Card>
+
+      <SectionLabel>GROUP ACTIVITY</SectionLabel>
+      <Card>
+        <ToggleRow
+          title="Group activity alerts"
+          subtitle="New check-ins, thoughts, and messages"
+          value={prefs.group_activity_enabled}
+          onChange={(v) => save.mutate({ group_activity_enabled: v })}
+        />
+      </Card>
+
+      <p className="text-[12px] text-neutral-400 mt-4 px-1">
+        Changes save automatically.
+      </p>
+    </SubPage>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="text-[12px] font-semibold tracking-wider mt-5 mb-2 px-1"
+      style={{ color: LABEL }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function Card({ children }: { children: React.ReactNode }) {
+  return <div className="rounded-2xl bg-white overflow-hidden">{children}</div>;
+}
+
+function Divider() {
+  return <div className="h-px bg-neutral-100 mx-4" />;
+}
+
+function ToggleRow({
+  title,
+  subtitle,
+  value,
+  onChange,
+}: {
+  title: string;
+  subtitle?: string;
+  value: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      className="w-full flex items-center justify-between px-4 py-3 text-left"
+    >
+      <div className="min-w-0 pr-3">
+        <div className="text-[15px] font-semibold">{title}</div>
+        {subtitle && <div className="text-[13px] text-neutral-500">{subtitle}</div>}
+      </div>
+      <span
+        className="relative h-7 w-12 rounded-full transition-colors shrink-0"
+        style={{ background: value ? PURPLE : "#D6D3D1" }}
+      >
+        <span
+          className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all"
+          style={{ left: value ? "22px" : "2px" }}
+        />
+      </span>
+    </button>
+  );
+}
