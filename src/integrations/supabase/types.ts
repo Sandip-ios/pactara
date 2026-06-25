@@ -241,6 +241,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          daily_reminder_enabled: boolean
+          daily_reminder_time: string
+          email_enabled: boolean
+          group_activity_enabled: boolean
+          push_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
+          email_enabled?: boolean
+          group_activity_enabled?: boolean
+          push_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          daily_reminder_enabled?: boolean
+          daily_reminder_time?: string
+          email_enabled?: boolean
+          group_activity_enabled?: boolean
+          push_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_color: string
