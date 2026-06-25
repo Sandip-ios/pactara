@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,8 +31,7 @@ function PasswordPage() {
     confirm: false,
   });
   const [verifying, setVerifying] = useState(false);
-  const lastVerifiedRef = useState<{ value: string; ok: boolean } | null>(null)[0];
-  const verifyState = { ref: lastVerifiedRef } as { ref: { value: string; ok: boolean } | null };
+  const verifiedRef = useRef<{ value: string; ok: boolean } | null>(null);
 
   const { data } = useQuery({
     queryKey: ["account-settings"],
