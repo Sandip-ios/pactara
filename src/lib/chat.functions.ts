@@ -1,6 +1,53 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+export const getUnreadChatCounts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data: memberships, error: mErr } = await supabase
+      .from("group_members")
+      .select("group_id, last_read_at")
+      .eq("user_id", userId);
+    if (mErr) throw new Error(mErr.message);
+    const list = memberships ?? [];
+    if (list.length === 0) return { counts: {} as Record<string, number>, total: 0 };
+
+    const counts: Record<string, number> = {};
+    let total = 0;
+    await Promise.all(
+      list.map(async (m) => {
+        const { count } = await supabase
+          .from("group_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("group_id", m.group_id)
+          .neq("user_id", userId)
+          .gt("created_at", m.last_read_at);
+        const n = count ?? 0;
+        counts[m.group_id] = n;
+        total += n;
+      }),
+    );
+    return { counts, total };
+  });
+
+export const markGroupRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId: string }) => {
+    if (!input || typeof input.groupId !== "string") throw new Error("groupId required");
+    return { groupId: input.groupId };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("group_members")
+      .update({ last_read_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .eq("group_id", data.groupId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const getGroupChat = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { groupId: string }) => {
