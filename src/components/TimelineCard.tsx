@@ -172,7 +172,6 @@ function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem;
       >
         <MessageCircle size={16} />
         {item.commentCount > 0 ? `${item.commentCount} ${item.commentCount === 1 ? "comment" : "comments"}` : "Comment"}
-        {commentsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
     </div>
   );
