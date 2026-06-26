@@ -142,10 +142,10 @@ function ReactionBar({
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
   });
 
-  const primaryEmoji = "🔥";
   const myReactions = item.reactions.filter((r) => r.mine);
+  const myEmoji = myReactions[0]?.emoji ?? null;
   const totalCount = item.reactions.reduce((sum, r) => sum + r.count, 0);
-  const iLiked = myReactions.length > 0;
+  const iLiked = !!myEmoji;
 
   const handlePressStart = () => {
     longPressedRef.current = false;
@@ -162,13 +162,20 @@ function ReactionBar({
   };
   const handleClick = () => {
     if (longPressedRef.current) return;
-    if (iLiked) {
-      // remove all my reactions
-      myReactions.forEach((r) => toggle.mutate(r.emoji));
+    if (myEmoji) {
+      toggle.mutate(myEmoji);
     } else {
-      toggle.mutate(primaryEmoji);
+      toggle.mutate("🔥");
     }
   };
+  const selectEmoji = (emoji: string) => {
+    myReactions.forEach((r) => {
+      if (r.emoji !== emoji) toggle.mutate(r.emoji);
+    });
+    if (myEmoji !== emoji) toggle.mutate(emoji);
+    setPickerOpen(false);
+  };
+
 
   const stackEmojis = item.reactions
     .filter((r) => r.count > 0)
