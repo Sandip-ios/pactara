@@ -281,6 +281,8 @@ export type TimelineNode =
       id: string;
     };
 
+export type ReactionSummary = { emoji: string; count: number; mine: boolean };
+
 export type FeedItem = {
   id: string;
   userId: string;
@@ -291,6 +293,20 @@ export type FeedItem = {
   localDate: string;
   updatedAt: string;
   nodes: TimelineNode[];
+  reactions: ReactionSummary[];
+  commentCount: number;
+};
+
+export type PostComment = {
+  id: string;
+  postId: string;
+  userId: string;
+  authorName: string;
+  authorColor: string;
+  authorAvatarUrl: string | null;
+  body: string;
+  createdAt: string;
+  isMine: boolean;
 };
 
 export const getGroupFeed = createServerFn({ method: "GET" })
