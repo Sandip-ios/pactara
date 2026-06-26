@@ -52,6 +52,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
       sessionStorage.setItem("morning-ritual-done", "1");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["today-ritual-status"] });
       onPosted();
     },
   });
