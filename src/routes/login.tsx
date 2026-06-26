@@ -95,7 +95,7 @@ function LoginPage() {
           inputMode="email"
           autoComplete="email"
           ref={emailRef}
-          defaultValue=""
+          defaultValue={rememberedEmail}
           
           placeholder="you@example.com"
           className="mt-1.5 w-full bg-transparent outline-none text-[17px]"
