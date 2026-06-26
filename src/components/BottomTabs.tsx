@@ -59,7 +59,19 @@ export function BottomTabs() {
         </span>
         <span className="text-[11px] font-medium">Check In</span>
       </button>
-      <TabItem icon={<MessageCircle size={22} />} label="Chat" active={isActive("/chat")} onClick={() => navigate({ to: "/chat" })} />
+      <TabItem
+        icon={
+          <span className="relative inline-flex">
+            <MessageCircle size={22} />
+            {hasUnread && (
+              <span className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+            )}
+          </span>
+        }
+        label="Chat"
+        active={isActive("/chat")}
+        onClick={() => navigate({ to: "/chat" })}
+      />
       <button
         onClick={() => navigate({ to: "/profile" })}
         className="flex flex-col items-center gap-1"
