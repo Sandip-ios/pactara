@@ -29,9 +29,31 @@ function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [rememberedEmail, setRememberedEmail] = useState("");
 
-  const rememberedEmail =
-    typeof localStorage !== "undefined" ? localStorage.getItem("last-email") ?? "" : "";
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("last-email");
+      if (stored) {
+        setRememberedEmail(stored);
+        if (emailRef.current && !emailRef.current.value) {
+          emailRef.current.value = stored;
+        }
+        return;
+      }
+      supabase.auth.getSession().then(({ data }) => {
+        const email = data.session?.user?.email;
+        if (email) {
+          localStorage.setItem("last-email", email);
+          setRememberedEmail(email);
+          if (emailRef.current && !emailRef.current.value) {
+            emailRef.current.value = email;
+          }
+        }
+      });
+    } catch {}
+  }, []);
+
 
   const handleSignIn = async () => {
     if (submitting) return;
