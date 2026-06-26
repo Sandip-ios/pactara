@@ -142,6 +142,26 @@ export const postMorningRitual = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const getTodayRitualStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    if (!groupId) return { posted: false, beforeNoon: localHourFor(timezone) < 12 };
+    const today = localDateFor(timezone);
+    const { data } = await supabase
+      .from("daily_posts")
+      .select("morning_ritual_posted_at")
+      .eq("user_id", userId)
+      .eq("group_id", groupId)
+      .eq("local_date", today)
+      .maybeSingle();
+    return {
+      posted: Boolean(data?.morning_ritual_posted_at),
+      beforeNoon: localHourFor(timezone) < 12,
+    };
+  });
+
 /** Posts an extra "what's on your mind" thought; appears as another node on today's timeline. */
 export const postThought = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
