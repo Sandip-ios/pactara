@@ -392,7 +392,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         nodes.push({
           kind: "ritual_missed",
           id: `rm-${p.id}`,
-          at: p.updated_at,
+          at: zonedWallTimeToISO(tz, p.local_date, 12, 0),
         });
       }
 
