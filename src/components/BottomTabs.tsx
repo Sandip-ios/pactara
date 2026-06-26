@@ -17,6 +17,13 @@ export function BottomTabs() {
     queryFn: () => getMyGroupStatus(),
     staleTime: 60_000,
   });
+  const { data: unread } = useQuery({
+    queryKey: ["unread-chat-counts"],
+    queryFn: () => getUnreadChatCounts(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+  const hasUnread = (unread?.total ?? 0) > 0;
   const initial = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const isProfile = pathname === "/profile";
 
