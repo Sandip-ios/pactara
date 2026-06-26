@@ -491,8 +491,95 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         localDate: p.local_date,
         updatedAt: p.updated_at,
         nodes,
+        reactions: reactionsByPost.get(p.id) ?? [],
+        commentCount: commentCountByPost.get(p.id) ?? 0,
       };
     });
 
     return { items };
   });
+
+export const togglePostReaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { postId: string; emoji: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: existing } = await (supabase as any)
+      .from("post_reactions")
+      .select("id")
+      .eq("post_id", data.postId)
+      .eq("user_id", userId)
+      .eq("emoji", data.emoji)
+      .maybeSingle();
+    if (existing?.id) {
+      const { error } = await (supabase as any).from("post_reactions").delete().eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      return { active: false };
+    }
+    const { error } = await (supabase as any)
+      .from("post_reactions")
+      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
+    if (error) throw new Error(error.message);
+    return { active: true };
+  });
+
+export const addPostComment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { postId: string; body: string }) => data)
+  .handler(async ({ data, context }) => {
+    const body = data.body.trim();
+    if (!body) throw new Error("Comment cannot be empty");
+    if (body.length > 1000) throw new Error("Comment is too long");
+    const { supabase, userId } = context;
+    const { error } = await (supabase as any)
+      .from("post_comments")
+      .insert({ post_id: data.postId, user_id: userId, body });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getPostComments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { postId: string }) => data)
+  .handler(async ({ data, context }): Promise<{ comments: PostComment[] }> => {
+    const { supabase, userId } = context;
+    const { data: rows, error } = await (supabase as any)
+      .from("post_comments")
+      .select("id, post_id, user_id, body, created_at")
+      .eq("post_id", data.postId)
+      .order("created_at", { ascending: true });
+    if (error) throw new Error(error.message);
+    const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id))) as string[];
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_color, avatar_url")
+      .in("id", ids);
+    const profMap = new Map(
+      await Promise.all(
+        (profs ?? []).map(async (p) => [
+          p.id,
+          {
+            name: p.name ?? "Member",
+            color: p.avatar_color ?? "#22C55E",
+            avatarUrl: await signAvatar(supabase, p.avatar_url),
+          },
+        ] as const),
+      ),
+    );
+    const comments: PostComment[] = (rows ?? []).map((r: any) => {
+      const pr = profMap.get(r.user_id);
+      return {
+        id: r.id,
+        postId: r.post_id,
+        userId: r.user_id,
+        authorName: pr?.name ?? "Member",
+        authorColor: pr?.color ?? "#22C55E",
+        authorAvatarUrl: pr?.avatarUrl ?? null,
+        body: r.body,
+        createdAt: r.created_at,
+        isMine: r.user_id === userId,
+      };
+    });
+    return { comments };
+  });
+
