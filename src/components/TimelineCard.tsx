@@ -122,7 +122,7 @@ function nodeVisual(node: TimelineNode): Visual | null {
   }
 }
 
-function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; commentsOpen: boolean }) {
+function ReactionBar({ item, onToggleComments, onPrefetchComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; onPrefetchComments: () => void; commentsOpen: boolean }) {
   const queryClient = useQueryClient();
   const toggle = useMutation({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
@@ -166,6 +166,8 @@ function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem;
       <button
         type="button"
         onClick={onToggleComments}
+        onPointerDown={onPrefetchComments}
+        onMouseEnter={onPrefetchComments}
         className="mt-1 -ml-2 flex items-center gap-1.5 px-2 py-2 text-neutral-500 text-[14px] font-medium"
       >
         <MessageCircle size={16} />
@@ -175,13 +177,17 @@ function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem;
   );
 }
 
+const commentsQueryOptions = (postId: string) => ({
+  queryKey: ["post-comments", postId] as const,
+  queryFn: () => getPostComments({ data: { postId } }),
+  staleTime: 30_000,
+  gcTime: 5 * 60_000,
+});
+
 function CommentSection({ postId }: { postId: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
-  const { data, isLoading } = useQuery({
-    queryKey: ["post-comments", postId],
-    queryFn: () => getPostComments({ data: { postId } }),
-  });
+  const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
     mutationFn: (body: string) => addPostComment({ data: { postId, body } }),
     onSuccess: () => {
@@ -268,6 +274,10 @@ export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
+  const queryClient = useQueryClient();
+  const prefetchComments = () => {
+    queryClient.prefetchQuery(commentsQueryOptions(item.id));
+  };
 
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
@@ -370,7 +380,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
       </div>
 
-      <ReactionBar item={item} onToggleComments={() => setCommentsOpen(true)} commentsOpen={commentsOpen} />
+      <ReactionBar item={item} onToggleComments={() => { prefetchComments(); setCommentsOpen(true); }} onPrefetchComments={prefetchComments} commentsOpen={commentsOpen} />
       <Drawer open={commentsOpen} onOpenChange={setCommentsOpen}>
         <DrawerContent className="h-[85vh] flex flex-col p-0">
           <DrawerHeader className="border-b border-neutral-100 py-3">
