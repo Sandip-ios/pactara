@@ -151,19 +151,46 @@ function ReactionBar({
   const longPressTimer = useRef<number | null>(null);
   const longPressedRef = useRef(false);
 
+  // Optimistic override of my reaction for instant UI feedback
+  const [override, setOverride] = useState<{ emoji: string | null } | null>(null);
+
+  const serverMyEmoji = item.reactions.find((r) => r.mine)?.emoji ?? null;
+  const myEmoji = override ? override.emoji : serverMyEmoji;
+
+  const reactions = (() => {
+    if (!override) return item.reactions;
+    const map = new Map(item.reactions.map((r) => [r.emoji, { ...r }]));
+    if (serverMyEmoji) {
+      const prev = map.get(serverMyEmoji);
+      if (prev) {
+        prev.mine = false;
+        prev.count = Math.max(0, prev.count - 1);
+        if (prev.count === 0) map.delete(serverMyEmoji);
+        else map.set(serverMyEmoji, prev);
+      }
+    }
+    if (override.emoji) {
+      const cur = map.get(override.emoji) ?? { emoji: override.emoji, count: 0, mine: false };
+      map.set(override.emoji, { ...cur, count: cur.count + 1, mine: true });
+    }
+    return Array.from(map.values());
+  })();
+
+  const totalCount = reactions.reduce((sum, r) => sum + r.count, 0);
+  const iLiked = !!myEmoji;
+
   const toggle = useMutation({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] }).then(() => setOverride(null));
+    },
   });
-  const setReaction = useMutation({
+  const setReactionM = useMutation({
     mutationFn: (emoji: string) => setPostReaction({ data: { postId: item.id, emoji } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] }).then(() => setOverride(null));
+    },
   });
-
-  const myReactions = item.reactions.filter((r) => r.mine);
-  const myEmoji = myReactions[0]?.emoji ?? null;
-  const totalCount = item.reactions.reduce((sum, r) => sum + r.count, 0);
-  const iLiked = !!myEmoji;
 
   const clearLongPressTimer = () => {
     if (longPressTimer.current) {
@@ -177,7 +204,9 @@ function ReactionBar({
   };
 
   const toggleCurrentReaction = () => {
-    toggle.mutate(myEmoji ?? "🔥");
+    const emoji = myEmoji ?? "🔥";
+    setOverride({ emoji: myEmoji ? null : "🔥" });
+    toggle.mutate(emoji);
   };
 
   const handlePressStart = (event: ReactPointerEvent<HTMLButtonElement>) => {
@@ -208,12 +237,13 @@ function ReactionBar({
   };
   const selectEmoji = (emoji: string) => {
     clearNativeSelection();
-    setReaction.mutate(emoji);
+    setOverride({ emoji });
+    setReactionM.mutate(emoji);
     setPickerOpen(false);
   };
 
 
-  const stackEmojis = item.reactions
+  const stackEmojis = reactions
     .filter((r) => r.count > 0)
     .sort((a, b) => b.count - a.count)
     .slice(0, 3);
@@ -294,14 +324,14 @@ function ReactionBar({
       </div>
 
       {stackEmojis.length > 0 && (
-        <div className="flex items-center -space-x-1.5">
+        <div className="flex items-center gap-1">
           {stackEmojis.map((r) => (
-            <div
+            <span
               key={r.emoji}
-              className="h-6 w-6 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[14px] leading-none"
+              className="text-[18px] leading-none"
             >
               {r.emoji}
-            </div>
+            </span>
           ))}
         </div>
       )}
