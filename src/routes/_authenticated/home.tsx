@@ -78,7 +78,7 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
       } else {
         grouped.set(key, {
           ...item,
-          id: key,
+          id: item.id,
           localDate,
           updatedAt: nodeAt,
           nodes: [node],
@@ -380,7 +380,7 @@ function HomePage() {
                 );
                 lastDate = item.localDate;
               }
-              out.push(<TimelineCard key={item.id} item={item} />);
+              out.push(<TimelineCard key={`${item.id}-${item.localDate}`} item={item} />);
             }
             return out;
           })()}

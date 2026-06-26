@@ -516,6 +516,30 @@ export const togglePostReaction = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
       return { active: false };
     }
+    const { error: clearError } = await (supabase as any)
+      .from("post_reactions")
+      .delete()
+      .eq("post_id", data.postId)
+      .eq("user_id", userId);
+    if (clearError) throw new Error(clearError.message);
+    const { error } = await (supabase as any)
+      .from("post_reactions")
+      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
+    if (error) throw new Error(error.message);
+    return { active: true };
+  });
+
+export const setPostReaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { postId: string; emoji: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error: clearError } = await (supabase as any)
+      .from("post_reactions")
+      .delete()
+      .eq("post_id", data.postId)
+      .eq("user_id", userId);
+    if (clearError) throw new Error(clearError.message);
     const { error } = await (supabase as any)
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });

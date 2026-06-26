@@ -1,8 +1,16 @@
-import { useRef, useState } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import {
   togglePostReaction,
+  setPostReaction,
   addPostComment,
   getPostComments,
 } from "@/lib/daily-posts.functions";
@@ -24,6 +32,12 @@ import {
 
 const PURPLE = "#7C3AED";
 const REACTION_EMOJIS = ["🔥", "💪", "❤️", "👏"];
+const noSelectTouchStyle = {
+  WebkitTouchCallout: "none",
+  WebkitUserSelect: "none",
+  userSelect: "none",
+  touchAction: "manipulation",
+} as CSSProperties & { WebkitTouchCallout?: string; WebkitUserSelect?: string };
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -141,38 +155,60 @@ function ReactionBar({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
   });
+  const setReaction = useMutation({
+    mutationFn: (emoji: string) => setPostReaction({ data: { postId: item.id, emoji } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+  });
 
   const myReactions = item.reactions.filter((r) => r.mine);
   const myEmoji = myReactions[0]?.emoji ?? null;
   const totalCount = item.reactions.reduce((sum, r) => sum + r.count, 0);
   const iLiked = !!myEmoji;
 
-  const handlePressStart = () => {
-    longPressedRef.current = false;
-    longPressTimer.current = window.setTimeout(() => {
-      longPressedRef.current = true;
-      setPickerOpen(true);
-    }, 400);
-  };
-  const handlePressEnd = () => {
+  const clearLongPressTimer = () => {
     if (longPressTimer.current) {
       window.clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
   };
-  const handleClick = () => {
-    if (longPressedRef.current) return;
-    if (myEmoji) {
-      toggle.mutate(myEmoji);
-    } else {
-      toggle.mutate("🔥");
+
+  const clearNativeSelection = () => {
+    window.getSelection()?.removeAllRanges();
+  };
+
+  const toggleCurrentReaction = () => {
+    toggle.mutate(myEmoji ?? "🔥");
+  };
+
+  const handlePressStart = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    longPressedRef.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    longPressTimer.current = window.setTimeout(() => {
+      longPressedRef.current = true;
+      clearNativeSelection();
+      setPickerOpen(true);
+    }, 350);
+  };
+  const handlePressEnd = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    clearLongPressTimer();
+    clearNativeSelection();
+    if (!longPressedRef.current) toggleCurrentReaction();
+  };
+  const handlePressCancel = () => {
+    clearLongPressTimer();
+    clearNativeSelection();
+  };
+  const handleKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      toggleCurrentReaction();
     }
   };
   const selectEmoji = (emoji: string) => {
-    myReactions.forEach((r) => {
-      if (r.emoji !== emoji) toggle.mutate(r.emoji);
-    });
-    if (myEmoji !== emoji) toggle.mutate(emoji);
+    clearNativeSelection();
+    setReaction.mutate(emoji);
     setPickerOpen(false);
   };
 
@@ -183,7 +219,7 @@ function ReactionBar({
     .slice(0, 3);
 
   return (
-    <div className="border-t border-neutral-100 px-4 py-3 flex items-center justify-between">
+    <div className="border-t border-neutral-100 px-4 py-3 flex items-center justify-between select-none" style={noSelectTouchStyle}>
       <div className="flex items-center gap-5">
         <div className="relative">
           <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
@@ -191,7 +227,9 @@ function ReactionBar({
             <PopoverContent
               side="top"
               align="start"
+              onOpenAutoFocus={(event) => event.preventDefault()}
               className="w-auto p-2 rounded-full border-neutral-200 shadow-lg"
+              style={noSelectTouchStyle}
             >
               <div className="flex items-center gap-1">
                 {REACTION_EMOJIS.map((e) => {
@@ -201,11 +239,18 @@ function ReactionBar({
                     <button
                       key={e}
                       type="button"
-                      onPointerDown={(ev) => ev.stopPropagation()}
-                      onClick={() => selectEmoji(e)}
+                      aria-label={`React with ${e}`}
+                      onPointerDown={(ev) => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        selectEmoji(e);
+                      }}
+                      onClick={(ev) => ev.preventDefault()}
+                      onContextMenu={(ev) => ev.preventDefault()}
                       className={`h-11 w-11 rounded-full flex items-center justify-center text-[24px] active:scale-90 transition ${
                         mine ? "bg-[#F4EEFF]" : "hover:bg-neutral-100"
                       }`}
+                      style={noSelectTouchStyle}
                     >
                       {e}
                     </button>
@@ -216,13 +261,15 @@ function ReactionBar({
           </Popover>
           <button
             type="button"
-            onClick={handleClick}
+            aria-label="React to post"
             onPointerDown={handlePressStart}
             onPointerUp={handlePressEnd}
-            onPointerCancel={handlePressEnd}
+            onPointerCancel={handlePressCancel}
+            onLostPointerCapture={handlePressCancel}
+            onKeyDown={handleKeyDown}
             onContextMenu={(e) => e.preventDefault()}
-            className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
-            style={{ color: iLiked ? PURPLE : "#404040" }}
+            className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition select-none"
+            style={{ ...noSelectTouchStyle, color: iLiked ? PURPLE : "#404040" }}
           >
             {myEmoji ? (
               <span className="text-[20px] leading-none">{myEmoji}</span>
@@ -235,6 +282,7 @@ function ReactionBar({
 
         <button
           type="button"
+          aria-label="Open comments"
           onClick={onToggleComments}
           onPointerDown={onPrefetchComments}
           onMouseEnter={onPrefetchComments}
@@ -281,7 +329,7 @@ function CommentSection({ postId }: { postId: string }) {
     },
   });
 
-  const submit = (e: React.FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     const body = text.trim();
     if (!body || add.isPending) return;
@@ -364,7 +412,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
   };
 
   return (
-    <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
+    <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden select-none" style={noSelectTouchStyle}>
       {/* Header */}
       <div className="flex items-start gap-3 px-4 pt-4">
         {item.avatarUrl ? (
