@@ -338,7 +338,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
     const dates = Array.from(new Set(posts.map((p) => p.local_date)));
 
-    const [{ data: profiles }, checkInsResult, thoughtsResult] = await Promise.all([
+    const [{ data: profiles }, checkInsResult, thoughtsResult, reactionsResult, commentsResult] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, name, avatar_color, avatar_url")
@@ -355,7 +355,34 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .eq("group_id", groupId)
         .in("user_id", userIds)
         .in("local_date", dates),
+      (supabase as any)
+        .from("post_reactions")
+        .select("post_id, user_id, emoji")
+        .in("post_id", posts.map((p) => p.id)),
+      (supabase as any)
+        .from("post_comments")
+        .select("post_id")
+        .in("post_id", posts.map((p) => p.id)),
     ]);
+
+    const reactionsByPost = new Map<string, ReactionSummary[]>();
+    for (const r of ((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[]) {
+      const list = reactionsByPost.get(r.post_id) ?? [];
+      const existing = list.find((x) => x.emoji === r.emoji);
+      if (existing) {
+        existing.count += 1;
+        if (r.user_id === userId) existing.mine = true;
+      } else {
+        list.push({ emoji: r.emoji, count: 1, mine: r.user_id === userId });
+      }
+      reactionsByPost.set(r.post_id, list);
+    }
+
+    const commentCountByPost = new Map<string, number>();
+    for (const c of ((commentsResult as any).data ?? []) as { post_id: string }[]) {
+      commentCountByPost.set(c.post_id, (commentCountByPost.get(c.post_id) ?? 0) + 1);
+    }
+
 
     const profileMap = new Map(
       await Promise.all(
