@@ -7,6 +7,7 @@ import { recordCheckIn } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
+import { CheckInShareModal, SHARE_HIDE_KEY, type CheckInShareData } from "@/components/CheckInShareModal";
 
 const PURPLE = "#7C3AED";
 
