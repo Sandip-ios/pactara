@@ -239,6 +239,7 @@ function ReactionBar({
                     <button
                       key={e}
                       type="button"
+                      aria-label={`React with ${e}`}
                       onPointerDown={(ev) => {
                         ev.preventDefault();
                         ev.stopPropagation();
@@ -260,6 +261,7 @@ function ReactionBar({
           </Popover>
           <button
             type="button"
+            aria-label="React to post"
             onPointerDown={handlePressStart}
             onPointerUp={handlePressEnd}
             onPointerCancel={handlePressCancel}
@@ -280,6 +282,7 @@ function ReactionBar({
 
         <button
           type="button"
+          aria-label="Open comments"
           onClick={onToggleComments}
           onPointerDown={onPrefetchComments}
           onMouseEnter={onPrefetchComments}
@@ -409,7 +412,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
   };
 
   return (
-    <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">
+    <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden select-none" style={noSelectTouchStyle}>
       {/* Header */}
       <div className="flex items-start gap-3 px-4 pt-4">
         {item.avatarUrl ? (
