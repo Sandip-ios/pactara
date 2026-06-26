@@ -11,8 +11,6 @@ import {
   Flame,
   Share2,
   MessageCircle,
-  ChevronDown,
-  ChevronUp,
   MessageSquare,
   Send,
   Loader2,
