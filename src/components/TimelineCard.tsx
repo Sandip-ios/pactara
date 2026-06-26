@@ -10,6 +10,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import {
   togglePostReaction,
+  setPostReaction,
   addPostComment,
   getPostComments,
 } from "@/lib/daily-posts.functions";
@@ -154,6 +155,10 @@ function ReactionBar({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
   });
+  const setReaction = useMutation({
+    mutationFn: (emoji: string) => setPostReaction({ data: { postId: item.id, emoji } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+  });
 
   const myReactions = item.reactions.filter((r) => r.mine);
   const myEmoji = myReactions[0]?.emoji ?? null;
@@ -203,7 +208,7 @@ function ReactionBar({
   };
   const selectEmoji = (emoji: string) => {
     clearNativeSelection();
-    toggle.mutate(emoji);
+    setReaction.mutate(emoji);
     setPickerOpen(false);
   };
 
