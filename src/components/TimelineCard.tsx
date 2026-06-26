@@ -454,7 +454,7 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const del = useMutation({
-    mutationFn: () => deleteCheckIn({ data: { checkInId } }),
+    mutationFn: () => deleteCheckIn({ data: { checkInId: checkInId.replace(/^c-/, "") } }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
