@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
-import { getGroupChat, sendGroupMessage } from "@/lib/chat.functions";
+import { getGroupChat, sendGroupMessage, markGroupRead } from "@/lib/chat.functions";
 import { supabase } from "@/integrations/supabase/client";
 
 const PURPLE = "#7C3AED";
