@@ -428,7 +428,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
       if (myCheckIns.length === 0) {
         if (checkInMissed) {
-          nodes.push({ kind: "check_in_missed", id: `cm-${p.id}`, at: p.updated_at });
+          nodes.push({
+            kind: "check_in_missed",
+            id: `cm-${p.id}`,
+            at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
+          });
         } else {
           nodes.push({ kind: "pending", id: `p-${p.id}` });
         }
