@@ -197,7 +197,11 @@ function ReactionBar({
               className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
               style={{ color: iLiked ? PURPLE : "#404040" }}
             >
-              <ThumbsUp size={20} fill={iLiked ? PURPLE : "none"} strokeWidth={2} />
+              {myEmoji ? (
+                <span className="text-[20px] leading-none">{myEmoji}</span>
+              ) : (
+                <Flame size={20} strokeWidth={2} />
+              )}
               {totalCount > 0 && <span>{totalCount}</span>}
             </button>
           </PopoverTrigger>
