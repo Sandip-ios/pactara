@@ -90,7 +90,7 @@ function LoginPage() {
           autoComplete="email"
           ref={emailRef}
           defaultValue=""
-          onInput={handleInput}
+          
           placeholder="you@example.com"
           className="mt-1.5 w-full bg-transparent outline-none text-[17px]"
           style={{ color: TEXT }}
@@ -114,7 +114,7 @@ function LoginPage() {
             autoComplete="current-password"
             ref={passwordRef}
             defaultValue=""
-            onInput={handleInput}
+            
             placeholder="Your password"
             className="flex-1 bg-transparent outline-none text-[17px]"
             style={{ color: TEXT }}
@@ -148,7 +148,7 @@ function LoginPage() {
       <button
         type="button"
         onClick={handleSignIn}
-        disabled={submitting || !canSubmit}
+        disabled={submitting}
         className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
         style={{
           background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
