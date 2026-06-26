@@ -188,7 +188,7 @@ export function CheckInCelebrationModal({
 
       {/* Centered content column */}
       <div
-        className="relative z-[1] mx-auto flex w-full max-w-[420px] flex-col px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-20"
+        className="relative z-[1] mx-auto flex w-full max-w-[420px] flex-col px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-14"
         style={{
           animation: reduceMotion
             ? "pactara-fade 240ms ease-out both"
