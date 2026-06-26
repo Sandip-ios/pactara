@@ -4,6 +4,7 @@ import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "Sign in — Pactara" },
@@ -27,21 +28,13 @@ function LoginPage() {
   const passwordRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleInput = () => {
-    setError(null);
-    setCanSubmit(
-      (emailRef.current?.value.trim().length ?? 0) > 0 &&
-        (passwordRef.current?.value.length ?? 0) > 0,
-    );
-  };
 
   const handleSignIn = async () => {
     if (submitting) return;
     const email = emailRef.current?.value.trim() ?? "";
     const password = passwordRef.current?.value ?? "";
+    if (!email || !password) return;
     setError(null);
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -97,7 +90,7 @@ function LoginPage() {
           autoComplete="email"
           ref={emailRef}
           defaultValue=""
-          onInput={handleInput}
+          
           placeholder="you@example.com"
           className="mt-1.5 w-full bg-transparent outline-none text-[17px]"
           style={{ color: TEXT }}
@@ -121,7 +114,7 @@ function LoginPage() {
             autoComplete="current-password"
             ref={passwordRef}
             defaultValue=""
-            onInput={handleInput}
+            
             placeholder="Your password"
             className="flex-1 bg-transparent outline-none text-[17px]"
             style={{ color: TEXT }}
@@ -155,7 +148,7 @@ function LoginPage() {
       <button
         type="button"
         onClick={handleSignIn}
-        disabled={submitting || !canSubmit}
+        disabled={submitting}
         className="mt-5 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
         style={{
           background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
