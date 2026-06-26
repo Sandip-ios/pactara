@@ -65,6 +65,16 @@ function GroupChatPage() {
     };
   }, [groupId, queryClient]);
 
+  // Mark group as read whenever new messages arrive while viewing it
+  useEffect(() => {
+    if (!data) return;
+    markGroupRead({ data: { groupId } })
+      .then(() => {
+        queryClient.invalidateQueries({ queryKey: ["unread-chat-counts"] });
+      })
+      .catch(() => {});
+  }, [groupId, data?.messages.length, queryClient, data]);
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
