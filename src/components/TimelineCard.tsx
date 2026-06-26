@@ -218,10 +218,7 @@ function ReactionBar({
                   <button
                     key={e}
                     type="button"
-                    onClick={() => {
-                      toggle.mutate(e);
-                      setPickerOpen(false);
-                    }}
+                    onClick={() => selectEmoji(e)}
                     className={`h-11 w-11 rounded-full flex items-center justify-center text-[24px] active:scale-90 transition ${
                       mine ? "bg-[#F4EEFF]" : "hover:bg-neutral-100"
                     }`}
