@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import {
@@ -9,12 +9,13 @@ import {
 import {
   Hourglass,
   Flame,
-  Share2,
+  ThumbsUp,
   MessageCircle,
   MessageSquare,
   Send,
   Loader2,
 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Drawer,
   DrawerContent,
