@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ImagePlus, RefreshCw } from "lucide-react";
+import { Camera, ChevronLeft, ImagePlus, RefreshCw } from "lucide-react";
 import { MOODS, type MoodId } from "./check-in.index";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 
@@ -12,37 +12,68 @@ function CameraPage() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const nativeCameraInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [facing, setFacing] = useState<"user" | "environment">("environment");
-  const [error, setError] = useState(false);
+  const [active, setActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const moodId = (typeof window !== "undefined" ? (sessionStorage.getItem("checkin-mood") as MoodId | null) : null);
   const mood = MOODS.find((m) => m.id === moodId) ?? MOODS[0];
 
-  useEffect(() => {
-    let cancelled = false;
-    async function start() {
-      try {
-        if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: facing }, audio: false });
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
-        streamRef.current = stream;
-        if (videoRef.current) videoRef.current.srcObject = stream;
-      } catch {
-        setError(true);
-      }
+  const isSecure = typeof window !== "undefined" && (window.isSecureContext || window.location.hostname === "localhost");
+
+  // Must be called from a user gesture (iOS Safari requirement).
+  const startCamera = async (nextFacing: "user" | "environment" = facing) => {
+    setError(null);
+    if (!isSecure) {
+      setError("Camera needs HTTPS. Use the library button to attach a photo.");
+      return;
     }
-    start();
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera not supported on this browser. Use the library button.");
+      return;
+    }
+    try {
+      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing } },
+        audio: false,
+      });
+      streamRef.current = stream;
+      setActive(true);
+      setFacing(nextFacing);
+      const v = videoRef.current;
+      if (v) {
+        v.srcObject = stream;
+        v.play().catch(() => {});
+      }
+    } catch (err) {
+      const name = (err as DOMException)?.name;
+      if (name === "NotAllowedError") {
+        setError("Camera permission denied. Enable it in your browser settings, or use the library.");
+      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
+        setError("No camera found. Use the library button to attach a photo.");
+      } else if (name === "NotReadableError") {
+        setError("Camera is in use by another app. Close it and try again.");
+      } else {
+        setError("Camera unavailable. Use the library button to attach a photo.");
+      }
+      setActive(false);
+    }
+  };
+
+  useEffect(() => {
     return () => {
-      cancelled = true;
       if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
     };
-  }, [facing]);
+  }, []);
 
   const capture = () => {
     const video = videoRef.current;
-    if (!video || !video.videoWidth) {
-      navigate({ to: "/check-in/notes" });
+    if (!active || !video || !video.videoWidth) {
+      // Fall back to the native camera input on devices where getUserMedia is blocked.
+      nativeCameraInputRef.current?.click();
       return;
     }
     const canvas = document.createElement("canvas");
@@ -67,9 +98,31 @@ function CameraPage() {
   return (
     <div className="fixed inset-0 bg-black text-white" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center text-center px-8 text-neutral-300">
-          Camera unavailable. Tap skip or attach a photo.
+
+      {!active && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 gap-4">
+          {error ? (
+            <p className="text-neutral-300 text-[15px] leading-snug max-w-[280px]">{error}</p>
+          ) : (
+            <p className="text-neutral-300 text-[15px] leading-snug max-w-[280px]">
+              Tap below to turn on the camera, or attach a photo from your library.
+            </p>
+          )}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => startCamera(facing)}
+              className="rounded-full bg-white text-black px-5 py-2.5 text-[15px] font-semibold flex items-center gap-2"
+            >
+              <Camera size={18} />
+              Enable camera
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="rounded-full border border-white/60 text-white px-5 py-2.5 text-[15px] font-semibold"
+            >
+              Library
+            </button>
+          </div>
         </div>
       )}
 
@@ -104,7 +157,7 @@ function CameraPage() {
             <span className="h-16 w-16 rounded-full bg-white/90" />
           </button>
           <button
-            onClick={() => setFacing((f) => (f === "user" ? "environment" : "user"))}
+            onClick={() => (active ? startCamera(facing === "user" ? "environment" : "user") : startCamera(facing))}
             className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
             aria-label="Flip camera"
           >
@@ -119,8 +172,15 @@ function CameraPage() {
         </button>
       </div>
 
-
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+      <input
+        ref={nativeCameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={onFile}
+      />
     </div>
   );
 }
