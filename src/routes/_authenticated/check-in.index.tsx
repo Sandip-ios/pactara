@@ -66,7 +66,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
 
-      <div className="px-6 pt-2">
+      <div className="px-6 pt-8">
         <div className="text-[13px] font-bold" style={{ color: PURPLE }}>
           It's time for your morning ritual
         </div>
