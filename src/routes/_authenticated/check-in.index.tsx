@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { postMorningRitual } from "@/lib/daily-posts.functions";
+import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 
 const PURPLE = "#7C3AED";
@@ -22,13 +22,22 @@ export const Route = createFileRoute("/_authenticated/check-in/")({
 });
 
 function CheckInRouter() {
-  // Capture the current local hour on mount so the view doesn't flip during a session.
-  const [isMorning] = useState(() => new Date().getHours() < 12);
-  const [ritualDone, setRitualDone] = useState(
-    () => typeof sessionStorage !== "undefined" && sessionStorage.getItem("morning-ritual-done") === "1",
-  );
-  return isMorning && !ritualDone ? <MorningRitual onPosted={() => setRitualDone(true)} /> : <CheckInMood />;
+  const getStatus = useServerFn(getTodayRitualStatus);
+  const { data, isLoading } = useQuery({
+    queryKey: ["today-ritual-status"],
+    queryFn: () => getStatus(),
+    staleTime: 60_000,
+  });
+  const [localPosted, setLocalPosted] = useState(false);
+
+  if (isLoading || !data) {
+    return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
+  }
+
+  const showRitual = data.beforeNoon && !data.posted && !localPosted;
+  return showRitual ? <MorningRitual onPosted={() => setLocalPosted(true)} /> : <CheckInMood />;
 }
+
 
 function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const queryClient = useQueryClient();
@@ -43,6 +52,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
       sessionStorage.setItem("morning-ritual-done", "1");
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["today-ritual-status"] });
       onPosted();
     },
   });
