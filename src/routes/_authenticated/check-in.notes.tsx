@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { recordCheckIn } from "@/lib/daily-posts.functions";
+import { getCheckInCelebrationData, recordCheckIn, type CelebrationData } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
-import { CheckInShareModal, SHARE_HIDE_KEY, type CheckInShareData } from "@/components/CheckInShareModal";
+import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 
+const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
+
 
 const ACTIVITIES = [
   { id: "meal", emoji: "🥗", label: "Meal" },
