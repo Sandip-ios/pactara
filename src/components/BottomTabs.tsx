@@ -2,6 +2,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Home, Users, Zap, MessageCircle } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+import { getUnreadChatCounts } from "@/lib/chat.functions";
 
 
 const PURPLE = "#7C3AED";
