@@ -237,7 +237,7 @@ function CommentSection({ postId }: { postId: string }) {
           </ul>
         )}
       </div>
-      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white" style={{ paddingBottom: `calc(12px + env(safe-area-inset-bottom))` }}>
+      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
