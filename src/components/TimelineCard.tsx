@@ -13,12 +13,14 @@ import {
   setPostReaction,
   addPostComment,
   getPostComments,
+  deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import {
   Hourglass,
   Flame,
   MessageCircle,
   MessageSquare,
+  MoreHorizontal,
   Send,
   Loader2,
 } from "lucide-react";
@@ -29,6 +31,22 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PURPLE = "#7C3AED";
 const REACTION_EMOJIS = ["🔥", "💪", "❤️", "👏"];
