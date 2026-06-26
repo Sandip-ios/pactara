@@ -639,3 +639,72 @@ export const getPostComments = createServerFn({ method: "GET" })
     return { comments };
   });
 
+export type CelebrationTeammate = { id: string; initial: string; checkedIn: boolean };
+export type CelebrationData = {
+  streakCount: number;
+  groupName: string;
+  teammates: CelebrationTeammate[];
+};
+
+export const getCheckInCelebrationData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CelebrationData> => {
+    const { supabase, userId } = context;
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    if (!groupId) {
+      return { streakCount: 1, groupName: "Your group", teammates: [] };
+    }
+
+    const today = localDateFor(timezone);
+
+    // Compute current streak: walk back day-by-day while a check-in exists.
+    const { data: recent } = await supabase
+      .from("check_ins")
+      .select("checkin_date")
+      .eq("user_id", userId)
+      .lte("checkin_date", today)
+      .order("checkin_date", { ascending: false })
+      .limit(400);
+    const days = new Set((recent ?? []).map((r: any) => r.checkin_date as string));
+    let streak = 0;
+    const cursor = new Date(`${today}T12:00:00Z`);
+    // walk in UTC days; "good enough" — the local-day strings are already TZ-correct for today.
+    while (true) {
+      const iso = cursor.toISOString().slice(0, 10);
+      if (days.has(iso)) {
+        streak += 1;
+        cursor.setUTCDate(cursor.getUTCDate() - 1);
+      } else break;
+    }
+    if (streak === 0) streak = 1; // we just checked in
+
+    const [{ data: group }, { data: members }, { data: todayCheckIns }] = await Promise.all([
+      supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
+      supabase.from("group_members").select("user_id").eq("group_id", groupId),
+      supabase
+        .from("check_ins")
+        .select("user_id")
+        .eq("group_id", groupId)
+        .eq("checkin_date", today),
+    ]);
+
+    const memberIds = (members ?? []).map((m: any) => m.user_id as string);
+    const { data: profs } = memberIds.length
+      ? await supabase.from("profiles").select("id, name").in("id", memberIds)
+      : { data: [] as any[] };
+    const checkedSet = new Set((todayCheckIns ?? []).map((c: any) => c.user_id as string));
+    // NOTE: real share-card rendering of teammates requires explicit group consent.
+    // We surface initials only here; do not add real names/avatars to exported images.
+    const teammates: CelebrationTeammate[] = (profs ?? []).map((p: any) => ({
+      id: p.id,
+      initial: (p.name ?? "?").trim().charAt(0).toUpperCase() || "•",
+      checkedIn: checkedSet.has(p.id),
+    }));
+
+    return {
+      streakCount: streak,
+      groupName: group?.name ?? "Your group",
+      teammates,
+    };
+  });
+
