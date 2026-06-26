@@ -127,7 +127,7 @@ export function CheckInCelebrationModal({
       aria-modal="true"
       aria-label="Check-in celebration"
       ref={dialogRef}
-      className="fixed inset-0 z-[110] flex items-stretch justify-center overflow-hidden"
+      className="fixed inset-0 z-[110] flex items-stretch justify-center overflow-y-auto"
       style={{
         background: `radial-gradient(120% 80% at 50% 110%, ${PALETTE.horizon}33 0%, ${PALETTE.indigo} 45%, ${PALETTE.night} 100%)`,
         fontFamily: "Inter, system-ui, sans-serif",
