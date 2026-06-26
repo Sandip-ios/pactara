@@ -519,6 +519,20 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     return { items };
   });
 
+export const deleteCheckIn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { checkInId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await (supabase as any)
+      .from("check_ins")
+      .delete()
+      .eq("id", data.checkInId)
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 export const togglePostReaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { postId: string; emoji: string }) => data)
