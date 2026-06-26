@@ -185,51 +185,53 @@ function ReactionBar({
   return (
     <div className="border-t border-neutral-100 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-5">
-        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-          <PopoverAnchor asChild>
-            <button
-              type="button"
-              onClick={handleClick}
-              onPointerDown={handlePressStart}
-              onPointerUp={handlePressEnd}
-              onPointerCancel={handlePressEnd}
-              onContextMenu={(e) => e.preventDefault()}
-              className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
-              style={{ color: iLiked ? PURPLE : "#404040" }}
+        <div className="relative">
+          <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+            <PopoverAnchor className="absolute inset-0 pointer-events-none" />
+            <PopoverContent
+              side="top"
+              align="start"
+              className="w-auto p-2 rounded-full border-neutral-200 shadow-lg"
             >
-              {myEmoji ? (
-                <span className="text-[20px] leading-none">{myEmoji}</span>
-              ) : (
-                <Flame size={20} strokeWidth={2} />
-              )}
-              {totalCount > 0 && <span>{totalCount}</span>}
-            </button>
-          </PopoverAnchor>
-          <PopoverContent
-            side="top"
-            align="start"
-            className="w-auto p-2 rounded-full border-neutral-200 shadow-lg"
+              <div className="flex items-center gap-1">
+                {REACTION_EMOJIS.map((e) => {
+                  const r = item.reactions.find((x) => x.emoji === e);
+                  const mine = r?.mine;
+                  return (
+                    <button
+                      key={e}
+                      type="button"
+                      onPointerDown={(ev) => ev.stopPropagation()}
+                      onClick={() => selectEmoji(e)}
+                      className={`h-11 w-11 rounded-full flex items-center justify-center text-[24px] active:scale-90 transition ${
+                        mine ? "bg-[#F4EEFF]" : "hover:bg-neutral-100"
+                      }`}
+                    >
+                      {e}
+                    </button>
+                  );
+                })}
+              </div>
+            </PopoverContent>
+          </Popover>
+          <button
+            type="button"
+            onClick={handleClick}
+            onPointerDown={handlePressStart}
+            onPointerUp={handlePressEnd}
+            onPointerCancel={handlePressEnd}
+            onContextMenu={(e) => e.preventDefault()}
+            className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
+            style={{ color: iLiked ? PURPLE : "#404040" }}
           >
-            <div className="flex items-center gap-1">
-              {REACTION_EMOJIS.map((e) => {
-                const r = item.reactions.find((x) => x.emoji === e);
-                const mine = r?.mine;
-                return (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => selectEmoji(e)}
-                    className={`h-11 w-11 rounded-full flex items-center justify-center text-[24px] active:scale-90 transition ${
-                      mine ? "bg-[#F4EEFF]" : "hover:bg-neutral-100"
-                    }`}
-                  >
-                    {e}
-                  </button>
-                );
-              })}
-            </div>
-          </PopoverContent>
-        </Popover>
+            {myEmoji ? (
+              <span className="text-[20px] leading-none">{myEmoji}</span>
+            ) : (
+              <Flame size={20} strokeWidth={2} />
+            )}
+            {totalCount > 0 && <span>{totalCount}</span>}
+          </button>
+        </div>
 
         <button
           type="button"
