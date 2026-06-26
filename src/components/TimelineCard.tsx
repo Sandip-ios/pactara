@@ -186,13 +186,13 @@ function ReactionBar({
     <div className="border-t border-neutral-100 px-4 py-3 flex items-center justify-between">
       <div className="flex items-center gap-5">
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
-          <PopoverTrigger asChild>
+          <PopoverAnchor asChild>
             <button
               type="button"
               onClick={handleClick}
               onPointerDown={handlePressStart}
               onPointerUp={handlePressEnd}
-              onPointerLeave={handlePressEnd}
+              onPointerCancel={handlePressEnd}
               onContextMenu={(e) => e.preventDefault()}
               className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
               style={{ color: iLiked ? PURPLE : "#404040" }}
@@ -204,7 +204,7 @@ function ReactionBar({
               )}
               {totalCount > 0 && <span>{totalCount}</span>}
             </button>
-          </PopoverTrigger>
+          </PopoverAnchor>
           <PopoverContent
             side="top"
             align="start"
