@@ -17,6 +17,12 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 const PURPLE = "#7C3AED";
 const REACTION_EMOJIS = ["🔥", "💪", "❤️", "👏"];
