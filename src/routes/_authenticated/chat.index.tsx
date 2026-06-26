@@ -53,30 +53,51 @@ function ChatPage() {
       )}
 
       <ul>
-        {groups.map((g) => (
-          <li key={g.id} className="border-b border-neutral-100">
-            <button
-              onClick={() => navigate({ to: "/chat/$groupId", params: { groupId: g.id } })}
-              className="w-full flex items-center gap-4 px-6 py-4 text-left"
-            >
-              <span
-                className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0"
-                style={{ background: PURPLE_SOFT }}
+        {groups.map((g) => {
+          const n = counts[g.id] ?? 0;
+          const hasUnread = n > 0;
+          return (
+            <li key={g.id} className="border-b border-neutral-100">
+              <button
+                onClick={() => navigate({ to: "/chat/$groupId", params: { groupId: g.id } })}
+                className="w-full flex items-center gap-4 px-6 py-4 text-left"
               >
-                <Users size={22} style={{ color: PURPLE }} />
-              </span>
-              <span className="flex-1 min-w-0">
-                <span className="flex items-center gap-2 text-[17px] font-bold text-neutral-900">
-                  <span className="text-[18px]">{g.emoji}</span>
-                  <span className="truncate">{g.name}</span>
+                <span
+                  className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 relative"
+                  style={{ background: PURPLE_SOFT }}
+                >
+                  <Users size={22} style={{ color: PURPLE }} />
+                  {hasUnread && (
+                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white" />
+                  )}
                 </span>
-                <span className="block text-[14px] text-neutral-500 truncate mt-0.5">
-                  {g.memberCount} {g.memberCount === 1 ? "member" : "members"}
+                <span className="flex-1 min-w-0">
+                  <span className="flex items-center gap-2 text-[17px] text-neutral-900">
+                    <span className="text-[18px]">{g.emoji}</span>
+                    <span className={`truncate ${hasUnread ? "font-black" : "font-bold"}`}>{g.name}</span>
+                  </span>
+                  <span
+                    className={`block text-[14px] truncate mt-0.5 ${
+                      hasUnread ? "text-neutral-900 font-semibold" : "text-neutral-500"
+                    }`}
+                  >
+                    {hasUnread
+                      ? `${n} new ${n === 1 ? "message" : "messages"}`
+                      : `${g.memberCount} ${g.memberCount === 1 ? "member" : "members"}`}
+                  </span>
                 </span>
-              </span>
-            </button>
-          </li>
-        ))}
+                {hasUnread && (
+                  <span
+                    className="ml-2 min-w-[22px] h-[22px] px-1.5 rounded-full text-white text-[12px] font-bold flex items-center justify-center"
+                    style={{ background: "#EF4444" }}
+                  >
+                    {n > 99 ? "99+" : n}
+                  </span>
+                )}
+              </button>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
