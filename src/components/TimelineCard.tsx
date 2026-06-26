@@ -122,7 +122,7 @@ function nodeVisual(node: TimelineNode): Visual | null {
   }
 }
 
-function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; commentsOpen: boolean }) {
+function ReactionBar({ item, onToggleComments, onPrefetchComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; onPrefetchComments: () => void; commentsOpen: boolean }) {
   const queryClient = useQueryClient();
   const toggle = useMutation({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
@@ -166,6 +166,8 @@ function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem;
       <button
         type="button"
         onClick={onToggleComments}
+        onPointerDown={onPrefetchComments}
+        onMouseEnter={onPrefetchComments}
         className="mt-1 -ml-2 flex items-center gap-1.5 px-2 py-2 text-neutral-500 text-[14px] font-medium"
       >
         <MessageCircle size={16} />
