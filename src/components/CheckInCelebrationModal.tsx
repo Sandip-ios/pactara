@@ -114,7 +114,7 @@ export function CheckInCelebrationModal({
       {/* Top bar */}
       <div
         className="flex items-center justify-between px-5"
-        style={{ paddingTop: "calc(env(safe-area-inset-top) + 24px)", paddingBottom: 12 }}
+        style={{ paddingTop: 24, paddingBottom: 12 }}
       >
         <span
           className="text-[17px] font-bold tracking-tight"
