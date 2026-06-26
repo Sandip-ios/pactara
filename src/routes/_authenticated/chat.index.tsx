@@ -17,8 +17,15 @@ function ChatPage() {
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
   });
+  const { data: unread } = useQuery({
+    queryKey: ["unread-chat-counts"],
+    queryFn: () => getUnreadChatCounts(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
 
   const groups = data?.groups ?? [];
+  const counts = unread?.counts ?? {};
 
   return (
     <div
