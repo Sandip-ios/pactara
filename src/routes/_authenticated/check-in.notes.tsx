@@ -230,6 +230,8 @@ function NotesPage() {
           {isBusy ? "Sharing…" : "Share"}
         </button>
       </div>
+
+      {shareData && <CheckInShareModal data={shareData} onClose={handleShareClose} />}
     </div>
   );
 }
