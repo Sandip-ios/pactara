@@ -460,6 +460,10 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       setConfirmOpen(false);
+      toast.success("Check-in deleted");
+    },
+    onError: (e: Error) => {
+      toast.error(e.message || "Couldn't delete check-in");
     },
   });
   return (
