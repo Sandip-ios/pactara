@@ -257,7 +257,7 @@ export function CheckInCelebrationModal({
                 fontFamily: "Fraunces, 'Times New Roman', serif",
                 fontWeight: 500,
                 fontVariationSettings: "'opsz' 144, 'SOFT' 50",
-                fontSize: 88,
+                fontSize: 64,
                 letterSpacing: "-0.04em",
                 color: PALETTE.night,
               }}
