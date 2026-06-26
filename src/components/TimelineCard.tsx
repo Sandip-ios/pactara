@@ -175,13 +175,17 @@ function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem;
   );
 }
 
+const commentsQueryOptions = (postId: string) => ({
+  queryKey: ["post-comments", postId] as const,
+  queryFn: () => getPostComments({ data: { postId } }),
+  staleTime: 30_000,
+  gcTime: 5 * 60_000,
+});
+
 function CommentSection({ postId }: { postId: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
-  const { data, isLoading } = useQuery({
-    queryKey: ["post-comments", postId],
-    queryFn: () => getPostComments({ data: { postId } }),
-  });
+  const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
     mutationFn: (body: string) => addPostComment({ data: { postId, body } }),
     onSuccess: () => {
@@ -268,6 +272,10 @@ export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
+  const queryClient = useQueryClient();
+  const prefetchComments = () => {
+    queryClient.prefetchQuery(commentsQueryOptions(item.id));
+  };
 
   return (
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden">

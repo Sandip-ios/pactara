@@ -550,21 +550,33 @@ export const getPostComments = createServerFn({ method: "GET" })
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id))) as string[];
-    const { data: profs } = await supabase
-      .from("profiles")
-      .select("id, name, avatar_color, avatar_url")
-      .in("id", ids);
+    const { data: profs } = ids.length
+      ? await supabase
+          .from("profiles")
+          .select("id, name, avatar_color, avatar_url")
+          .in("id", ids)
+      : { data: [] as any[] };
+    const avatarPaths = (profs ?? [])
+      .map((p: any) => p.avatar_url)
+      .filter((p: string | null): p is string => !!p);
+    const signedMap = new Map<string, string>();
+    if (avatarPaths.length) {
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrls(avatarPaths, 60 * 60);
+      (signed ?? []).forEach((s: any) => {
+        if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
+      });
+    }
     const profMap = new Map(
-      await Promise.all(
-        (profs ?? []).map(async (p) => [
-          p.id,
-          {
-            name: p.name ?? "Member",
-            color: p.avatar_color ?? "#22C55E",
-            avatarUrl: await signAvatar(supabase, p.avatar_url),
-          },
-        ] as const),
-      ),
+      (profs ?? []).map((p: any) => [
+        p.id,
+        {
+          name: p.name ?? "Member",
+          color: p.avatar_color ?? "#22C55E",
+          avatarUrl: p.avatar_url ? signedMap.get(p.avatar_url) ?? null : null,
+        },
+      ] as const),
     );
     const comments: PostComment[] = (rows ?? []).map((r: any) => {
       const pr = profMap.get(r.user_id);
