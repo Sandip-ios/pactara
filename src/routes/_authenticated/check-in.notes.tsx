@@ -69,17 +69,20 @@ function NotesPage() {
     setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
   }, []);
 
+  const [shareData, setShareData] = useState<CheckInShareData | null>(null);
+
+  const finalizeAndExit = () => {
+    sessionStorage.removeItem("checkin-mood");
+    clearCheckInPhoto();
+    queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+    queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+    navigate({ to: "/home" });
+  };
+
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
     mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string }) =>
       recordCheckInFn({ data: vars }),
-    onSuccess: () => {
-      sessionStorage.removeItem("checkin-mood");
-      clearCheckInPhoto();
-      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
-      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
-      navigate({ to: "/home" });
-    },
   });
 
   const submit = async () => {
@@ -99,6 +102,24 @@ function NotesPage() {
         activity: activity || undefined,
         photoUrl,
       });
+
+      const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
+      if (hide) {
+        finalizeAndExit();
+        return;
+      }
+      // Build a fresh object URL for the modal so the share card has the image
+      // even after we clear the check-in photo store on close.
+      const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
+      setShareData({
+        mood,
+        activity,
+        note,
+        photoUrl: photoForShare,
+        photoBlob: photo?.blob ?? null,
+      });
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     } catch (err) {
       console.error("check-in submit failed", err);
       setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
@@ -106,6 +127,13 @@ function NotesPage() {
       setSubmitting(false);
     }
   };
+
+  const handleShareClose = () => {
+    if (shareData?.photoUrl) URL.revokeObjectURL(shareData.photoUrl);
+    setShareData(null);
+    finalizeAndExit();
+  };
+
 
   const isBusy = submitting || mutation.isPending;
 
