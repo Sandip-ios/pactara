@@ -226,7 +226,7 @@ export function CheckInCelebrationModal({
             <div
               className="overflow-hidden rounded-[14px]"
               style={{
-                aspectRatio: "4 / 5",
+                aspectRatio: "1 / 1",
                 background: `linear-gradient(160deg, ${PALETTE.indigo}, ${PALETTE.slate})`,
                 border: `1px solid ${PALETTE.night}15`,
               }}
