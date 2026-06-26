@@ -127,7 +127,7 @@ export function CheckInCelebrationModal({
       aria-modal="true"
       aria-label="Check-in celebration"
       ref={dialogRef}
-      className="fixed inset-0 z-[110] flex items-stretch justify-center overflow-hidden"
+      className="fixed inset-0 z-[110] flex items-stretch justify-center overflow-y-auto"
       style={{
         background: `radial-gradient(120% 80% at 50% 110%, ${PALETTE.horizon}33 0%, ${PALETTE.indigo} 45%, ${PALETTE.night} 100%)`,
         fontFamily: "Inter, system-ui, sans-serif",
@@ -188,7 +188,7 @@ export function CheckInCelebrationModal({
 
       {/* Centered content column */}
       <div
-        className="relative z-[1] mx-auto flex w-full max-w-[420px] flex-col px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-20"
+        className="relative z-[1] mx-auto flex w-full max-w-[420px] flex-col px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-14"
         style={{
           animation: reduceMotion
             ? "pactara-fade 240ms ease-out both"
@@ -226,7 +226,7 @@ export function CheckInCelebrationModal({
             <div
               className="overflow-hidden rounded-[14px]"
               style={{
-                aspectRatio: "4 / 5",
+                aspectRatio: "1 / 1",
                 background: `linear-gradient(160deg, ${PALETTE.indigo}, ${PALETTE.slate})`,
                 border: `1px solid ${PALETTE.night}15`,
               }}
@@ -257,7 +257,7 @@ export function CheckInCelebrationModal({
                 fontFamily: "Fraunces, 'Times New Roman', serif",
                 fontWeight: 500,
                 fontVariationSettings: "'opsz' 144, 'SOFT' 50",
-                fontSize: 88,
+                fontSize: 64,
                 letterSpacing: "-0.04em",
                 color: PALETTE.night,
               }}
