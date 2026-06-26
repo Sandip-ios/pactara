@@ -450,6 +450,68 @@ function CommentSection({ postId }: { postId: string }) {
   );
 }
 
+function CheckInMenu({ checkInId }: { checkInId: string }) {
+  const queryClient = useQueryClient();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const del = useMutation({
+    mutationFn: () => deleteCheckIn({ data: { checkInId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      setConfirmOpen(false);
+    },
+  });
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Check-in options"
+            className="h-7 w-7 -mr-1 rounded-full flex items-center justify-center text-neutral-500 hover:bg-black/5 active:scale-95 transition"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setConfirmOpen(true);
+            }}
+            className="text-red-600 focus:text-red-600"
+          >
+            Delete check-in
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this check-in?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove it from your timeline and your group's feed. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                del.mutate();
+              }}
+              disabled={del.isPending}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {del.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
