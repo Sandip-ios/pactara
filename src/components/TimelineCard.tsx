@@ -9,7 +9,6 @@ import {
 import {
   Hourglass,
   Flame,
-  ThumbsUp,
   MessageCircle,
   MessageSquare,
   Send,
