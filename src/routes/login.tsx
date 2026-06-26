@@ -28,21 +28,13 @@ function LoginPage() {
   const passwordRef = useRef<HTMLInputElement>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [canSubmit, setCanSubmit] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const handleInput = () => {
-    setError(null);
-    setCanSubmit(
-      (emailRef.current?.value.trim().length ?? 0) > 0 &&
-        (passwordRef.current?.value.length ?? 0) > 0,
-    );
-  };
 
   const handleSignIn = async () => {
     if (submitting) return;
     const email = emailRef.current?.value.trim() ?? "";
     const password = passwordRef.current?.value ?? "";
+    if (!email || !password) return;
     setError(null);
     setSubmitting(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
