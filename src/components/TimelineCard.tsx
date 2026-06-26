@@ -373,8 +373,15 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
       </div>
 
-      <ReactionBar item={item} onToggleComments={() => setCommentsOpen((v) => !v)} commentsOpen={commentsOpen} />
-      {commentsOpen && <CommentSection postId={item.id} />}
+      <ReactionBar item={item} onToggleComments={() => setCommentsOpen(true)} commentsOpen={commentsOpen} />
+      <Drawer open={commentsOpen} onOpenChange={setCommentsOpen}>
+        <DrawerContent className="h-[85vh] flex flex-col p-0">
+          <DrawerHeader className="border-b border-neutral-100 py-3">
+            <DrawerTitle className="text-center text-[17px] font-bold">Comments</DrawerTitle>
+          </DrawerHeader>
+          <CommentSection postId={item.id} />
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
