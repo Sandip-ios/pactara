@@ -264,7 +264,17 @@ function NotesPage() {
         </button>
       </div>
 
-      {shareData && <CheckInShareModal data={shareData} onClose={handleShareClose} />}
+      {shareData && (
+        <CheckInCelebrationModal
+          open
+          userPhoto={shareData.photoUrl}
+          streakCount={shareData.celebration.streakCount}
+          groupName={shareData.celebration.groupName}
+          teammates={shareData.celebration.teammates}
+          onShare={handleShareWin}
+          onDismiss={handleShareClose}
+        />
+      )}
     </div>
   );
 }
