@@ -2,6 +2,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Home, Users, Zap, MessageCircle } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+import { getUnreadChatCounts } from "@/lib/chat.functions";
 
 
 const PURPLE = "#7C3AED";
@@ -16,6 +17,13 @@ export function BottomTabs() {
     queryFn: () => getMyGroupStatus(),
     staleTime: 60_000,
   });
+  const { data: unread } = useQuery({
+    queryKey: ["unread-chat-counts"],
+    queryFn: () => getUnreadChatCounts(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+  const hasUnread = (unread?.total ?? 0) > 0;
   const initial = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const isProfile = pathname === "/profile";
 
@@ -51,7 +59,19 @@ export function BottomTabs() {
         </span>
         <span className="text-[11px] font-medium">Check In</span>
       </button>
-      <TabItem icon={<MessageCircle size={22} />} label="Chat" active={isActive("/chat")} onClick={() => navigate({ to: "/chat" })} />
+      <TabItem
+        icon={
+          <span className="relative inline-flex">
+            <MessageCircle size={22} />
+            {hasUnread && (
+              <span className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+            )}
+          </span>
+        }
+        label="Chat"
+        active={isActive("/chat")}
+        onClick={() => navigate({ to: "/chat" })}
+      />
       <button
         onClick={() => navigate({ to: "/profile" })}
         className="flex flex-col items-center gap-1"

@@ -1,0 +1,1 @@
+ALTER TABLE public.group_members ADD COLUMN IF NOT EXISTS last_read_at TIMESTAMPTZ NOT NULL DEFAULT now();
