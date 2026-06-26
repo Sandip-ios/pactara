@@ -202,49 +202,51 @@ function CommentSection({ postId }: { postId: string }) {
   };
 
   return (
-    <div className="border-t border-neutral-100 px-4 py-3 bg-neutral-50">
-      {isLoading ? (
-        <div className="text-[13px] text-neutral-400">Loading…</div>
-      ) : (
-        <ul className="space-y-3 mb-3">
-          {(data?.comments ?? []).map((c) => {
-            const initial = (c.authorName || "U").slice(0, 1).toUpperCase();
-            return (
-              <li key={c.id} className="flex gap-2 items-start">
-                {c.authorAvatarUrl ? (
-                  <img src={c.authorAvatarUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
-                ) : (
-                  <div
-                    className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold shrink-0"
-                    style={{ background: c.authorColor }}
-                  >
-                    {initial}
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <div className="rounded-2xl bg-white border border-neutral-200 px-3 py-2">
-                    <div className="text-[13px] font-bold text-neutral-900">
-                      {c.isMine ? "You" : c.authorName}
+    <div className="flex flex-col h-full min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 py-3">
+        {isLoading ? (
+          <div className="text-[13px] text-neutral-400">Loading…</div>
+        ) : (
+          <ul className="space-y-4">
+            {(data?.comments ?? []).map((c) => {
+              const initial = (c.authorName || "U").slice(0, 1).toUpperCase();
+              return (
+                <li key={c.id} className="flex gap-3 items-start">
+                  {c.authorAvatarUrl ? (
+                    <img src={c.authorAvatarUrl} alt="" className="h-9 w-9 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div
+                      className="h-9 w-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold shrink-0"
+                      style={{ background: c.authorColor }}
+                    >
+                      {initial}
                     </div>
-                    <div className="text-[14px] text-neutral-800 whitespace-pre-wrap break-words">{c.body}</div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[14px] font-bold text-neutral-900">
+                        {c.isMine ? "You" : c.authorName}
+                      </span>
+                      <span className="text-[12px] text-neutral-400">{timeAgo(c.createdAt)}</span>
+                    </div>
+                    <div className="text-[15px] text-neutral-800 whitespace-pre-wrap break-words mt-0.5">{c.body}</div>
                   </div>
-                  <div className="text-[11px] text-neutral-400 mt-0.5 ml-2">{timeAgo(c.createdAt)}</div>
-                </div>
-              </li>
-            );
-          })}
-          {(data?.comments ?? []).length === 0 && (
-            <li className="text-[13px] text-neutral-400">No comments yet. Be the first to say something.</li>
-          )}
-        </ul>
-      )}
-      <form onSubmit={submit} className="flex items-center gap-2">
+                </li>
+              );
+            })}
+            {(data?.comments ?? []).length === 0 && (
+              <li className="text-[14px] text-neutral-400 text-center py-8">No comments yet. Be the first to say something.</li>
+            )}
+          </ul>
+        )}
+      </div>
+      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white pb-[env(safe-area-inset-bottom)]">
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Write a comment…"
+          placeholder="Add a comment…"
           maxLength={1000}
-          className="flex-1 h-10 rounded-full bg-white border border-neutral-200 px-4 text-[14px] outline-none focus:border-[#7C3AED]"
+          className="flex-1 h-10 rounded-full bg-neutral-100 border border-transparent px-4 text-[14px] outline-none focus:border-[#7C3AED] focus:bg-white"
         />
         <button
           type="submit"
@@ -260,7 +262,7 @@ function CommentSection({ postId }: { postId: string }) {
           )}
         </button>
       </form>
-      {add.isError && <div className="text-[12px] text-red-500 mt-2">{(add.error as Error).message}</div>}
+      {add.isError && <div className="text-[12px] text-red-500 px-4 pb-2">{(add.error as Error).message}</div>}
     </div>
   );
 }
