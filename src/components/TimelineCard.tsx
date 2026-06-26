@@ -14,7 +14,7 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import {
   Drawer,
   DrawerContent,
