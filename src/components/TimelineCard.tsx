@@ -13,12 +13,14 @@ import {
   setPostReaction,
   addPostComment,
   getPostComments,
+  deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import {
   Hourglass,
   Flame,
   MessageCircle,
   MessageSquare,
+  MoreHorizontal,
   Send,
   Loader2,
 } from "lucide-react";
@@ -29,6 +31,22 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const PURPLE = "#7C3AED";
 const REACTION_EMOJIS = ["🔥", "💪", "❤️", "👏"];
@@ -432,6 +450,68 @@ function CommentSection({ postId }: { postId: string }) {
   );
 }
 
+function CheckInMenu({ checkInId }: { checkInId: string }) {
+  const queryClient = useQueryClient();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const del = useMutation({
+    mutationFn: () => deleteCheckIn({ data: { checkInId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      setConfirmOpen(false);
+    },
+  });
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label="Check-in options"
+            className="h-7 w-7 -mr-1 rounded-full flex items-center justify-center text-neutral-500 hover:bg-black/5 active:scale-95 transition"
+          >
+            <MoreHorizontal size={18} />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-[160px]">
+          <DropdownMenuItem
+            onSelect={(e) => {
+              e.preventDefault();
+              setConfirmOpen(true);
+            }}
+            className="text-red-600 focus:text-red-600"
+          >
+            Delete check-in
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this check-in?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will remove it from your timeline and your group's feed. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={del.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                del.mutate();
+              }}
+              disabled={del.isPending}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              {del.isPending ? "Deleting…" : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
@@ -475,6 +555,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         {nodes.map((node, idx) => {
           const visual = nodeVisual(node);
           const isPending = node.kind === "pending";
+          const canDelete = item.isMe && node.kind === "check_in";
           return (
             <div key={node.id} className={`flex gap-3 items-start ${idx > 0 ? "mt-3" : ""}`}>
               <div className="relative w-6 h-6 mt-3 shrink-0">
@@ -512,9 +593,14 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                         {visual.label}
                       </span>
                     </div>
-                    {visual.time && (
-                      <span className="text-[12px] text-neutral-400 shrink-0">{visual.time}</span>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {visual.time && (
+                        <span className="text-[12px] text-neutral-400">{visual.time}</span>
+                      )}
+                      {canDelete && (
+                        <CheckInMenu checkInId={node.id} />
+                      )}
+                    </div>
                   </div>
                   {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
                   {visual.photoUrl && (
