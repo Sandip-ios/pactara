@@ -324,14 +324,14 @@ function ReactionBar({
       </div>
 
       {stackEmojis.length > 0 && (
-        <div className="flex items-center -space-x-1.5">
+        <div className="flex items-center gap-1">
           {stackEmojis.map((r) => (
-            <div
+            <span
               key={r.emoji}
-              className="h-6 w-6 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[14px] leading-none"
+              className="text-[18px] leading-none"
             >
               {r.emoji}
-            </div>
+            </span>
           ))}
         </div>
       )}
