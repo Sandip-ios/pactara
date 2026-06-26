@@ -493,6 +493,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         {nodes.map((node, idx) => {
           const visual = nodeVisual(node);
           const isPending = node.kind === "pending";
+          const canDelete = item.isMe && node.kind === "check_in";
           return (
             <div key={node.id} className={`flex gap-3 items-start ${idx > 0 ? "mt-3" : ""}`}>
               <div className="relative w-6 h-6 mt-3 shrink-0">
@@ -530,9 +531,14 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                         {visual.label}
                       </span>
                     </div>
-                    {visual.time && (
-                      <span className="text-[12px] text-neutral-400 shrink-0">{visual.time}</span>
-                    )}
+                    <div className="flex items-center gap-1 shrink-0">
+                      {visual.time && (
+                        <span className="text-[12px] text-neutral-400">{visual.time}</span>
+                      )}
+                      {canDelete && (
+                        <CheckInMenu checkInId={node.id} />
+                      )}
+                    </div>
                   </div>
                   {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
                   {visual.photoUrl && (
