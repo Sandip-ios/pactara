@@ -123,57 +123,131 @@ function nodeVisual(node: TimelineNode): Visual | null {
   }
 }
 
-function ReactionBar({ item, onToggleComments, onPrefetchComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; onPrefetchComments: () => void; commentsOpen: boolean }) {
+function ReactionBar({
+  item,
+  onToggleComments,
+  onPrefetchComments,
+}: {
+  item: FeedItem;
+  onToggleComments: () => void;
+  onPrefetchComments: () => void;
+  commentsOpen?: boolean;
+}) {
   const queryClient = useQueryClient();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const longPressTimer = useRef<number | null>(null);
+  const longPressedRef = useRef(false);
+
   const toggle = useMutation({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
   });
 
+  const primaryEmoji = "🔥";
+  const myReactions = item.reactions.filter((r) => r.mine);
+  const totalCount = item.reactions.reduce((sum, r) => sum + r.count, 0);
+  const iLiked = myReactions.length > 0;
+
+  const handlePressStart = () => {
+    longPressedRef.current = false;
+    longPressTimer.current = window.setTimeout(() => {
+      longPressedRef.current = true;
+      setPickerOpen(true);
+    }, 400);
+  };
+  const handlePressEnd = () => {
+    if (longPressTimer.current) {
+      window.clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+  const handleClick = () => {
+    if (longPressedRef.current) return;
+    if (iLiked) {
+      // remove all my reactions
+      myReactions.forEach((r) => toggle.mutate(r.emoji));
+    } else {
+      toggle.mutate(primaryEmoji);
+    }
+  };
+
+  const stackEmojis = item.reactions
+    .filter((r) => r.count > 0)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 3);
+
   return (
-    <div className="border-t border-neutral-100 px-4 pt-3 pb-2">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          {REACTION_EMOJIS.map((e) => {
-            const r = item.reactions.find((x) => x.emoji === e);
-            const mine = r?.mine;
-            const count = r?.count ?? 0;
-            return (
-              <button
-                key={e}
-                type="button"
-                onClick={() => toggle.mutate(e)}
-                disabled={toggle.isPending}
-                className={`h-9 px-3 rounded-full text-[15px] leading-none flex items-center gap-1 active:scale-95 transition ${
-                  mine ? "border" : ""
-                }`}
-                style={{
-                  background: mine ? "#F4EEFF" : "#F5F5F5",
-                  borderColor: mine ? PURPLE : "transparent",
-                  color: mine ? PURPLE : "#111",
-                }}
-              >
-                <span>{e}</span>
-                {count > 0 && <span className="text-[13px] font-semibold">{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-        <button type="button" className="flex items-center gap-1.5 text-neutral-500 text-[14px] font-medium">
-          <Share2 size={16} />
-          Share
+    <div className="border-t border-neutral-100 px-4 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-5">
+        <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              onClick={handleClick}
+              onPointerDown={handlePressStart}
+              onPointerUp={handlePressEnd}
+              onPointerLeave={handlePressEnd}
+              onContextMenu={(e) => e.preventDefault()}
+              className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
+              style={{ color: iLiked ? PURPLE : "#404040" }}
+            >
+              <ThumbsUp size={20} fill={iLiked ? PURPLE : "none"} strokeWidth={2} />
+              {totalCount > 0 && <span>{totalCount}</span>}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            side="top"
+            align="start"
+            className="w-auto p-2 rounded-full border-neutral-200 shadow-lg"
+          >
+            <div className="flex items-center gap-1">
+              {REACTION_EMOJIS.map((e) => {
+                const r = item.reactions.find((x) => x.emoji === e);
+                const mine = r?.mine;
+                return (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => {
+                      toggle.mutate(e);
+                      setPickerOpen(false);
+                    }}
+                    className={`h-11 w-11 rounded-full flex items-center justify-center text-[24px] active:scale-90 transition ${
+                      mine ? "bg-[#F4EEFF]" : "hover:bg-neutral-100"
+                    }`}
+                  >
+                    {e}
+                  </button>
+                );
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <button
+          type="button"
+          onClick={onToggleComments}
+          onPointerDown={onPrefetchComments}
+          onMouseEnter={onPrefetchComments}
+          className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
+        >
+          <MessageCircle size={20} strokeWidth={2} />
+          {item.commentCount > 0 && <span>{item.commentCount}</span>}
         </button>
       </div>
-      <button
-        type="button"
-        onClick={onToggleComments}
-        onPointerDown={onPrefetchComments}
-        onMouseEnter={onPrefetchComments}
-        className="mt-1 -ml-2 flex items-center gap-1.5 px-2 py-2 text-neutral-500 text-[14px] font-medium"
-      >
-        <MessageCircle size={16} />
-        {item.commentCount > 0 ? `${item.commentCount} ${item.commentCount === 1 ? "comment" : "comments"}` : "Comment"}
-      </button>
+
+      {stackEmojis.length > 0 && (
+        <div className="flex items-center -space-x-1.5">
+          {stackEmojis.map((r) => (
+            <div
+              key={r.emoji}
+              className="h-6 w-6 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-[14px] leading-none"
+            >
+              {r.emoji}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
