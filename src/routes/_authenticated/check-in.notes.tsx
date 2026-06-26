@@ -1,15 +1,17 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { recordCheckIn } from "@/lib/daily-posts.functions";
+import { getCheckInCelebrationData, recordCheckIn, type CelebrationData } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
-import { CheckInShareModal, SHARE_HIDE_KEY, type CheckInShareData } from "@/components/CheckInShareModal";
+import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 
+const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
+
 
 const ACTIVITIES = [
   { id: "meal", emoji: "🥗", label: "Meal" },
@@ -69,7 +71,16 @@ function NotesPage() {
     setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
   }, []);
 
-  const [shareData, setShareData] = useState<CheckInShareData | null>(null);
+  type ShareState = { photoUrl: string | null; celebration: CelebrationData };
+  const [shareData, setShareData] = useState<ShareState | null>(null);
+
+  const getCelebrationFn = useServerFn(getCheckInCelebrationData);
+  // Warm the celebration data in the background so the modal opens with real numbers.
+  useQuery({
+    queryKey: ["checkin-celebration-prefetch"],
+    queryFn: () => getCelebrationFn(),
+    staleTime: 30_000,
+  });
 
   const finalizeAndExit = () => {
     sessionStorage.removeItem("checkin-mood");
@@ -103,23 +114,21 @@ function NotesPage() {
         photoUrl,
       });
 
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
       if (hide) {
         finalizeAndExit();
         return;
       }
-      // Build a fresh object URL for the modal so the share card has the image
-      // even after we clear the check-in photo store on close.
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
-      setShareData({
-        mood,
-        activity,
-        note,
-        photoUrl: photoForShare,
-        photoBlob: photo?.blob ?? null,
-      });
-      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
-      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      const celebration = await getCelebrationFn().catch(() => ({
+        streakCount: 1,
+        groupName: "Your group",
+        teammates: [],
+      }));
+      setShareData({ photoUrl: photoForShare, celebration });
     } catch (err) {
       console.error("check-in submit failed", err);
       setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
@@ -133,6 +142,30 @@ function NotesPage() {
     setShareData(null);
     finalizeAndExit();
   };
+
+  const handleShareWin = async () => {
+    try {
+      const text = `Day ${shareData?.celebration.streakCount} on Pactara — show up, every day.`;
+      const nav = navigator as Navigator & {
+        share?: (d: ShareData) => Promise<void>;
+        canShare?: (d: ShareData) => boolean;
+      };
+      if (shareData?.photoUrl) {
+        const res = await fetch(shareData.photoUrl);
+        const blob = await res.blob();
+        const file = new File([blob], "pactara-checkin.png", { type: blob.type || "image/png" });
+        const payload: ShareData = { files: [file], text };
+        if (nav.share && (!nav.canShare || nav.canShare(payload))) {
+          await nav.share(payload);
+          return;
+        }
+      }
+      if (nav.share) await nav.share({ text });
+    } catch (e) {
+      if ((e as DOMException)?.name !== "AbortError") console.error("share failed", e);
+    }
+  };
+
 
 
   const isBusy = submitting || mutation.isPending;
@@ -231,7 +264,17 @@ function NotesPage() {
         </button>
       </div>
 
-      {shareData && <CheckInShareModal data={shareData} onClose={handleShareClose} />}
+      {shareData && (
+        <CheckInCelebrationModal
+          open
+          userPhoto={shareData.photoUrl}
+          streakCount={shareData.celebration.streakCount}
+          groupName={shareData.celebration.groupName}
+          teammates={shareData.celebration.teammates}
+          onShare={handleShareWin}
+          onDismiss={handleShareClose}
+        />
+      )}
     </div>
   );
 }
