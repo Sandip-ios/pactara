@@ -1,7 +1,25 @@
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
-import { Hourglass, Flame, Share2, MessageCircle, ChevronDown, MessageSquare } from "lucide-react";
+import {
+  togglePostReaction,
+  addPostComment,
+  getPostComments,
+} from "@/lib/daily-posts.functions";
+import {
+  Hourglass,
+  Flame,
+  Share2,
+  MessageCircle,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Send,
+  Loader2,
+} from "lucide-react";
 
 const PURPLE = "#7C3AED";
+const REACTION_EMOJIS = ["🔥", "💪", "❤️", "👏"];
 
 function timeAgo(iso: string) {
   const diff = Date.now() - new Date(iso).getTime();
@@ -100,36 +118,149 @@ function nodeVisual(node: TimelineNode): Visual | null {
   }
 }
 
-function ReactionBar() {
+function ReactionBar({ item, onToggleComments, commentsOpen }: { item: FeedItem; onToggleComments: () => void; commentsOpen: boolean }) {
+  const queryClient = useQueryClient();
+  const toggle = useMutation({
+    mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+  });
+
   return (
     <div className="border-t border-neutral-100 px-4 pt-3 pb-2">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {["🔥", "💪", "❤️", "👏"].map((e) => (
-            <button
-              key={e}
-              type="button"
-              className="h-9 px-3 rounded-full bg-neutral-100 text-[16px] leading-none flex items-center justify-center active:scale-95 transition"
-            >
-              {e}
-            </button>
-          ))}
+        <div className="flex items-center gap-2 flex-wrap">
+          {REACTION_EMOJIS.map((e) => {
+            const r = item.reactions.find((x) => x.emoji === e);
+            const mine = r?.mine;
+            const count = r?.count ?? 0;
+            return (
+              <button
+                key={e}
+                type="button"
+                onClick={() => toggle.mutate(e)}
+                disabled={toggle.isPending}
+                className={`h-9 px-3 rounded-full text-[15px] leading-none flex items-center gap-1 active:scale-95 transition ${
+                  mine ? "border" : ""
+                }`}
+                style={{
+                  background: mine ? "#F4EEFF" : "#F5F5F5",
+                  borderColor: mine ? PURPLE : "transparent",
+                  color: mine ? PURPLE : "#111",
+                }}
+              >
+                <span>{e}</span>
+                {count > 0 && <span className="text-[13px] font-semibold">{count}</span>}
+              </button>
+            );
+          })}
         </div>
         <button type="button" className="flex items-center gap-1.5 text-neutral-500 text-[14px] font-medium">
           <Share2 size={16} />
           Share
         </button>
       </div>
-      <button type="button" className="mt-1 -ml-2 flex items-center gap-1.5 px-2 py-2 text-neutral-500 text-[14px] font-medium">
+      <button
+        type="button"
+        onClick={onToggleComments}
+        className="mt-1 -ml-2 flex items-center gap-1.5 px-2 py-2 text-neutral-500 text-[14px] font-medium"
+      >
         <MessageCircle size={16} />
-        Comment
-        <ChevronDown size={14} />
+        {item.commentCount > 0 ? `${item.commentCount} ${item.commentCount === 1 ? "comment" : "comments"}` : "Comment"}
+        {commentsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
       </button>
     </div>
   );
 }
 
+function CommentSection({ postId }: { postId: string }) {
+  const queryClient = useQueryClient();
+  const [text, setText] = useState("");
+  const { data, isLoading } = useQuery({
+    queryKey: ["post-comments", postId],
+    queryFn: () => getPostComments({ data: { postId } }),
+  });
+  const add = useMutation({
+    mutationFn: (body: string) => addPostComment({ data: { postId, body } }),
+    onSuccess: () => {
+      setText("");
+      queryClient.invalidateQueries({ queryKey: ["post-comments", postId] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+    },
+  });
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const body = text.trim();
+    if (!body || add.isPending) return;
+    add.mutate(body);
+  };
+
+  return (
+    <div className="border-t border-neutral-100 px-4 py-3 bg-neutral-50">
+      {isLoading ? (
+        <div className="text-[13px] text-neutral-400">Loading…</div>
+      ) : (
+        <ul className="space-y-3 mb-3">
+          {(data?.comments ?? []).map((c) => {
+            const initial = (c.authorName || "U").slice(0, 1).toUpperCase();
+            return (
+              <li key={c.id} className="flex gap-2 items-start">
+                {c.authorAvatarUrl ? (
+                  <img src={c.authorAvatarUrl} alt="" className="h-8 w-8 rounded-full object-cover shrink-0" />
+                ) : (
+                  <div
+                    className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold shrink-0"
+                    style={{ background: c.authorColor }}
+                  >
+                    {initial}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="rounded-2xl bg-white border border-neutral-200 px-3 py-2">
+                    <div className="text-[13px] font-bold text-neutral-900">
+                      {c.isMine ? "You" : c.authorName}
+                    </div>
+                    <div className="text-[14px] text-neutral-800 whitespace-pre-wrap break-words">{c.body}</div>
+                  </div>
+                  <div className="text-[11px] text-neutral-400 mt-0.5 ml-2">{timeAgo(c.createdAt)}</div>
+                </div>
+              </li>
+            );
+          })}
+          {(data?.comments ?? []).length === 0 && (
+            <li className="text-[13px] text-neutral-400">No comments yet. Be the first to say something.</li>
+          )}
+        </ul>
+      )}
+      <form onSubmit={submit} className="flex items-center gap-2">
+        <input
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder="Write a comment…"
+          maxLength={1000}
+          className="flex-1 h-10 rounded-full bg-white border border-neutral-200 px-4 text-[14px] outline-none focus:border-[#7C3AED]"
+        />
+        <button
+          type="submit"
+          disabled={!text.trim() || add.isPending}
+          aria-label="Post comment"
+          className="h-10 w-10 rounded-full flex items-center justify-center disabled:opacity-50"
+          style={{ background: text.trim() ? PURPLE : "#E5E5E5" }}
+        >
+          {add.isPending ? (
+            <Loader2 size={16} className="text-white animate-spin" />
+          ) : (
+            <Send size={16} className={text.trim() ? "text-white" : "text-neutral-400"} />
+          )}
+        </button>
+      </form>
+      {add.isError && <div className="text-[12px] text-red-500 mt-2">{(add.error as Error).message}</div>}
+    </div>
+  );
+}
+
 export function TimelineCard({ item }: { item: FeedItem }) {
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
 
@@ -226,7 +357,6 @@ export function TimelineCard({ item }: { item: FeedItem }) {
           );
         })}
 
-        {/* Hint shown when only a pending node renders. */}
         {nodes.length === 0 && (
           <div className="flex items-center gap-2 text-neutral-400 text-[14px]">
             <MessageSquare size={16} />
@@ -235,7 +365,8 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
       </div>
 
-      <ReactionBar />
+      <ReactionBar item={item} onToggleComments={() => setCommentsOpen((v) => !v)} commentsOpen={commentsOpen} />
+      {commentsOpen && <CommentSection postId={item.id} />}
     </div>
   );
 }
