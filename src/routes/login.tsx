@@ -30,6 +30,9 @@ function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const rememberedEmail =
+    typeof localStorage !== "undefined" ? localStorage.getItem("last-email") ?? "" : "";
+
   const handleSignIn = async () => {
     if (submitting) return;
     const email = emailRef.current?.value.trim() ?? "";
@@ -42,6 +45,9 @@ function LoginPage() {
     if (error) {
       setError(error.message);
       return;
+    }
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("last-email", email);
     }
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.removeItem("invite-dismissed");
