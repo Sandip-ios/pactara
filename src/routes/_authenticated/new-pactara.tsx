@@ -189,7 +189,7 @@ function NewPactaraFlow() {
           <GroupStep
             groupName={groupName}
             setGroupName={setGroupName}
-            firstName=""
+            firstName={firstName}
             goalLabel={goalLabel}
             goalEmoji={goalEmoji}
           />
