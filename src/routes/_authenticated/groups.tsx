@@ -49,6 +49,7 @@ type GroupItem = {
   emoji: string;
   isAdmin: boolean;
   memberCount: number;
+  createdAt?: string;
 };
 
 function GroupsPage() {
