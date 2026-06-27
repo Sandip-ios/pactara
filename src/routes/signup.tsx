@@ -387,8 +387,8 @@ export function PrimaryButton({
         background: dimmed
           ? `linear-gradient(180deg, #A78BFA 0%, ${PURPLE} 100%)`
           : `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
-        boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
       }}
+
     >
       {icon}
       {label}
@@ -1111,18 +1111,25 @@ function PaywallStep({
       badge: "🔥 21 day streak",
       title: "Finally Consistent",
       body: "My pod calls me out the second I skip a check-in. Haven't missed one in 6 weeks.",
+      image:
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80",
     },
     {
       badge: "💪 +14 lbs lifted",
       title: "Worth Every Penny",
       body: "Seeing everyone's progress cards keeps me honest. First app that's actually stuck.",
+      image:
+        "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=600&q=80",
     },
     {
       badge: "⚖️ -12 lbs in 60 days",
       title: "Finally Consistent",
       body: "The daily check-ins changed everything. I show up because they show up.",
+      image:
+        "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=600&q=80",
     },
   ];
+
 
   return (
     <div
@@ -1166,12 +1173,12 @@ function PaywallStep({
                   boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
                 }}
               >
-                <div
-                  className="relative shrink-0 h-[182px]"
-                  style={{
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 35%, #B8B8C0 100%)",
-                  }}
-                >
+                <div className="relative shrink-0 h-[182px] overflow-hidden">
+                  <img
+                    src={t.image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div
                     className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
                     style={{ background: INK }}
@@ -1179,6 +1186,7 @@ function PaywallStep({
                     {t.badge}
                   </div>
                 </div>
+
                 <div className="px-3.5 pt-2.5 pb-3 shrink-0">
                   <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, j) => (
