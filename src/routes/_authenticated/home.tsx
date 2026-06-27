@@ -278,10 +278,26 @@ function HomePage() {
       {!status && <div aria-hidden className="px-6 pt-4 text-[13px] opacity-0">.</div>}
 
 
-      <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
-        <span className="font-semibold">Day 1 of 30</span>
-        <span className="text-neutral-400">29d left</span>
-      </div>
+      {(() => {
+        const activeGroup = myGroups.find((g) => g.id === selectedGroupId) ?? myGroups[0];
+        const duration = 30;
+        let dayNumber = 1;
+        if (activeGroup?.createdAt) {
+          const created = new Date(activeGroup.createdAt);
+          const startLocal = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+          const now = new Date();
+          const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const diffDays = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
+          dayNumber = Math.min(duration, Math.max(1, diffDays + 1));
+        }
+        const daysLeft = Math.max(0, duration - dayNumber);
+        return (
+          <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
+            <span className="font-semibold">Day {dayNumber} of {duration}</span>
+            <span className="text-neutral-400">{daysLeft}d left</span>
+          </div>
+        );
+      })()}
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">

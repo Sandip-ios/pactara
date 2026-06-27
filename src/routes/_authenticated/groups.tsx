@@ -49,6 +49,7 @@ type GroupItem = {
   emoji: string;
   isAdmin: boolean;
   memberCount: number;
+  createdAt?: string;
 };
 
 function GroupsPage() {
@@ -234,7 +235,16 @@ function GroupCard({
     setShareOpen(true);
   };
 
-  const daysLeft = Math.max(0, duration - 1);
+  const dayNumber = (() => {
+    if (!group.createdAt) return 1;
+    const created = new Date(group.createdAt);
+    const startLocal = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+    const now = new Date();
+    const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const diff = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
+    return Math.min(duration, Math.max(1, diff + 1));
+  })();
+  const daysLeft = Math.max(0, duration - dayNumber);
   const initials = (firstName || "U").slice(0, 1).toUpperCase();
   const summary = `${duration}d · ${frequency === "daily" ? "daily" : "custom"}`;
 
