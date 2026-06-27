@@ -191,8 +191,7 @@ function GroupCard({
   const [duration, setDuration] = useState(30);
   const [frequency, setFrequency] = useState<"daily" | "specific">("daily");
 
-  const inviteLink =
-    typeof window !== "undefined" ? `${window.location.origin}/join/${group.id}` : "";
+  const inviteLink = `https://pactara.lovable.app/join/${group.id}`;
   const shareText = `Join me on Pactara — we're keeping each other accountable.`;
   const shareTitle = `Join my ${group.name}`;
 
