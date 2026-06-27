@@ -1173,12 +1173,12 @@ function PaywallStep({
                   boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
                 }}
               >
-                <div
-                  className="relative shrink-0 h-[182px]"
-                  style={{
-                    background: "linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 35%, #B8B8C0 100%)",
-                  }}
-                >
+                <div className="relative shrink-0 h-[182px] overflow-hidden">
+                  <img
+                    src={t.image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div
                     className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
                     style={{ background: INK }}
@@ -1186,6 +1186,7 @@ function PaywallStep({
                     {t.badge}
                   </div>
                 </div>
+
                 <div className="px-3.5 pt-2.5 pb-3 shrink-0">
                   <div className="flex gap-0.5">
                     {Array.from({ length: 5 }).map((_, j) => (
