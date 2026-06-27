@@ -46,9 +46,9 @@ export const Route = createFileRoute("/signup")({
   component: SignupFlow,
 });
 
-const PURPLE = "#7C3AED";
-const PURPLE_DEEP = "#5B21B6";
-const PURPLE_SOFT = "#F3EEFF";
+export const PURPLE = "#7C3AED";
+export const PURPLE_DEEP = "#5B21B6";
+export const PURPLE_SOFT = "#F3EEFF";
 const PURPLE_BORDER = "#C9B8FF";
 const INPUT_BG = "#EFEDEA";
 const LABEL = "#8A8580";
@@ -56,7 +56,7 @@ const TEXT_MUTED = "#6B6660";
 const TEXT = "#0A0A0A";
 const TRACK = "#EAE4F5";
 
-const GOALS = [
+export const GOALS = [
   { id: "lose-weight", emoji: "⚖️", label: "Lose weight", blurb: "Track food, move daily, and build the habits that stick" },
   { id: "build-muscle", emoji: "💪", label: "Build muscle", blurb: "Progressive lifting with your crew keeping you honest" },
   { id: "run", emoji: "🏃", label: "Run consistently", blurb: "Lace up together, week after week" },
@@ -65,6 +65,7 @@ const GOALS = [
   { id: "general", emoji: "🔥", label: "General fitness", blurb: "Move every day. Feel better. Together." },
   { id: "75-hard", emoji: "🪖", label: "75 Hard", blurb: "The full program. No compromises." },
 ];
+
 
 const ICON_FOR_GOAL: Record<string, string> = {
   "lose-weight": "⚖️",
