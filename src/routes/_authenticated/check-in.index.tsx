@@ -81,12 +81,13 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
           It's time for your morning ritual
         </div>
         <h1 className="mt-2 text-[34px] font-black leading-tight tracking-tight">
-          What are you doing today?
+          What are you committing to today?
         </h1>
         <p className="mt-2 text-[15px] text-neutral-500">
-          Every morning, share your plan. Your group holds you to it.
+          Make it specific. Tonight, you'll prove you did it.
         </p>
       </div>
+
 
       <div className="px-4 mt-6">
         <textarea
