@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ChevronLeft, Share2 } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getProfileOverview } from "@/lib/profile.functions";
 import {
   GOALS,
   ICON_FOR_GOAL,
@@ -50,6 +52,13 @@ const STEPS: StepKey[] = [
 function NewPactaraFlow() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const getProfile = useServerFn(getProfileOverview);
+  const { data: profile } = useQuery({
+    queryKey: ["profile-overview"],
+    queryFn: () => getProfile(),
+    staleTime: 60_000,
+  });
+  const firstName = (profile?.name ?? "").trim().split(/\s+/)[0] ?? "";
   const [stepIdx, setStepIdx] = useState(0);
 
   const [goal, setGoal] = useState<string | null>(null);
@@ -124,7 +133,7 @@ function NewPactaraFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
-    return <GreetingStep firstName="" days={days} onContinue={next} onBack={back} />;
+    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
     return (
@@ -180,7 +189,7 @@ function NewPactaraFlow() {
           <GroupStep
             groupName={groupName}
             setGroupName={setGroupName}
-            firstName=""
+            firstName={firstName}
             goalLabel={goalLabel}
             goalEmoji={goalEmoji}
           />
