@@ -21,6 +21,7 @@ import {
   Camera,
   Check,
   CheckCircle2,
+  CircleHelp,
   Scale,
   Share2,
   Eye,
@@ -31,6 +32,7 @@ import {
   TrendingUp,
   Users,
   Flame,
+  X,
 } from "lucide-react";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
