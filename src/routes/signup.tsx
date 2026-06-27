@@ -221,7 +221,18 @@ function SignupFlow() {
     return <CompanyStep onContinue={next} onBack={back} />;
   }
   if (step === "paywall") {
-    return <PaywallStep onTrial={next} onFree={next} onBack={back} />;
+    if (viewPlans) {
+      return (
+        <PlansPage
+          onSelect={() => {
+            setViewPlans(false);
+            next();
+          }}
+          onBack={() => setViewPlans(false)}
+        />
+      );
+    }
+    return <PaywallStep onTrial={next} onFree={() => setViewPlans(true)} onBack={back} />;
   }
   if (step === "greeting") {
     const days =
