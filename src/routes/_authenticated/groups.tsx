@@ -362,6 +362,15 @@ function GroupCard({
           setCommitmentOpen(false);
         }}
       />
+      <ShareInviteDrawer
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        groupName={group.name}
+        inviteLink={inviteLink}
+        shareText={shareText}
+        onCopy={handleCopy}
+        copied={copied}
+      />
     </div>
   );
 }
