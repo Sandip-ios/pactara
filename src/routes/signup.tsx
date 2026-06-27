@@ -1126,72 +1126,71 @@ function PaywallStep({
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col"
+      className="h-[100dvh] w-full flex flex-col overflow-hidden"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}
     >
-      <div className="flex items-center justify-between px-5 pt-5">
+      <div className="flex items-center justify-between px-5 pt-3 shrink-0">
         <button onClick={onBack} aria-label="Close" className="p-1" style={{ color: "#6B6B76" }}>
-          <X size={26} strokeWidth={2} />
+          <X size={24} strokeWidth={2} />
         </button>
         <button aria-label="Help" className="p-1" style={{ color: "#6B6B76" }}>
-          <CircleHelp size={24} strokeWidth={1.75} />
+          <CircleHelp size={22} strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="mt-2 px-6 text-center">
-        <div className="text-[12px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
+      <div className="px-6 text-center shrink-0">
+        <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
           PACTARA PREMIUM
         </div>
         <h1
-          className="mt-3 text-[44px] leading-[1.02] tracking-tight"
+          className="mt-2 text-[34px] leading-[1.02] tracking-tight"
           style={{ fontFamily: "'Instrument Serif', 'Cormorant Garamond', Georgia, serif", color: INK }}
         >
           Unlimited
           <br />
           Accountability
         </h1>
-        <p className="mt-5 text-[16px] leading-[1.45]" style={{ color: MUTED }}>
+        <p className="mt-3 text-[14px] leading-[1.4]" style={{ color: MUTED }}>
           7 days free, then <span className="font-semibold" style={{ color: INK }}>$9.99/month</span>
           <br />
           cancel anytime before Day 8
         </p>
       </div>
 
-      <div className="mt-7 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
-        <div className="flex gap-3 px-6 pb-2">
+      <div className="mt-4 flex-1 min-h-0 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="flex gap-3 px-6 pb-2 h-full">
           {testimonials.map((t, i) => (
             <div
               key={i}
-              className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden"
+              className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden h-full"
               style={{
-                width: 260,
+                width: 220,
                 boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
               }}
             >
               <div
-                className="relative"
+                className="relative flex-1 min-h-0"
                 style={{
-                  height: 220,
                   background: "linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 35%, #B8B8C0 100%)",
                 }}
               >
                 <div
-                  className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[12px] font-semibold text-white"
+                  className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
                   style={{ background: INK }}
                 >
                   {t.badge}
                 </div>
               </div>
-              <div className="px-4 pt-3 pb-4">
+              <div className="px-3.5 pt-2.5 pb-3 shrink-0">
                 <div className="flex gap-0.5">
                   {Array.from({ length: 5 }).map((_, j) => (
-                    <Star key={j} size={14} fill="#F5B400" stroke="#F5B400" />
+                    <Star key={j} size={12} fill="#F5B400" stroke="#F5B400" />
                   ))}
                 </div>
-                <div className="mt-2 text-[17px] font-bold tracking-tight" style={{ color: INK }}>
+                <div className="mt-1.5 text-[15px] font-bold tracking-tight" style={{ color: INK }}>
                   {t.title}
                 </div>
-                <p className="mt-1.5 text-[14px] leading-[1.45]" style={{ color: MUTED }}>
+                <p className="mt-1 text-[12.5px] leading-[1.4]" style={{ color: MUTED }}>
                   {t.body}
                 </p>
               </div>
@@ -1200,30 +1199,30 @@ function PaywallStep({
         </div>
       </div>
 
-      <div className="mt-auto px-6 pb-6 pt-6">
+      <div className="px-6 pb-5 pt-4 shrink-0">
         <div
-          className="flex items-center justify-center gap-2 text-[15px] font-semibold"
+          className="flex items-center justify-center gap-2 text-[14px] font-semibold"
           style={{ color: ORANGE }}
         >
-          <CheckCircle2 size={18} strokeWidth={2.25} />
+          <CheckCircle2 size={16} strokeWidth={2.25} />
           No charge today, cancel anytime
         </div>
 
         <button
           type="button"
           onClick={onTrial}
-          className="mt-5 w-full rounded-full py-5 flex items-center justify-center gap-3 text-[18px] font-semibold text-white active:scale-[0.99] transition-transform"
+          className="mt-3 w-full rounded-full py-4 flex items-center justify-center gap-3 text-[17px] font-semibold text-white active:scale-[0.99] transition-transform"
           style={{ background: INK }}
         >
           Start Free Trial
-          <ArrowRight size={20} strokeWidth={2.25} />
+          <ArrowRight size={19} strokeWidth={2.25} />
         </button>
 
-        <div className="mt-5 text-center">
+        <div className="mt-3 text-center">
           <button
             type="button"
             onClick={onFree}
-            className="text-[16px] font-medium underline"
+            className="text-[15px] font-medium underline"
             style={{ color: PURPLE }}
           >
             View All Plans
@@ -1231,7 +1230,7 @@ function PaywallStep({
         </div>
 
         <div
-          className="mt-4 text-center text-[13px] flex items-center justify-center gap-3"
+          className="mt-2.5 text-center text-[12px] flex items-center justify-center gap-3"
           style={{ color: "#6B6B76" }}
         >
           <a href="#" className="underline">Terms of Use</a>
