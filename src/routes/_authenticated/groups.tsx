@@ -240,44 +240,46 @@ function GroupCard({
         className="relative px-5 pt-5 pb-4"
         style={{ background: `linear-gradient(160deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
       >
-        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-          <PopoverTrigger asChild>
-            <button
-              aria-label="Group menu"
-              className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/15 flex items-center justify-center text-white"
+        {group.isAdmin && (
+          <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+            <PopoverTrigger asChild>
+              <button
+                aria-label="Group menu"
+                className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/15 flex items-center justify-center text-white"
+              >
+                <MoreHorizontal size={18} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-56 rounded-2xl p-1 border-0 shadow-xl"
             >
-              <MoreHorizontal size={18} />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            className="w-56 rounded-2xl p-1 border-0 shadow-xl"
-          >
-            <MenuButton
-              icon={<Pencil size={18} style={{ color: PURPLE }} />}
-              label="Rename group"
-              onClick={() => {
-                setMenuOpen(false);
-                setRenameOpen(true);
-              }}
-            />
-            <Divider />
-            <MenuButton
-              icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
-              label="Edit commitment"
-              onClick={() => {
-                setMenuOpen(false);
-                setCommitmentOpen(true);
-              }}
-            />
-            <Divider />
-            <MenuButton
-              icon={<Trash2 size={18} className="text-red-500" />}
-              label="Delete group"
-              danger
-            />
-          </PopoverContent>
-        </Popover>
+              <MenuButton
+                icon={<Pencil size={18} style={{ color: PURPLE }} />}
+                label="Rename group"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setRenameOpen(true);
+                }}
+              />
+              <Divider />
+              <MenuButton
+                icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
+                label="Edit commitment"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setCommitmentOpen(true);
+                }}
+              />
+              <Divider />
+              <MenuButton
+                icon={<Trash2 size={18} className="text-red-500" />}
+                label="Delete group"
+                danger
+              />
+            </PopoverContent>
+          </Popover>
+        )}
 
         <div className="min-h-[88px] flex items-end gap-3">
           <span className="text-[28px] leading-none">{group.emoji || "🔥"}</span>
