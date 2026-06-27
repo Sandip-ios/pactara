@@ -1108,6 +1108,30 @@ function PaywallStep({
   const INK = "#13131F";
   const MUTED = "#5A5A66";
   const ORANGE = "#C2410C";
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  const trialFacts = [
+    {
+      Icon: Check,
+      title: "Free for 7 days",
+      body: "Full access to unlimited pods, check-ins, and progress cards — nothing held back.",
+    },
+    {
+      Icon: Clock,
+      title: "We'll remind you",
+      body: "A reminder lands 2 days before your trial ends, so there's no surprise.",
+    },
+    {
+      Icon: X,
+      title: "Cancel anytime before Day 8",
+      body: "Cancel in Settings → Subscriptions. You won't be charged if you cancel before the trial ends.",
+    },
+    {
+      Icon: CreditCard,
+      title: "After your trial",
+      body: "$9.99/month, billed automatically until you cancel.",
+    },
+  ];
 
   const testimonials = [
     {
@@ -1141,7 +1165,13 @@ function PaywallStep({
     >
       <div className="min-h-[100dvh] flex flex-col shrink-0">
         <div className="flex items-center justify-end px-5 pt-3 shrink-0">
-          <button aria-label="Help" className="p-1" style={{ color: "#6B6B76" }}>
+          <button
+            type="button"
+            aria-label="Help"
+            onClick={() => setHelpOpen(true)}
+            className="p-1"
+            style={{ color: "#6B6B76" }}
+          >
             <CircleHelp size={22} strokeWidth={1.75} />
           </button>
         </div>
