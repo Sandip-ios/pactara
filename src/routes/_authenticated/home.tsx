@@ -132,15 +132,43 @@ function HomePage() {
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
   });
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+    staleTime: 60_000,
+  });
+  const myGroups = groupsData?.groups ?? [];
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem("active-group-id");
+  });
+
+  // Default to first group when none selected or selection no longer valid.
+  useEffect(() => {
+    if (myGroups.length === 0) return;
+    const exists = selectedGroupId && myGroups.some((g) => g.id === selectedGroupId);
+    if (!exists) {
+      setSelectedGroupId(myGroups[0].id);
+    }
+  }, [myGroups, selectedGroupId]);
+
+  useEffect(() => {
+    if (selectedGroupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", selectedGroupId);
+    }
+  }, [selectedGroupId]);
+
   const { data: pendingData } = useQuery({
-    queryKey: ["pending-checkins"],
-    queryFn: () => getPendingCheckIns(),
+    queryKey: ["pending-checkins", selectedGroupId],
+    queryFn: () => getPendingCheckIns({ data: { groupId: selectedGroupId } }),
   });
   const { data: feedData } = useQuery({
-    queryKey: ["group-feed"],
-    queryFn: () => getGroupFeed(),
+    queryKey: ["group-feed", selectedGroupId],
+    queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }),
     refetchOnWindowFocus: true,
   });
+
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
