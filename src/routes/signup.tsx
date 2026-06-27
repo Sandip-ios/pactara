@@ -1273,6 +1273,50 @@ function PaywallStep({
 
         </div>
       </div>
+
+      <Sheet open={helpOpen} onOpenChange={setHelpOpen}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-[28px] border-0 p-0 max-h-[88dvh] overflow-y-auto"
+          style={{ background: "#FFFFFF" }}
+        >
+          <div className="flex justify-center pt-3 pb-1">
+            <div className="h-1 w-10 rounded-full" style={{ background: "#E4E4EA" }} />
+          </div>
+          <div className="px-6 pt-4 pb-8">
+            <h2
+              className="text-[28px] leading-[1.05] tracking-tight"
+              style={{ fontFamily: "'Instrument Serif', 'Cormorant Garamond', Georgia, serif", color: INK }}
+            >
+              Your trial, explained
+            </h2>
+
+            <div className="mt-6 flex flex-col">
+              {trialFacts.map(({ Icon, title, body }, i) => (
+                <div key={i}>
+                  {i > 0 && <div className="h-px" style={{ background: "#EDEDF1" }} />}
+                  <div className="flex gap-4 py-5">
+                    <div
+                      className="shrink-0 h-10 w-10 rounded-full flex items-center justify-center"
+                      style={{ background: "#EFEAFE", color: PURPLE }}
+                    >
+                      <Icon size={18} strokeWidth={2.25} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[15px] font-bold" style={{ color: INK }}>
+                        {title}
+                      </div>
+                      <p className="mt-1 text-[14px] leading-[1.45]" style={{ color: MUTED }}>
+                        {body}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
