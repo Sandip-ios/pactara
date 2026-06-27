@@ -133,7 +133,7 @@ function NewPactaraFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
-    return <GreetingStep firstName="" days={days} onContinue={next} onBack={back} />;
+    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
   }
   if (step === "how") {
     return (
