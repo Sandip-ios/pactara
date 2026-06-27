@@ -1208,15 +1208,9 @@ function PaywallStep({
           No charge today, cancel anytime
         </div>
 
-        <button
-          type="button"
-          onClick={onTrial}
-          className="mt-3 w-full rounded-full py-4 flex items-center justify-center gap-3 text-[17px] font-semibold text-white active:scale-[0.99] transition-transform"
-          style={{ background: INK }}
-        >
-          Start Free Trial
-          <ArrowRight size={19} strokeWidth={2.25} />
-        </button>
+        <div className="mt-3">
+          <PrimaryButton onClick={onTrial} label="Start Free Trial" withArrow />
+        </div>
 
         <div className="mt-3 text-center">
           <button
