@@ -52,6 +52,7 @@ type GroupItem = {
 };
 
 function GroupsPage() {
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -59,6 +60,7 @@ function GroupsPage() {
 
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinUrl, setJoinUrl] = useState("");
+
 
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
