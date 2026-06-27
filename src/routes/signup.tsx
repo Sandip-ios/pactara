@@ -387,8 +387,8 @@ export function PrimaryButton({
         background: dimmed
           ? `linear-gradient(180deg, #A78BFA 0%, ${PURPLE} 100%)`
           : `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
-        boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
       }}
+
     >
       {icon}
       {label}
