@@ -52,6 +52,13 @@ const STEPS: StepKey[] = [
 function NewPactaraFlow() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const getProfile = useServerFn(getProfileOverview);
+  const { data: profile } = useQuery({
+    queryKey: ["profile-overview"],
+    queryFn: () => getProfile(),
+    staleTime: 60_000,
+  });
+  const firstName = (profile?.name ?? "").trim().split(/\s+/)[0] ?? "";
   const [stepIdx, setStepIdx] = useState(0);
 
   const [goal, setGoal] = useState<string | null>(null);
