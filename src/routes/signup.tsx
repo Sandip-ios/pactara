@@ -1101,135 +1101,143 @@ function PaywallStep({
   onFree: () => void;
   onBack: () => void;
 }) {
-  const [quoteExpanded, setQuoteExpanded] = useState(false);
-  const bullets = [
+  const BG = "#F5F2EC";
+  const INK = "#13131F";
+  const MUTED = "#5A5A66";
+  const ORANGE = "#C2410C";
+
+  const testimonials = [
     {
-      Icon: CheckCircle2,
-      title: "Finally finish what you start",
-      sub: "Your accountability group keeps you going.",
+      badge: "🔥 21 day streak",
+      title: "Finally Consistent",
+      body: "My pod calls me out the second I skip a check-in. Haven't missed one in 6 weeks.",
     },
     {
-      Icon: TrendingUp,
-      title: "See real progress",
-      sub: "Track results week over week, not just intentions.",
+      badge: "💪 +14 lbs lifted",
+      title: "Worth Every Penny",
+      body: "Seeing everyone's progress cards keeps me honest. First app that's actually stuck.",
     },
     {
-      Icon: Flame,
-      title: "Build the habit",
-      sub: "Small daily wins that change everything.",
+      badge: "⚖️ -12 lbs in 60 days",
+      title: "Finally Consistent",
+      body: "The daily check-ins changed everything. I show up because they show up.",
     },
   ];
+
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col px-6 pt-12 pb-6"
-      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
+      className="min-h-[100dvh] w-full flex flex-col"
+      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}
     >
-      <div>
-        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1" style={{ color: "#94A3B8" }}>
-          <ChevronLeft size={22} />
+      <div className="flex items-center justify-between px-5 pt-5">
+        <button onClick={onBack} aria-label="Close" className="p-1" style={{ color: "#6B6B76" }}>
+          <X size={26} strokeWidth={2} />
+        </button>
+        <button aria-label="Help" className="p-1" style={{ color: "#6B6B76" }}>
+          <CircleHelp size={24} strokeWidth={1.75} />
         </button>
       </div>
 
-      <div className="mt-4 flex flex-col items-center text-center">
-        <div className="relative">
-          <div
-            className="absolute inset-0 rounded-[28px] blur-2xl opacity-30"
-            style={{ background: PURPLE }}
-          />
-          <div
-            className="relative w-[88px] h-[88px] rounded-[24px] flex items-center justify-center"
-            style={{
-              background: `linear-gradient(135deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
-              boxShadow: "0 20px 40px -16px rgba(124,58,237,0.5)",
-            }}
-          >
-            <Flame size={40} color="#FFFFFF" strokeWidth={2} />
-          </div>
+      <div className="mt-2 px-6 text-center">
+        <div className="text-[12px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
+          PACTARA PREMIUM
         </div>
-        <h1 className="mt-7 text-[30px] font-extrabold tracking-tight leading-[1.1]">
-          This is the year you
-          <br /> actually do it.
+        <h1
+          className="mt-3 text-[44px] leading-[1.02] tracking-tight"
+          style={{ fontFamily: "'Instrument Serif', 'Cormorant Garamond', Georgia, serif", color: INK }}
+        >
+          Unlimited
+          <br />
+          Accountability
         </h1>
-        <p className="mt-3 text-[14px] leading-[1.55] px-4" style={{ color: TEXT_MUTED }}>
-          People who check in with a group are 3× more likely to reach their goal. Try it free for 7 days.
+        <p className="mt-5 text-[16px] leading-[1.45]" style={{ color: MUTED }}>
+          7 days free, then <span className="font-semibold" style={{ color: INK }}>$9.99/month</span>
+          <br />
+          cancel anytime before Day 8
         </p>
       </div>
 
-      <div className="mt-9 flex flex-col gap-5 px-1">
-        {bullets.map(({ Icon, title, sub }) => (
-          <div key={title} className="flex items-start gap-4">
+      <div className="mt-7 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="flex gap-3 px-6 pb-2">
+          {testimonials.map((t, i) => (
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: PURPLE_SOFT, color: PURPLE }}
+              key={i}
+              className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden"
+              style={{
+                width: 260,
+                boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+              }}
             >
-              <Icon size={20} strokeWidth={2.5} />
-            </div>
-            <div className="pt-0.5">
-              <div className="text-[15px] font-semibold leading-tight">{title}</div>
-              <div className="text-[13.5px] mt-1 leading-[1.4]" style={{ color: TEXT_MUTED }}>
-                {sub}
+              <div
+                className="relative"
+                style={{
+                  height: 220,
+                  background: "linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 35%, #B8B8C0 100%)",
+                }}
+              >
+                <div
+                  className="absolute top-3 left-3 px-3 py-1.5 rounded-full text-[12px] font-semibold text-white"
+                  style={{ background: INK }}
+                >
+                  {t.badge}
+                </div>
+              </div>
+              <div className="px-4 pt-3 pb-4">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <Star key={j} size={14} fill="#F5B400" stroke="#F5B400" />
+                  ))}
+                </div>
+                <div className="mt-2 text-[17px] font-bold tracking-tight" style={{ color: INK }}>
+                  {t.title}
+                </div>
+                <p className="mt-1.5 text-[14px] leading-[1.45]" style={{ color: MUTED }}>
+                  {t.body}
+                </p>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <div
-        className="mt-8 rounded-2xl px-5 py-4"
-        style={{ background: "#F8FAFC", border: "1px solid #F1F5F9" }}
-      >
-        <div className="flex gap-0.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Star key={i} size={14} fill="#F5B400" stroke="#F5B400" />
           ))}
         </div>
-        <p className="mt-2 text-[14px] italic leading-[1.5]" style={{ color: "#334155" }}>
-          {quoteExpanded ? (
-            <>
-              "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck. Pactara is the first thing that's actually worked, and honestly it's not even close. When my group sees I didn't check in, someone texts. That's it. That's the whole thing. 90 days in and I haven't missed once."{" "}
-              <button
-                type="button"
-                onClick={() => setQuoteExpanded(false)}
-                className="not-italic font-semibold"
-                style={{ color: PURPLE }}
-              >
-                Show less
-              </button>
-            </>
-          ) : (
-            <>
-              "I've tried everything — Strava, Noom, three different trainers, two gym memberships I never used. Nothing stuck…"{" "}
-              <button
-                type="button"
-                onClick={() => setQuoteExpanded(true)}
-                className="not-italic font-semibold"
-                style={{ color: PURPLE }}
-              >
-                Show more
-              </button>
-            </>
-          )}
-        </p>
-        <p
-          className="mt-3 text-[11px] font-bold uppercase tracking-wider"
-          style={{ color: "#64748B" }}
-        >
-          — Jamie R., lost 18 lbs in 90 days
-        </p>
       </div>
 
-      <div className="mt-7 flex flex-col items-center gap-3">
-        <PrimaryButton onClick={onTrial} label="Start free 7-day trial" withArrow />
-        <div className="text-[11px]" style={{ color: "#94A3B8" }}>
-          Then $9.99/mo · Cancel anytime before Day 8
-        </div>
-        <button
-          onClick={onFree}
-          className="mt-1 text-[14px] font-semibold"
-          style={{ color: PURPLE }}
+      <div className="mt-auto px-6 pb-6 pt-6">
+        <div
+          className="flex items-center justify-center gap-2 text-[15px] font-semibold"
+          style={{ color: ORANGE }}
         >
-          No thanks, continue with Free plan
+          <CheckCircle2 size={18} strokeWidth={2.25} />
+          No charge today, cancel anytime
+        </div>
+
+        <button
+          type="button"
+          onClick={onTrial}
+          className="mt-5 w-full rounded-full py-5 flex items-center justify-center gap-3 text-[18px] font-semibold text-white active:scale-[0.99] transition-transform"
+          style={{ background: INK }}
+        >
+          Start Free Trial
+          <ArrowRight size={20} strokeWidth={2.25} />
         </button>
+
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={onFree}
+            className="text-[16px] font-medium underline"
+            style={{ color: PURPLE }}
+          >
+            View All Plans
+          </button>
+        </div>
+
+        <div
+          className="mt-4 text-center text-[13px] flex items-center justify-center gap-3"
+          style={{ color: "#6B6B76" }}
+        >
+          <a href="#" className="underline">Terms of Use</a>
+          <span style={{ color: "#C9C9D1" }}>|</span>
+          <a href="#" className="underline">Privacy Policy</a>
+        </div>
       </div>
     </div>
   );
