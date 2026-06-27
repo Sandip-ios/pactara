@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { useState } from "react";
 import {
   Plus,
@@ -51,6 +52,7 @@ type GroupItem = {
 };
 
 function GroupsPage() {
+  const navigate = useNavigate();
   const { data, isLoading } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -58,6 +60,7 @@ function GroupsPage() {
 
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinUrl, setJoinUrl] = useState("");
+
 
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
@@ -89,6 +92,7 @@ function GroupsPage() {
       {/* Action cards */}
       <div className="px-4 mt-3 grid grid-cols-2 gap-3">
         <button
+          onClick={() => navigate({ to: "/new-pactara" })}
           className="rounded-2xl p-4 text-left text-white min-h-[140px] flex flex-col justify-between"
           style={{
             background: `linear-gradient(160deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
@@ -103,6 +107,7 @@ function GroupsPage() {
             <div className="text-[12px] text-white/80 mt-1">New group, new commitment</div>
           </div>
         </button>
+
 
         <button
           onClick={() => setJoinOpen((v) => !v)}

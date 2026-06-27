@@ -16,6 +16,7 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
@@ -64,6 +65,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
+  id: '/new-pactara',
+  path: '/new-pactara',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInviteRoute = AuthenticatedInviteRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
+  '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
+  '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
+  '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/home'
     | '/invite'
+    | '/new-pactara'
     | '/profile'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/groups'
     | '/home'
     | '/invite'
+    | '/new-pactara'
     | '/profile'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/invite'
+    | '/_authenticated/new-pactara'
     | '/_authenticated/profile'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
@@ -356,6 +368,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/new-pactara': {
+      id: '/_authenticated/new-pactara'
+      path: '/new-pactara'
+      fullPath: '/new-pactara'
+      preLoaderRoute: typeof AuthenticatedNewPactaraRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/invite': {
@@ -470,6 +489,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
+  AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
   AuthenticatedAccountSettingsNameRoute: typeof AuthenticatedAccountSettingsNameRoute
@@ -487,6 +507,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
+  AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedAccountSettingsEmailRoute:
     AuthenticatedAccountSettingsEmailRoute,
