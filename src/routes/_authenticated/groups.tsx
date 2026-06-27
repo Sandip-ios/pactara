@@ -14,6 +14,9 @@ import {
   CalendarDays,
   Flame,
   X,
+  Mail,
+  MessageCircle,
+  Share2,
 } from "lucide-react";
 import { listMyGroups, renameGroup } from "@/lib/groups.functions";
 import {
@@ -182,6 +185,7 @@ function GroupCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Presentation-only commitment state (not persisted yet)
   const [duration, setDuration] = useState(30);
@@ -189,6 +193,8 @@ function GroupCard({
 
   const inviteLink =
     typeof window !== "undefined" ? `${window.location.origin}/join/${group.id}` : "";
+  const shareText = `Join me on Pactara — we're keeping each other accountable.`;
+  const shareTitle = `Join my ${group.name}`;
 
   const handleCopy = async () => {
     if (!inviteLink) return;
@@ -201,20 +207,27 @@ function GroupCard({
     }
   };
 
+  const canUseNativeShare = () => {
+    if (typeof navigator === "undefined" || !("share" in navigator)) return false;
+    // Permissions-Policy in iframes (e.g. Lovable preview) blocks web-share.
+    try {
+      if (window.self !== window.top) return false;
+    } catch {
+      return false;
+    }
+    return true;
+  };
+
   const handleInvite = async () => {
-    if (typeof navigator !== "undefined" && "share" in navigator) {
+    if (canUseNativeShare()) {
       try {
-        await navigator.share({
-          title: `Join my ${group.name}`,
-          text: `Join me on Pactara — we're keeping each other accountable.`,
-          url: inviteLink,
-        });
+        await navigator.share({ title: shareTitle, text: shareText, url: inviteLink });
         return;
       } catch {
-        // fall through to copy
+        // user cancelled or share failed — fall through to custom sheet
       }
     }
-    handleCopy();
+    setShareOpen(true);
   };
 
   const daysLeft = Math.max(0, duration - 1);
@@ -348,6 +361,15 @@ function GroupCard({
           setFrequency(f);
           setCommitmentOpen(false);
         }}
+      />
+      <ShareInviteDrawer
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        groupName={group.name}
+        inviteLink={inviteLink}
+        shareText={shareText}
+        onCopy={handleCopy}
+        copied={copied}
       />
     </div>
   );
@@ -680,4 +702,110 @@ function EmptyGroups() {
     </div>
   );
 }
+
+function ShareInviteDrawer({
+  open,
+  onOpenChange,
+  groupName,
+  inviteLink,
+  shareText,
+  onCopy,
+  copied,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  groupName: string;
+  inviteLink: string;
+  shareText: string;
+  onCopy: () => void;
+  copied: boolean;
+}) {
+  const fullMessage = `${shareText} ${inviteLink}`;
+  const encoded = encodeURIComponent(fullMessage);
+  const subject = encodeURIComponent(`Join my ${groupName} on Pactara`);
+
+  const options: { label: string; icon: React.ReactNode; href?: string; onClick?: () => void }[] = [
+    {
+      label: copied ? "Copied!" : "Copy link",
+      icon: copied ? <Check size={20} /> : <Copy size={20} />,
+      onClick: onCopy,
+    },
+    {
+      label: "Messages",
+      icon: <MessageCircle size={20} />,
+      href: `sms:&body=${encoded}`,
+    },
+    {
+      label: "WhatsApp",
+      icon: <Share2 size={20} />,
+      href: `https://wa.me/?text=${encoded}`,
+    },
+    {
+      label: "Email",
+      icon: <Mail size={20} />,
+      href: `mailto:?subject=${subject}&body=${encoded}`,
+    },
+  ];
+
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="px-6 pb-8 pt-2">
+        <DrawerHeader className="px-0 pt-2">
+          <DrawerTitle className="text-[22px] font-black tracking-tight">
+            Invite people
+          </DrawerTitle>
+          <DrawerDescription className="text-[14px] text-neutral-500">
+            Share this link to invite friends to {groupName}.
+          </DrawerDescription>
+        </DrawerHeader>
+
+        <div
+          className="mt-2 rounded-2xl px-4 py-3 text-[13px] text-neutral-700 break-all"
+          style={{ background: "#F4F1ED" }}
+        >
+          {inviteLink}
+        </div>
+
+        <div className="mt-5 grid grid-cols-4 gap-3">
+          {options.map((opt) => {
+            const inner = (
+              <>
+                <span
+                  className="h-14 w-14 rounded-2xl flex items-center justify-center"
+                  style={{ background: PURPLE_SOFT, color: PURPLE }}
+                >
+                  {opt.icon}
+                </span>
+                <span className="text-[12px] font-semibold text-neutral-700 text-center leading-tight">
+                  {opt.label}
+                </span>
+              </>
+            );
+            const className = "flex flex-col items-center gap-2";
+            if (opt.href) {
+              return (
+                <a key={opt.label} href={opt.href} target="_blank" rel="noreferrer" className={className}>
+                  {inner}
+                </a>
+              );
+            }
+            return (
+              <button key={opt.label} onClick={opt.onClick} className={className}>
+                {inner}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          onClick={() => onOpenChange(false)}
+          className="mt-6 w-full rounded-2xl py-4 text-[15px] font-semibold bg-neutral-100 text-neutral-700"
+        >
+          Close
+        </button>
+      </DrawerContent>
+    </Drawer>
+  );
+}
+
 
