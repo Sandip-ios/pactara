@@ -67,7 +67,7 @@ export const GOALS = [
 ];
 
 
-const ICON_FOR_GOAL: Record<string, string> = {
+export const ICON_FOR_GOAL: Record<string, string> = {
   "lose-weight": "⚖️",
   "build-muscle": "💪",
   run: "🏃",
@@ -360,7 +360,7 @@ function SignupFlow() {
 }
 
 /* ------------ Primary Button ------------ */
-function PrimaryButton({
+export function PrimaryButton({
   onClick,
   label,
   disabled,
@@ -568,7 +568,7 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
 }
 
 /* ------------ Step: Goal ------------ */
-function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string) => void }) {
+export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string) => void }) {
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your fitness goal?</h1>
@@ -610,7 +610,7 @@ function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string)
 }
 
 /* ------------ Step: Good Company (interstitial) ------------ */
-function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
+export function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
   return (
     <div className="min-h-[100dvh] w-full flex flex-col relative overflow-hidden" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <img src={goodCompany.url} alt="Group of friends celebrating" className="absolute inset-0 w-full h-full object-cover" />
@@ -656,7 +656,7 @@ function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: (
 }
 
 /* ------------ Step: Group ------------ */
-function GroupStep({
+export function GroupStep({
   groupName,
   setGroupName,
   goalLabel,
@@ -732,7 +732,7 @@ function GroupNameField({
 }
 
 /* ------------ Step: Commitment ------------ */
-function CommitmentStep({
+export function CommitmentStep({
   goalLabel,
   goalId,
   duration,
@@ -948,7 +948,7 @@ function FreqCard({
 }
 
 /* ------------ Step: Invite ------------ */
-function InviteStep() {
+export function InviteStep() {
   return (
     <div className="flex flex-col items-center text-center pt-10">
       <div
@@ -970,7 +970,7 @@ function InviteStep() {
 }
 
 /* ------------ Step: Notify ------------ */
-function NotifyStep({ onAllow }: { onAllow: () => void }) {
+export function NotifyStep({ onAllow }: { onAllow: () => void }) {
   const handleAllow = async () => {
     try {
       if (typeof window !== "undefined" && "Notification" in window) {
@@ -1341,7 +1341,7 @@ function PhotoSlot({
 }
 
 /* ------------ Step: Greeting (Jose, you're in) ------------ */
-function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: string; days: number; onContinue: () => void; onBack: () => void }) {
+export function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: string; days: number; onContinue: () => void; onBack: () => void }) {
   const name = firstName || "friend";
   return (
     <div
@@ -1368,7 +1368,7 @@ function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: stri
 }
 
 /* ------------ Step: How it works ------------ */
-function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
+export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
   const steps = [
     {
       n: "1",
