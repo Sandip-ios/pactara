@@ -92,6 +92,7 @@ function GroupsPage() {
       {/* Action cards */}
       <div className="px-4 mt-3 grid grid-cols-2 gap-3">
         <button
+          onClick={() => navigate({ to: "/new-pactara" })}
           className="rounded-2xl p-4 text-left text-white min-h-[140px] flex flex-col justify-between"
           style={{
             background: `linear-gradient(160deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
@@ -106,6 +107,7 @@ function GroupsPage() {
             <div className="text-[12px] text-white/80 mt-1">New group, new commitment</div>
           </div>
         </button>
+
 
         <button
           onClick={() => setJoinOpen((v) => !v)}
