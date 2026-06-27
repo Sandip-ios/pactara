@@ -118,6 +118,7 @@ const STEPS: StepKey[] = [
 function SignupFlow() {
   const navigate = useNavigate();
   const [stepIdx, setStepIdx] = useState(0);
+  const [viewPlans, setViewPlans] = useState(false);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -221,7 +222,18 @@ function SignupFlow() {
     return <CompanyStep onContinue={next} onBack={back} />;
   }
   if (step === "paywall") {
-    return <PaywallStep onTrial={next} onFree={next} onBack={back} />;
+    if (viewPlans) {
+      return (
+        <PlansPage
+          onSelect={() => {
+            setViewPlans(false);
+            next();
+          }}
+          onBack={() => setViewPlans(false)}
+        />
+      );
+    }
+    return <PaywallStep onTrial={next} onFree={() => setViewPlans(true)} onBack={back} />;
   }
   if (step === "greeting") {
     const days =
@@ -1094,7 +1106,156 @@ function PasswordStep({
   );
 }
 
-/* ------------ Step: Paywall ------------ */
+/* ------------ Page: All Plans ------------ */
+function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => void }) {
+  const BG = "#F5F2EC";
+  const INK = "#13131F";
+  const MUTED = "#5A5A66";
+  const ORANGE = "#C2410C";
+  const SERIF = "'Instrument Serif', 'Cormorant Garamond', Georgia, serif";
+
+  const features = [
+    { label: "Free trial", monthly: "7 days", annual: "7 days" },
+    { label: "Daily check-ins", monthly: true, annual: true },
+    { label: "Photo check-ins", monthly: true, annual: true },
+    { label: "Unlimited groups", monthly: true, annual: true },
+    { label: "Streak freeze", monthly: true, annual: true },
+    { label: "Back-to-back challenges", monthly: false, annual: true },
+    { label: "Early feature access", monthly: false, annual: true },
+  ] as const;
+
+  const Cell = ({ v }: { v: boolean | string }) => {
+    if (typeof v === "string") {
+      return <span className="text-[14px]" style={{ color: INK }}>{v}</span>;
+    }
+    if (v) return <Check size={20} strokeWidth={2.5} style={{ color: ORANGE }} />;
+    return <span style={{ color: "#C9C9D1" }}>—</span>;
+  };
+
+  return (
+    <div className="min-h-[100dvh] w-full overflow-y-auto" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div className="px-6 pt-6 pb-10 max-w-[480px] mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <button onClick={onBack} aria-label="Back" className="p-1 -ml-1">
+            <ChevronLeft size={26} style={{ color: INK }} />
+          </button>
+          <div className="text-[17px] font-semibold" style={{ color: INK }}>Plans</div>
+        </div>
+
+        <div className="text-[12px] font-bold tracking-[0.12em]" style={{ color: PURPLE }}>
+          PACTARA PREMIUM
+        </div>
+        <h1 className="mt-2 text-[34px] leading-[1.05] tracking-tight" style={{ fontFamily: SERIF, color: INK }}>
+          Pick what fits your pace.
+        </h1>
+        <p className="mt-3 text-[15px] leading-[1.45]" style={{ color: MUTED }}>
+          Both plans start with the same 7-day free trial. Switch or cancel anytime in Settings.
+        </p>
+
+        {/* Monthly Card */}
+        <div className="mt-8 rounded-[22px] bg-white p-6" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+          <div className="flex items-center gap-3">
+            <span className="text-[24px]">🔥</span>
+            <span className="text-[24px] font-semibold tracking-tight" style={{ fontFamily: SERIF, color: INK }}>Monthly</span>
+          </div>
+          <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups. Cancel anytime.</p>
+          <div className="mt-5 flex items-baseline gap-2">
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$9.99</span>
+            <span className="text-[16px]" style={{ color: MUTED }}>/ month</span>
+          </div>
+          <p className="mt-2 text-[14px]" style={{ color: MUTED }}>Starts with your 7-day free trial</p>
+          <ul className="mt-5 space-y-3">
+            {["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"].map((f) => (
+              <li key={f} className="flex items-center gap-3 text-[15px]" style={{ color: INK }}>
+                <Check size={18} strokeWidth={2.5} style={{ color: "#9A9AA5" }} />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={onSelect}
+            className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold"
+            style={{ background: "#F1EEE8", color: INK }}
+          >
+            Start free trial — Monthly
+          </button>
+        </div>
+
+        {/* Annual Card */}
+        <div className="mt-6 relative rounded-[22px] bg-white p-6" style={{ border: `2px solid ${ORANGE}` }}>
+          <div
+            className="absolute -top-3 right-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
+            style={{ background: ORANGE }}
+          >
+            Save 17%
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-[24px]">⚡</span>
+            <span className="text-[24px] font-semibold tracking-tight" style={{ fontFamily: SERIF, color: INK }}>Annual</span>
+          </div>
+          <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups, back-to-back challenges, all year.</p>
+          <div className="mt-5 flex items-baseline gap-2">
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$99</span>
+            <span className="text-[16px]" style={{ color: MUTED }}>/ year</span>
+          </div>
+          <p className="mt-2 text-[14px] font-semibold" style={{ color: ORANGE }}>
+            Just $8.25/mo · starts with your 7-day free trial
+          </p>
+          <ul className="mt-5 space-y-3">
+            {["Everything in Monthly", "Run back-to-back challenges", "Early access to new features"].map((f) => (
+              <li key={f} className="flex items-center gap-3 text-[15px]" style={{ color: INK }}>
+                <Check size={18} strokeWidth={2.5} style={{ color: ORANGE }} />
+                {f}
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={onSelect}
+            className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold text-white"
+            style={{ background: ORANGE }}
+          >
+            Start free trial — Annual
+          </button>
+        </div>
+
+        <p className="mt-5 text-center text-[13px]" style={{ color: MUTED }}>
+          No charge for 7 days. Cancel anytime before your trial ends.
+        </p>
+
+        {/* Compare plans */}
+        <h2 className="mt-10 text-[28px] tracking-tight" style={{ fontFamily: SERIF, color: INK }}>
+          Compare plans
+        </h2>
+        <div className="mt-4 rounded-[18px] bg-white overflow-hidden" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}>
+          <div className="grid grid-cols-[1.4fr_1fr_1fr] px-5 py-3" style={{ background: "#F7F4EE" }}>
+            <div className="text-[12px] font-bold tracking-[0.1em]" style={{ color: "#8A8A95" }}>FEATURE</div>
+            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: PURPLE }}>MONTHLY</div>
+            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: ORANGE }}>ANNUAL</div>
+          </div>
+          {features.map((f, i) => (
+            <div
+              key={f.label}
+              className="grid grid-cols-[1.4fr_1fr_1fr] items-center px-5 py-4"
+              style={{ borderTop: i === 0 ? "none" : "1px solid #EFECE5" }}
+            >
+              <div className="text-[15px] font-semibold" style={{ color: INK }}>{f.label}</div>
+              <div className="flex justify-center"><Cell v={f.monthly} /></div>
+              <div className="flex justify-center"><Cell v={f.annual} /></div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-8 text-center text-[13px] leading-[1.5]" style={{ color: MUTED }}>
+          Prices in USD. Subscriptions renew automatically until cancelled.<br />
+          Questions? Email us at{" "}
+          <a href="mailto:hello@pactara.app" className="font-semibold" style={{ color: PURPLE }}>hello@pactara.app</a>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+
 function PaywallStep({
   onTrial,
   onFree,
