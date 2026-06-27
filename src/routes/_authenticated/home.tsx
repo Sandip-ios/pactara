@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
-import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
