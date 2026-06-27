@@ -1167,7 +1167,7 @@ function PaywallStep({
                 }}
               >
                 <div
-                  className="relative shrink-0 h-[140px]"
+                  className="relative shrink-0 h-[182px]"
                   style={{
                     background: "linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 35%, #B8B8C0 100%)",
                   }}
