@@ -250,7 +250,33 @@ function HomePage() {
         </div>
       </header>
 
+      {myGroups.length > 1 && (
+        <div className="bg-transparent border-b border-neutral-200">
+          <div className="flex gap-6 overflow-x-auto px-6 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {myGroups.map((g) => {
+              const active = g.id === selectedGroupId;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedGroupId(g.id)}
+                  className="shrink-0 pb-2 -mb-px flex items-center gap-1.5 whitespace-nowrap"
+                  style={{
+                    color: active ? "#0A0A0A" : "#A3A3A3",
+                    borderBottom: active ? `2px solid ${PURPLE}` : "2px solid transparent",
+                    fontWeight: active ? 800 : 500,
+                  }}
+                >
+                  {g.emoji && <span className="text-[15px]">{g.emoji}</span>}
+                  <span className="text-[15px]">{g.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {!status && <div aria-hidden className="px-6 pt-4 text-[13px] opacity-0">.</div>}
+
 
       <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
         <span className="font-semibold">Day 1 of 30</span>
