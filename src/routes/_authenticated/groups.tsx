@@ -185,6 +185,7 @@ function GroupCard({
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Presentation-only commitment state (not persisted yet)
   const [duration, setDuration] = useState(30);
@@ -192,6 +193,8 @@ function GroupCard({
 
   const inviteLink =
     typeof window !== "undefined" ? `${window.location.origin}/join/${group.id}` : "";
+  const shareText = `Join me on Pactara — we're keeping each other accountable.`;
+  const shareTitle = `Join my ${group.name}`;
 
   const handleCopy = async () => {
     if (!inviteLink) return;
@@ -204,20 +207,27 @@ function GroupCard({
     }
   };
 
+  const canUseNativeShare = () => {
+    if (typeof navigator === "undefined" || !("share" in navigator)) return false;
+    // Permissions-Policy in iframes (e.g. Lovable preview) blocks web-share.
+    try {
+      if (window.self !== window.top) return false;
+    } catch {
+      return false;
+    }
+    return true;
+  };
+
   const handleInvite = async () => {
-    if (typeof navigator !== "undefined" && "share" in navigator) {
+    if (canUseNativeShare()) {
       try {
-        await navigator.share({
-          title: `Join my ${group.name}`,
-          text: `Join me on Pactara — we're keeping each other accountable.`,
-          url: inviteLink,
-        });
+        await navigator.share({ title: shareTitle, text: shareText, url: inviteLink });
         return;
       } catch {
-        // fall through to copy
+        // user cancelled or share failed — fall through to custom sheet
       }
     }
-    handleCopy();
+    setShareOpen(true);
   };
 
   const daysLeft = Math.max(0, duration - 1);
