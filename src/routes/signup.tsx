@@ -1155,7 +1155,7 @@ function PaywallStep({
           </p>
         </div>
 
-        <div className="mt-4 flex-1 min-h-0 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="mt-12 flex-1 min-h-0 overflow-x-auto no-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="flex gap-3 px-6 pb-2 h-full">
             {testimonials.map((t, i) => (
               <div
