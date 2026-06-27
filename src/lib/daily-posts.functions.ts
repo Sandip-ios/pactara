@@ -331,10 +331,26 @@ export type PostComment = {
 
 export const getGroupFeed = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ items: FeedItem[] }> => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ? String(input.groupId) : null,
+  }))
+  .handler(async ({ context, data }): Promise<{ items: FeedItem[] }> => {
     const { supabase, userId } = context;
-    const { groupId } = await getMyGroupAndTz(supabase, userId);
+    let groupId: string | null = data.groupId;
+    if (groupId) {
+      const { data: m } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .maybeSingle();
+      if (!m) groupId = null;
+    }
+    if (!groupId) {
+      ({ groupId } = await getMyGroupAndTz(supabase, userId));
+    }
     if (!groupId) return { items: [] };
+
 
     const { data: posts, error } = await supabase
       .from("daily_posts")

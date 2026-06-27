@@ -246,18 +246,35 @@ export const renameGroup = createServerFn({ method: "POST" })
  */
 export const getPendingCheckIns = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ? String(input.groupId) : null,
+  }))
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
 
-    const { data: membership } = await supabase
-      .from("group_members")
-      .select("group_id, joined_at")
-      .eq("user_id", userId)
-      .order("joined_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    let membership: { group_id: string } | null = null;
+    if (data.groupId) {
+      const { data: m } = await supabase
+        .from("group_members")
+        .select("group_id")
+        .eq("user_id", userId)
+        .eq("group_id", data.groupId)
+        .maybeSingle();
+      membership = m ?? null;
+    }
+    if (!membership) {
+      const { data: m } = await supabase
+        .from("group_members")
+        .select("group_id, joined_at")
+        .eq("user_id", userId)
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      membership = m ? { group_id: m.group_id } : null;
+    }
 
     if (!membership) return { groupId: null, pending: [], iCheckedIn: false };
+
 
     const today = localDateFor(await getUserTimezone(supabase, userId));
 

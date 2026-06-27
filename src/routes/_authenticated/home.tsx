@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
-import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
@@ -132,15 +132,43 @@ function HomePage() {
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
   });
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+    staleTime: 60_000,
+  });
+  const myGroups = groupsData?.groups ?? [];
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem("active-group-id");
+  });
+
+  // Default to first group when none selected or selection no longer valid.
+  useEffect(() => {
+    if (myGroups.length === 0) return;
+    const exists = selectedGroupId && myGroups.some((g) => g.id === selectedGroupId);
+    if (!exists) {
+      setSelectedGroupId(myGroups[0].id);
+    }
+  }, [myGroups, selectedGroupId]);
+
+  useEffect(() => {
+    if (selectedGroupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", selectedGroupId);
+    }
+  }, [selectedGroupId]);
+
   const { data: pendingData } = useQuery({
-    queryKey: ["pending-checkins"],
-    queryFn: () => getPendingCheckIns(),
+    queryKey: ["pending-checkins", selectedGroupId],
+    queryFn: () => getPendingCheckIns({ data: { groupId: selectedGroupId } }),
   });
   const { data: feedData } = useQuery({
-    queryKey: ["group-feed"],
-    queryFn: () => getGroupFeed(),
+    queryKey: ["group-feed", selectedGroupId],
+    queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }),
     refetchOnWindowFocus: true,
   });
+
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
@@ -222,7 +250,33 @@ function HomePage() {
         </div>
       </header>
 
+      {myGroups.length > 1 && (
+        <div className="bg-transparent border-b border-neutral-200">
+          <div className="flex gap-6 overflow-x-auto px-6 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {myGroups.map((g) => {
+              const active = g.id === selectedGroupId;
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => setSelectedGroupId(g.id)}
+                  className="shrink-0 pb-2 -mb-px flex items-center gap-1.5 whitespace-nowrap"
+                  style={{
+                    color: active ? "#0A0A0A" : "#A3A3A3",
+                    borderBottom: active ? `2px solid ${PURPLE}` : "2px solid transparent",
+                    fontWeight: active ? 800 : 500,
+                  }}
+                >
+                  {g.emoji && <span className="text-[15px]">{g.emoji}</span>}
+                  <span className="text-[15px]">{g.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {!status && <div aria-hidden className="px-6 pt-4 text-[13px] opacity-0">.</div>}
+
 
       <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
         <span className="font-semibold">Day 1 of 30</span>
