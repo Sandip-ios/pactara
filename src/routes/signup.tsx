@@ -1111,18 +1111,25 @@ function PaywallStep({
       badge: "🔥 21 day streak",
       title: "Finally Consistent",
       body: "My pod calls me out the second I skip a check-in. Haven't missed one in 6 weeks.",
+      image:
+        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80",
     },
     {
       badge: "💪 +14 lbs lifted",
       title: "Worth Every Penny",
       body: "Seeing everyone's progress cards keeps me honest. First app that's actually stuck.",
+      image:
+        "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=600&q=80",
     },
     {
       badge: "⚖️ -12 lbs in 60 days",
       title: "Finally Consistent",
       body: "The daily check-ins changed everything. I show up because they show up.",
+      image:
+        "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=600&q=80",
     },
   ];
+
 
   return (
     <div
