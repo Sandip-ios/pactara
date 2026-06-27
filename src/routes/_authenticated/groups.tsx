@@ -14,6 +14,9 @@ import {
   CalendarDays,
   Flame,
   X,
+  Mail,
+  MessageCircle,
+  Share2,
 } from "lucide-react";
 import { listMyGroups, renameGroup } from "@/lib/groups.functions";
 import {
