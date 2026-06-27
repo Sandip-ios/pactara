@@ -1129,14 +1129,12 @@ function PaywallStep({
       className="h-[100dvh] w-full flex flex-col overflow-hidden"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}
     >
-      <div className="flex items-center justify-between px-5 pt-3 shrink-0">
-        <button onClick={onBack} aria-label="Close" className="p-1" style={{ color: "#6B6B76" }}>
-          <X size={24} strokeWidth={2} />
-        </button>
+      <div className="flex items-center justify-end px-5 pt-3 shrink-0">
         <button aria-label="Help" className="p-1" style={{ color: "#6B6B76" }}>
           <CircleHelp size={22} strokeWidth={1.75} />
         </button>
       </div>
+
 
       <div className="px-6 text-center shrink-0">
         <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
