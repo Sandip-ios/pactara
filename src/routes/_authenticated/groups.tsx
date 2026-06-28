@@ -155,21 +155,6 @@ function GroupsPage() {
         ))}
       </div>
 
-      {/* Subscription banner */}
-      <div className="mx-4 mt-4 rounded-2xl p-5 flex items-center gap-4" style={{ background: "#E9E3F5" }}>
-        <div className="flex-1">
-          <div className="text-[16px] font-bold">Keep your streak going</div>
-          <div className="text-[13px] text-neutral-600 mt-1 leading-snug">
-            After your 7-day trial, subscribe to keep checking in — $9.99/month.
-          </div>
-        </div>
-        <button
-          className="px-5 py-2.5 rounded-full text-white text-[14px] font-semibold whitespace-nowrap"
-          style={{ background: PURPLE }}
-        >
-          Subscribe
-        </button>
-      </div>
 
     </div>
   );
