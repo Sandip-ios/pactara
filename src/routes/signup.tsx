@@ -186,6 +186,18 @@ function SignupFlow() {
         }
       }
       await setMyName({ data: { name: fullName } });
+      if (photoFile && session?.user) {
+        try {
+          const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+          const path = `${session.user.id}/avatar-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("avatars")
+            .upload(path, photoFile, { upsert: true, contentType: photoFile.type });
+          if (!upErr) await setAvatarPath({ data: { path } });
+        } catch (err) {
+          console.error("Avatar upload during signup failed", err);
+        }
+      }
       const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
       await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
