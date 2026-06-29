@@ -198,8 +198,19 @@ function SignupFlow() {
           console.error("Avatar upload during signup failed", err);
         }
       }
-      const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
-      await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
+      const pendingInvite =
+        typeof sessionStorage !== "undefined"
+          ? sessionStorage.getItem("pending-invite-group")
+          : null;
+      if (pendingInvite) {
+        const { joinGroupById } = await import("@/lib/groups.functions");
+        await joinGroupById({ data: { groupId: pendingInvite } });
+        sessionStorage.removeItem("pending-invite-group");
+        if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", pendingInvite);
+      } else {
+        const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
+        await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
+      }
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
       navigate({ to: "/home" });
