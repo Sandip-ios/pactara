@@ -93,7 +93,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             const { data: y } = await supabaseAdmin
               .from("daily_posts")
               .select("id, check_in_id, check_in_missed")
-              .eq("user_id", prof.id)
+              .eq("user_id", userId)
               .eq("group_id", groupId)
               .eq("local_date", yesterday)
               .maybeSingle();
@@ -101,7 +101,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             if (!y) {
               // No record at all for yesterday → both missed
               const { error } = await supabaseAdmin.from("daily_posts").insert({
-                user_id: prof.id,
+                user_id: userId,
                 group_id: groupId,
                 local_date: yesterday,
                 morning_missed: true,
