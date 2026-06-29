@@ -440,11 +440,12 @@ function HomePage() {
         <div className="pb-2">
           {(() => {
             const sorted = splitFeedIntoTimelineCards(feedData!.items);
+            const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
             const today = new Date();
-            const todayStr = formatLocalDate(today);
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-            const yesterdayStr = formatLocalDate(yesterday);
+            const todayStr = formatInTimezone(today, userTz);
+            const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+            const yesterdayStr = formatInTimezone(yesterday, userTz);
+
             const labelFor = (iso: string) => {
               if (iso === todayStr) return "Today";
               if (iso === yesterdayStr) return "Yesterday";
