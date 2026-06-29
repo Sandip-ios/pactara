@@ -105,6 +105,16 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    if (data.timezone === "UTC") {
+      const { data: existing } = await supabase
+        .from("profiles")
+        .select("timezone")
+        .eq("id", userId)
+        .maybeSingle();
+      if (existing?.timezone && existing.timezone !== "UTC") {
+        return { ok: true };
+      }
+    }
     const { error } = await supabase
       .from("profiles")
       .update({ timezone: data.timezone })
