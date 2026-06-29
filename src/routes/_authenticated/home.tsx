@@ -2,9 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap } from "lucide-react";
+import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { nudgeUser } from "@/lib/push.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
@@ -210,6 +212,24 @@ function HomePage() {
       setImageFile(null);
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     },
+  });
+
+  const nudgeFn = useServerFn(nudgeUser);
+  const [nudgedIds, setNudgedIds] = useState<Set<string>>(new Set());
+  const nudgeMutation = useMutation({
+    mutationFn: nudgeFn,
+    onSuccess: (res, vars) => {
+      const id = (vars as { data: { targetUserId: string } }).data.targetUserId;
+      setNudgedIds((prev) => new Set(prev).add(id));
+      if (res?.ok && (res.sent ?? 0) > 0) {
+        toast.success("Nudge sent");
+      } else if (res?.ok) {
+        toast("Nudge sent — they'll see it next time they open the app");
+      } else {
+        toast.error("Couldn't send nudge");
+      }
+    },
+    onError: () => toast.error("Couldn't send nudge"),
   });
 
   const submitThought = async () => {
@@ -435,9 +455,18 @@ function HomePage() {
                       Check in
                     </button>
                   ) : (
-                    <div className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold text-neutral-400 text-center">
-                      Waiting…
-                    </div>
+                    <button
+                      onClick={() => nudgeMutation.mutate({ data: { targetUserId: p.id } })}
+                      disabled={nudgeMutation.isPending || nudgedIds.has(p.id)}
+                      className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60"
+                      style={{
+                        background: nudgedIds.has(p.id) ? "#EFE9FB" : PURPLE,
+                        color: nudgedIds.has(p.id) ? PURPLE : "#fff",
+                      }}
+                    >
+                      <Zap size={14} strokeWidth={2.5} />
+                      {nudgedIds.has(p.id) ? "Nudged" : "Nudge"}
+                    </button>
                   )}
                 </div>
               );
