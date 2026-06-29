@@ -16,45 +16,45 @@ export function OnboardingSheet({ onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[80] flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full bg-white rounded-t-3xl pt-3 pb-8 px-5 max-h-[92dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
-        <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
+      <div className="relative w-full bg-white rounded-t-3xl pt-3 max-h-[92dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
+        <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300 shrink-0" />
 
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white shadow-sm flex items-center justify-center text-neutral-500"
+          className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white shadow-sm flex items-center justify-center text-neutral-500 z-10"
         >
           <X size={18} />
         </button>
 
-        <div className="mt-6">
+        <div className="mt-6 px-5 overflow-y-auto flex-1 pb-4">
           {step === 0 && <StepCommitment />}
           {step === 1 && <StepProof />}
           {step === 2 && <StepSupport />}
         </div>
 
-        {/* Pagination dots */}
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {Array.from({ length: total }).map((_, i) => (
-            <span
-              key={i}
-              className="rounded-full transition-all"
-              style={{
-                width: i === step ? 22 : 6,
-                height: 6,
-                background: i === step ? PURPLE : "#E5DED4",
-              }}
-            />
-          ))}
+        <div className="shrink-0 px-5 pt-3 pb-8 bg-white border-t border-neutral-100">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            {Array.from({ length: total }).map((_, i) => (
+              <span
+                key={i}
+                className="rounded-full transition-all"
+                style={{
+                  width: i === step ? 22 : 6,
+                  height: 6,
+                  background: i === step ? PURPLE : "#E5DED4",
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={() => (isLast ? onClose() : setStep(step + 1))}
+            className="w-full rounded-full py-4 text-white text-[16px] font-semibold shadow-lg"
+            style={{ background: PURPLE, boxShadow: `0 10px 30px -10px ${PURPLE}` }}
+          >
+            {isLast ? "Got it" : "Next"}
+          </button>
         </div>
-
-        <button
-          onClick={() => (isLast ? onClose() : setStep(step + 1))}
-          className="mt-5 w-full rounded-full py-4 text-white text-[16px] font-semibold shadow-lg"
-          style={{ background: PURPLE, boxShadow: `0 10px 30px -10px ${PURPLE}` }}
-        >
-          {isLast ? "Got it" : "Next"}
-        </button>
       </div>
     </div>
   );
