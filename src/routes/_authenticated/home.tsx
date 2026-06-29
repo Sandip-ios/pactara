@@ -486,7 +486,8 @@ function HomePage() {
         </div>
       )}
 
-      <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />
+      {/* Getting started checklist hidden for now */}
+      {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
 
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
     </div>
