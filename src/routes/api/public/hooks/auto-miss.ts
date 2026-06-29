@@ -22,22 +22,18 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Find every user that is a member of at least one group, with their primary group + tz.
+        // Find every membership (user × group). Missed posts are per-group.
         const { data: memberships, error: mErr } = await supabaseAdmin
           .from("group_members")
-          .select("user_id, group_id, joined_at")
-          .order("joined_at", { ascending: false });
+          .select("user_id, group_id, joined_at");
         if (mErr) {
           return Response.json({ error: mErr.message }, { status: 500 });
         }
 
-        // Keep only the most recent membership per user (their "primary" group).
-        const primary = new Map<string, { groupId: string; joinedAt: string }>();
-        for (const m of memberships ?? []) {
-          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id, joinedAt: m.joined_at });
-        }
-        const userIds = Array.from(primary.keys());
+        const allMemberships = memberships ?? [];
+        const userIds = Array.from(new Set(allMemberships.map((m) => m.user_id)));
         if (userIds.length === 0) return Response.json({ ok: true, scanned: 0 });
+
 
         const { data: profs, error: pErr } = await supabaseAdmin
           .from("profiles")
@@ -45,31 +41,35 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           .in("id", userIds);
         if (pErr) return Response.json({ error: pErr.message }, { status: 500 });
 
+        const tzByUser = new Map<string, string>();
+        for (const p of profs ?? []) tzByUser.set(p.id, p.timezone || "UTC");
+
         const now = new Date();
         let ritualMissed = 0;
         let checkInMissed = 0;
 
-        for (const prof of profs ?? []) {
-          const tz = prof.timezone || "UTC";
-          const { groupId, joinedAt } = primary.get(prof.id)!;
+        for (const m of allMemberships) {
+          const tz = tzByUser.get(m.user_id) || "UTC";
+          const userId = m.user_id;
+          const groupId = m.group_id;
+          const joinedAt = m.joined_at;
           const today = localDateFor(tz, now);
           const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
           // ── Missed morning ritual: past noon, no ritual posted today.
-          // Only counts for days on/after the user joined the group.
           if (hour >= 12 && today >= joinedLocalDate) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")
               .select("id, morning_ritual_posted_at, morning_missed")
-              .eq("user_id", prof.id)
+              .eq("user_id", userId)
               .eq("group_id", groupId)
               .eq("local_date", today)
               .maybeSingle();
 
             if (!existing) {
               const { error } = await supabaseAdmin.from("daily_posts").insert({
-                user_id: prof.id,
+                user_id: userId,
                 group_id: groupId,
                 local_date: today,
                 morning_missed: true,
@@ -84,6 +84,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             }
           }
 
+
           // ── Missed check-in: it's now past midnight in their tz, so yesterday is closed.
           // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
           // Only counts if the user was already a member on that day.
@@ -92,7 +93,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             const { data: y } = await supabaseAdmin
               .from("daily_posts")
               .select("id, check_in_id, check_in_missed")
-              .eq("user_id", prof.id)
+              .eq("user_id", userId)
               .eq("group_id", groupId)
               .eq("local_date", yesterday)
               .maybeSingle();
@@ -100,7 +101,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             if (!y) {
               // No record at all for yesterday → both missed
               const { error } = await supabaseAdmin.from("daily_posts").insert({
-                user_id: prof.id,
+                user_id: userId,
                 group_id: groupId,
                 local_date: yesterday,
                 morning_missed: true,
