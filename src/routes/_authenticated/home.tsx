@@ -6,6 +6,7 @@ import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
+import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { supabase } from "@/integrations/supabase/client";
