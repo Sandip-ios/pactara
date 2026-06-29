@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, Flame } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
@@ -84,6 +85,9 @@ function JoinPage() {
         localStorage.setItem("active-group-id", groupId);
       }
       router.invalidate();
+      toast.success(`Welcome to ${data.emoji ?? "🔥"} ${data.name}!`, {
+        description: "You're in. Say hi to your crew.",
+      });
       navigate({ to: "/home" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't join the group");
