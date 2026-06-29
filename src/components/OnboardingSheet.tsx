@@ -5,6 +5,7 @@ type Props = { firstName: string; onClose: () => void };
 
 const SERIF = 'Georgia, "Times New Roman", serif';
 const INK = "#1A1B2A";
+const PURPLE = "#7C3AED";
 
 export function OnboardingSheet({ onClose }: Props) {
   const [step, setStep] = useState(0);
@@ -40,7 +41,7 @@ export function OnboardingSheet({ onClose }: Props) {
               style={{
                 width: i === step ? 22 : 6,
                 height: 6,
-                background: i === step ? INK : "#E5DED4",
+                background: i === step ? PURPLE : "#E5DED4",
               }}
             />
           ))}
@@ -48,8 +49,8 @@ export function OnboardingSheet({ onClose }: Props) {
 
         <button
           onClick={() => (isLast ? onClose() : setStep(step + 1))}
-          className="mt-5 w-full rounded-full py-4 text-white text-[16px] font-semibold"
-          style={{ background: INK }}
+          className="mt-5 w-full rounded-full py-4 text-white text-[16px] font-semibold shadow-lg"
+          style={{ background: PURPLE, boxShadow: `0 10px 30px -10px ${PURPLE}` }}
         >
           {isLast ? "Got it" : "Next"}
         </button>
