@@ -6,6 +6,7 @@ import { MessageSquare, Image as ImageIcon, Send } from "lucide-react";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
+import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -189,6 +190,7 @@ function HomePage() {
 
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState("");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -249,7 +251,7 @@ function HomePage() {
     }
     if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
       sessionStorage.removeItem("show-welcome");
-      setShowOnboarding(true);
+      setShowWelcome(true);
     }
   }, [status, navigate]);
 
@@ -499,6 +501,7 @@ function HomePage() {
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
 
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
+      {showWelcome && <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />}
     </div>
   );
 }
