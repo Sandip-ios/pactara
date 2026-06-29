@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import proofAsset from "@/assets/proof.jpg.asset.json";
 
 type Props = { firstName: string; onClose: () => void };
 
@@ -92,7 +93,7 @@ function StepProof() {
     <div>
       <div className="rounded-3xl px-6 py-8 flex items-center justify-center" style={{ background: "#E9DEFB" }}>
         <div className="relative w-[180px] h-[230px] rounded-2xl overflow-hidden border-4 border-[#1A1B2A] bg-neutral-800">
-          <div className="absolute inset-0 bg-gradient-to-b from-neutral-600 to-neutral-900" />
+          <img src={proofAsset.url} alt="Check-in proof" loading="lazy" width={512} height={672} className="absolute inset-0 h-full w-full object-cover" />
           <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full text-white text-[11px] font-semibold" style={{ background: "#7C3AED" }}>
             Leg day ✓
           </span>
