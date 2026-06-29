@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, Flame } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
