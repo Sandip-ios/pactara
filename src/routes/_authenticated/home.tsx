@@ -214,6 +214,24 @@ function HomePage() {
     },
   });
 
+  const nudgeFn = useServerFn(nudgeUser);
+  const [nudgedIds, setNudgedIds] = useState<Set<string>>(new Set());
+  const nudgeMutation = useMutation({
+    mutationFn: nudgeFn,
+    onSuccess: (res, vars) => {
+      const id = (vars as { data: { targetUserId: string } }).data.targetUserId;
+      setNudgedIds((prev) => new Set(prev).add(id));
+      if (res?.ok && (res.sent ?? 0) > 0) {
+        toast.success("Nudge sent");
+      } else if (res?.ok) {
+        toast("Nudge sent — they'll see it next time they open the app");
+      } else {
+        toast.error("Couldn't send nudge");
+      }
+    },
+    onError: () => toast.error("Couldn't send nudge"),
+  });
+
   const submitThought = async () => {
     const text = composerText.trim();
     if (!text && !imageFile) return;
