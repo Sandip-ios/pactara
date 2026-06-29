@@ -18,6 +18,112 @@ async function signAvatar(
 }
 
 /**
+ * Public preview of a group for the invite landing page. Returns minimal
+ * info (name, emoji, member count, member display names + avatars, and the
+ * inviter — the group owner). Uses the admin client server-side and projects
+ * only safe columns.
+ */
+export const getGroupPreview = createServerFn({ method: "GET" })
+  .inputValidator((input: { groupId: string }) => {
+    const id = String(input?.groupId ?? "").trim();
+    if (!id) throw new Error("Group ID required");
+    return { groupId: id };
+  })
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: group, error: gErr } = await supabaseAdmin
+      .from("groups")
+      .select("id, name, emoji, owner_id, created_at")
+      .eq("id", data.groupId)
+      .maybeSingle();
+    if (gErr) throw new Error(gErr.message);
+    if (!group) throw new Error("Group not found");
+
+    const { data: members, error: mErr } = await supabaseAdmin
+      .from("group_members")
+      .select("user_id, joined_at")
+      .eq("group_id", data.groupId)
+      .order("joined_at", { ascending: true });
+    if (mErr) throw new Error(mErr.message);
+
+    const memberIds = (members ?? []).map((m) => m.user_id);
+    const { data: profiles } = await supabaseAdmin
+      .from("profiles")
+      .select("id, name, avatar_color, avatar_url")
+      .in("id", memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const signed = await Promise.all(
+      (profiles ?? []).map(async (p) => {
+        const path = (p as { avatar_url?: string | null }).avatar_url ?? null;
+        let url: string | null = null;
+        if (path) {
+          const { data: s } = await supabaseAdmin.storage
+            .from("avatars")
+            .createSignedUrl(path, 60 * 60);
+          url = s?.signedUrl ?? null;
+        }
+        return {
+          id: p.id,
+          name: (p.name ?? "").split(" ")[0] || "Member",
+          fullName: (p.name ?? "") as string,
+          avatarColor: (p as { avatar_color?: string | null }).avatar_color ?? "#7C3AED",
+          avatarUrl: url,
+        };
+      }),
+    );
+
+    const inviter = signed.find((s) => s.id === group.owner_id) ?? signed[0] ?? null;
+
+    return {
+      id: group.id,
+      name: group.name as string,
+      emoji: (group.emoji as string) ?? "🔥",
+      memberCount: signed.length,
+      members: signed,
+      inviter,
+    };
+  });
+
+/**
+ * Joins the current user to a group via an invite link. Idempotent.
+ */
+export const joinGroupById = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId: string }) => {
+    const id = String(input?.groupId ?? "").trim();
+    if (!id) throw new Error("Group ID required");
+    return { groupId: id };
+  })
+  .handler(async ({ data, context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: group, error: gErr } = await supabaseAdmin
+      .from("groups")
+      .select("id")
+      .eq("id", data.groupId)
+      .maybeSingle();
+    if (gErr) throw new Error(gErr.message);
+    if (!group) throw new Error("Group not found");
+
+    const { data: existing } = await supabaseAdmin
+      .from("group_members")
+      .select("id")
+      .eq("group_id", data.groupId)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!existing) {
+      const { error } = await supabaseAdmin
+        .from("group_members")
+        .insert({ group_id: data.groupId, user_id: userId });
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true, groupId: data.groupId };
+  });
+
+/**
  * Returns the current user's primary (most recent) group along with the
  * member count and the user's display name. Used to gate the home screen
  * against the invite screen.

@@ -75,7 +75,15 @@ function LoginPage() {
       sessionStorage.removeItem("invite-dismissed");
       sessionStorage.removeItem("show-welcome");
     }
-    navigate({ to: "/home" });
+    const pendingInvite =
+      typeof sessionStorage !== "undefined"
+        ? sessionStorage.getItem("pending-invite-group")
+        : null;
+    if (pendingInvite) {
+      navigate({ to: "/join/$groupId", params: { groupId: pendingInvite } });
+    } else {
+      navigate({ to: "/home" });
+    }
   };
 
   return (
