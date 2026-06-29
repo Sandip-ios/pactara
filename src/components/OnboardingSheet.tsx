@@ -5,6 +5,7 @@ type Props = { firstName: string; onClose: () => void };
 
 const SERIF = 'Georgia, "Times New Roman", serif';
 const INK = "#1A1B2A";
+const PURPLE = "#7C3AED";
 
 export function OnboardingSheet({ onClose }: Props) {
   const [step, setStep] = useState(0);
