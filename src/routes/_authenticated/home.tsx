@@ -251,7 +251,7 @@ function HomePage() {
     }
     if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
       sessionStorage.removeItem("show-welcome");
-      setShowOnboarding(true);
+      setShowWelcome(true);
     }
   }, [status, navigate]);
 
