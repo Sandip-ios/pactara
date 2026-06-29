@@ -41,31 +41,35 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           .in("id", userIds);
         if (pErr) return Response.json({ error: pErr.message }, { status: 500 });
 
+        const tzByUser = new Map<string, string>();
+        for (const p of profs ?? []) tzByUser.set(p.id, p.timezone || "UTC");
+
         const now = new Date();
         let ritualMissed = 0;
         let checkInMissed = 0;
 
-        for (const prof of profs ?? []) {
-          const tz = prof.timezone || "UTC";
-          const { groupId, joinedAt } = primary.get(prof.id)!;
+        for (const m of allMemberships) {
+          const tz = tzByUser.get(m.user_id) || "UTC";
+          const userId = m.user_id;
+          const groupId = m.group_id;
+          const joinedAt = m.joined_at;
           const today = localDateFor(tz, now);
           const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
           // ── Missed morning ritual: past noon, no ritual posted today.
-          // Only counts for days on/after the user joined the group.
           if (hour >= 12 && today >= joinedLocalDate) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")
               .select("id, morning_ritual_posted_at, morning_missed")
-              .eq("user_id", prof.id)
+              .eq("user_id", userId)
               .eq("group_id", groupId)
               .eq("local_date", today)
               .maybeSingle();
 
             if (!existing) {
               const { error } = await supabaseAdmin.from("daily_posts").insert({
-                user_id: prof.id,
+                user_id: userId,
                 group_id: groupId,
                 local_date: today,
                 morning_missed: true,
@@ -79,6 +83,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
               if (!error) ritualMissed++;
             }
           }
+
 
           // ── Missed check-in: it's now past midnight in their tz, so yesterday is closed.
           // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
