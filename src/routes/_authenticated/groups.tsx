@@ -43,12 +43,22 @@ export const Route = createFileRoute("/_authenticated/groups")({
   component: GroupsPage,
 });
 
+type GroupMember = {
+  id: string;
+  name: string;
+  avatarColor: string;
+  avatarUrl: string | null;
+  isYou: boolean;
+  isAdmin: boolean;
+};
+
 type GroupItem = {
   id: string;
   name: string;
   emoji: string;
   isAdmin: boolean;
   memberCount: number;
+  members?: GroupMember[];
   createdAt?: string;
 };
 
