@@ -48,6 +48,24 @@ function formatLocalDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+function formatInTimezone(d: Date, tz: string) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(d);
+    const y = parts.find((p) => p.type === "year")?.value ?? "1970";
+    const m = parts.find((p) => p.type === "month")?.value ?? "01";
+    const day = parts.find((p) => p.type === "day")?.value ?? "01";
+    return `${y}-${m}-${day}`;
+  } catch {
+    return formatLocalDate(d);
+  }
+}
+
+
 function timelineDateFor(iso: string) {
   const d = new Date(iso);
   d.setHours(d.getHours() - TIMELINE_DAY_START_HOUR);
@@ -422,11 +440,12 @@ function HomePage() {
         <div className="pb-2">
           {(() => {
             const sorted = splitFeedIntoTimelineCards(feedData!.items);
+            const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
             const today = new Date();
-            const todayStr = formatLocalDate(today);
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
-            const yesterdayStr = formatLocalDate(yesterday);
+            const todayStr = formatInTimezone(today, userTz);
+            const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+            const yesterdayStr = formatInTimezone(yesterday, userTz);
+
             const labelFor = (iso: string) => {
               if (iso === todayStr) return "Today";
               if (iso === yesterdayStr) return "Yesterday";
