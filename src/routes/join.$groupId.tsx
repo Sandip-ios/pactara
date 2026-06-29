@@ -235,12 +235,12 @@ function JoinPage() {
         )}
       </section>
 
-      {/* Sticky CTA */}
-      <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-6 bg-white border-t border-neutral-100">
+      {/* Floating CTA */}
+      <div className="fixed left-0 right-0 bottom-0 px-4 pt-8 pb-6 pointer-events-none z-50" style={{ background: "linear-gradient(180deg, rgba(245,242,238,0) 0%, rgba(245,242,238,0.9) 40%, rgba(245,242,238,1) 100%)" }}>
         <button
           onClick={handleJoin}
           disabled={isLoading || joining || !authReady}
-          className="w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
+          className="pointer-events-auto w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
           style={{
             background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
             boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
