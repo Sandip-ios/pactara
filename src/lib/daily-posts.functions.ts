@@ -351,6 +351,60 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     }
     if (!groupId) return { items: [] };
 
+    // Ensure today's missed morning rituals exist as soon as each member passes
+    // noon locally, even if the hourly job has not run against this group yet.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: groupMembers } = await supabaseAdmin
+      .from("group_members")
+      .select("user_id, joined_at")
+      .eq("group_id", groupId);
+    const memberIdsForMisses = Array.from(new Set((groupMembers ?? []).map((m) => m.user_id)));
+    if (memberIdsForMisses.length > 0) {
+      const { data: memberProfiles } = await supabaseAdmin
+        .from("profiles")
+        .select("id, timezone")
+        .in("id", memberIdsForMisses);
+      const timezoneByMember = new Map((memberProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
+      const nowForMisses = new Date();
+      const candidates = (groupMembers ?? [])
+        .map((m) => {
+          const timezone = timezoneByMember.get(m.user_id) ?? "UTC";
+          const today = localDateFor(timezone, nowForMisses);
+          const joinedLocalDate = localDateFor(timezone, new Date(m.joined_at));
+          return { userId: m.user_id, today, eligible: localHourFor(timezone, nowForMisses) >= 12 && today >= joinedLocalDate };
+        })
+        .filter((m) => m.eligible);
+
+      if (candidates.length > 0) {
+        const candidateDates = Array.from(new Set(candidates.map((c) => c.today)));
+        const { data: existingTodayPosts } = await supabaseAdmin
+          .from("daily_posts")
+          .select("id, user_id, local_date, morning_ritual_posted_at, morning_missed")
+          .eq("group_id", groupId)
+          .in("user_id", memberIdsForMisses)
+          .in("local_date", candidateDates);
+        const existingByMemberDate = new Map(
+          (existingTodayPosts ?? []).map((p) => [`${p.user_id}:${p.local_date}`, p] as const),
+        );
+
+        await Promise.all(
+          candidates.map(async (candidate) => {
+            const existing = existingByMemberDate.get(`${candidate.userId}:${candidate.today}`);
+            if (!existing) {
+              await supabaseAdmin.from("daily_posts").insert({
+                user_id: candidate.userId,
+                group_id: groupId,
+                local_date: candidate.today,
+                morning_missed: true,
+              });
+            } else if (!existing.morning_ritual_posted_at && !existing.morning_missed) {
+              await supabaseAdmin.from("daily_posts").update({ morning_missed: true }).eq("id", existing.id);
+            }
+          }),
+        );
+      }
+    }
+
 
     const { data: posts, error } = await supabase
       .from("daily_posts")

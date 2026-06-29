@@ -101,7 +101,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
     if (!memberships || memberships.length === 0) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("name, avatar_color, avatar_url")
+        .select("name, avatar_color, avatar_url, timezone")
         .eq("id", userId)
         .maybeSingle();
       const avatarUrl = await signAvatar(
@@ -113,6 +113,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
         firstName: (profile?.name ?? "").split(" ")[0] || "there",
         avatarColor: profile?.avatar_color ?? "#22C55E",
         avatarUrl,
+        timezone: profile?.timezone ?? "UTC",
       };
     }
 
@@ -131,7 +132,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color, avatar_url")
+      .select("name, avatar_color, avatar_url, timezone")
       .eq("id", userId)
       .maybeSingle();
     const avatarUrl = await signAvatar(
@@ -158,6 +159,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
       firstName: (profile?.name ?? "").split(" ")[0] || "there",
       avatarColor: profile?.avatar_color ?? "#22C55E",
       avatarUrl,
+      timezone: profile?.timezone ?? "UTC",
     };
   });
 
