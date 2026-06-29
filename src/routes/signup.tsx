@@ -540,7 +540,7 @@ function EmailStep({
 
 
 /* ------------ Step: Photo ------------ */
-function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: string | null) => void }) {
+function PhotoStep({ photo, setPhoto, setPhotoFile }: { photo: string | null; setPhoto: (v: string | null) => void; setPhotoFile: (f: File | null) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -548,6 +548,7 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPhoto(url);
+    setPhotoFile(file);
   };
 
   return (
