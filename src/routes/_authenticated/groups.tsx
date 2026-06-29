@@ -314,7 +314,6 @@ function GroupCard({
       {/* Member rows */}
       <div className="divide-y divide-neutral-100">
         <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
           <div className="flex-1 text-[14px] text-neutral-600">
             {group.memberCount} {group.memberCount === 1 ? "member" : "members"}
           </div>
@@ -322,24 +321,31 @@ function GroupCard({
             <CalendarDays size={12} />
             {daysLeft}d left
           </div>
-          <div className="flex items-center gap-1 ml-2 text-[14px] font-semibold" style={{ color: PURPLE }}>
-            <Flame size={16} className="text-orange-500" />
-            0
-          </div>
         </div>
 
-        <div className="px-4 py-3 flex items-center gap-3">
-          <Avatar color={avatarColor} initials={initials} url={avatarUrl} />
-          <div className="flex-1">
-            <div className="text-[15px] font-bold leading-tight">You</div>
-            <div className="text-[12px] text-neutral-500">{group.isAdmin ? "Admin" : "Member"}</div>
+        {(group.members ?? []).map((m) => (
+          <div key={m.id} className="px-4 py-3 flex items-center gap-3">
+            <Avatar
+              color={m.avatarColor}
+              initials={(m.name || "U").slice(0, 1).toUpperCase()}
+              url={m.avatarUrl}
+            />
+            <div className="flex-1 min-w-0">
+              <div className="text-[15px] font-bold leading-tight truncate">
+                {m.isYou ? "You" : m.name}
+              </div>
+              <div className="text-[12px] text-neutral-500">
+                {m.isAdmin ? "Admin" : "Member"}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-[14px] font-semibold" style={{ color: PURPLE }}>
+              <Flame size={16} className="text-orange-500" />
+              0
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-[14px] font-semibold" style={{ color: PURPLE }}>
-            <Flame size={16} className="text-orange-500" />
-            0
-          </div>
-        </div>
+        ))}
       </div>
+
 
       {/* Actions */}
       <div className="px-3 pt-2 pb-3 grid grid-cols-2 gap-2">
