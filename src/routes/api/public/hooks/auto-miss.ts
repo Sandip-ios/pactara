@@ -22,22 +22,18 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Find every user that is a member of at least one group, with their primary group + tz.
+        // Find every membership (user × group). Missed posts are per-group.
         const { data: memberships, error: mErr } = await supabaseAdmin
           .from("group_members")
-          .select("user_id, group_id, joined_at")
-          .order("joined_at", { ascending: false });
+          .select("user_id, group_id, joined_at");
         if (mErr) {
           return Response.json({ error: mErr.message }, { status: 500 });
         }
 
-        // Keep only the most recent membership per user (their "primary" group).
-        const primary = new Map<string, { groupId: string; joinedAt: string }>();
-        for (const m of memberships ?? []) {
-          if (!primary.has(m.user_id)) primary.set(m.user_id, { groupId: m.group_id, joinedAt: m.joined_at });
-        }
-        const userIds = Array.from(primary.keys());
+        const allMemberships = memberships ?? [];
+        const userIds = Array.from(new Set(allMemberships.map((m) => m.user_id)));
         if (userIds.length === 0) return Response.json({ ok: true, scanned: 0 });
+
 
         const { data: profs, error: pErr } = await supabaseAdmin
           .from("profiles")
