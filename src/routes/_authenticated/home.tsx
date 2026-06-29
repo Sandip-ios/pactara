@@ -455,9 +455,18 @@ function HomePage() {
                       Check in
                     </button>
                   ) : (
-                    <div className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold text-neutral-400 text-center">
-                      Waiting…
-                    </div>
+                    <button
+                      onClick={() => nudgeMutation.mutate({ data: { targetUserId: p.id } })}
+                      disabled={nudgeMutation.isPending || nudgedIds.has(p.id)}
+                      className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60"
+                      style={{
+                        background: nudgedIds.has(p.id) ? "#EFE9FB" : PURPLE,
+                        color: nudgedIds.has(p.id) ? PURPLE : "#fff",
+                      }}
+                    >
+                      <Zap size={14} strokeWidth={2.5} />
+                      {nudgedIds.has(p.id) ? "Nudged" : "Nudge"}
+                    </button>
                   )}
                 </div>
               );
