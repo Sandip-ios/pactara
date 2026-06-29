@@ -98,14 +98,10 @@ function JoinPage() {
   return (
     <div className="min-h-[100dvh] w-full pb-32" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       {/* Header */}
-      <header className="bg-white px-6 pt-5 pb-4 flex items-center gap-2">
-        <div
-          className="h-8 w-8 rounded-lg flex items-center justify-center text-[18px]"
-          style={{ background: PURPLE }}
-        >
-          🔥
+      <header className="bg-white px-6 pt-5 pb-4 flex items-center">
+        <div className="text-[24px] font-black tracking-tight">
+          <span style={{ color: PURPLE }}>P</span><span>actara</span>
         </div>
-        <div className="text-[22px] font-black tracking-tight">Pactara</div>
       </header>
 
       {/* Purple banner */}
