@@ -440,7 +440,7 @@ function HomePage() {
         <div className="pb-2">
           {(() => {
             const sorted = splitFeedIntoTimelineCards(feedData!.items);
-            const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+            const userTz = groupsData?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
             const today = new Date();
             const todayStr = formatInTimezone(today, userTz);
             const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
