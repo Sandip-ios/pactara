@@ -232,9 +232,29 @@ export const listMyGroups = createServerFn({ method: "GET" })
 
     const { data: allMembers, error: amErr } = await supabase
       .from("group_members")
-      .select("group_id, user_id")
+      .select("group_id, user_id, joined_at")
       .in("group_id", groupIds);
     if (amErr) throw new Error(amErr.message);
+
+    const allMemberIds = Array.from(new Set((allMembers ?? []).map((m) => m.user_id)));
+    const { data: memberProfiles } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_color, avatar_url")
+      .in("id", allMemberIds.length ? allMemberIds : ["00000000-0000-0000-0000-000000000000"]);
+
+    const profileById = new Map<string, { id: string; name: string; avatarColor: string; avatarUrl: string | null }>();
+    await Promise.all(
+      (memberProfiles ?? []).map(async (p) => {
+        const path = (p as { avatar_url?: string | null }).avatar_url ?? null;
+        const url = await signAvatar(supabase, path);
+        profileById.set(p.id as string, {
+          id: p.id as string,
+          name: ((p.name as string) ?? "").trim(),
+          avatarColor: (p as { avatar_color?: string | null }).avatar_color ?? "#7C3AED",
+          avatarUrl: url,
+        });
+      }),
+    );
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -247,13 +267,27 @@ export const listMyGroups = createServerFn({ method: "GET" })
     );
 
     const out = (groups ?? []).map((g) => {
-      const members = (allMembers ?? []).filter((m) => m.group_id === g.id);
+      const members = (allMembers ?? [])
+        .filter((m) => m.group_id === g.id)
+        .sort((a, b) => new Date(a.joined_at as string).getTime() - new Date(b.joined_at as string).getTime())
+        .map((m) => {
+          const p = profileById.get(m.user_id);
+          return {
+            id: m.user_id as string,
+            name: p?.name || "Member",
+            avatarColor: p?.avatarColor || "#7C3AED",
+            avatarUrl: p?.avatarUrl ?? null,
+            isYou: m.user_id === userId,
+            isAdmin: g.owner_id === m.user_id,
+          };
+        });
       return {
         id: g.id,
         name: g.name,
         emoji: g.emoji,
         isAdmin: g.owner_id === userId,
         memberCount: members.length,
+        members,
         createdAt: g.created_at,
       };
     });
