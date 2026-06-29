@@ -85,6 +85,9 @@ function JoinPage() {
         localStorage.setItem("active-group-id", groupId);
       }
       router.invalidate();
+      toast.success(`Welcome to ${data.emoji ?? "🔥"} ${data.name}!`, {
+        description: "You're in. Say hi to your crew.",
+      });
       navigate({ to: "/home" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't join the group");
