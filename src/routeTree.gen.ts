@@ -16,6 +16,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
@@ -66,6 +67,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
+  id: '/join/$groupId',
+  path: '/join/$groupId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
@@ -176,6 +182,7 @@ export interface FileRoutesByFullPath {
   '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/join/$groupId': typeof JoinGroupIdRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/join/$groupId': typeof JoinGroupIdRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/join/$groupId': typeof JoinGroupIdRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/new-pactara'
     | '/profile'
+    | '/join/$groupId'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/new-pactara'
     | '/profile'
+    | '/join/$groupId'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -306,6 +317,7 @@ export interface FileRouteTypes {
     | '/_authenticated/invite'
     | '/_authenticated/new-pactara'
     | '/_authenticated/profile'
+    | '/join/$groupId'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
     | '/_authenticated/account-settings/notifications'
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   PaywallPreviewRoute: typeof PaywallPreviewRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  JoinGroupIdRoute: typeof JoinGroupIdRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
 }
@@ -381,6 +394,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/join/$groupId': {
+      id: '/join/$groupId'
+      path: '/join/$groupId'
+      fullPath: '/join/$groupId'
+      preLoaderRoute: typeof JoinGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/profile': {
@@ -556,6 +576,7 @@ const rootRouteChildren: RootRouteChildren = {
   PaywallPreviewRoute: PaywallPreviewRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  JoinGroupIdRoute: JoinGroupIdRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksMorningRitualReminderRoute:
     ApiPublicHooksMorningRitualReminderRoute,

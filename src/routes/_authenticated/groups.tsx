@@ -139,6 +139,12 @@ function GroupsPage() {
           />
           <button
             disabled={!joinUrl.trim()}
+            onClick={() => {
+              const match = joinUrl.trim().match(/\/join\/([^/?#]+)/i);
+              const id = match?.[1] ?? joinUrl.trim();
+              if (!id) return;
+              navigate({ to: "/join/$groupId", params: { groupId: id } });
+            }}
             className="px-5 rounded-2xl text-white text-[15px] font-semibold disabled:opacity-50"
             style={{ background: PURPLE }}
           >
