@@ -40,6 +40,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import goodCompany from "@/assets/good-company.jpg.asset.json";
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
+import { setAvatarPath } from "@/lib/profile.functions";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -124,6 +125,7 @@ function SignupFlow() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
@@ -184,6 +186,18 @@ function SignupFlow() {
         }
       }
       await setMyName({ data: { name: fullName } });
+      if (photoFile && session?.user) {
+        try {
+          const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
+          const path = `${session.user.id}/avatar-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage
+            .from("avatars")
+            .upload(path, photoFile, { upsert: true, contentType: photoFile.type });
+          if (!upErr) await setAvatarPath({ data: { path } });
+        } catch (err) {
+          console.error("Avatar upload during signup failed", err);
+        }
+      }
       const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
       await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
@@ -288,7 +302,7 @@ function SignupFlow() {
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
         {step === "email" && <EmailStep firstName={firstName} email={email} setEmail={setEmail} />}
-        {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} />}
+        {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} setPhotoFile={setPhotoFile} />}
         {step === "goal" && <GoalStep goal={goal} setGoal={setGoal} />}
         {step === "group" && (
           <GroupStep
@@ -538,7 +552,7 @@ function EmailStep({
 
 
 /* ------------ Step: Photo ------------ */
-function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: string | null) => void }) {
+function PhotoStep({ photo, setPhoto, setPhotoFile }: { photo: string | null; setPhoto: (v: string | null) => void; setPhotoFile: (f: File | null) => void }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -546,6 +560,7 @@ function PhotoStep({ photo, setPhoto }: { photo: string | null; setPhoto: (v: st
     if (!file) return;
     const url = URL.createObjectURL(file);
     setPhoto(url);
+    setPhotoFile(file);
   };
 
   return (
