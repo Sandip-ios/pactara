@@ -12,7 +12,7 @@ export function OnboardingSheet({ onClose }: Props) {
   const isLast = step === total - 1;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="fixed inset-0 z-[80] flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full bg-[#F7F3EE] rounded-t-3xl pt-3 pb-8 px-5 max-h-[92dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
         <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
