@@ -326,3 +326,66 @@ function Row({
     </button>
   );
 }
+
+function InsightRow({
+  icon,
+  iconBg,
+  label,
+  value,
+  sub,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  label: string;
+  value: string;
+  sub: string;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: iconBg }}
+      >
+        {icon}
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[14px] font-semibold text-neutral-900 leading-tight">{label}</div>
+        <div className="text-[12px] text-neutral-500 leading-tight mt-0.5">{sub}</div>
+      </div>
+      <div className="text-[18px] font-bold text-neutral-900">{value}</div>
+    </div>
+  );
+}
+
+function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: number }) {
+  const delta = thisWeek - lastWeek;
+  const up = delta > 0;
+  const down = delta < 0;
+  const color = up ? "#16A34A" : down ? "#DC2626" : "#A3A3A3";
+  const bg = up ? GREEN_SOFT : down ? RED_SOFT : "#F5F5F5";
+  const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
+  const sign = delta > 0 ? `+${delta}` : String(delta);
+  const sub =
+    lastWeek === 0 && thisWeek === 0
+      ? "No check-ins yet"
+      : `${sign} vs last week (${lastWeek})`;
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: bg }}
+      >
+        <Icon size={18} style={{ color }} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[14px] font-semibold text-neutral-900 leading-tight">
+          This week
+        </div>
+        <div className="text-[12px] text-neutral-500 leading-tight mt-0.5">{sub}</div>
+      </div>
+      <div className="text-[18px] font-bold text-neutral-900">{thisWeek}</div>
+    </div>
+  );
+}
+
+}
