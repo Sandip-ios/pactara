@@ -73,6 +73,15 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       groupName = g?.name ?? null;
     }
 
+    // Earliest joined_at across all groups → days active in the app
+    const { data: firstMembership } = await supabase
+      .from("group_members")
+      .select("joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
     const { data: checkIns } = await supabase
       .from("check_ins")
       .select("checkin_date")
@@ -90,6 +99,46 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       past7.push({ date: s, checked: set.has(s) });
     }
 
+    // Check-in rate: distinct days checked in vs days since joining
+    const uniqueDays = new Set(dates).size;
+    const joinedAt = (firstMembership as { joined_at?: string } | null)?.joined_at;
+    let daysSinceJoin = 1;
+    if (joinedAt) {
+      const joinDate = new Date(joinedAt);
+      const diffMs = Date.now() - joinDate.getTime();
+      daysSinceJoin = Math.max(1, Math.floor(diffMs / 86400000) + 1);
+    }
+    const checkInRatePct = Math.min(
+      100,
+      Math.round((uniqueDays / daysSinceJoin) * 100),
+    );
+
+    // This week vs last week (rolling 7-day windows)
+    const now = Date.now();
+    const dayMs = 86400000;
+    const last7Cut = now - 7 * dayMs;
+    const prev7Cut = now - 14 * dayMs;
+    let thisWeek = 0;
+    let lastWeek = 0;
+    for (const s of dates) {
+      const t = new Date(s + "T00:00:00Z").getTime();
+      if (t >= last7Cut) thisWeek += 1;
+      else if (t >= prev7Cut) lastWeek += 1;
+    }
+
+    // On-time rate: check-ins posted on their own day vs total expected
+    // (check-ins + missed check-in days recorded in daily_posts)
+    const { count: missedCount } = await supabase
+      .from("daily_posts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("check_in_missed", true);
+    const totalExpected = dates.length + (missedCount ?? 0);
+    const onTimeRatePct =
+      totalExpected > 0
+        ? Math.round((dates.length / totalExpected) * 100)
+        : 0;
+
     return {
       name: profile?.name ?? "",
       avatarColor: profile?.avatar_color ?? "#7C3AED",
@@ -99,8 +148,16 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       currentStreak: current,
       bestStreak: best,
       past7,
+      checkInRatePct,
+      daysSinceJoin,
+      uniqueDaysCheckedIn: uniqueDays,
+      thisWeek,
+      lastWeek,
+      onTimeRatePct,
+      missedCount: missedCount ?? 0,
     };
   });
+
 
 export const setAvatarPath = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
