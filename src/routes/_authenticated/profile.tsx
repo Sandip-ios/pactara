@@ -169,7 +169,33 @@ function ProfilePage() {
             </div>
           </div>
         </div>
+
+        {/* Deeper insights */}
+        <div className="mt-3 rounded-2xl bg-white p-5 space-y-4">
+          <div className="text-[16px] font-bold">Insights</div>
+
+          <InsightRow
+            icon={<Percent size={18} style={{ color: PURPLE }} />}
+            iconBg={PURPLE_SOFT}
+            label="Check-in rate"
+            value={`${data?.checkInRatePct ?? 0}%`}
+            sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${data?.daysSinceJoin ?? 0} days`}
+          />
+          <InsightRow
+            icon={<Clock size={18} style={{ color: "#16A34A" }} />}
+            iconBg={GREEN_SOFT}
+            label="On-time rate"
+            value={`${data?.onTimeRatePct ?? 0}%`}
+            sub={
+              (data?.missedCount ?? 0) === 0
+                ? "No missed days yet"
+                : `${data?.missedCount} missed`
+            }
+          />
+          <WeekDeltaRow thisWeek={data?.thisWeek ?? 0} lastWeek={data?.lastWeek ?? 0} />
+        </div>
       </section>
+
 
       {/* Settings */}
       <section className="px-5 pt-6">
