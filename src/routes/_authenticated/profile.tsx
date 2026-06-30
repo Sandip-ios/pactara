@@ -388,4 +388,3 @@ function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: numb
   );
 }
 
-}
