@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, Percent } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { TrendingUp, TrendingDown, Minus, Clock, Percent, ChevronDown } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
 import { Flame, CalendarDays, Target, Zap, SlidersHorizontal, LogOut, ChevronRight, Camera, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
+import { listMyGroups } from "@/lib/groups.functions";
+
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -26,11 +28,28 @@ function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const saveAvatarPath = useServerFn(setAvatarPath);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupPickerOpen, setGroupPickerOpen] = useState(false);
+
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+  });
+  const groups = groupsData?.groups ?? [];
+
+  useEffect(() => {
+    if (!selectedGroupId && groups.length > 0) {
+      setSelectedGroupId(groups[0].id as string);
+    }
+  }, [groups, selectedGroupId]);
 
   const { data } = useQuery({
-    queryKey: ["profile-overview"],
-    queryFn: () => getProfileOverview(),
+    queryKey: ["profile-overview", selectedGroupId],
+    queryFn: () => getProfileOverview({ data: { groupId: selectedGroupId } }),
   });
+
+  const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;
+
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
@@ -143,9 +162,65 @@ function ProfilePage() {
 
       {/* Activity */}
       <section className="px-5 pt-5">
+        {groups.length > 0 && (
+          <div className="relative mb-3">
+            <button
+              type="button"
+              onClick={() => setGroupPickerOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 bg-white rounded-2xl px-4 py-3 text-left"
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                {activeGroup?.emoji && (
+                  <span className="text-[18px] leading-none">{activeGroup.emoji}</span>
+                )}
+                <span className="text-[15px] font-semibold truncate">
+                  {activeGroup?.name ?? "Select group"}
+                </span>
+              </span>
+              <ChevronDown
+                size={18}
+                className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {groupPickerOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-10"
+                  onClick={() => setGroupPickerOpen(false)}
+                />
+                <div className="absolute z-20 left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-neutral-100 overflow-hidden">
+                  {groups.map((g) => {
+                    const active = g.id === selectedGroupId;
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedGroupId(g.id as string);
+                          setGroupPickerOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-50"
+                        style={active ? { background: PURPLE_SOFT } : undefined}
+                      >
+                        {g.emoji && <span className="text-[18px] leading-none">{g.emoji}</span>}
+                        <span
+                          className="text-[15px] font-semibold truncate flex-1"
+                          style={active ? { color: PURPLE } : undefined}
+                        >
+                          {g.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
         <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
           ACTIVITY
         </div>
+
 
         <div className="grid grid-cols-3 gap-3">
           <StatCard icon={<Flame size={18} style={{ color: PURPLE }} />} bg={PURPLE_SOFT} label="Day streak" value={stat(data?.currentStreak ?? 0)} />
