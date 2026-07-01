@@ -1186,7 +1186,7 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
           </div>
           <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups. Cancel anytime.</p>
           <div className="mt-5 flex items-baseline gap-2">
-            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$9.99</span>
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$12.99</span>
             <span className="text-[16px]" style={{ color: MUTED }}>/ month</span>
           </div>
           <p className="mt-2 text-[14px]" style={{ color: MUTED }}>Starts with your 7-day free trial</p>
@@ -1213,7 +1213,7 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
             className="absolute -top-3 right-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
             style={{ background: ORANGE }}
           >
-            Save 17%
+            Save 48%
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[24px]">⚡</span>
@@ -1221,11 +1221,11 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
           </div>
           <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups, back-to-back challenges, all year.</p>
           <div className="mt-5 flex items-baseline gap-2">
-            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$99</span>
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$79.99</span>
             <span className="text-[16px]" style={{ color: MUTED }}>/ year</span>
           </div>
           <p className="mt-2 text-[14px] font-semibold" style={{ color: ORANGE }}>
-            Just $8.25/mo · starts with your 7-day free trial
+            Just $6.67/mo · starts with your 7-day free trial
           </p>
           <ul className="mt-5 space-y-3">
             {["Everything in Monthly", "Run back-to-back challenges", "Early access to new features"].map((f) => (
@@ -1316,7 +1316,7 @@ function PaywallStep({
     {
       Icon: CreditCard,
       title: "After your trial",
-      body: "$9.99/month, billed automatically until you cancel.",
+      body: "$12.99/month, billed automatically until you cancel.",
     },
   ];
 
@@ -1376,7 +1376,7 @@ function PaywallStep({
             Accountability
           </h1>
           <p className="mt-3 text-[14px] leading-[1.4]" style={{ color: MUTED }}>
-            7 days free, then <span className="font-semibold" style={{ color: INK }}>$9.99/month</span>
+            7 days free, then <span className="font-semibold" style={{ color: INK }}>$12.99/month</span>
             <br />
             cancel anytime before Day 8
           </p>
