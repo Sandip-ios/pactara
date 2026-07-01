@@ -188,14 +188,23 @@ function NotesPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-40">
-        {/* Photo */}
+        {/* Photo or video */}
         {photoPreview && (
           <div className="px-6 pt-5 flex justify-center">
-            <img
-              src={photoPreview}
-              alt="Check-in"
-              className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
-            />
+            {getCheckInPhoto()?.blob.type.startsWith("video/") ? (
+              <video
+                src={photoPreview}
+                controls
+                playsInline
+                className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl bg-black"
+              />
+            ) : (
+              <img
+                src={photoPreview}
+                alt="Check-in"
+                className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
+              />
+            )}
           </div>
         )}
 
