@@ -146,7 +146,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         labelColor: "#DC2626",
         bg: "#FEF2F2",
         border: "#FECACA",
-        body: "No check-in was recorded for this day",
+        body: "Your group missed you yesterday. They're showing up again today.",
         time: timeAgo(node.at),
         dot: { fill: "#FFFFFF", ring: "#DC2626" },
       };
