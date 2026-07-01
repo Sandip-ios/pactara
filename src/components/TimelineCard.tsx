@@ -558,7 +558,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
 
         {nodes.map((node, idx) => {
-          const visual = nodeVisual(node);
+          const visual = nodeVisual(node, item.isMe ? (item.name || "").split(" ")[0] : undefined);
           const isPending = node.kind === "pending";
           const canDelete = item.isMe && node.kind === "check_in";
           return (
