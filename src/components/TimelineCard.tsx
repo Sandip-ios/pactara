@@ -88,7 +88,7 @@ type Visual = {
   time?: string;
 };
 
-function nodeVisual(node: TimelineNode): Visual | null {
+function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
   switch (node.kind) {
     case "ritual":
       return {
@@ -108,7 +108,7 @@ function nodeVisual(node: TimelineNode): Visual | null {
         labelColor: "#B45309",
         bg: "#FEF6E4",
         border: "#FBE4B6",
-        body: "No plan was set for today",
+        body: `Your group is already moving${firstName ? `, ${firstName}` : ""}. Jump in.`,
         time: timeAgo(node.at),
         dot: { fill: "#F59E0B", ring: "#F59E0B" },
       };
@@ -146,7 +146,7 @@ function nodeVisual(node: TimelineNode): Visual | null {
         labelColor: "#DC2626",
         bg: "#FEF2F2",
         border: "#FECACA",
-        body: "No check-in was recorded for this day",
+        body: "Your group missed you yesterday. They're showing up again today.",
         time: timeAgo(node.at),
         dot: { fill: "#FFFFFF", ring: "#DC2626" },
       };
@@ -558,7 +558,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
 
         {nodes.map((node, idx) => {
-          const visual = nodeVisual(node);
+          const visual = nodeVisual(node, item.isMe ? (item.name || "").split(" ")[0] : undefined);
           const isPending = node.kind === "pending";
           const canDelete = item.isMe && node.kind === "check_in";
           return (
