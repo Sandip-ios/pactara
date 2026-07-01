@@ -1186,7 +1186,7 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
           </div>
           <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups. Cancel anytime.</p>
           <div className="mt-5 flex items-baseline gap-2">
-            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$9.99</span>
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$12.99</span>
             <span className="text-[16px]" style={{ color: MUTED }}>/ month</span>
           </div>
           <p className="mt-2 text-[14px]" style={{ color: MUTED }}>Starts with your 7-day free trial</p>
