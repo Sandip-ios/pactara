@@ -294,6 +294,7 @@ function ProfilePage() {
             iconBg={PURPLE_SOFT}
             title="Plan"
             subtitle="Free trial · 7 days free, then $12.99/mo"
+            onClick={() => navigate({ to: "/plan" })}
           />
           <div className="h-px bg-neutral-100 ml-[68px]" />
           <Row

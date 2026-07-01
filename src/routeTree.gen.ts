@@ -18,6 +18,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -77,6 +78,11 @@ const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
@@ -181,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -263,6 +272,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/invite'
     | '/new-pactara'
+    | '/plan'
     | '/profile'
     | '/join/$groupId'
     | '/account-settings/email'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/invite'
     | '/new-pactara'
+    | '/plan'
     | '/profile'
     | '/join/$groupId'
     | '/account-settings/email'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/invite'
     | '/_authenticated/new-pactara'
+    | '/_authenticated/plan'
     | '/_authenticated/profile'
     | '/join/$groupId'
     | '/_authenticated/account-settings/email'
@@ -408,6 +420,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/new-pactara': {
@@ -530,6 +549,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
+  AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
   AuthenticatedAccountSettingsNameRoute: typeof AuthenticatedAccountSettingsNameRoute
@@ -548,6 +568,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInviteRoute: AuthenticatedInviteRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
+  AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedAccountSettingsEmailRoute:
     AuthenticatedAccountSettingsEmailRoute,
