@@ -1376,7 +1376,7 @@ function PaywallStep({
             Accountability
           </h1>
           <p className="mt-3 text-[14px] leading-[1.4]" style={{ color: MUTED }}>
-            7 days free, then <span className="font-semibold" style={{ color: INK }}>$9.99/month</span>
+            7 days free, then <span className="font-semibold" style={{ color: INK }}>$12.99/month</span>
             <br />
             cancel anytime before Day 8
           </p>
