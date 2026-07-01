@@ -610,7 +610,16 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                   {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
                   {visual.photoUrl && (
                     <div className="mt-2 relative">
-                      <img src={visual.photoUrl} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
+                      {/\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(visual.photoUrl) ? (
+                        <video
+                          src={visual.photoUrl}
+                          controls
+                          playsInline
+                          className="w-full rounded-xl object-cover max-h-[360px] bg-black"
+                        />
+                      ) : (
+                        <img src={visual.photoUrl} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
+                      )}
                       {visual.activity && (
                         <div className="absolute top-2 right-2 bg-black/70 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1">
                           <Flame size={14} />

@@ -41,10 +41,14 @@ async function uploadCheckInPhoto(blob: Blob): Promise<string | null> {
       .maybeSingle();
     const groupId = membership?.group_id;
     if (!groupId) return null;
-    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const mime = blob.type || "image/jpeg";
+    const ext = mime.startsWith("video/")
+      ? (mime.split("/")[1]?.split(";")[0] || "mp4").replace("quicktime", "mov")
+      : (mime.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
+    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage
       .from("chat-photos")
-      .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
+      .upload(path, blob, { contentType: mime, upsert: false });
     if (error) {
       console.error("photo upload failed", error);
       return null;
@@ -188,14 +192,23 @@ function NotesPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto pb-40">
-        {/* Photo */}
+        {/* Photo or video */}
         {photoPreview && (
           <div className="px-6 pt-5 flex justify-center">
-            <img
-              src={photoPreview}
-              alt="Check-in"
-              className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
-            />
+            {getCheckInPhoto()?.blob.type.startsWith("video/") ? (
+              <video
+                src={photoPreview}
+                controls
+                playsInline
+                className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl bg-black"
+              />
+            ) : (
+              <img
+                src={photoPreview}
+                alt="Check-in"
+                className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl"
+              />
+            )}
           </div>
         )}
 

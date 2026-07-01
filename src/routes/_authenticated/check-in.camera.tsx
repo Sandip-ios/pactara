@@ -172,11 +172,11 @@ function CameraPage() {
         </button>
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFile} />
+      <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={onFile} />
       <input
         ref={nativeCameraInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         capture="environment"
         className="hidden"
         onChange={onFile}
