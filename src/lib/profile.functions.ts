@@ -155,6 +155,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       currentStreak: current,
       bestStreak: best,
       past7,
+      past90,
       checkInRatePct,
       daysSinceJoin,
       uniqueDaysCheckedIn: uniqueDays,
