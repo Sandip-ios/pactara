@@ -244,6 +244,87 @@ function ProfilePage() {
           </button>
         </div>
       </section>
+
+      {historyOpen && (
+        <HistorySheet
+          days={data?.past90 ?? []}
+          onClose={() => setHistoryOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+function HistorySheet({
+  days,
+  onClose,
+}: {
+  days: { date: string; checked: boolean }[];
+  onClose: () => void;
+}) {
+  const checkedCount = days.filter((d) => d.checked).length;
+  // Group by month
+  const groups = new Map<string, { date: string; checked: boolean }[]>();
+  for (const d of days) {
+    const dt = new Date(d.date + "T00:00:00Z");
+    const key = dt.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(d);
+  }
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div
+        className="relative w-full max-w-md bg-white rounded-t-3xl max-h-[85dvh] flex flex-col"
+        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      >
+        <div className="pt-3 pb-2 flex justify-center">
+          <div className="h-1.5 w-10 rounded-full bg-neutral-200" />
+        </div>
+        <div className="px-6 pb-2">
+          <div className="text-[20px] font-bold">Past 3 months</div>
+          <div className="text-[13px] text-neutral-500 mt-1">
+            {checkedCount} of {days.length} days checked in
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 pb-8 pt-2">
+          {[...groups.entries()].reverse().map(([month, items]) => (
+            <div key={month} className="mb-6">
+              <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3">
+                {month.toUpperCase()}
+              </div>
+              <div className="grid grid-cols-7 gap-1.5">
+                {items.map((d) => {
+                  const dt = new Date(d.date + "T00:00:00Z");
+                  const day = dt.getUTCDate();
+                  return (
+                    <div
+                      key={d.date}
+                      className="aspect-square rounded-md flex items-center justify-center text-[11px] font-semibold"
+                      style={{
+                        background: d.checked ? PURPLE : "#F0EDE8",
+                        color: d.checked ? "white" : "#A3A3A3",
+                      }}
+                      title={d.date}
+                    >
+                      {day}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="p-4 border-t border-neutral-100">
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-full font-semibold text-white"
+            style={{ background: PURPLE }}
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
