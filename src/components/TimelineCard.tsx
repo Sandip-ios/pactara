@@ -1,4 +1,5 @@
 import {
+  useLayoutEffect,
   useRef,
   useState,
   type CSSProperties,
@@ -609,7 +610,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                       )}
                     </div>
                   </div>
-                  {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
+                  {visual.body && <ExpandableText text={visual.body} />}
                   {visual.photoUrl && (() => {
                     const isVideo = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(visual.photoUrl);
                     const src = visual.photoUrl;
@@ -678,3 +679,64 @@ export function TimelineCard({ item }: { item: FeedItem }) {
     </div>
   );
 }
+
+function ExpandableText({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [overflows, setOverflows] = useState(false);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      const prev = el.style.webkitLineClamp;
+      el.style.webkitLineClamp = "2";
+      setOverflows(el.scrollHeight > el.clientHeight + 1);
+      el.style.webkitLineClamp = prev;
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text]);
+
+  return (
+    <div className="mt-1">
+      <div
+        ref={ref}
+        className="text-[15px] text-neutral-900 whitespace-pre-wrap break-words"
+        style={
+          expanded
+            ? undefined
+            : {
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }
+        }
+      >
+        {text}
+      </div>
+      {overflows && !expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="mt-1 text-[14px] font-semibold text-neutral-500 active:opacity-70"
+        >
+          See more
+        </button>
+      )}
+      {overflows && expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          className="mt-1 text-[14px] font-semibold text-neutral-500 active:opacity-70"
+        >
+          See less
+        </button>
+      )}
+    </div>
+  );
+}
+
