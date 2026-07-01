@@ -88,7 +88,7 @@ type Visual = {
   time?: string;
 };
 
-function nodeVisual(node: TimelineNode): Visual | null {
+function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
   switch (node.kind) {
     case "ritual":
       return {
