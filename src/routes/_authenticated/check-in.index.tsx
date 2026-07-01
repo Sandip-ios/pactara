@@ -87,11 +87,13 @@ function insertNumberedLine(el: HTMLTextAreaElement | null, onInput: () => void)
 }
 
 
-function handleListEnter(
-  e: React.KeyboardEvent<HTMLTextAreaElement>,
+function handleListBeforeInput(
+  e: React.FormEvent<HTMLTextAreaElement>,
   onInput: () => void,
 ) {
-  if (e.key !== "Enter" || e.shiftKey) return;
+  const native = e.nativeEvent as InputEvent;
+  const inputType = native.inputType;
+  if (inputType !== "insertLineBreak" && inputType !== "insertParagraph") return;
   const el = e.currentTarget;
   const start = el.selectionStart ?? 0;
   const end = el.selectionEnd ?? start;
@@ -108,16 +110,15 @@ function handleListEnter(
   if (!match) return;
 
   const rest = match[2];
-  // If line only contains the marker (no content), remove marker and don't continue
+  e.preventDefault();
+
   if (rest.trim() === "") {
-    e.preventDefault();
     el.value = value.slice(0, lineStart) + value.slice(lineEnd === -1 ? value.length : lineEnd);
     el.setSelectionRange(lineStart, lineStart);
     onInput();
     return;
   }
 
-  e.preventDefault();
   let prefix = "";
   if (bullet) prefix = "• ";
   else if (check) prefix = "☐ ";
@@ -204,7 +205,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
             ref={textareaRef}
             defaultValue=""
             onInput={onInput}
-            onKeyDown={(e) => handleListEnter(e, onInput)}
+            onBeforeInput={(e) => handleListBeforeInput(e, onInput)}
             maxLength={MAX}
             placeholder="Run 5K before work, hit the gym at 6pm…"
             className="w-full min-h-[180px] rounded-t-2xl bg-transparent p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
