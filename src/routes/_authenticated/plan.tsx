@@ -276,21 +276,6 @@ function PlanPage() {
           ))}
         </div>
 
-        <div
-          className="mt-6 rounded-[18px] p-5 flex gap-3"
-          style={{ background: "#EEF0FF", border: "1px solid #DCE0FF" }}
-        >
-          <Apple size={20} style={{ color: INK }} className="mt-0.5 shrink-0" />
-          <div>
-            <div className="text-[14px] font-semibold" style={{ color: INK }}>
-              Billed through the App Store
-            </div>
-            <div className="text-[13px] mt-1 leading-[1.5]" style={{ color: MUTED }}>
-              When Pactara launches on iOS, subscriptions are managed by Apple. You can
-              cancel anytime from Settings → Apple ID → Subscriptions.
-            </div>
-          </div>
-        </div>
 
         <p className="mt-8 text-center text-[13px] leading-[1.5]" style={{ color: MUTED }}>
           Prices in USD. Subscriptions renew automatically until cancelled.
