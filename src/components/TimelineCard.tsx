@@ -689,16 +689,25 @@ function ExpandableText({ text }: { text: string }) {
     const el = ref.current;
     if (!el) return;
     const check = () => {
-      const prev = el.style.webkitLineClamp;
-      el.style.webkitLineClamp = "2";
-      setOverflows(el.scrollHeight > el.clientHeight + 1);
-      el.style.webkitLineClamp = prev;
+      const clone = el.cloneNode(true) as HTMLDivElement;
+      clone.style.position = "absolute";
+      clone.style.visibility = "hidden";
+      clone.style.pointerEvents = "none";
+      clone.style.display = "-webkit-box";
+      (clone.style as any).webkitLineClamp = "2";
+      (clone.style as any).webkitBoxOrient = "vertical";
+      clone.style.overflow = "hidden";
+      clone.style.width = `${el.clientWidth}px`;
+      el.parentElement?.appendChild(clone);
+      setOverflows(clone.scrollHeight > clone.clientHeight + 1);
+      clone.remove();
     };
     check();
     const ro = new ResizeObserver(check);
     ro.observe(el);
     return () => ro.disconnect();
   }, [text]);
+
 
   return (
     <div className="mt-1">
