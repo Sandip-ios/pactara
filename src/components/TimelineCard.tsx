@@ -108,7 +108,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         labelColor: "#B45309",
         bg: "#FEF6E4",
         border: "#FBE4B6",
-        body: "No plan was set for today",
+        body: `Your group is already moving${firstName ? `, ${firstName}` : ""}. Jump in.`,
         time: timeAgo(node.at),
         dot: { fill: "#F59E0B", ring: "#F59E0B" },
       };
