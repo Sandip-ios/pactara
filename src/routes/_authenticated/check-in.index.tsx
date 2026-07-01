@@ -204,6 +204,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
             ref={textareaRef}
             defaultValue=""
             onInput={onInput}
+            onKeyDown={(e) => handleListEnter(e, onInput)}
             maxLength={MAX}
             placeholder="Run 5K before work, hit the gym at 6pm…"
             className="w-full min-h-[180px] rounded-t-2xl bg-transparent p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
