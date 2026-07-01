@@ -24,6 +24,7 @@ function ProfilePage() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const saveAvatarPath = useServerFn(setAvatarPath);
 
   const { data } = useQuery({
