@@ -293,7 +293,7 @@ function ProfilePage() {
             icon={<Zap size={18} style={{ color: PURPLE }} />}
             iconBg={PURPLE_SOFT}
             title="Plan"
-            subtitle="Free trial · 7 days free, then $9.99/mo"
+            subtitle="Free trial · 7 days free, then $12.99/mo"
           />
           <div className="h-px bg-neutral-100 ml-[68px]" />
           <Row
