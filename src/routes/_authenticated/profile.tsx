@@ -28,11 +28,28 @@ function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const saveAvatarPath = useServerFn(setAvatarPath);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupPickerOpen, setGroupPickerOpen] = useState(false);
+
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+  });
+  const groups = groupsData?.groups ?? [];
+
+  useEffect(() => {
+    if (!selectedGroupId && groups.length > 0) {
+      setSelectedGroupId(groups[0].id as string);
+    }
+  }, [groups, selectedGroupId]);
 
   const { data } = useQuery({
-    queryKey: ["profile-overview"],
-    queryFn: () => getProfileOverview(),
+    queryKey: ["profile-overview", selectedGroupId],
+    queryFn: () => getProfileOverview({ data: { groupId: selectedGroupId } }),
   });
+
+  const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;
+
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
