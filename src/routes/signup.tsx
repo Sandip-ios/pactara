@@ -1213,7 +1213,7 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
             className="absolute -top-3 right-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
             style={{ background: ORANGE }}
           >
-            Save 17%
+            Save 48%
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[24px]">⚡</span>
@@ -1221,11 +1221,11 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
           </div>
           <p className="mt-2 text-[15px]" style={{ color: MUTED }}>Unlimited groups, back-to-back challenges, all year.</p>
           <div className="mt-5 flex items-baseline gap-2">
-            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$99</span>
+            <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>$79.99</span>
             <span className="text-[16px]" style={{ color: MUTED }}>/ year</span>
           </div>
           <p className="mt-2 text-[14px] font-semibold" style={{ color: ORANGE }}>
-            Just $8.25/mo · starts with your 7-day free trial
+            Just $6.67/mo · starts with your 7-day free trial
           </p>
           <ul className="mt-5 space-y-3">
             {["Everything in Monthly", "Run back-to-back challenges", "Early access to new features"].map((f) => (
