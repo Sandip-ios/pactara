@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, Percent } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { TrendingUp, TrendingDown, Minus, Clock, Percent, ChevronDown } from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
 import { Flame, CalendarDays, Target, Zap, SlidersHorizontal, LogOut, ChevronRight, Camera, Award } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
+import { listMyGroups } from "@/lib/groups.functions";
+
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
