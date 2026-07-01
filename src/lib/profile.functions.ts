@@ -37,8 +37,12 @@ function computeStreaks(dates: string[]) {
 
 export const getProfileOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ?? null,
+  }))
+  .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const selectedGroupId = data.groupId;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -55,37 +59,48 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       avatarSignedUrl = signed?.signedUrl ?? null;
     }
 
-    const { data: membership } = await supabase
+    // All memberships for this user
+    const { data: memberships } = await supabase
       .from("group_members")
       .select("group_id, joined_at")
       .eq("user_id", userId)
-      .order("joined_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order("joined_at", { ascending: true });
+
+    const allMemberships = memberships ?? [];
+    // Pick the target membership: requested group, else most recent join
+    const targetMembership =
+      (selectedGroupId
+        ? allMemberships.find((m) => m.group_id === selectedGroupId)
+        : null) ??
+      [...allMemberships].sort(
+        (a, b) =>
+          new Date(b.joined_at as string).getTime() -
+          new Date(a.joined_at as string).getTime(),
+      )[0] ??
+      null;
 
     let groupName: string | null = null;
-    if (membership) {
+    let activeGroupId: string | null = null;
+    if (targetMembership) {
+      activeGroupId = targetMembership.group_id as string;
       const { data: g } = await supabase
         .from("groups")
         .select("name")
-        .eq("id", membership.group_id)
+        .eq("id", activeGroupId)
         .maybeSingle();
       groupName = g?.name ?? null;
     }
 
-    // Earliest joined_at across all groups → days active in the app
-    const { data: firstMembership } = await supabase
-      .from("group_members")
-      .select("joined_at")
-      .eq("user_id", userId)
-      .order("joined_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
+    // Days active is measured against the selected group's join date
+    const joinedAt = (targetMembership as { joined_at?: string } | null)?.joined_at;
 
-    const { data: checkIns } = await supabase
+    // Group-scoped check-ins
+    let checkInQuery = supabase
       .from("check_ins")
       .select("checkin_date")
       .eq("user_id", userId);
+    if (activeGroupId) checkInQuery = checkInQuery.eq("group_id", activeGroupId);
+    const { data: checkIns } = await checkInQuery;
 
     const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
     const { current, best } = computeStreaks(dates);
@@ -106,9 +121,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       past90.push({ date: s, checked: set.has(s) });
     }
 
-    // Check-in rate: distinct days checked in vs days since joining
     const uniqueDays = new Set(dates).size;
-    const joinedAt = (firstMembership as { joined_at?: string } | null)?.joined_at;
     let daysSinceJoin = 1;
     if (joinedAt) {
       const joinDate = new Date(joinedAt);
@@ -120,7 +133,6 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       Math.round((uniqueDays / daysSinceJoin) * 100),
     );
 
-    // This week vs last week (rolling 7-day windows)
     const now = Date.now();
     const dayMs = 86400000;
     const last7Cut = now - 7 * dayMs;
@@ -133,13 +145,14 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       else if (t >= prev7Cut) lastWeek += 1;
     }
 
-    // On-time rate: check-ins posted on their own day vs total expected
-    // (check-ins + missed check-in days recorded in daily_posts)
-    const { count: missedCount } = await supabase
+    // Group-scoped missed check-ins
+    let missedQuery = supabase
       .from("daily_posts")
       .select("id", { count: "exact", head: true })
       .eq("user_id", userId)
       .eq("check_in_missed", true);
+    if (activeGroupId) missedQuery = missedQuery.eq("group_id", activeGroupId);
+    const { count: missedCount } = await missedQuery;
     const totalExpected = dates.length + (missedCount ?? 0);
     const onTimeRatePct =
       totalExpected > 0
@@ -151,6 +164,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       avatarColor: profile?.avatar_color ?? "#7C3AED",
       avatarUrl: avatarSignedUrl,
       groupName,
+      activeGroupId,
       totalCheckIns: dates.length,
       currentStreak: current,
       bestStreak: best,
@@ -165,6 +179,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       missedCount: missedCount ?? 0,
     };
   });
+
 
 
 export const setAvatarPath = createServerFn({ method: "POST" })
