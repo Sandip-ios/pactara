@@ -41,10 +41,14 @@ async function uploadCheckInPhoto(blob: Blob): Promise<string | null> {
       .maybeSingle();
     const groupId = membership?.group_id;
     if (!groupId) return null;
-    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+    const mime = blob.type || "image/jpeg";
+    const ext = mime.startsWith("video/")
+      ? (mime.split("/")[1]?.split(";")[0] || "mp4").replace("quicktime", "mov")
+      : (mime.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
+    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage
       .from("chat-photos")
-      .upload(path, blob, { contentType: blob.type || "image/jpeg", upsert: false });
+      .upload(path, blob, { contentType: mime, upsert: false });
     if (error) {
       console.error("photo upload failed", error);
       return null;
