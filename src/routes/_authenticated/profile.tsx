@@ -157,6 +157,15 @@ function ProfilePage() {
           <div className="text-[16px] font-bold">Past 7 days</div>
           <Past7Days days={data?.past7 ?? []} />
 
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            className="mt-4 w-full text-center text-[13px] font-semibold py-2 rounded-full"
+            style={{ background: PURPLE_SOFT, color: PURPLE }}
+          >
+            View past 3 months
+          </button>
+
           <div className="mt-5 pt-4 border-t border-neutral-100">
             <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-2">
               EARNED SO FAR
