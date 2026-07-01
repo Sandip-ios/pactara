@@ -87,6 +87,49 @@ function insertNumberedLine(el: HTMLTextAreaElement | null, onInput: () => void)
 }
 
 
+function handleListEnter(
+  e: React.KeyboardEvent<HTMLTextAreaElement>,
+  onInput: () => void,
+) {
+  if (e.key !== "Enter" || e.shiftKey) return;
+  const el = e.currentTarget;
+  const start = el.selectionStart ?? 0;
+  const end = el.selectionEnd ?? start;
+  if (start !== end) return;
+  const value = el.value;
+  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+  const lineEnd = value.indexOf("\n", start);
+  const currentLine = value.slice(lineStart, lineEnd === -1 ? value.length : lineEnd);
+
+  const bullet = currentLine.match(/^(•\s)(.*)$/);
+  const check = currentLine.match(/^(☐\s)(.*)$/);
+  const num = currentLine.match(/^(\d+)\.\s(.*)$/);
+  const match = bullet || check || num;
+  if (!match) return;
+
+  const rest = match[2];
+  // If line only contains the marker (no content), remove marker and don't continue
+  if (rest.trim() === "") {
+    e.preventDefault();
+    el.value = value.slice(0, lineStart) + value.slice(lineEnd === -1 ? value.length : lineEnd);
+    el.setSelectionRange(lineStart, lineStart);
+    onInput();
+    return;
+  }
+
+  e.preventDefault();
+  let prefix = "";
+  if (bullet) prefix = "• ";
+  else if (check) prefix = "☐ ";
+  else if (num) prefix = `${parseInt(num[1], 10) + 1}. `;
+
+  const insertion = "\n" + prefix;
+  el.value = value.slice(0, start) + insertion + value.slice(end);
+  const pos = start + insertion.length;
+  el.setSelectionRange(pos, pos);
+  onInput();
+}
+
 function CheckInRouter() {
   const getStatus = useServerFn(getTodayRitualStatus);
   const { data, isLoading } = useQuery({
@@ -161,6 +204,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
             ref={textareaRef}
             defaultValue=""
             onInput={onInput}
+            onKeyDown={(e) => handleListEnter(e, onInput)}
             maxLength={MAX}
             placeholder="Run 5K before work, hit the gym at 6pm…"
             className="w-full min-h-[180px] rounded-t-2xl bg-transparent p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
