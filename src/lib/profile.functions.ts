@@ -91,12 +91,19 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     const { current, best } = computeStreaks(dates);
 
     const past7: { date: string; checked: boolean }[] = [];
+    const past90: { date: string; checked: boolean }[] = [];
     const set = new Set(dates);
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setUTCDate(d.getUTCDate() - i);
       const s = ymd(d);
       past7.push({ date: s, checked: set.has(s) });
+    }
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date();
+      d.setUTCDate(d.getUTCDate() - i);
+      const s = ymd(d);
+      past90.push({ date: s, checked: set.has(s) });
     }
 
     // Check-in rate: distinct days checked in vs days since joining
@@ -148,6 +155,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       currentStreak: current,
       bestStreak: best,
       past7,
+      past90,
       checkInRatePct,
       daysSinceJoin,
       uniqueDaysCheckedIn: uniqueDays,
