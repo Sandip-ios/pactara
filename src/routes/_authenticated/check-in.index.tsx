@@ -22,6 +22,71 @@ export const Route = createFileRoute("/_authenticated/check-in/")({
   component: CheckInRouter,
 });
 
+function ToolbarBtn({
+  children,
+  onInsert,
+  label,
+}: {
+  children: React.ReactNode;
+  onInsert: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onInsert();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        onInsert();
+      }}
+      className="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200"
+    >
+      {children}
+    </button>
+  );
+}
+
+function insertLinePrefix(el: HTMLTextAreaElement | null, prefix: string, onInput: () => void) {
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? start;
+  const value = el.value;
+  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+  const atLineStart = start === lineStart;
+  const needsNewline = !atLineStart && value[start - 1] !== "\n";
+  const insertion = (needsNewline ? "\n" : "") + prefix;
+  el.value = value.slice(0, start) + insertion + value.slice(end);
+  const pos = start + insertion.length;
+  el.focus();
+  el.setSelectionRange(pos, pos);
+  onInput();
+}
+
+function insertNumberedLine(el: HTMLTextAreaElement | null, onInput: () => void) {
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const value = el.value;
+  // Find previous number on prior lines
+  const before = value.slice(0, start);
+  const lines = before.split("\n");
+  let next = 1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/^(\d+)\.\s/);
+    if (m) {
+      next = parseInt(m[1], 10) + 1;
+      break;
+    }
+    if (lines[i].trim() === "") continue;
+    break;
+  }
+  insertLinePrefix(el, `${next}. `, onInput);
+}
+
+
 function CheckInRouter() {
   const getStatus = useServerFn(getTodayRitualStatus);
   const { data, isLoading } = useQuery({
