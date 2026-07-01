@@ -1,7 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, Check, Sparkles } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/plan")({
+  ssr: false,
   component: PlanPage,
 });
 
@@ -12,12 +16,47 @@ const MUTED = "#5A5A66";
 const ORANGE = "#C2410C";
 const SERIF = "'Instrument Serif', 'Cormorant Garamond', Georgia, serif";
 
-// Simulated trial state — replace with real subscription data when wired up
-const TRIAL_TOTAL_DAYS = 7;
-const TRIAL_DAYS_LEFT = 5;
+const TRIAL_DAYS = 7;
+const PLAN_PREF_KEY = "pactara:plan-preference";
+
+type PlanChoice = "monthly" | "annual" | null;
 
 function PlanPage() {
   const navigate = useNavigate();
+  const annualRef = useRef<HTMLDivElement>(null);
+
+  const [createdAt, setCreatedAt] = useState<Date | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<PlanChoice>(null);
+  const [pendingPlan, setPendingPlan] = useState<PlanChoice>(null);
+  const [manageOpen, setManageOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(PLAN_PREF_KEY);
+      if (raw === "monthly" || raw === "annual") setSelectedPlan(raw);
+    } catch {}
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      const uid = data.user?.id;
+      if (!uid) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("created_at")
+        .eq("id", uid)
+        .maybeSingle();
+      if (profile?.created_at) setCreatedAt(new Date(profile.created_at));
+    })();
+  }, []);
+
+  const { daysLeft, trialPct, isTrial } = useMemo(() => {
+    if (!createdAt) return { daysLeft: TRIAL_DAYS, trialPct: 0, isTrial: true };
+    const elapsedMs = Date.now() - createdAt.getTime();
+    const elapsedDays = Math.floor(elapsedMs / 86400000);
+    const left = Math.max(0, TRIAL_DAYS - elapsedDays);
+    const pct = Math.min(100, Math.max(0, (elapsedDays / TRIAL_DAYS) * 100));
+    return { daysLeft: left, trialPct: pct, isTrial: left > 0 };
+  }, [createdAt]);
 
   const features = [
     { label: "Free trial", monthly: "7 days", annual: "7 days" },
@@ -36,10 +75,48 @@ function PlanPage() {
     return <span style={{ color: "#C9C9D1" }}>—</span>;
   };
 
-  const trialPct = Math.max(
-    0,
-    Math.min(100, ((TRIAL_TOTAL_DAYS - TRIAL_DAYS_LEFT) / TRIAL_TOTAL_DAYS) * 100),
-  );
+  const scrollToPlans = () => {
+    annualRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const openConfirm = (plan: Exclude<PlanChoice, null>) => setPendingPlan(plan);
+  const closeConfirm = () => setPendingPlan(null);
+
+  const confirmPlan = () => {
+    if (!pendingPlan) return;
+    setSelectedPlan(pendingPlan);
+    try {
+      localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
+    } catch {}
+    toast.success(
+      pendingPlan === "annual"
+        ? "Annual plan saved. We'll bill through the App Store at launch."
+        : "Monthly plan saved. We'll bill through the App Store at launch.",
+    );
+    setPendingPlan(null);
+  };
+
+  const cancelSelection = () => {
+    setSelectedPlan(null);
+    try {
+      localStorage.removeItem(PLAN_PREF_KEY);
+    } catch {}
+    setManageOpen(false);
+    toast.success("Plan selection cleared.");
+  };
+
+  const currentLabel = selectedPlan
+    ? selectedPlan === "annual"
+      ? "Annual (saved)"
+      : "Monthly (saved)"
+    : isTrial
+      ? "Free trial"
+      : "Trial ended";
+  const currentSub = selectedPlan
+    ? "Billing starts when the app launches on the App Store."
+    : isTrial
+      ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
+      : "Choose a plan below to keep your progress.";
 
   return (
     <div
@@ -47,17 +124,26 @@ function PlanPage() {
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div className="px-6 pt-6 max-w-[480px] mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={() => navigate({ to: "/profile" })}
-            aria-label="Back"
-            className="p-1 -ml-1"
-          >
-            <ChevronLeft size={26} style={{ color: INK }} />
-          </button>
-          <div className="text-[17px] font-semibold" style={{ color: INK }}>
-            Plan
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate({ to: "/profile" })}
+              aria-label="Back"
+              className="p-1 -ml-1"
+            >
+              <ChevronLeft size={26} style={{ color: INK }} />
+            </button>
+            <div className="text-[17px] font-semibold" style={{ color: INK }}>
+              Plan
+            </div>
           </div>
+          <button
+            onClick={() => setHelpOpen(true)}
+            aria-label="Help"
+            className="p-1 -mr-1"
+          >
+            <HelpCircle size={22} style={{ color: MUTED }} />
+          </button>
         </div>
 
         {/* Current plan card */}
@@ -78,28 +164,32 @@ function PlanPage() {
             className="mt-2 text-[28px] leading-[1.05] tracking-tight"
             style={{ fontFamily: SERIF, color: INK }}
           >
-            Free trial
+            {currentLabel}
           </h2>
           <p className="mt-2 text-[15px]" style={{ color: MUTED }}>
-            {TRIAL_DAYS_LEFT} of {TRIAL_TOTAL_DAYS} days left · then $12.99/mo
+            {currentSub}
           </p>
 
-          <div className="mt-4 h-2 w-full rounded-full" style={{ background: "#F1EEE8" }}>
-            <div
-              className="h-full rounded-full"
-              style={{ width: `${trialPct}%`, background: PURPLE }}
-            />
-          </div>
+          {isTrial && !selectedPlan && (
+            <div className="mt-4 h-2 w-full rounded-full" style={{ background: "#F1EEE8" }}>
+              <div
+                className="h-full rounded-full"
+                style={{ width: `${trialPct}%`, background: PURPLE }}
+              />
+            </div>
+          )}
 
           <div className="mt-5 grid grid-cols-2 gap-3">
             <button
-              className="rounded-full py-3 text-[14px] font-semibold text-white"
+              onClick={scrollToPlans}
+              className="rounded-full py-3 text-[14px] font-semibold text-white active:opacity-80"
               style={{ background: PURPLE }}
             >
-              Upgrade now
+              {selectedPlan ? "Change plan" : "Upgrade now"}
             </button>
             <button
-              className="rounded-full py-3 text-[14px] font-semibold"
+              onClick={() => setManageOpen(true)}
+              className="rounded-full py-3 text-[14px] font-semibold active:opacity-80"
               style={{ background: "#F1EEE8", color: INK }}
             >
               Manage
@@ -108,114 +198,42 @@ function PlanPage() {
         </div>
 
         {/* Monthly Card */}
-        <div
-          className="mt-6 rounded-[22px] bg-white p-6"
-          style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-[24px]">🔥</span>
-            <span
-              className="text-[24px] font-semibold tracking-tight"
-              style={{ fontFamily: SERIF, color: INK }}
-            >
-              Monthly
-            </span>
-          </div>
-          <p className="mt-2 text-[15px]" style={{ color: MUTED }}>
-            Unlimited groups. Cancel anytime.
-          </p>
-          <div className="mt-5 flex items-baseline gap-2">
-            <span
-              className="text-[44px] leading-none"
-              style={{ fontFamily: SERIF, color: INK }}
-            >
-              $12.99
-            </span>
-            <span className="text-[16px]" style={{ color: MUTED }}>
-              / month
-            </span>
-          </div>
-          <ul className="mt-5 space-y-3">
-            {["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"].map(
-              (f) => (
-                <li
-                  key={f}
-                  className="flex items-center gap-3 text-[15px]"
-                  style={{ color: INK }}
-                >
-                  <Check size={18} strokeWidth={2.5} style={{ color: "#9A9AA5" }} />
-                  {f}
-                </li>
-              ),
-            )}
-          </ul>
-          <button
-            className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold"
-            style={{ background: "#F1EEE8", color: INK }}
-          >
-            Choose Monthly
-          </button>
-        </div>
+        <PlanCard
+          emoji="🔥"
+          name="Monthly"
+          tagline="Unlimited groups. Cancel anytime."
+          price="$12.99"
+          period="/ month"
+          bullets={["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"]}
+          buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
+          buttonStyle={{ background: "#F1EEE8", color: INK }}
+          checkColor="#9A9AA5"
+          selected={selectedPlan === "monthly"}
+          onSelect={() => openConfirm("monthly")}
+        />
 
         {/* Annual Card */}
-        <div
-          className="mt-6 relative rounded-[22px] bg-white p-6"
-          style={{ border: `2px solid ${ORANGE}` }}
-        >
-          <div
-            className="absolute -top-3 right-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
-            style={{ background: ORANGE }}
-          >
-            Save 48%
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-[24px]">⚡</span>
-            <span
-              className="text-[24px] font-semibold tracking-tight"
-              style={{ fontFamily: SERIF, color: INK }}
-            >
-              Annual
-            </span>
-          </div>
-          <p className="mt-2 text-[15px]" style={{ color: MUTED }}>
-            Unlimited groups, back-to-back challenges, all year.
-          </p>
-          <div className="mt-5 flex items-baseline gap-2">
-            <span
-              className="text-[44px] leading-none"
-              style={{ fontFamily: SERIF, color: INK }}
-            >
-              $79.99
-            </span>
-            <span className="text-[16px]" style={{ color: MUTED }}>
-              / year
-            </span>
-          </div>
-          <p className="mt-2 text-[14px] font-semibold" style={{ color: ORANGE }}>
-            Just $6.67/mo
-          </p>
-          <ul className="mt-5 space-y-3">
-            {[
+        <div ref={annualRef}>
+          <PlanCard
+            emoji="⚡"
+            name="Annual"
+            tagline="Unlimited groups, back-to-back challenges, all year."
+            price="$79.99"
+            period="/ year"
+            subPrice="Just $6.67/mo"
+            bullets={[
               "Everything in Monthly",
               "Run back-to-back challenges",
               "Early access to new features",
-            ].map((f) => (
-              <li
-                key={f}
-                className="flex items-center gap-3 text-[15px]"
-                style={{ color: INK }}
-              >
-                <Check size={18} strokeWidth={2.5} style={{ color: ORANGE }} />
-                {f}
-              </li>
-            ))}
-          </ul>
-          <button
-            className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold text-white"
-            style={{ background: ORANGE }}
-          >
-            Choose Annual
-          </button>
+            ]}
+            buttonLabel={selectedPlan === "annual" ? "Selected" : "Choose Annual"}
+            buttonStyle={{ background: ORANGE, color: "#fff" }}
+            checkColor={ORANGE}
+            highlight
+            badge="Save 48%"
+            selected={selectedPlan === "annual"}
+            onSelect={() => openConfirm("annual")}
+          />
         </div>
 
         {/* Compare */}
@@ -233,22 +251,13 @@ function PlanPage() {
             className="grid grid-cols-[1.4fr_1fr_1fr] px-5 py-3"
             style={{ background: "#F7F4EE" }}
           >
-            <div
-              className="text-[12px] font-bold tracking-[0.1em]"
-              style={{ color: "#8A8A95" }}
-            >
+            <div className="text-[12px] font-bold tracking-[0.1em]" style={{ color: "#8A8A95" }}>
               FEATURE
             </div>
-            <div
-              className="text-[12px] font-bold tracking-[0.1em] text-center"
-              style={{ color: PURPLE }}
-            >
+            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: PURPLE }}>
               MONTHLY
             </div>
-            <div
-              className="text-[12px] font-bold tracking-[0.1em] text-center"
-              style={{ color: ORANGE }}
-            >
+            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: ORANGE }}>
               ANNUAL
             </div>
           </div>
@@ -261,32 +270,288 @@ function PlanPage() {
               <div className="text-[15px] font-semibold" style={{ color: INK }}>
                 {f.label}
               </div>
-              <div className="flex justify-center">
-                <Cell v={f.monthly} />
-              </div>
-              <div className="flex justify-center">
-                <Cell v={f.annual} />
-              </div>
+              <div className="flex justify-center"><Cell v={f.monthly} /></div>
+              <div className="flex justify-center"><Cell v={f.annual} /></div>
             </div>
           ))}
         </div>
 
-        <p
-          className="mt-8 text-center text-[13px] leading-[1.5]"
-          style={{ color: MUTED }}
+        <div
+          className="mt-6 rounded-[18px] p-5 flex gap-3"
+          style={{ background: "#EEF0FF", border: "1px solid #DCE0FF" }}
         >
+          <Apple size={20} style={{ color: INK }} className="mt-0.5 shrink-0" />
+          <div>
+            <div className="text-[14px] font-semibold" style={{ color: INK }}>
+              Billed through the App Store
+            </div>
+            <div className="text-[13px] mt-1 leading-[1.5]" style={{ color: MUTED }}>
+              When Pactara launches on iOS, subscriptions are managed by Apple. You can
+              cancel anytime from Settings → Apple ID → Subscriptions.
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-8 text-center text-[13px] leading-[1.5]" style={{ color: MUTED }}>
           Prices in USD. Subscriptions renew automatically until cancelled.
           <br />
           Questions? Email us at{" "}
-          <a
-            href="mailto:hello@pactara.app"
-            className="font-semibold"
-            style={{ color: PURPLE }}
-          >
+          <a href="mailto:hello@pactara.app" className="font-semibold" style={{ color: PURPLE }}>
             hello@pactara.app
           </a>
         </p>
       </div>
+
+      {/* Confirm plan sheet */}
+      {pendingPlan && (
+        <BottomSheet onClose={closeConfirm}>
+          <div className="text-center">
+            <div
+              className="mx-auto h-14 w-14 rounded-full flex items-center justify-center"
+              style={{ background: pendingPlan === "annual" ? "#FEF0E6" : "#F1EEE8" }}
+            >
+              <Smartphone size={26} style={{ color: pendingPlan === "annual" ? ORANGE : PURPLE }} />
+            </div>
+            <h3 className="mt-4 text-[24px]" style={{ fontFamily: SERIF, color: INK }}>
+              Confirm your {pendingPlan === "annual" ? "Annual" : "Monthly"} plan
+            </h3>
+            <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
+              {pendingPlan === "annual"
+                ? "$79.99 / year (just $6.67/mo) after your 7-day trial."
+                : "$12.99 / month after your 7-day trial."}{" "}
+              We'll charge you through the App Store the day Pactara launches on iOS.
+            </p>
+          </div>
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={confirmPlan}
+              className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80"
+              style={{ background: pendingPlan === "annual" ? ORANGE : PURPLE }}
+            >
+              Confirm {pendingPlan === "annual" ? "Annual" : "Monthly"}
+            </button>
+            <button
+              onClick={closeConfirm}
+              className="w-full rounded-full py-4 text-[16px] font-semibold"
+              style={{ background: "#F1EEE8", color: INK }}
+            >
+              Not now
+            </button>
+          </div>
+        </BottomSheet>
+      )}
+
+      {/* Manage sheet */}
+      {manageOpen && (
+        <BottomSheet onClose={() => setManageOpen(false)}>
+          <h3 className="text-[24px]" style={{ fontFamily: SERIF, color: INK }}>
+            Manage subscription
+          </h3>
+          <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
+            Once Pactara is live on the App Store, billing is handled by Apple. Until
+            then, you can update your plan choice here.
+          </p>
+          <div className="mt-5 space-y-3">
+            <button
+              onClick={() => {
+                setManageOpen(false);
+                scrollToPlans();
+              }}
+              className="w-full rounded-full py-4 text-[15px] font-semibold"
+              style={{ background: "#F1EEE8", color: INK }}
+            >
+              Switch plan
+            </button>
+            {selectedPlan && (
+              <button
+                onClick={cancelSelection}
+                className="w-full rounded-full py-4 text-[15px] font-semibold"
+                style={{ background: "#FCE9E9", color: "#B42318" }}
+              >
+                Clear plan selection
+              </button>
+            )}
+            <a
+              href="mailto:hello@pactara.app"
+              className="block text-center w-full rounded-full py-4 text-[15px] font-semibold"
+              style={{ background: "transparent", color: PURPLE }}
+            >
+              Contact support
+            </a>
+          </div>
+        </BottomSheet>
+      )}
+
+      {/* Help sheet */}
+      {helpOpen && (
+        <BottomSheet onClose={() => setHelpOpen(false)}>
+          <h3 className="text-[24px]" style={{ fontFamily: SERIF, color: INK }}>
+            How billing works
+          </h3>
+          <ul className="mt-4 space-y-4 text-[15px] leading-[1.5]" style={{ color: INK }}>
+            <li className="flex gap-3">
+              <Check size={20} className="mt-0.5 shrink-0" style={{ color: PURPLE }} />
+              <span>Your 7-day trial starts the day you sign up. No charge during the trial.</span>
+            </li>
+            <li className="flex gap-3">
+              <Check size={20} className="mt-0.5 shrink-0" style={{ color: PURPLE }} />
+              <span>Choose Monthly or Annual now to lock in your preference for launch.</span>
+            </li>
+            <li className="flex gap-3">
+              <Check size={20} className="mt-0.5 shrink-0" style={{ color: PURPLE }} />
+              <span>All subscriptions are billed through the App Store. Cancel anytime from iOS Settings.</span>
+            </li>
+          </ul>
+          <button
+            onClick={() => setHelpOpen(false)}
+            className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold text-white"
+            style={{ background: PURPLE }}
+          >
+            Got it
+          </button>
+        </BottomSheet>
+      )}
+    </div>
+  );
+}
+
+function PlanCard({
+  emoji,
+  name,
+  tagline,
+  price,
+  period,
+  subPrice,
+  bullets,
+  buttonLabel,
+  buttonStyle,
+  checkColor,
+  highlight,
+  badge,
+  selected,
+  onSelect,
+}: {
+  emoji: string;
+  name: string;
+  tagline: string;
+  price: string;
+  period: string;
+  subPrice?: string;
+  bullets: string[];
+  buttonLabel: string;
+  buttonStyle: React.CSSProperties;
+  checkColor: string;
+  highlight?: boolean;
+  badge?: string;
+  selected?: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <div
+      className="mt-6 relative rounded-[22px] bg-white p-6"
+      style={
+        highlight
+          ? { border: `2px solid ${ORANGE}` }
+          : { boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }
+      }
+    >
+      {badge && (
+        <div
+          className="absolute -top-3 right-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
+          style={{ background: ORANGE }}
+        >
+          {badge}
+        </div>
+      )}
+      {selected && (
+        <div
+          className="absolute -top-3 left-4 px-3 py-1 rounded-full text-[12px] font-semibold text-white"
+          style={{ background: PURPLE }}
+        >
+          Selected
+        </div>
+      )}
+      <div className="flex items-center gap-3">
+        <span className="text-[24px]">{emoji}</span>
+        <span
+          className="text-[24px] font-semibold tracking-tight"
+          style={{ fontFamily: SERIF, color: INK }}
+        >
+          {name}
+        </span>
+      </div>
+      <p className="mt-2 text-[15px]" style={{ color: MUTED }}>
+        {tagline}
+      </p>
+      <div className="mt-5 flex items-baseline gap-2">
+        <span className="text-[44px] leading-none" style={{ fontFamily: SERIF, color: INK }}>
+          {price}
+        </span>
+        <span className="text-[16px]" style={{ color: MUTED }}>
+          {period}
+        </span>
+      </div>
+      {subPrice && (
+        <p className="mt-2 text-[14px] font-semibold" style={{ color: ORANGE }}>
+          {subPrice}
+        </p>
+      )}
+      <ul className="mt-5 space-y-3">
+        {bullets.map((f) => (
+          <li key={f} className="flex items-center gap-3 text-[15px]" style={{ color: INK }}>
+            <Check size={18} strokeWidth={2.5} style={{ color: checkColor }} />
+            {f}
+          </li>
+        ))}
+      </ul>
+      <button
+        onClick={onSelect}
+        disabled={selected}
+        className="mt-6 w-full rounded-full py-4 text-[16px] font-semibold active:opacity-80 disabled:opacity-60"
+        style={buttonStyle}
+      >
+        {buttonLabel}
+      </button>
+    </div>
+  );
+}
+
+function BottomSheet({
+  children,
+  onClose,
+}: {
+  children: React.ReactNode;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div
+        className="relative w-full max-w-[480px] rounded-t-[24px] bg-white p-6 pb-8"
+        style={{ animation: "sheetUp 0.22s ease-out" }}
+      >
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center"
+          style={{ background: "#F1EEE8" }}
+        >
+          <X size={16} style={{ color: INK }} />
+        </button>
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full" style={{ background: "#E5E1D8" }} />
+        {children}
+      </div>
+      <style>{`@keyframes sheetUp { from { transform: translateY(100%);} to { transform: translateY(0);} }`}</style>
     </div>
   );
 }
