@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight, Check, List, ListOrdered, CheckSquare } from "lucide-react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
@@ -20,6 +21,71 @@ export type MoodId = (typeof MOODS)[number]["id"];
 export const Route = createFileRoute("/_authenticated/check-in/")({
   component: CheckInRouter,
 });
+
+function ToolbarBtn({
+  children,
+  onInsert,
+  label,
+}: {
+  children: React.ReactNode;
+  onInsert: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onInsert();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        onInsert();
+      }}
+      className="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200"
+    >
+      {children}
+    </button>
+  );
+}
+
+function insertLinePrefix(el: HTMLTextAreaElement | null, prefix: string, onInput: () => void) {
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const end = el.selectionEnd ?? start;
+  const value = el.value;
+  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+  const atLineStart = start === lineStart;
+  const needsNewline = !atLineStart && value[start - 1] !== "\n";
+  const insertion = (needsNewline ? "\n" : "") + prefix;
+  el.value = value.slice(0, start) + insertion + value.slice(end);
+  const pos = start + insertion.length;
+  el.focus();
+  el.setSelectionRange(pos, pos);
+  onInput();
+}
+
+function insertNumberedLine(el: HTMLTextAreaElement | null, onInput: () => void) {
+  if (!el) return;
+  const start = el.selectionStart ?? el.value.length;
+  const value = el.value;
+  // Find previous number on prior lines
+  const before = value.slice(0, start);
+  const lines = before.split("\n");
+  let next = 1;
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const m = lines[i].match(/^(\d+)\.\s/);
+    if (m) {
+      next = parseInt(m[1], 10) + 1;
+      break;
+    }
+    if (lines[i].trim() === "") continue;
+    break;
+  }
+  insertLinePrefix(el, `${next}. `, onInput);
+}
+
 
 function CheckInRouter() {
   const getStatus = useServerFn(getTodayRitualStatus);
@@ -90,18 +156,32 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
 
 
       <div className="px-4 mt-6">
-        <textarea
-          ref={textareaRef}
-          defaultValue=""
-          onInput={onInput}
-          maxLength={MAX}
-          placeholder="Run 5K before work, hit the gym at 6pm…"
-          className="w-full min-h-[180px] rounded-2xl bg-white p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400 ring-1 ring-neutral-200 focus:ring-2 focus:ring-[#7C3AED]"
-        />
+        <div className="relative rounded-2xl bg-white ring-1 ring-neutral-200 focus-within:ring-2 focus-within:ring-[#7C3AED]">
+          <textarea
+            ref={textareaRef}
+            defaultValue=""
+            onInput={onInput}
+            maxLength={MAX}
+            placeholder="Run 5K before work, hit the gym at 6pm…"
+            className="w-full min-h-[180px] rounded-t-2xl bg-transparent p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
+          />
+          <div className="flex items-center gap-1 border-t border-neutral-100 px-2 py-2">
+            <ToolbarBtn label="Bulleted list" onInsert={() => insertLinePrefix(textareaRef.current, "• ", onInput)}>
+              <List size={18} />
+            </ToolbarBtn>
+            <ToolbarBtn label="Numbered list" onInsert={() => insertNumberedLine(textareaRef.current, onInput)}>
+              <ListOrdered size={18} />
+            </ToolbarBtn>
+            <ToolbarBtn label="Checkbox" onInsert={() => insertLinePrefix(textareaRef.current, "☐ ", onInput)}>
+              <CheckSquare size={18} />
+            </ToolbarBtn>
+          </div>
+        </div>
         <div className="mt-2 pr-1 text-right text-[13px] text-neutral-400">
           {count}/{MAX}
         </div>
       </div>
+
 
       <div
         className="fixed inset-x-0 px-4 z-40"
