@@ -91,18 +91,32 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
 
 
       <div className="px-4 mt-6">
-        <textarea
-          ref={textareaRef}
-          defaultValue=""
-          onInput={onInput}
-          maxLength={MAX}
-          placeholder="Run 5K before work, hit the gym at 6pm…"
-          className="w-full min-h-[180px] rounded-2xl bg-white p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400 ring-1 ring-neutral-200 focus:ring-2 focus:ring-[#7C3AED]"
-        />
+        <div className="relative rounded-2xl bg-white ring-1 ring-neutral-200 focus-within:ring-2 focus-within:ring-[#7C3AED]">
+          <textarea
+            ref={textareaRef}
+            defaultValue=""
+            onInput={onInput}
+            maxLength={MAX}
+            placeholder="Run 5K before work, hit the gym at 6pm…"
+            className="w-full min-h-[180px] rounded-t-2xl bg-transparent p-4 text-[16px] outline-none resize-none placeholder:text-neutral-400"
+          />
+          <div className="flex items-center gap-1 border-t border-neutral-100 px-2 py-2">
+            <ToolbarBtn label="Bulleted list" onInsert={() => insertLinePrefix(textareaRef.current, "• ", onInput)}>
+              <List size={18} />
+            </ToolbarBtn>
+            <ToolbarBtn label="Numbered list" onInsert={() => insertNumberedLine(textareaRef.current, onInput)}>
+              <ListOrdered size={18} />
+            </ToolbarBtn>
+            <ToolbarBtn label="Checkbox" onInsert={() => insertLinePrefix(textareaRef.current, "☐ ", onInput)}>
+              <CheckSquare size={18} />
+            </ToolbarBtn>
+          </div>
+        </div>
         <div className="mt-2 pr-1 text-right text-[13px] text-neutral-400">
           {count}/{MAX}
         </div>
       </div>
+
 
       <div
         className="fixed inset-x-0 px-4 z-40"
