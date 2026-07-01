@@ -167,7 +167,7 @@ export function TrialEndedPaywall({ firstName, daysActive }: Props) {
             className="mt-3 w-full h-[54px] rounded-full text-white text-[16px] font-semibold"
             style={{ background: PURPLE }}
           >
-            Subscribe — $9.99/month
+            Subscribe — $12.99/month
           </button>
 
           <button
