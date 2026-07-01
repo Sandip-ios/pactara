@@ -609,7 +609,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                       )}
                     </div>
                   </div>
-                  {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
+                  {visual.body && <ExpandableText text={visual.body} />}
                   {visual.photoUrl && (() => {
                     const isVideo = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(visual.photoUrl);
                     const src = visual.photoUrl;
