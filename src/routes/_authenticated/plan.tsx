@@ -90,8 +90,8 @@ function PlanPage() {
     } catch {}
     toast.success(
       pendingPlan === "annual"
-        ? "Annual plan saved. We'll bill through the App Store at launch."
-        : "Monthly plan saved. We'll bill through the App Store at launch.",
+        ? "Annual plan saved. You won't be charged until billing goes live."
+        : "Monthly plan saved. You won't be charged until billing goes live.",
     );
     setPendingPlan(null);
   };
@@ -113,7 +113,7 @@ function PlanPage() {
       ? "Free trial"
       : "Trial ended";
   const currentSub = selectedPlan
-    ? "Billing starts when the app launches on the App Store."
+    ? "You won't be charged until billing goes live."
     : isTrial
       ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
       : "Choose a plan below to keep your progress.";
@@ -304,7 +304,7 @@ function PlanPage() {
               {pendingPlan === "annual"
                 ? "$79.99 / year (just $6.67/mo) after your 7-day trial."
                 : "$12.99 / month after your 7-day trial."}{" "}
-              We'll charge you through the App Store the day Pactara launches on iOS.
+              You won't be charged until billing goes live — we'll email you first.
             </p>
           </div>
           <div className="mt-6 space-y-3">
@@ -333,8 +333,8 @@ function PlanPage() {
             Manage subscription
           </h3>
           <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
-            Once Pactara is live on the App Store, billing is handled by Apple. Until
-            then, you can update your plan choice here.
+            Billing isn't live yet. In the meantime, you can update your plan choice
+            here and we'll honor it when subscriptions go live.
           </p>
           <div className="mt-5 space-y-3">
             <button
@@ -384,7 +384,7 @@ function PlanPage() {
             </li>
             <li className="flex gap-3">
               <Check size={20} className="mt-0.5 shrink-0" style={{ color: PURPLE }} />
-              <span>All subscriptions are billed through the App Store. Cancel anytime from iOS Settings.</span>
+              <span>Cancel anytime. You'll keep access until the end of your billing period.</span>
             </li>
           </ul>
           <button
