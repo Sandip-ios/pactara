@@ -9,6 +9,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
+import { MediaLightbox } from "@/components/MediaLightbox";
 import {
   togglePostReaction,
   setPostReaction,
@@ -519,6 +520,7 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
 
 export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
   const queryClient = useQueryClient();
@@ -608,26 +610,45 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                     </div>
                   </div>
                   {visual.body && <div className="mt-1 text-[15px] text-neutral-900">{visual.body}</div>}
-                  {visual.photoUrl && (
-                    <div className="mt-2 relative">
-                      {/\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(visual.photoUrl) ? (
-                        <video
-                          src={visual.photoUrl}
-                          controls
-                          playsInline
-                          className="w-full rounded-xl object-cover max-h-[360px] bg-black"
-                        />
-                      ) : (
-                        <img src={visual.photoUrl} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
-                      )}
-                      {visual.activity && (
-                        <div className="absolute top-2 right-2 bg-black/70 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1">
-                          <Flame size={14} />
-                          {visual.activity[0].toUpperCase() + visual.activity.slice(1)}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  {visual.photoUrl && (() => {
+                    const isVideo = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(visual.photoUrl);
+                    const src = visual.photoUrl;
+                    return (
+                      <div className="mt-2 relative">
+                        <button
+                          type="button"
+                          onClick={() => setLightbox({ src, kind: isVideo ? "video" : "image" })}
+                          aria-label={isVideo ? "View video" : "View photo"}
+                          className="block w-full p-0 border-0 bg-transparent"
+                        >
+                          {isVideo ? (
+                            <video
+                              src={src}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="w-full rounded-xl object-cover max-h-[360px] bg-black pointer-events-none"
+                            />
+                          ) : (
+                            <img src={src} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
+                          )}
+                          {isVideo && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <div className="h-14 w-14 rounded-full bg-black/60 flex items-center justify-center">
+                                <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                        {visual.activity && (
+                          <div className="absolute top-2 right-2 bg-black/70 text-white text-[13px] font-semibold px-3 py-1.5 rounded-full flex items-center gap-1 pointer-events-none">
+                            <Flame size={14} />
+                            {visual.activity[0].toUpperCase() + visual.activity.slice(1)}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -651,6 +672,9 @@ export function TimelineCard({ item }: { item: FeedItem }) {
           <CommentSection postId={item.id} />
         </DrawerContent>
       </Drawer>
+      {lightbox && (
+        <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />
+      )}
     </div>
   );
 }
