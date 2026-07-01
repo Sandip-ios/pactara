@@ -1316,7 +1316,7 @@ function PaywallStep({
     {
       Icon: CreditCard,
       title: "After your trial",
-      body: "$9.99/month, billed automatically until you cancel.",
+      body: "$12.99/month, billed automatically until you cancel.",
     },
   ];
 
