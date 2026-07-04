@@ -91,6 +91,12 @@ function GroupsPage() {
         color: "#0A0A0A",
       }}
     >
+      <header className="bg-white px-6 pt-5 pb-4">
+        <div className="text-[24px] font-black tracking-tight">
+          <span style={{ color: PURPLE }}>P</span>
+          <span>actara</span>
+        </div>
+      </header>
       <PullToRefresh
         onRefresh={() =>
           queryClient.invalidateQueries({
@@ -100,13 +106,8 @@ function GroupsPage() {
             },
           })
         }
-      />
-      <header className="bg-white px-6 pt-5 pb-4">
-        <div className="text-[24px] font-black tracking-tight">
-          <span style={{ color: PURPLE }}>P</span>
-          <span>actara</span>
-        </div>
-      </header>
+      >
+
 
       <div className="px-6 pt-5 text-[14px] text-neutral-500">
         {count} {count === 1 ? "group" : "groups"} · Free trial
