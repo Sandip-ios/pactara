@@ -112,6 +112,7 @@ function ChatPage() {
           );
         })}
       </ul>
+      </PullToRefresh>
     </div>
   );
 }
