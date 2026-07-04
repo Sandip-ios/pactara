@@ -333,6 +333,7 @@ function ProfilePage() {
         </div>
       </section>
 
+      </PullToRefresh>
       {historyOpen && (
         <HistorySheet
           days={data?.past90 ?? []}
