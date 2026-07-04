@@ -14,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/chat/")({
 
 function ChatPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
