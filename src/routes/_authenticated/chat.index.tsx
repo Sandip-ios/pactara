@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { listMyGroups } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
