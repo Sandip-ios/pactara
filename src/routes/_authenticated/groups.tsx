@@ -65,6 +65,7 @@ type GroupItem = {
 
 function GroupsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
