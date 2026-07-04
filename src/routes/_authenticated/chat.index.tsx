@@ -1,8 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { listMyGroups } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/_authenticated/chat/")({
 
 function ChatPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -32,6 +34,16 @@ function ChatPage() {
       className="min-h-[100dvh] w-full pb-28 bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      <PullToRefresh
+        onRefresh={() =>
+          queryClient.invalidateQueries({
+            predicate: (q) => {
+              const k = q.queryKey[0];
+              return k === "my-groups" || k === "unread-chat-counts";
+            },
+          })
+        }
+      />
       <header className="bg-white px-6 pt-5 pb-4 border-b border-neutral-100">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
