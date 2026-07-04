@@ -105,6 +105,16 @@ function ProfilePage() {
       className="min-h-[100dvh] w-full pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      <PullToRefresh
+        onRefresh={() =>
+          queryClient.invalidateQueries({
+            predicate: (q) => {
+              const k = q.queryKey[0];
+              return k === "profile-overview" || k === "my-groups" || k === "my-group-status";
+            },
+          })
+        }
+      />
       <input
         ref={fileInputRef}
         type="file"
