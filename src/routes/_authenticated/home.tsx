@@ -11,6 +11,7 @@ import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import { supabase } from "@/integrations/supabase/client";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
