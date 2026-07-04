@@ -285,6 +285,22 @@ function HomePage() {
 
   return (
     <div className="min-h-[100dvh] w-full pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <PullToRefresh
+        onRefresh={() =>
+          queryClient.invalidateQueries({
+            predicate: (q) => {
+              const k = q.queryKey[0];
+              return (
+                k === "group-feed" ||
+                k === "pending-checkins" ||
+                k === "my-groups" ||
+                k === "my-group-status" ||
+                k === "unread-chat-counts"
+              );
+            },
+          })
+        }
+      />
       <header className="bg-white pl-6 pr-6 pt-5 pb-4 flex items-center justify-between">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span><span>actara</span>
