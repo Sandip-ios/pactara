@@ -91,6 +91,16 @@ function GroupsPage() {
         color: "#0A0A0A",
       }}
     >
+      <PullToRefresh
+        onRefresh={() =>
+          queryClient.invalidateQueries({
+            predicate: (q) => {
+              const k = q.queryKey[0];
+              return k === "my-groups" || k === "my-group-status";
+            },
+          })
+        }
+      />
       <header className="bg-white px-6 pt-5 pb-4">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
