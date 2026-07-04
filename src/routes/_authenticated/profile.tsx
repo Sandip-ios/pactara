@@ -8,6 +8,7 @@ import { Flame, CalendarDays, Target, Zap, SlidersHorizontal, LogOut, ChevronRig
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
 import { listMyGroups } from "@/lib/groups.functions";
+import { PullToRefresh } from "@/components/PullToRefresh";
 
 
 const PURPLE = "#7C3AED";
