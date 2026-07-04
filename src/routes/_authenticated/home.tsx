@@ -285,6 +285,19 @@ function HomePage() {
 
   return (
     <div className="min-h-[100dvh] w-full pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <header className="bg-white pl-6 pr-6 pt-5 pb-4 flex items-center justify-between">
+        <div className="text-[24px] font-black tracking-tight">
+          <span style={{ color: PURPLE }}>P</span><span>actara</span>
+        </div>
+        <button
+          onClick={() => setShowOnboarding(true)}
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
+          style={{ background: "#EDE6FE", color: PURPLE }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+          How Pactara works
+        </button>
+      </header>
       <PullToRefresh
         onRefresh={() =>
           queryClient.invalidateQueries({
@@ -300,20 +313,9 @@ function HomePage() {
             },
           })
         }
-      />
-      <header className="bg-white pl-6 pr-6 pt-5 pb-4 flex items-center justify-between">
-        <div className="text-[24px] font-black tracking-tight">
-          <span style={{ color: PURPLE }}>P</span><span>actara</span>
-        </div>
-        <button
-          onClick={() => setShowOnboarding(true)}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
-          style={{ background: "#EDE6FE", color: PURPLE }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-          How Pactara works
-        </button>
-      </header>
+      >
+
+
 
 
       {myGroups.length > 1 && (
@@ -546,6 +548,7 @@ function HomePage() {
       {/* Getting started checklist hidden for now */}
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
 
+      </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
       {showWelcome && <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />}
     </div>

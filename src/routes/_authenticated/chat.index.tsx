@@ -34,6 +34,12 @@ function ChatPage() {
       className="min-h-[100dvh] w-full pb-28 bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      <header className="bg-white px-6 pt-5 pb-4 border-b border-neutral-100">
+        <div className="text-[24px] font-black tracking-tight">
+          <span style={{ color: PURPLE }}>P</span>
+          <span>actara</span>
+        </div>
+      </header>
       <PullToRefresh
         onRefresh={() =>
           queryClient.invalidateQueries({
@@ -43,13 +49,8 @@ function ChatPage() {
             },
           })
         }
-      />
-      <header className="bg-white px-6 pt-5 pb-4 border-b border-neutral-100">
-        <div className="text-[24px] font-black tracking-tight">
-          <span style={{ color: PURPLE }}>P</span>
-          <span>actara</span>
-        </div>
-      </header>
+      >
+
 
       <section className="px-6 pt-6 pb-4 border-b border-neutral-100">
         <h1 className="text-[28px] font-black tracking-tight">Messages</h1>
@@ -111,6 +112,7 @@ function ChatPage() {
           );
         })}
       </ul>
+      </PullToRefresh>
     </div>
   );
 }

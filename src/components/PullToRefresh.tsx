@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { RefreshCw } from "lucide-react";
 
 const PURPLE = "#7C3AED";
@@ -20,11 +20,14 @@ function isAtScrollTop(el: EventTarget | null): boolean {
 
 type Props = {
   onRefresh: () => Promise<unknown> | unknown;
-  /** distance from top of viewport for the indicator (below the top bar). */
-  topOffset?: number;
+  children: ReactNode;
 };
 
-export function PullToRefresh({ onRefresh, topOffset = 64 }: Props) {
+/**
+ * Wrap the below-header content in <PullToRefresh>. The header should be
+ * OUTSIDE this wrapper so it stays fixed while content pulls down.
+ */
+export function PullToRefresh({ onRefresh, children }: Props) {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -54,10 +57,8 @@ export function PullToRefresh({ onRefresh, topOffset = 64 }: Props) {
         setDragging(false);
         return;
       }
-      // Only engage after a small threshold to avoid competing with taps.
       if (dy < 6) return;
       setDragging(true);
-      // Damping curve.
       const damped = Math.min(MAX_PULL, dy * 0.5);
       pullRef.current = damped;
       setPull(damped);
@@ -74,7 +75,7 @@ export function PullToRefresh({ onRefresh, topOffset = 64 }: Props) {
         try {
           await onRefresh();
         } catch {
-          // swallow — indicator hides regardless
+          // ignore
         } finally {
           setRefreshing(false);
           pullRef.current = 0;
@@ -97,49 +98,60 @@ export function PullToRefresh({ onRefresh, topOffset = 64 }: Props) {
     };
   }, [onRefresh]);
 
+  const offset = refreshing ? THRESHOLD : pull;
   const visible = refreshing || pull > 0;
   const progress = Math.min(1, pull / THRESHOLD);
-  const translate = refreshing ? topOffset + 8 : topOffset + Math.min(pull, MAX_PULL) - 20;
-  const opacity = refreshing ? 1 : Math.max(0.15, progress);
+  const iconOpacity = refreshing ? 1 : Math.max(0.15, progress);
   const rotate = refreshing ? 0 : progress * 270;
+  const transition = dragging ? "none" : "transform 260ms ease, opacity 200ms ease";
 
   return (
-    <div
-      aria-hidden={!visible}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        pointerEvents: "none",
-        zIndex: 50,
-        transform: `translateY(${translate}px)`,
-        transition: dragging ? "none" : "transform 260ms ease, opacity 200ms ease",
-        opacity: visible ? 1 : 0,
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
+    <div style={{ position: "relative" }}>
+      {/* Refresh indicator sits in the revealed gap */}
       <div
+        aria-hidden={!visible}
         style={{
-          height: 36,
-          width: 36,
-          borderRadius: 999,
-          background: "white",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.06)",
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: offset,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          opacity,
-          transform: `rotate(${rotate}deg)`,
-          transition: dragging ? "none" : "transform 260ms ease, opacity 200ms ease",
+          pointerEvents: "none",
+          opacity: visible ? 1 : 0,
+          transition,
+          zIndex: 5,
         }}
       >
-        <RefreshCw
-          size={18}
-          color={PURPLE}
-          className={refreshing ? "animate-spin" : ""}
-        />
+        <div
+          style={{
+            height: 36,
+            width: 36,
+            borderRadius: 999,
+            background: "white",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: iconOpacity,
+            transform: `rotate(${rotate}deg)`,
+            transition,
+          }}
+        >
+          <RefreshCw size={18} color={PURPLE} className={refreshing ? "animate-spin" : ""} />
+        </div>
+      </div>
+
+      <div
+        style={{
+          transform: `translateY(${offset}px)`,
+          transition,
+          willChange: "transform",
+        }}
+      >
+        {children}
       </div>
     </div>
   );
