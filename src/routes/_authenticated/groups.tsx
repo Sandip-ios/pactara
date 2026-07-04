@@ -20,6 +20,7 @@ import {
   Share2,
 } from "lucide-react";
 import { listMyGroups, renameGroup } from "@/lib/groups.functions";
+import { PullToRefresh } from "@/components/PullToRefresh";
 import {
   Popover,
   PopoverContent,
