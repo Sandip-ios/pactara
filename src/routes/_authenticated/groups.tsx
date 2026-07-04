@@ -185,6 +185,7 @@ function GroupsPage() {
       </div>
 
 
+      </PullToRefresh>
     </div>
   );
 }
