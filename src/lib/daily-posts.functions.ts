@@ -751,15 +751,28 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
 
     const today = localDateFor(timezone);
 
-    // Compute current streak: walk back day-by-day while a check-in exists.
-    const { data: recent } = await supabase
-      .from("check_ins")
-      .select("checkin_date")
-      .eq("user_id", userId)
-      .lte("checkin_date", today)
-      .order("checkin_date", { ascending: false })
-      .limit(400);
-    const days = new Set((recent ?? []).map((r: any) => r.checkin_date as string));
+    // Compute current streak: walk back day-by-day while a check-in or applied freeze exists.
+    const [{ data: recent }, { data: frozen }] = await Promise.all([
+      supabase
+        .from("check_ins")
+        .select("checkin_date")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .lte("checkin_date", today)
+        .order("checkin_date", { ascending: false })
+        .limit(400),
+      supabase
+        .from("streak_freezes_used")
+        .select("freeze_date")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .lte("freeze_date", today)
+        .limit(400),
+    ]);
+    const days = new Set<string>([
+      ...((recent ?? []).map((r: any) => r.checkin_date as string)),
+      ...((frozen ?? []).map((r: any) => r.freeze_date as string)),
+    ]);
     let streak = 0;
     const cursor = new Date(`${today}T12:00:00Z`);
     // walk in UTC days; "good enough" — the local-day strings are already TZ-correct for today.
