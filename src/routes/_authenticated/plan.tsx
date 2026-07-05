@@ -63,7 +63,7 @@ function PlanPage() {
     { label: "Daily check-ins", monthly: true, annual: true },
     { label: "Photo check-ins", monthly: true, annual: true },
     { label: "Unlimited groups", monthly: true, annual: true },
-    { label: "Streak freeze", monthly: true, annual: true },
+    { label: "Streak freezes to start", monthly: "2", annual: "2" },
     { label: "Back-to-back challenges", monthly: false, annual: true },
     { label: "Early feature access", monthly: false, annual: true },
   ] as const;
@@ -206,7 +206,7 @@ function PlanPage() {
           tagline="Unlimited groups. Cancel anytime."
           price="$12.99"
           period="/ month"
-          bullets={["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"]}
+          bullets={["Unlimited groups", "Daily & photo check-ins", "2 streak freezes to start"]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
           checkColor="#9A9AA5"
