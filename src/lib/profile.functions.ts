@@ -198,6 +198,8 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       lastWeek,
       onTimeRatePct,
       missedCount: missedCount ?? 0,
+      streakFreezesAvailable,
+      frozenDates,
     };
   });
 
