@@ -587,3 +587,158 @@ function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: numb
   );
 }
 
+const ICE = "#38BDF8";
+const ICE_SOFT = "#E0F2FE";
+
+function StreakFreezeCard({
+  available,
+  onUse,
+}: {
+  available: number;
+  onUse: () => void;
+}) {
+  const canUse = available > 0;
+  return (
+    <div className="mt-3 rounded-2xl bg-white p-5 flex items-center gap-3">
+      <span
+        className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: ICE_SOFT }}
+      >
+        <Snowflake size={20} style={{ color: ICE }} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="text-[15px] font-bold text-neutral-900 leading-tight">
+          Streak freezes
+        </div>
+        <div className="text-[12px] text-neutral-500 mt-0.5 leading-snug">
+          {canUse
+            ? `${available} left. Apply one to a missed day to keep your streak alive.`
+            : "You've used them all. New freezes coming soon."}
+        </div>
+      </div>
+      <button
+        type="button"
+        onClick={onUse}
+        disabled={!canUse}
+        className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-40"
+        style={{ background: ICE_SOFT, color: ICE }}
+      >
+        Use
+      </button>
+    </div>
+  );
+}
+
+function StreakFreezeSheet({
+  groupId,
+  onClose,
+  onApplied,
+}: {
+  groupId: string | null;
+  onClose: () => void;
+  onApplied: () => void;
+}) {
+  const apply = useServerFn(applyStreakFreeze);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["streak-freeze-info", groupId],
+    queryFn: () => getStreakFreezeInfo({ data: { groupId } }),
+  });
+  const [pending, setPending] = useState<string | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: async (date: string) => {
+      if (!data?.groupId) throw new Error("No group selected");
+      return apply({ data: { groupId: data.groupId, date } });
+    },
+    onMutate: (date) => setPending(date),
+    onSuccess: async () => {
+      await refetch();
+      onApplied();
+      setPending(null);
+    },
+    onError: (err: unknown) => {
+      const message = err instanceof Error ? err.message : "Something went wrong";
+      alert(message);
+      setPending(null);
+    },
+  });
+
+  const available = data?.available ?? 0;
+  const missed = data?.missedDates ?? [];
+
+  return (
+    <div className="fixed inset-0 z-[80] flex items-end justify-center">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div
+        className="relative w-full max-w-md bg-white rounded-t-3xl max-h-[85dvh] flex flex-col"
+        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      >
+        <div className="pt-3 pb-2 flex justify-center">
+          <div className="h-1.5 w-10 rounded-full bg-neutral-200" />
+        </div>
+        <div className="px-6 pb-3">
+          <div className="flex items-center gap-2">
+            <Snowflake size={20} style={{ color: ICE }} />
+            <div className="text-[20px] font-bold">Use a streak freeze</div>
+          </div>
+          <div className="text-[13px] text-neutral-500 mt-1">
+            {available} freeze{available === 1 ? "" : "s"} available. Pick a missed day
+            in the last 14 to protect your streak.
+          </div>
+        </div>
+        <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
+          {isLoading ? (
+            <div className="text-center text-[13px] text-neutral-400 py-8">Loading…</div>
+          ) : missed.length === 0 ? (
+            <div className="text-center text-[13px] text-neutral-400 py-8">
+              No missed days in the last two weeks. Nice work.
+            </div>
+          ) : (
+            <ul className="divide-y divide-neutral-100">
+              {missed.map((d) => {
+                const dt = new Date(d + "T00:00:00Z");
+                const label = dt.toLocaleDateString("en-US", {
+                  weekday: "long",
+                  month: "short",
+                  day: "numeric",
+                  timeZone: "UTC",
+                });
+                const isPending = pending === d;
+                return (
+                  <li key={d} className="flex items-center gap-3 py-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[15px] font-semibold text-neutral-900 truncate">
+                        {label}
+                      </div>
+                      <div className="text-[12px] text-neutral-500">Missed check-in</div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => mutation.mutate(d)}
+                      disabled={available <= 0 || mutation.isPending}
+                      className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-40"
+                      style={{ background: ICE_SOFT, color: ICE }}
+                    >
+                      {isPending ? "Applying…" : "Freeze"}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <div className="p-4 border-t border-neutral-100">
+          <button
+            onClick={onClose}
+            className="w-full py-3 rounded-full font-semibold text-white"
+            style={{ background: PURPLE }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
