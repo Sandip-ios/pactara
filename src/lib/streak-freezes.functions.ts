@@ -1,13 +1,139 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateFor } from "@/lib/daily-posts.functions";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-function ymd(d: Date) {
+function addDays(dateStr: string, delta: number): string {
+  const d = new Date(dateStr + "T12:00:00Z");
+  d.setUTCDate(d.getUTCDate() + delta);
   return d.toISOString().slice(0, 10);
 }
 
-/** Look back this many days to offer freeze-eligible missed days. */
-const LOOKBACK_DAYS = 14;
+async function resolveEligibility(
+  supabase: SupabaseClient,
+  userId: string,
+  requestedGroupId: string | null,
+) {
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("streak_freezes_available, timezone")
+    .eq("id", userId)
+    .maybeSingle();
+  const available =
+    (profile as { streak_freezes_available?: number } | null)
+      ?.streak_freezes_available ?? 0;
+  const timezone = (profile as { timezone?: string } | null)?.timezone ?? "UTC";
+
+  let groupId = requestedGroupId;
+  if (!groupId) {
+    const { data: m } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    groupId = (m?.group_id as string | undefined) ?? null;
+  }
+
+  if (!groupId) {
+    return {
+      available,
+      timezone,
+      groupId: null as string | null,
+      eligibleDate: null as string | null,
+      reason: "no_group" as const,
+    };
+  }
+
+  const { data: membership } = await supabase
+    .from("group_members")
+    .select("joined_at")
+    .eq("user_id", userId)
+    .eq("group_id", groupId)
+    .maybeSingle();
+  if (!membership) {
+    return {
+      available,
+      timezone,
+      groupId,
+      eligibleDate: null,
+      reason: "not_member" as const,
+    };
+  }
+  const joinedDate = localDateFor(timezone, new Date(membership.joined_at as string));
+
+  const today = localDateFor(timezone);
+  const yesterday = addDays(today, -1);
+  const dayBefore = addDays(today, -2);
+
+  // Must have been in the group by yesterday
+  if (yesterday < joinedDate) {
+    return {
+      available,
+      timezone,
+      groupId,
+      eligibleDate: null,
+      reason: "too_new" as const,
+    };
+  }
+
+  // Fetch yesterday's + day-before's check-ins and applied freezes.
+  const window = [yesterday, dayBefore];
+  const [{ data: checkIns }, { data: freezes }] = await Promise.all([
+    supabase
+      .from("check_ins")
+      .select("checkin_date")
+      .eq("user_id", userId)
+      .eq("group_id", groupId)
+      .in("checkin_date", window),
+    supabase
+      .from("streak_freezes_used")
+      .select("freeze_date")
+      .eq("user_id", userId)
+      .eq("group_id", groupId)
+      .in("freeze_date", window),
+  ]);
+  const checkedSet = new Set(
+    (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date),
+  );
+  const frozenSet = new Set(
+    (freezes ?? []).map((f: { freeze_date: string }) => f.freeze_date),
+  );
+  const isCovered = (d: string) => checkedSet.has(d) || frozenSet.has(d);
+
+  // If yesterday is already covered, nothing to freeze.
+  if (isCovered(yesterday)) {
+    return {
+      available,
+      timezone,
+      groupId,
+      eligibleDate: null,
+      reason: "no_missed_day" as const,
+    };
+  }
+
+  // Streak must still be alive going into yesterday — i.e., day before was covered
+  // OR yesterday was the user's first eligible day (joined yesterday).
+  const streakAlive = isCovered(dayBefore) || dayBefore < joinedDate;
+  if (!streakAlive) {
+    return {
+      available,
+      timezone,
+      groupId,
+      eligibleDate: null,
+      reason: "streak_lost" as const,
+    };
+  }
+
+  return {
+    available,
+    timezone,
+    groupId,
+    eligibleDate: yesterday,
+    reason: "eligible" as const,
+  };
+}
 
 export const getStreakFreezeInfo = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -16,133 +142,44 @@ export const getStreakFreezeInfo = createServerFn({ method: "GET" })
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("streak_freezes_available, timezone")
-      .eq("id", userId)
-      .maybeSingle();
-    const available = (profile as { streak_freezes_available?: number } | null)
-      ?.streak_freezes_available ?? 0;
-    const timezone = (profile as { timezone?: string } | null)?.timezone ?? "UTC";
-
-    // Pick a group: requested, else most recent membership
-    let groupId = data.groupId;
-    if (!groupId) {
-      const { data: m } = await supabase
-        .from("group_members")
-        .select("group_id, joined_at")
-        .eq("user_id", userId)
-        .order("joined_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      groupId = m?.group_id ?? null;
-    }
-
-    if (!groupId) {
-      return { available, groupId: null as string | null, missedDates: [] as string[] };
-    }
-
-    // Verify membership + get joined_at
-    const { data: membership } = await supabase
-      .from("group_members")
-      .select("joined_at")
-      .eq("user_id", userId)
-      .eq("group_id", groupId)
-      .maybeSingle();
-    if (!membership) {
-      return { available, groupId, missedDates: [] as string[] };
-    }
-    const joinedDate = localDateFor(timezone, new Date(membership.joined_at as string));
-
-    const today = localDateFor(timezone);
-    // Build lookback window (exclude today)
-    const window: string[] = [];
-    const cursor = new Date(`${today}T12:00:00Z`);
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-    for (let i = 0; i < LOOKBACK_DAYS; i++) {
-      const s = ymd(cursor);
-      if (s < joinedDate) break;
-      window.push(s);
-      cursor.setUTCDate(cursor.getUTCDate() - 1);
-    }
-
-    if (window.length === 0) {
-      return { available, groupId, missedDates: [] };
-    }
-
-    const [{ data: checkIns }, { data: freezes }] = await Promise.all([
-      supabase
-        .from("check_ins")
-        .select("checkin_date")
-        .eq("user_id", userId)
-        .eq("group_id", groupId)
-        .in("checkin_date", window),
-      supabase
-        .from("streak_freezes_used")
-        .select("freeze_date")
-        .eq("user_id", userId)
-        .eq("group_id", groupId)
-        .in("freeze_date", window),
-    ]);
-
-    const checkedSet = new Set(
-      (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date),
-    );
-    const frozenSet = new Set(
-      (freezes ?? []).map((f: { freeze_date: string }) => f.freeze_date),
-    );
-    const missedDates = window.filter((d) => !checkedSet.has(d) && !frozenSet.has(d));
-
-    return { available, groupId, missedDates };
+    const res = await resolveEligibility(supabase, userId, data.groupId);
+    return {
+      available: res.available,
+      groupId: res.groupId,
+      eligibleDate: res.eligibleDate,
+      reason: res.reason,
+    };
   });
 
 export const applyStreakFreeze = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { groupId: string; date: string }) => {
+  .inputValidator((input: { groupId: string }) => {
     if (!input?.groupId) throw new Error("Missing group");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(input?.date ?? ""))
-      throw new Error("Invalid date");
-    return { groupId: String(input.groupId), date: String(input.date) };
+    return { groupId: String(input.groupId) };
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    // Verify membership
-    const { data: m } = await supabase
-      .from("group_members")
-      .select("group_id")
-      .eq("user_id", userId)
-      .eq("group_id", data.groupId)
-      .maybeSingle();
-    if (!m) throw new Error("You're not a member of this group");
-
-    // Check available count
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("streak_freezes_available")
-      .eq("id", userId)
-      .maybeSingle();
-    const available = (profile as { streak_freezes_available?: number } | null)
-      ?.streak_freezes_available ?? 0;
-    if (available <= 0) throw new Error("No streak freezes remaining");
-
-    // Ensure the date isn't already covered by a check-in
-    const { data: existing } = await supabase
-      .from("check_ins")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("group_id", data.groupId)
-      .eq("checkin_date", data.date)
-      .maybeSingle();
-    if (existing) throw new Error("You already checked in that day");
+    const res = await resolveEligibility(supabase, userId, data.groupId);
+    if (res.available <= 0) throw new Error("No streak freezes remaining");
+    if (!res.eligibleDate) {
+      const messages: Record<string, string> = {
+        no_group: "You're not in a group yet",
+        not_member: "You're not a member of this group",
+        too_new: "You just joined — nothing to freeze yet",
+        no_missed_day: "Yesterday is already covered",
+        streak_lost:
+          "Too late — your streak already broke. Freezes only protect yesterday.",
+      };
+      throw new Error(messages[res.reason] ?? "Freeze not available");
+    }
 
     const { error: insertErr } = await supabase
       .from("streak_freezes_used")
       .insert({
         user_id: userId,
-        group_id: data.groupId,
-        freeze_date: data.date,
+        group_id: res.groupId!,
+        freeze_date: res.eligibleDate,
       } as never);
     if (insertErr) {
       if ((insertErr as { code?: string }).code === "23505")
@@ -150,23 +187,26 @@ export const applyStreakFreeze = createServerFn({ method: "POST" })
       throw new Error(insertErr.message);
     }
 
-    // Atomic-ish decrement: filter by current count
-    const { error: decErr, data: updated } = await supabase
+    // Optimistic-concurrency decrement
+    const { data: updated, error: decErr } = await supabase
       .from("profiles")
-      .update({ streak_freezes_available: available - 1 } as never)
+      .update({ streak_freezes_available: res.available - 1 } as never)
       .eq("id", userId)
-      .eq("streak_freezes_available" as never, available)
+      .eq("streak_freezes_available" as never, res.available)
       .select("streak_freezes_available");
     if (decErr || !updated || updated.length === 0) {
-      // Roll back the freeze insertion if we lost the race
       await supabase
         .from("streak_freezes_used")
         .delete()
         .eq("user_id", userId)
-        .eq("group_id", data.groupId)
-        .eq("freeze_date", data.date);
+        .eq("group_id", res.groupId!)
+        .eq("freeze_date", res.eligibleDate);
       throw new Error("Couldn't apply freeze, please try again");
     }
 
-    return { ok: true, remaining: available - 1 };
+    return {
+      ok: true,
+      remaining: res.available - 1,
+      frozenDate: res.eligibleDate,
+    };
   });
