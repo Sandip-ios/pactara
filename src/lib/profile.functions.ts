@@ -128,7 +128,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
 
     const past7: { date: string; checked: boolean }[] = [];
     const past90: { date: string; checked: boolean }[] = [];
-    const set = new Set(dates);
+    const set = new Set<string>([...dates, ...frozenDates]);
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setUTCDate(d.getUTCDate() - i);
