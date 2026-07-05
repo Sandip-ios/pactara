@@ -348,6 +348,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          streak_freezes_available: number
           timezone: string
         }
         Insert: {
@@ -356,6 +357,7 @@ export type Database = {
           created_at?: string
           id: string
           name?: string
+          streak_freezes_available?: number
           timezone?: string
         }
         Update: {
@@ -364,6 +366,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          streak_freezes_available?: number
           timezone?: string
         }
         Relationships: []
@@ -400,6 +403,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      streak_freezes_used: {
+        Row: {
+          created_at: string
+          freeze_date: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          freeze_date: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          freeze_date?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streak_freezes_used_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
