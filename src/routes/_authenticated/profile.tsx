@@ -32,6 +32,7 @@ function ProfilePage() {
   const saveAvatarPath = useServerFn(setAvatarPath);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
+  const [freezeOpen, setFreezeOpen] = useState(false);
 
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
