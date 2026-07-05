@@ -5,8 +5,8 @@ function ymd(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-function computeStreaks(dates: string[]) {
-  const set = new Set(dates);
+function computeStreaks(dates: string[], frozenDates: string[] = []) {
+  const set = new Set<string>([...dates, ...frozenDates]);
   // current streak (ending today or yesterday)
   let current = 0;
   const today = new Date();
@@ -17,7 +17,7 @@ function computeStreaks(dates: string[]) {
     cursor.setUTCDate(cursor.getUTCDate() - 1);
   }
   // best streak
-  const sorted = [...dates].sort();
+  const sorted = [...set].sort();
   let best = 0;
   let run = 0;
   let prev: Date | null = null;
@@ -102,12 +102,33 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     if (activeGroupId) checkInQuery = checkInQuery.eq("group_id", activeGroupId);
     const { data: checkIns } = await checkInQuery;
 
+    // Group-scoped applied streak freezes
+    let freezeQuery = supabase
+      .from("streak_freezes_used")
+      .select("freeze_date")
+      .eq("user_id", userId);
+    if (activeGroupId) freezeQuery = freezeQuery.eq("group_id", activeGroupId);
+    const { data: freezeRows } = await freezeQuery;
+    const frozenDates = (freezeRows ?? []).map(
+      (f: { freeze_date: string }) => f.freeze_date,
+    );
+
+    // Freezes available on profile (global to user)
+    const { data: freezeProfile } = await supabase
+      .from("profiles")
+      .select("streak_freezes_available")
+      .eq("id", userId)
+      .maybeSingle();
+    const streakFreezesAvailable =
+      (freezeProfile as { streak_freezes_available?: number } | null)
+        ?.streak_freezes_available ?? 0;
+
     const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
-    const { current, best } = computeStreaks(dates);
+    const { current, best } = computeStreaks(dates, frozenDates);
 
     const past7: { date: string; checked: boolean }[] = [];
     const past90: { date: string; checked: boolean }[] = [];
-    const set = new Set(dates);
+    const set = new Set<string>([...dates, ...frozenDates]);
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setUTCDate(d.getUTCDate() - i);
@@ -177,6 +198,8 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       lastWeek,
       onTimeRatePct,
       missedCount: missedCount ?? 0,
+      streakFreezesAvailable,
+      frozenDates,
     };
   });
 
