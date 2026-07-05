@@ -5,8 +5,8 @@ function ymd(d: Date) {
   return d.toISOString().slice(0, 10);
 }
 
-function computeStreaks(dates: string[]) {
-  const set = new Set(dates);
+function computeStreaks(dates: string[], frozenDates: string[] = []) {
+  const set = new Set<string>([...dates, ...frozenDates]);
   // current streak (ending today or yesterday)
   let current = 0;
   const today = new Date();
@@ -17,7 +17,7 @@ function computeStreaks(dates: string[]) {
     cursor.setUTCDate(cursor.getUTCDate() - 1);
   }
   // best streak
-  const sorted = [...dates].sort();
+  const sorted = [...set].sort();
   let best = 0;
   let run = 0;
   let prev: Date | null = null;
