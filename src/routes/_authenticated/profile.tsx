@@ -349,6 +349,16 @@ function ProfilePage() {
           onClose={() => setHistoryOpen(false)}
         />
       )}
+      {freezeOpen && (
+        <StreakFreezeSheet
+          groupId={selectedGroupId}
+          onClose={() => setFreezeOpen(false)}
+          onApplied={() => {
+            queryClient.invalidateQueries({ queryKey: ["profile-overview"] });
+            queryClient.invalidateQueries({ queryKey: ["streak-freeze-info"] });
+          }}
+        />
+      )}
     </div>
   );
 }
