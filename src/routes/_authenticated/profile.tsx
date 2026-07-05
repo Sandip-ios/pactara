@@ -242,6 +242,13 @@ function ProfilePage() {
           <StatCard icon={<Target size={18} style={{ color: "#16A34A" }} />} bg={GREEN_SOFT} label="Best streak" value={stat(data?.bestStreak ?? 0)} />
         </div>
 
+        {/* Streak freezes */}
+        <StreakFreezeCard
+          available={data?.streakFreezesAvailable ?? 0}
+          onUse={() => setFreezeOpen(true)}
+        />
+
+
         {/* Past 7 days */}
         <div className="mt-3 rounded-2xl bg-white p-5">
           <div className="text-[16px] font-bold">Past 7 days</div>
