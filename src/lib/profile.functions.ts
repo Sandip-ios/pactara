@@ -102,8 +102,29 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     if (activeGroupId) checkInQuery = checkInQuery.eq("group_id", activeGroupId);
     const { data: checkIns } = await checkInQuery;
 
+    // Group-scoped applied streak freezes
+    let freezeQuery = supabase
+      .from("streak_freezes_used")
+      .select("freeze_date")
+      .eq("user_id", userId);
+    if (activeGroupId) freezeQuery = freezeQuery.eq("group_id", activeGroupId);
+    const { data: freezeRows } = await freezeQuery;
+    const frozenDates = (freezeRows ?? []).map(
+      (f: { freeze_date: string }) => f.freeze_date,
+    );
+
+    // Freezes available on profile (global to user)
+    const { data: freezeProfile } = await supabase
+      .from("profiles")
+      .select("streak_freezes_available")
+      .eq("id", userId)
+      .maybeSingle();
+    const streakFreezesAvailable =
+      (freezeProfile as { streak_freezes_available?: number } | null)
+        ?.streak_freezes_available ?? 0;
+
     const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
-    const { current, best } = computeStreaks(dates);
+    const { current, best } = computeStreaks(dates, frozenDates);
 
     const past7: { date: string; checked: boolean }[] = [];
     const past90: { date: string; checked: boolean }[] = [];
