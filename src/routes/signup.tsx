@@ -1191,7 +1191,7 @@ function PlansPage({ onSelect, onBack }: { onSelect: () => void; onBack: () => v
           </div>
           <p className="mt-2 text-[14px]" style={{ color: MUTED }}>Starts with your 7-day free trial</p>
           <ul className="mt-5 space-y-3">
-            {["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"].map((f) => (
+            {["Unlimited groups", "Daily & photo check-ins", "2 streak freezes to start"].map((f) => (
               <li key={f} className="flex items-center gap-3 text-[15px]" style={{ color: INK }}>
                 <Check size={18} strokeWidth={2.5} style={{ color: "#9A9AA5" }} />
                 {f}
