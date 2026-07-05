@@ -206,7 +206,7 @@ function PlanPage() {
           tagline="Unlimited groups. Cancel anytime."
           price="$12.99"
           period="/ month"
-          bullets={["Unlimited groups", "Daily & photo check-ins", "Streak freeze (1× per week)"]}
+          bullets={["Unlimited groups", "Daily & photo check-ins", "2 streak freezes to start"]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
           checkColor="#9A9AA5"
