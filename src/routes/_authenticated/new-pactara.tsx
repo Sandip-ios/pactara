@@ -40,14 +40,15 @@ type StepKey =
 
 const STEPS: StepKey[] = [
   "goal",
-  "company",
   "group",
   "commitment",
+  "company",
   "invite",
   "notify",
-  "greeting",
   "how",
+  "greeting",
 ];
+
 
 function NewPactaraFlow() {
   const navigate = useNavigate();
@@ -129,6 +130,9 @@ function NewPactaraFlow() {
   })();
 
   if (step === "company") return <CompanyStep onContinue={next} onBack={back} />;
+  if (step === "how") {
+    return <HowItWorksStep onDone={next} onBack={back} />;
+  }
   if (step === "greeting") {
     const days =
       goal === "75-hard"
@@ -136,12 +140,9 @@ function NewPactaraFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
-    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
-  }
-  if (step === "how") {
     return (
       <>
-        <HowItWorksStep onDone={finish} onBack={back} />
+        <GreetingStep firstName={firstName} days={days} onContinue={finish} onBack={back} />
         {finishing && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">
@@ -160,6 +161,7 @@ function NewPactaraFlow() {
       </>
     );
   }
+
 
   return (
     <div

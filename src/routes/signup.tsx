@@ -106,22 +106,22 @@ const STEPS: StepKey[] = [
   "email",
   "photo",
   "goal",
-  "company",
   "group",
   "commitment",
+  "company",
   "invite",
   "notify",
   "password",
-  "paywall",
   "starting",
-  "greeting",
   "how",
+  "greeting",
 ];
+
 
 function SignupFlow() {
   const navigate = useNavigate();
   const [stepIdx, setStepIdx] = useState(0);
-  const [viewPlans, setViewPlans] = useState(false);
+
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -253,20 +253,6 @@ function SignupFlow() {
   if (step === "company") {
     return <CompanyStep onContinue={next} onBack={back} />;
   }
-  if (step === "paywall") {
-    if (viewPlans) {
-      return (
-        <PlansPage
-          onSelect={() => {
-            setViewPlans(false);
-            next();
-          }}
-          onBack={() => setViewPlans(false)}
-        />
-      );
-    }
-    return <PaywallStep onTrial={next} onFree={() => setViewPlans(true)} onBack={back} />;
-  }
   if (step === "greeting") {
     const days =
       goal === "75-hard"
@@ -274,12 +260,9 @@ function SignupFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
-    return <GreetingStep firstName={firstName} days={days} onContinue={next} onBack={back} />;
-  }
-  if (step === "how") {
     return (
       <>
-        <HowItWorksStep onDone={finish} onBack={back} />
+        <GreetingStep firstName={firstName} days={days} onContinue={finish} onBack={back} />
         {finishing && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">Creating your account…</div>
@@ -293,6 +276,10 @@ function SignupFlow() {
       </>
     );
   }
+  if (step === "how") {
+    return <HowItWorksStep onDone={next} onBack={back} />;
+  }
+
 
   return (
     <div
@@ -1675,7 +1662,7 @@ export function GreetingStep({ firstName, days, onContinue, onBack }: { firstNam
         </p>
       </div>
 
-      <PrimaryButton onClick={onContinue} label="See how it works" withArrow />
+      <PrimaryButton onClick={onContinue} label="Let's go" withArrow />
     </div>
   );
 }
@@ -1738,7 +1725,7 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
         ))}
       </div>
 
-      <PrimaryButton onClick={onDone} label="Let's go" withArrow />
+      <PrimaryButton onClick={onDone} label="Continue" withArrow />
     </div>
   );
 }
