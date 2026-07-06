@@ -634,6 +634,7 @@ export function GoalStep({
         {GOALS.map((g) => {
           const selected = goal === g.id;
           const isCustom = g.id === "custom";
+          const dashed = isCustom && !selected;
           return (
             <button
               key={g.id}
@@ -641,19 +642,31 @@ export function GoalStep({
               onClick={() => setGoal(g.id)}
               className="w-full rounded-2xl px-4 py-4 flex items-start gap-3 text-left transition"
               style={{
-                background: selected ? "#FFF4ED" : INPUT_BG,
-                border: selected ? "2px solid #F97316" : "2px solid transparent",
+                background: selected ? "#FFF4ED" : isCustom ? "#FFFFFF" : INPUT_BG,
+                border: selected
+                  ? "2px solid #F97316"
+                  : dashed
+                    ? "2px dashed #C9C4BE"
+                    : "2px solid transparent",
                 boxShadow: selected ? "0 10px 24px -16px rgba(249,115,22,0.4)" : "none",
               }}
             >
-              <span className="text-[22px] leading-none mt-0.5">{g.emoji}</span>
+              <span className="text-[22px] leading-none mt-0.5">
+                {isCustom && !selected ? <Plus size={22} color={TEXT_MUTED} /> : g.emoji}
+              </span>
               <div className="flex-1">
-                <div className="text-[17px] font-semibold">{g.label}</div>
-                {selected && (
+                <div className="text-[17px] font-semibold">
+                  {isCustom && !selected ? "Add your own goal" : g.label}
+                </div>
+                {selected ? (
                   <div className="mt-1 text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>
                     {g.blurb}
                   </div>
-                )}
+                ) : isCustom ? (
+                  <div className="mt-1 text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>
+                    Something not on the list? Name it yourself.
+                  </div>
+                ) : null}
                 {selected && isCustom && setCustomGoalLabel && (
                   <input
                     autoFocus
@@ -673,6 +686,7 @@ export function GoalStep({
           );
         })}
       </div>
+
     </div>
   );
 }
