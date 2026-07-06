@@ -28,12 +28,9 @@ import {
   Share2,
   Eye,
   EyeOff,
-  Lock,
   Plus,
   Star,
-  TrendingUp,
   Users,
-  Flame,
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -98,7 +95,6 @@ type StepKey =
   | "invite"
   | "notify"
   | "password"
-  | "starting"
   | "how"
   | "greeting";
 
@@ -115,7 +111,6 @@ const STEPS: StepKey[] = [
   "invite",
   "notify",
   "password",
-  "starting",
   "how",
   "greeting",
 ];
@@ -142,9 +137,6 @@ function SignupFlow() {
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
-  const [frontPhoto, setFrontPhoto] = useState<string | null>(null);
-  const [sidePhoto, setSidePhoto] = useState<string | null>(null);
-  const [startWeight, setStartWeight] = useState("");
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
@@ -300,22 +292,20 @@ function SignupFlow() {
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
-      {step !== "starting" && (
-        <div className="flex items-center gap-3">
-          <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
-            <ChevronLeft size={22} />
-          </button>
-          <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, background: PURPLE }}
-            />
-          </div>
+      <div className="flex items-center gap-3">
+        <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
+          <ChevronLeft size={22} />
+        </button>
+        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: `${progress}%`, background: PURPLE }}
+          />
         </div>
-      )}
+      </div>
 
       {/* Content */}
-      <div className={`${step === "starting" ? "" : "mt-10"} flex-1 flex flex-col min-h-0 overflow-y-auto`}>
+      <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
         {step === "name" && (
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
@@ -365,16 +355,6 @@ function SignupFlow() {
             setConfirmPw={setConfirmPw}
           />
         )}
-        {step === "starting" && (
-          <StartingPointStep
-            frontPhoto={frontPhoto}
-            setFrontPhoto={setFrontPhoto}
-            sidePhoto={sidePhoto}
-            setSidePhoto={setSidePhoto}
-            startWeight={startWeight}
-            setStartWeight={setStartWeight}
-          />
-        )}
       </div>
 
       {/* Footer actions */}
@@ -402,14 +382,7 @@ function SignupFlow() {
               </p>
             </div>
           </>
-        ) : step === "notify" ? null : step === "starting" ? (
-          <>
-            <PrimaryButton onClick={next} label="Continue" />
-            <button onClick={next} className="text-[15px] font-medium" style={{ color: TEXT_MUTED }}>
-              Skip for now
-            </button>
-          </>
-        ) : (
+        ) : step === "notify" ? null : (
           <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
         )}
       </div>
@@ -1632,113 +1605,6 @@ function PaywallStep({
           </div>
         </SheetContent>
       </Sheet>
-    </div>
-  );
-}
-
-/* ------------ Step: Starting Point ------------ */
-function StartingPointStep({
-  frontPhoto,
-  setFrontPhoto,
-  sidePhoto,
-  setSidePhoto,
-  startWeight,
-  setStartWeight,
-}: {
-  frontPhoto: string | null;
-  setFrontPhoto: (v: string | null) => void;
-  sidePhoto: string | null;
-  setSidePhoto: (v: string | null) => void;
-  startWeight: string;
-  setStartWeight: (v: string) => void;
-}) {
-  return (
-    <div>
-      <h1 className="text-[32px] font-bold tracking-tight leading-[1.05]">Capture your starting point</h1>
-      <p className="mt-3 text-[15px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-        Completely private — only you can see this. Full body, front and side, tells the real story.
-      </p>
-
-      <div className="mt-6 grid grid-cols-2 gap-3">
-        <PhotoSlot label="Front" photo={frontPhoto} setPhoto={setFrontPhoto} />
-        <PhotoSlot label="Side" photo={sidePhoto} setPhoto={setSidePhoto} />
-      </div>
-
-      <button className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-semibold" style={{ color: PURPLE }}>
-        <Plus size={16} /> Add another angle
-      </button>
-
-      <div className="mt-7 rounded-2xl p-5" style={{ border: "1px solid #ECECEC", background: "#FAFAF9" }}>
-        <label className="text-[15px] font-semibold">
-          Starting weight <span className="font-normal" style={{ color: TEXT_MUTED }}>(optional)</span>
-        </label>
-        <div className="mt-2 rounded-xl px-4 py-3 flex items-center bg-white" style={{ border: "1px solid #ECECEC" }}>
-          <input
-            inputMode="decimal"
-            placeholder="185"
-            value={startWeight}
-            onChange={(e) => setStartWeight(e.target.value.replace(/[^\d.]/g, ""))}
-            className="flex-1 bg-transparent outline-none text-[17px]"
-          />
-          <span className="text-[14px] font-medium" style={{ color: TEXT_MUTED }}>
-            lbs
-          </span>
-        </div>
-        <div className="mt-3 flex items-start gap-2 text-[12.5px] leading-[1.45]" style={{ color: LABEL }}>
-          <Lock size={13} className="mt-0.5 shrink-0" />
-          <span>Your group will never see this. You can choose to share your transformation at the end.</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function PhotoSlot({
-  label,
-  photo,
-  setPhoto,
-}: {
-  label: string;
-  photo: string | null;
-  setPhoto: (v: string | null) => void;
-}) {
-  const ref = useRef<HTMLInputElement>(null);
-  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    setPhoto(URL.createObjectURL(f));
-  };
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => ref.current?.click()}
-        className="relative w-full aspect-[3/4] rounded-2xl flex flex-col items-center justify-center overflow-hidden"
-        style={{ border: photo ? "1px solid #ECECEC" : "2px dashed #D6D3D1" }}
-      >
-        {photo ? (
-          <img src={photo} alt={label} className="w-full h-full object-cover" />
-        ) : (
-          <>
-            <div
-              className="w-10 h-10 rounded-full flex items-center justify-center"
-              style={{ border: "1.5px solid #B8B3AD", color: "#9A958E" }}
-            >
-              <Plus size={18} />
-            </div>
-            <div className="mt-1.5 text-[13px] font-medium" style={{ color: TEXT_MUTED }}>
-              Add photo
-            </div>
-          </>
-        )}
-        <span
-          className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[11px] font-semibold tracking-wide uppercase bg-white/90 backdrop-blur"
-          style={{ color: LABEL, border: "1px solid #ECECEC" }}
-        >
-          {label}
-        </span>
-      </button>
-      <input ref={ref} type="file" accept="image/*" className="hidden" onChange={onPick} />
     </div>
   );
 }
