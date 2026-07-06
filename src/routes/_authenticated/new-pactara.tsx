@@ -62,6 +62,7 @@ function NewPactaraFlow() {
   const [stepIdx, setStepIdx] = useState(0);
 
   const [goal, setGoal] = useState<string | null>(null);
+  const [customGoalLabel, setCustomGoalLabel] = useState("");
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
@@ -71,18 +72,19 @@ function NewPactaraFlow() {
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
-  const goalLabel = useMemo(
-    () => GOALS.find((g) => g.id === goal)?.label ?? "your goal",
-    [goal],
-  );
+  const goalLabel = useMemo(() => {
+    if (goal === "custom") return customGoalLabel.trim() || "your goal";
+    return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
+  }, [goal, customGoalLabel]);
   const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
 
   const ensureGroupName = () => {
     if (!groupName && goal) {
-      const g = GOALS.find((x) => x.id === goal)!;
-      setGroupName(`${g.label} Crew`);
+      const label = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
+      setGroupName(`${label} Crew`);
     }
   };
+
 
   const next = () => {
     if (step === "goal") ensureGroupName();
@@ -115,6 +117,7 @@ function NewPactaraFlow() {
   const canContinue = (() => {
     switch (step) {
       case "goal":
+        if (goal === "custom") return customGoalLabel.trim().length > 0;
         return goal !== null;
       case "group":
         return groupName.trim().length > 0;
@@ -184,7 +187,14 @@ function NewPactaraFlow() {
       </div>
 
       <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
-        {step === "goal" && <GoalStep goal={goal} setGoal={setGoal} />}
+        {step === "goal" && (
+          <GoalStep
+            goal={goal}
+            setGoal={setGoal}
+            customGoalLabel={customGoalLabel}
+            setCustomGoalLabel={setCustomGoalLabel}
+          />
+        )}
         {step === "group" && (
           <GroupStep
             groupName={groupName}

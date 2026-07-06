@@ -70,6 +70,7 @@ export const GOALS = [
   { id: "race", emoji: "🏅", label: "Train for a race", blurb: "Show up to the start line ready" },
   { id: "general", emoji: "🔥", label: "General fitness", blurb: "Move every day. Feel better. Together." },
   { id: "75-hard", emoji: "🪖", label: "75 Hard", blurb: "The full program. No compromises." },
+  { id: "custom", emoji: "🎯", label: "Something else", blurb: "Set your own goal in your own words" },
 ];
 
 
@@ -81,6 +82,7 @@ export const ICON_FOR_GOAL: Record<string, string> = {
   race: "🏅",
   general: "🔥",
   "75-hard": "🪖",
+  custom: "🎯",
 };
 
 type StepKey =
@@ -127,6 +129,7 @@ function SignupFlow() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
+  const [customGoalLabel, setCustomGoalLabel] = useState("");
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
@@ -141,13 +144,16 @@ function SignupFlow() {
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
-  const goalLabel = useMemo(() => GOALS.find((g) => g.id === goal)?.label ?? "your goal", [goal]);
+  const goalLabel = useMemo(() => {
+    if (goal === "custom") return customGoalLabel.trim() || "your goal";
+    return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
+  }, [goal, customGoalLabel]);
   const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
 
   const ensureGroupName = () => {
     if (!groupName && goal) {
-      const g = GOALS.find((x) => x.id === goal)!;
-      setGroupName(`${g.label} Crew`);
+      const label = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
+      setGroupName(`${label} Crew`);
     }
   };
 
@@ -230,6 +236,7 @@ function SignupFlow() {
       case "photo":
         return true;
       case "goal":
+        if (goal === "custom") return customGoalLabel.trim().length > 0;
         return goal !== null;
       case "group":
         return groupName.trim().length > 0;
@@ -314,7 +321,14 @@ function SignupFlow() {
         )}
         {step === "email" && <EmailStep firstName={firstName} email={email} setEmail={setEmail} />}
         {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} setPhotoFile={setPhotoFile} />}
-        {step === "goal" && <GoalStep goal={goal} setGoal={setGoal} />}
+        {step === "goal" && (
+          <GoalStep
+            goal={goal}
+            setGoal={setGoal}
+            customGoalLabel={customGoalLabel}
+            setCustomGoalLabel={setCustomGoalLabel}
+          />
+        )}
         {step === "group" && (
           <GroupStep
             groupName={groupName}
@@ -611,7 +625,17 @@ function PhotoStep({ photo, setPhoto, setPhotoFile }: { photo: string | null; se
 }
 
 /* ------------ Step: Goal ------------ */
-export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string) => void }) {
+export function GoalStep({
+  goal,
+  setGoal,
+  customGoalLabel = "",
+  setCustomGoalLabel,
+}: {
+  goal: string | null;
+  setGoal: (v: string) => void;
+  customGoalLabel?: string;
+  setCustomGoalLabel?: (v: string) => void;
+}) {
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your fitness goal?</h1>
@@ -622,6 +646,7 @@ export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: 
       <div className="mt-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2 -mx-6 px-6">
         {GOALS.map((g) => {
           const selected = goal === g.id;
+          const isCustom = g.id === "custom";
           return (
             <button
               key={g.id}
@@ -641,6 +666,19 @@ export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: 
                   <div className="mt-1 text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>
                     {g.blurb}
                   </div>
+                )}
+                {selected && isCustom && setCustomGoalLabel && (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={customGoalLabel}
+                    onChange={(e) => setCustomGoalLabel(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="e.g. Read every day, Meditate, Learn guitar"
+                    maxLength={40}
+                    className="mt-3 w-full rounded-xl px-3 py-3 text-[15px] outline-none"
+                    style={{ background: "#FFFFFF", border: "1px solid #F97316" }}
+                  />
                 )}
               </div>
               {selected && <Check size={20} className="mt-1" color="#F97316" />}
