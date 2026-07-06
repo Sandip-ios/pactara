@@ -114,7 +114,6 @@ const STEPS: StepKey[] = [
   "invite",
   "notify",
   "password",
-  "starting",
   "how",
   "greeting",
 ];
