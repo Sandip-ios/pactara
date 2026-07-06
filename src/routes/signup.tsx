@@ -121,7 +121,7 @@ const STEPS: StepKey[] = [
 function SignupFlow() {
   const navigate = useNavigate();
   const [stepIdx, setStepIdx] = useState(0);
-  const [viewPlans, setViewPlans] = useState(false);
+
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
