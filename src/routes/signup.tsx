@@ -707,7 +707,7 @@ export function GoalStep({
 }
 
 /* ------------ Step: Social Proof (interstitial) ------------ */
-export function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
+export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () => void; onBack: () => void; progress: number }) {
   const reviews = [
     {
       name: "Erfan",
