@@ -1725,7 +1725,7 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
         ))}
       </div>
 
-      <PrimaryButton onClick={onDone} label="Let's go" withArrow />
+      <PrimaryButton onClick={onDone} label="Continue" withArrow />
     </div>
   );
 }
