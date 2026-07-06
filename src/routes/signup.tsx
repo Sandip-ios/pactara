@@ -674,7 +674,7 @@ export function GoalStep({
                     value={customGoalLabel}
                     onChange={(e) => setCustomGoalLabel(e.target.value)}
                     onClick={(e) => e.stopPropagation()}
-                    placeholder="e.g. Read every day, Meditate, Learn guitar"
+                    placeholder="e.g. Read every day"
                     maxLength={40}
                     className="mt-3 w-full rounded-xl px-3 py-3 text-[15px] outline-none"
                     style={{ background: "#FFFFFF", border: "1px solid #F97316" }}
