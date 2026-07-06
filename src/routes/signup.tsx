@@ -795,47 +795,11 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
 
       <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
         <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
-          Join over 10 million people like you
+          What early members are saying
         </h1>
 
-        <div className="mt-7 grid grid-cols-2 gap-4">
-          <div className="flex flex-col items-center">
-            <div className="flex items-center">
-              <Laurel />
-              <div className="flex flex-col items-center px-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-[26px] font-bold leading-none text-black">4.8</span>
-                  <Star size={18} fill="#C9A24A" stroke="#C9A24A" />
-                </div>
-                <div className="text-[12px] text-[#6B6660] mt-1">avg rating</div>
-              </div>
-              <Laurel flip />
-            </div>
-            <div className="mt-3 text-[13px] text-[#6B6660]">250K+ App Ratings</div>
-          </div>
+        <div className="mt-8 space-y-4 pb-4">
 
-          <div className="flex flex-col items-center">
-            <div className="flex items-center h-[52px]">
-              <div className="flex -space-x-3">
-                {[
-                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
-                  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
-                  "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&auto=format&fit=crop&q=80",
-                ].map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt=""
-                    className="w-11 h-11 rounded-full object-cover border-2 border-white"
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="mt-3 text-[13px] text-[#6B6660]">10M+ Pactara Users</div>
-          </div>
-        </div>
-
-        <div className="mt-6 space-y-4 pb-4">
           {reviews.map((r, i) => (
             <div
               key={i}
