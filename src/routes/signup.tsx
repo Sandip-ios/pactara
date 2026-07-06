@@ -91,7 +91,7 @@ type StepKey =
   | "photo"
   | "goal"
   | "consistency"
-  | "namegoal"
+
   | "commitment"
   | "group"
   | "company"
