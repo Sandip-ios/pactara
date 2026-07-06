@@ -321,7 +321,14 @@ function SignupFlow() {
         )}
         {step === "email" && <EmailStep firstName={firstName} email={email} setEmail={setEmail} />}
         {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} setPhotoFile={setPhotoFile} />}
-        {step === "goal" && <GoalStep goal={goal} setGoal={setGoal} />}
+        {step === "goal" && (
+          <GoalStep
+            goal={goal}
+            setGoal={setGoal}
+            customGoalLabel={customGoalLabel}
+            setCustomGoalLabel={setCustomGoalLabel}
+          />
+        )}
         {step === "group" && (
           <GroupStep
             groupName={groupName}
