@@ -37,7 +37,7 @@ import {
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import goodCompany from "@/assets/good-company.jpg.asset.json";
+
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 import { setAvatarPath } from "@/lib/profile.functions";
@@ -691,46 +691,162 @@ export function GoalStep({
   );
 }
 
-/* ------------ Step: Good Company (interstitial) ------------ */
+/* ------------ Step: Social Proof (interstitial) ------------ */
 export function CompanyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
-  return (
-    <div className="min-h-[100dvh] w-full flex flex-col relative overflow-hidden" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-      <img src={goodCompany.url} alt="Group of friends celebrating" className="absolute inset-0 w-full h-full object-cover" />
-      <div
-        className="absolute inset-0"
-        style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.6) 75%, rgba(0,0,0,0.9) 100%)" }}
-      />
+  const reviews = [
+    {
+      name: "Erfan",
+      date: "April 4, 2026",
+      text: "Pactara has completely changed how I stick to my fitness goals. Having friends committed alongside me keeps me accountable in a way no other app has. The group dynamic is genuinely motivating and I actually look forward to checking in. Highly recommend for anyone who struggles to stay consistent on their own!",
+    },
+    {
+      name: "Tori",
+      date: "March 12, 2026",
+      text: "Great app for staying accountable with friends and hitting my goals.",
+    },
+    {
+      name: "N",
+      date: "May 2, 2025",
+      text: "I love this app. It's quickly become my most used app on my phone. It makes staying on track the easiest it can ever be. I enjoy it every single day.",
+    },
+  ];
 
-      <div className="relative px-6 pt-14">
-        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 text-white/90">
-          <ChevronLeft size={24} />
+  const Stars = () => (
+    <div className="flex items-center gap-1">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <Star key={i} size={16} fill="#E9B949" stroke="#E9B949" />
+      ))}
+    </div>
+  );
+
+  const Laurel = ({ flip = false }: { flip?: boolean }) => (
+    <svg
+      width="34"
+      height="52"
+      viewBox="0 0 34 52"
+      fill="none"
+      style={{ transform: flip ? "scaleX(-1)" : undefined }}
+      aria-hidden
+    >
+      <path
+        d="M28 4 C 18 10, 12 20, 10 32 C 9 40, 12 46, 18 50"
+        stroke="#C9A24A"
+        strokeWidth="2"
+        strokeLinecap="round"
+        fill="none"
+      />
+      {[
+        [22, 10],
+        [18, 16],
+        [14, 22],
+        [11, 29],
+        [10, 36],
+        [12, 43],
+      ].map(([cx, cy], i) => (
+        <ellipse
+          key={i}
+          cx={cx}
+          cy={cy}
+          rx="4.5"
+          ry="2"
+          fill="#C9A24A"
+          transform={`rotate(${-45 + i * 8} ${cx} ${cy})`}
+        />
+      ))}
+    </svg>
+  );
+
+  return (
+    <div
+      className="min-h-[100dvh] w-full flex flex-col bg-white"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      {/* Header: back + progress */}
+      <div className="px-5 pt-4 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          aria-label="Back"
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F3F1EE] text-black"
+        >
+          <ChevronLeft size={22} />
         </button>
+        <div className="flex-1 h-[6px] rounded-full bg-[#EAE7E2] overflow-hidden">
+          <div className="h-full rounded-full bg-black" style={{ width: "88%" }} />
+        </div>
       </div>
 
-      <div className="flex-1" />
-
-      <div className="relative px-6 pb-10 text-white">
-        <h1
-          className="text-[52px] leading-[0.98] tracking-tight"
-          style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontWeight: 400 }}
-        >
-          You're in good
-          <br /> company.
+      {/* Scrollable content */}
+      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-32">
+        <h1 className="text-[34px] font-bold tracking-tight leading-[1.05] text-black">
+          Join over 10 million people like you
         </h1>
-        <p className="mt-5 text-[16px] leading-[1.5] text-white/85 max-w-[34ch]">
-          Thousands of people are working on the same goal. Now you have a group behind you.
-        </p>
 
+        {/* Stats row */}
+        <div className="mt-7 grid grid-cols-2 gap-4">
+          <div className="flex flex-col items-center">
+            <div className="flex items-center">
+              <Laurel />
+              <div className="flex flex-col items-center px-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-[26px] font-bold leading-none text-black">4.8</span>
+                  <Star size={18} fill="#C9A24A" stroke="#C9A24A" />
+                </div>
+                <div className="text-[12px] text-[#6B6660] mt-1">avg rating</div>
+              </div>
+              <Laurel flip />
+            </div>
+            <div className="mt-3 text-[13px] text-[#6B6660]">250K+ App Ratings</div>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <div className="flex items-center h-[52px]">
+              <div className="flex -space-x-3">
+                {[
+                  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&auto=format&fit=crop&q=80",
+                  "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=200&auto=format&fit=crop&q=80",
+                ].map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt=""
+                    className="w-11 h-11 rounded-full object-cover border-2 border-white"
+                  />
+                ))}
+              </div>
+            </div>
+            <div className="mt-3 text-[13px] text-[#6B6660]">10M+ Pactara Users</div>
+          </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="mt-6 space-y-4">
+          {reviews.map((r, i) => (
+            <div
+              key={i}
+              className="rounded-2xl p-4"
+              style={{ background: "#F1EEF7" }}
+            >
+              <div className="flex items-center justify-between">
+                <Stars />
+                <div className="text-[13px] text-[#6B6660]">
+                  {r.name}, {r.date}
+                </div>
+              </div>
+              <p className="mt-3 text-[15px] leading-[1.45] text-black">{r.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Fixed continue button */}
+      <div className="fixed bottom-0 inset-x-0 px-5 pb-6 pt-4 bg-gradient-to-t from-white via-white to-white/0">
         <button
           type="button"
           onClick={onContinue}
-          className="mt-7 w-full rounded-2xl py-5 flex items-center justify-center gap-2 text-[17px] font-semibold text-white"
-          style={{
-            background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
-            boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
-          }}
+          className="w-full rounded-full py-5 text-[17px] font-semibold text-white bg-[#1B1B1F]"
         >
-          Let's go <ArrowRight size={20} />
+          Continue
         </button>
       </div>
     </div>
