@@ -85,12 +85,6 @@ function NewPactaraFlow() {
     }
   };
 
-  const ensureGroupName = () => {
-    if (!groupName && goal) {
-      const g = GOALS.find((x) => x.id === goal)!;
-      setGroupName(`${g.label} Crew`);
-    }
-  };
 
   const next = () => {
     if (step === "goal") ensureGroupName();
