@@ -129,7 +129,7 @@ function NewPactaraFlow() {
     }
   })();
 
-  if (step === "company") return <CompanyStep onContinue={next} onBack={back} />;
+  if (step === "company") return <CompanyStep onContinue={next} onBack={back} progress={progress} />;
   if (step === "how") {
     return <HowItWorksStep onDone={next} onBack={back} />;
   }
