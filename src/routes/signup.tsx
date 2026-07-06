@@ -106,17 +106,17 @@ const STEPS: StepKey[] = [
   "email",
   "photo",
   "goal",
-  "company",
   "group",
   "commitment",
+  "company",
   "invite",
   "notify",
   "password",
-  "paywall",
   "starting",
-  "greeting",
   "how",
+  "greeting",
 ];
+
 
 function SignupFlow() {
   const navigate = useNavigate();
