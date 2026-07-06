@@ -140,9 +140,6 @@ function SignupFlow() {
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
-  const [frontPhoto, setFrontPhoto] = useState<string | null>(null);
-  const [sidePhoto, setSidePhoto] = useState<string | null>(null);
-  const [startWeight, setStartWeight] = useState("");
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
@@ -298,22 +295,20 @@ function SignupFlow() {
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
     >
       {/* Progress bar */}
-      {step !== "starting" && (
-        <div className="flex items-center gap-3">
-          <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
-            <ChevronLeft size={22} />
-          </button>
-          <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${progress}%`, background: PURPLE }}
-            />
-          </div>
+      <div className="flex items-center gap-3">
+        <button onClick={back} aria-label="Back" className="-ml-1 p-1 shrink-0">
+          <ChevronLeft size={22} />
+        </button>
+        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: `${progress}%`, background: PURPLE }}
+          />
         </div>
-      )}
+      </div>
 
       {/* Content */}
-      <div className={`${step === "starting" ? "" : "mt-10"} flex-1 flex flex-col min-h-0 overflow-y-auto`}>
+      <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
         {step === "name" && (
           <NameStep firstName={firstName} setFirstName={setFirstName} lastName={lastName} setLastName={setLastName} />
         )}
