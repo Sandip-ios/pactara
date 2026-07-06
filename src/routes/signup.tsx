@@ -236,6 +236,7 @@ function SignupFlow() {
       case "photo":
         return true;
       case "goal":
+        if (goal === "custom") return customGoalLabel.trim().length > 0;
         return goal !== null;
       case "group":
         return groupName.trim().length > 0;
