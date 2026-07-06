@@ -62,6 +62,7 @@ function NewPactaraFlow() {
   const [stepIdx, setStepIdx] = useState(0);
 
   const [goal, setGoal] = useState<string | null>(null);
+  const [customGoalLabel, setCustomGoalLabel] = useState("");
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
@@ -71,11 +72,18 @@ function NewPactaraFlow() {
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
-  const goalLabel = useMemo(
-    () => GOALS.find((g) => g.id === goal)?.label ?? "your goal",
-    [goal],
-  );
+  const goalLabel = useMemo(() => {
+    if (goal === "custom") return customGoalLabel.trim() || "your goal";
+    return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
+  }, [goal, customGoalLabel]);
   const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
+
+  const ensureGroupName = () => {
+    if (!groupName && goal) {
+      const label = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
+      setGroupName(`${label} Crew`);
+    }
+  };
 
   const ensureGroupName = () => {
     if (!groupName && goal) {
