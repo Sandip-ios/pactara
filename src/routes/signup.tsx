@@ -613,7 +613,17 @@ function PhotoStep({ photo, setPhoto, setPhotoFile }: { photo: string | null; se
 }
 
 /* ------------ Step: Goal ------------ */
-export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: string) => void }) {
+export function GoalStep({
+  goal,
+  setGoal,
+  customGoalLabel = "",
+  setCustomGoalLabel,
+}: {
+  goal: string | null;
+  setGoal: (v: string) => void;
+  customGoalLabel?: string;
+  setCustomGoalLabel?: (v: string) => void;
+}) {
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your fitness goal?</h1>
@@ -624,6 +634,7 @@ export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: 
       <div className="mt-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2 -mx-6 px-6">
         {GOALS.map((g) => {
           const selected = goal === g.id;
+          const isCustom = g.id === "custom";
           return (
             <button
               key={g.id}
@@ -643,6 +654,19 @@ export function GoalStep({ goal, setGoal }: { goal: string | null; setGoal: (v: 
                   <div className="mt-1 text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>
                     {g.blurb}
                   </div>
+                )}
+                {selected && isCustom && setCustomGoalLabel && (
+                  <input
+                    autoFocus
+                    type="text"
+                    value={customGoalLabel}
+                    onChange={(e) => setCustomGoalLabel(e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder="e.g. Read every day, Meditate, Learn guitar"
+                    maxLength={40}
+                    className="mt-3 w-full rounded-xl px-3 py-3 text-[15px] outline-none"
+                    style={{ background: "#FFFFFF", border: "1px solid #F97316" }}
+                  />
                 )}
               </div>
               {selected && <Check size={20} className="mt-1" color="#F97316" />}
