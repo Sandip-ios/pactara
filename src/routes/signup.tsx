@@ -1662,7 +1662,7 @@ export function GreetingStep({ firstName, days, onContinue, onBack }: { firstNam
         </p>
       </div>
 
-      <PrimaryButton onClick={onContinue} label="See how it works" withArrow />
+      <PrimaryButton onClick={onContinue} label="Let's go" withArrow />
     </div>
   );
 }
