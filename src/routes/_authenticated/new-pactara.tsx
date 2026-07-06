@@ -117,6 +117,7 @@ function NewPactaraFlow() {
   const canContinue = (() => {
     switch (step) {
       case "goal":
+        if (goal === "custom") return customGoalLabel.trim().length > 0;
         return goal !== null;
       case "group":
         return groupName.trim().length > 0;
