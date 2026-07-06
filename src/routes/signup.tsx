@@ -773,30 +773,31 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
 
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col bg-white"
-      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden"
+      style={{
+        background: "#FFFFFF",
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: TEXT,
+        paddingTop: 32,
+      }}
     >
-      {/* Header: back + progress */}
-      <div className="px-5 pt-4 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          aria-label="Back"
-          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F3F1EE] text-black"
-        >
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 shrink-0">
           <ChevronLeft size={22} />
         </button>
-        <div className="flex-1 h-[6px] rounded-full bg-[#EAE7E2] overflow-hidden">
-          <div className="h-full rounded-full bg-black" style={{ width: "88%" }} />
+        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: `${progress}%`, background: PURPLE }}
+          />
         </div>
       </div>
 
-      {/* Scrollable content */}
-      <div className="flex-1 overflow-y-auto px-5 pt-6 pb-32">
-        <h1 className="text-[34px] font-bold tracking-tight leading-[1.05] text-black">
+      <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
           Join over 10 million people like you
         </h1>
 
-        {/* Stats row */}
         <div className="mt-7 grid grid-cols-2 gap-4">
           <div className="flex flex-col items-center">
             <div className="flex items-center">
@@ -834,8 +835,7 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
           </div>
         </div>
 
-        {/* Reviews */}
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 space-y-4 pb-4">
           {reviews.map((r, i) => (
             <div
               key={i}
@@ -854,19 +854,13 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
         </div>
       </div>
 
-      {/* Fixed continue button */}
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-6 pt-4 bg-gradient-to-t from-white via-white to-white/0">
-        <button
-          type="button"
-          onClick={onContinue}
-          className="w-full rounded-full py-5 text-[17px] font-semibold text-white bg-[#1B1B1F]"
-        >
-          Continue
-        </button>
+      <div className="flex flex-col items-center gap-3 pt-6">
+        <PrimaryButton onClick={onContinue} label="Continue" withArrow />
       </div>
     </div>
   );
 }
+
 
 /* ------------ Step: Group ------------ */
 export function GroupStep({
