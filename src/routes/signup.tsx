@@ -95,7 +95,6 @@ type StepKey =
   | "invite"
   | "notify"
   | "password"
-  | "how"
   | "greeting";
 
 const STEPS: StepKey[] = [
@@ -111,9 +110,9 @@ const STEPS: StepKey[] = [
   "invite",
   "notify",
   "password",
-  "how",
   "greeting",
 ];
+
 
 
 
@@ -265,9 +264,18 @@ function SignupFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
+    const frequencyLabel = frequency === "daily" ? "Every day" : `${daysPerWeek}× per week`;
     return (
       <>
-        <GreetingStep firstName={firstName} days={days} onContinue={finish} onBack={back} />
+        <GreetingStep
+          firstName={firstName}
+          days={days}
+          goalLabel={goalLabel}
+          goalEmoji={goalEmoji}
+          frequencyLabel={frequencyLabel}
+          onContinue={finish}
+          onBack={back}
+        />
         {finishing && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">Creating your account…</div>
@@ -281,9 +289,9 @@ function SignupFlow() {
       </>
     );
   }
-  if (step === "how") {
-    return <HowItWorksStep onDone={next} onBack={back} />;
-  }
+
+
+
 
 
   return (
@@ -1610,31 +1618,148 @@ function PaywallStep({
 }
 
 /* ------------ Step: Greeting (Jose, you're in) ------------ */
-export function GreetingStep({ firstName, days, onContinue, onBack }: { firstName: string; days: number; onContinue: () => void; onBack: () => void }) {
+export function GreetingStep({
+  firstName,
+  days,
+  goalLabel,
+  goalEmoji,
+  frequencyLabel,
+  onContinue,
+  onBack,
+}: {
+  firstName: string;
+  days: number;
+  goalLabel: string;
+  goalEmoji: string;
+  frequencyLabel: string;
+  onContinue: () => void;
+  onBack: () => void;
+}) {
   const name = firstName || "friend";
+  const howSteps = [
+    { n: "1", emoji: "🌅", title: "Set your morning ritual", text: "Each morning, commit to one daily action with your group." },
+    { n: "2", emoji: "📸", title: "Check in with proof", text: "Snap a quick photo or note showing you did the thing." },
+    { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, nudge. The group keeps you accountable." },
+  ];
+  const withoutList = [
+    "Motivation fades after a week",
+    "Nobody notices when you quit",
+    "Slow progress, easy to give up",
+  ];
+  const withList = [
+    "Daily accountability from your crew",
+    "Proof-based check-ins that stick",
+    "3× more likely to still be going at 90 days",
+  ];
+
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col px-6 pt-14 pb-8"
+      className="min-h-[100dvh] w-full flex flex-col px-6 pt-10 pb-8"
       style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT }}
     >
-      <div className="flex-1 flex flex-col items-center text-center" style={{ paddingTop: "28vh" }}>
-        <div className="text-[64px] leading-none">🤝</div>
+      <div className="flex flex-col items-center text-center">
+        <div className="text-[56px] leading-none">🤝</div>
         <h1
-          className="mt-6 text-[56px] leading-[0.95] tracking-tight"
+          className="mt-4 text-[44px] leading-[0.95] tracking-tight"
           style={{ fontFamily: "'Instrument Serif', Georgia, serif", fontWeight: 400 }}
         >
-          You're in,
-          <br /> {name}.
+          You're in, {name}.
         </h1>
-        <p className="mt-5 text-[17px] leading-[1.5] max-w-[28ch]" style={{ color: TEXT }}>
-          Your {days}-day commitment is locked in.
+        <p className="mt-3 text-[15px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
+          Your {days}-day commitment is locked in. Here's what to expect.
         </p>
       </div>
 
-      <PrimaryButton onClick={onContinue} label="Let's go" withArrow />
+      {/* How it works */}
+      <div className="mt-8 rounded-3xl p-5" style={{ background: PURPLE_SOFT }}>
+        <div className="text-[17px] font-bold">How it works</div>
+        <div className="mt-4 flex flex-col gap-3">
+          {howSteps.map((s) => (
+            <div key={s.n} className="rounded-2xl p-4 flex items-start gap-3 bg-white">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[14px] font-bold shrink-0"
+                style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
+              >
+                {s.n}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[16px]">{s.emoji}</span>
+                  <div className="text-[15px] font-semibold">{s.title}</div>
+                </div>
+                <p className="mt-1 text-[13px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
+                  {s.text}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Commitment details */}
+      <div className="mt-4 rounded-3xl p-5" style={{ background: "#F5F3F0" }}>
+        <div className="text-[17px] font-bold">Your commitment</div>
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
+            <span className="text-[22px]">{goalEmoji}</span>
+            <div className="flex-1">
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Goal</div>
+              <div className="text-[15px] font-semibold">{goalLabel}</div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
+            <Clock size={20} style={{ color: PURPLE }} />
+            <div className="flex-1">
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Duration</div>
+              <div className="text-[15px] font-semibold">{days} days</div>
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
+            <CheckCircle2 size={20} style={{ color: PURPLE }} />
+            <div className="flex-1">
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Frequency</div>
+              <div className="text-[15px] font-semibold">{frequencyLabel}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* With / Without Pactara */}
+      <div className="mt-4 rounded-3xl p-5" style={{ background: PURPLE_SOFT }}>
+        <div className="text-[17px] font-bold">Why Pactara?</div>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="rounded-2xl bg-white p-4">
+            <div className="text-[15px] font-semibold">Without Pactara</div>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {withoutList.map((t) => (
+                <div key={t} className="flex items-start gap-2 text-[14px]" style={{ color: TEXT_MUTED }}>
+                  <X size={16} className="mt-0.5 shrink-0" style={{ color: "#EF4444" }} />
+                  <span>{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-4">
+            <div className="text-[15px] font-semibold">With Pactara</div>
+            <div className="mt-2 flex flex-col gap-1.5">
+              {withList.map((t) => (
+                <div key={t} className="flex items-start gap-2 text-[14px]" style={{ color: TEXT_MUTED }}>
+                  <Check size={16} className="mt-0.5 shrink-0" style={{ color: "#16A34A" }} strokeWidth={3} />
+                  <span>{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <PrimaryButton onClick={onContinue} label="Let's go" withArrow />
+      </div>
     </div>
   );
 }
+
 
 /* ------------ Step: How it works ------------ */
 export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
