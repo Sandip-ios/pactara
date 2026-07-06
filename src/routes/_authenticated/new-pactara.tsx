@@ -40,14 +40,15 @@ type StepKey =
 
 const STEPS: StepKey[] = [
   "goal",
-  "company",
   "group",
   "commitment",
+  "company",
   "invite",
   "notify",
-  "greeting",
   "how",
+  "greeting",
 ];
+
 
 function NewPactaraFlow() {
   const navigate = useNavigate();
