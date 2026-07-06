@@ -134,7 +134,7 @@ function SignupFlow() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
   const [customGoalLabel, setCustomGoalLabel] = useState("");
-  const [goalName, setGoalName] = useState("");
+  
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
