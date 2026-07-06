@@ -334,7 +334,10 @@ function SignupFlow() {
             customGoalLabel={customGoalLabel}
             setCustomGoalLabel={setCustomGoalLabel}
           />
+        {step === "namegoal" && (
+          <NameGoalStep goalName={goalName} setGoalName={setGoalName} goalEmoji={goalEmoji} />
         )}
+
         {step === "group" && (
           <GroupStep
             groupName={groupName}
