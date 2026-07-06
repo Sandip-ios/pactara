@@ -1883,3 +1883,151 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
     </div>
   );
 }
+
+/* ------------ Step: Name your goal ------------ */
+function NameGoalStep({
+  goalName,
+  setGoalName,
+  goalEmoji,
+}: {
+  goalName: string;
+  setGoalName: (v: string) => void;
+  goalEmoji: string;
+}) {
+  const [touched, setTouched] = useState(false);
+  const error = touched && goalName.trim().length === 0 ? "Give your goal a name you'll recognize" : null;
+  return (
+    <div>
+      <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Name your goal</h1>
+      <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
+        Make it yours — this is what you'll see every day.
+      </p>
+      <div className="mt-7">
+        <Field label="GOAL NAME" error={error}>
+          <div className="flex items-center gap-2">
+            <span className="text-[18px]">{goalEmoji}</span>
+            <input
+              className={inputClass}
+              value={goalName}
+              onChange={(e) => setGoalName(e.target.value)}
+              onBlur={() => setTouched(true)}
+              placeholder="e.g. Lose 15 lbs by summer"
+              maxLength={60}
+              autoFocus
+              aria-invalid={!!error}
+            />
+          </div>
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+/* ------------ Step: Consistency (interstitial) ------------ */
+function ConsistencyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
+  return (
+    <div
+      className="min-h-[100dvh] w-full flex flex-col bg-white"
+      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div className="px-5 pt-4 flex items-center gap-3">
+        <button
+          onClick={onBack}
+          aria-label="Back"
+          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F3F1EE] text-black"
+        >
+          <ChevronLeft size={22} />
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 pt-6 pb-32">
+        <h1 className="text-[38px] font-bold tracking-tight leading-[1.05] text-black">
+          Staying consistent takes accountability.
+        </h1>
+
+        <div
+          className="mt-10 rounded-3xl p-5"
+          style={{ background: "#F5F3F0" }}
+        >
+          <div className="text-[15px] font-semibold text-black">Consistency over time</div>
+
+          <div className="mt-4 relative h-[220px]">
+            <svg viewBox="0 0 320 200" className="w-full h-full" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="purpleFill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#7C3AED" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="#7C3AED" stopOpacity="0.04" />
+                </linearGradient>
+                <linearGradient id="redFill" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#EF4444" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#EF4444" stopOpacity="0.03" />
+                </linearGradient>
+              </defs>
+              {/* dashed gridlines */}
+              <line x1="0" y1="60" x2="320" y2="60" stroke="#D6D2CC" strokeDasharray="4 6" />
+              <line x1="0" y1="120" x2="320" y2="120" stroke="#D6D2CC" strokeDasharray="4 6" />
+              {/* going alone (red) */}
+              <path
+                d="M0,100 C 80,110 160,150 320,170 L320,200 L0,200 Z"
+                fill="url(#redFill)"
+              />
+              <path
+                d="M0,100 C 80,110 160,150 320,170"
+                stroke="#EF4444"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+              />
+              {/* with pactara (purple) */}
+              <path
+                d="M0,100 C 100,80 200,55 320,30 L320,200 L0,200 Z"
+                fill="url(#purpleFill)"
+              />
+              <path
+                d="M0,100 C 100,80 200,55 320,30"
+                stroke="#7C3AED"
+                strokeWidth="3"
+                fill="none"
+                strokeLinecap="round"
+              />
+              <circle cx="320" cy="30" r="5" fill="#7C3AED" />
+              <circle cx="320" cy="170" r="5" fill="#EF4444" />
+            </svg>
+          </div>
+
+          <div className="mt-2 flex justify-between text-[13px] text-[#8A8580]">
+            <span>Week 1</span>
+            <span>Week 12</span>
+          </div>
+
+          <div className="mt-5 flex items-center justify-center gap-6 text-[13px] text-black">
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-[3px] rounded-full" style={{ background: "#7C3AED" }} />
+              <span>🔥 With Pactara</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-6 h-[3px] rounded-full" style={{ background: "#EF4444" }} />
+              <span>Going alone</span>
+            </div>
+          </div>
+        </div>
+
+        <p className="mt-8 text-center text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
+          People who check in with a group are{" "}
+          <span className="font-bold text-black">3× more likely</span> to still be going at 90 days.
+        </p>
+      </div>
+
+      <div className="fixed bottom-0 inset-x-0 px-5 pb-6 pt-4 bg-gradient-to-t from-white via-white to-white/0">
+        <button
+          type="button"
+          onClick={onContinue}
+          className="w-full rounded-full py-5 text-[17px] font-semibold text-white bg-[#1B1B1F]"
+        >
+          Continue
+        </button>
+      </div>
+    </div>
+  );
+}
+
