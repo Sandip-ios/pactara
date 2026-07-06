@@ -35,8 +35,7 @@ type StepKey =
   | "commitment"
   | "invite"
   | "notify"
-  | "greeting"
-  | "how";
+  | "greeting";
 
 const STEPS: StepKey[] = [
   "goal",
@@ -45,9 +44,9 @@ const STEPS: StepKey[] = [
   "company",
   "invite",
   "notify",
-  "how",
   "greeting",
 ];
+
 
 
 function NewPactaraFlow() {
