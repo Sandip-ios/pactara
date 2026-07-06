@@ -16,7 +16,7 @@ import {
   InviteStep,
   NotifyStep,
   GreetingStep,
-  HowItWorksStep,
+  
 } from "@/routes/signup";
 import { createGroupForUser } from "@/lib/groups.functions";
 
