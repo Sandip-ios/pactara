@@ -79,6 +79,8 @@ const MOOD_META: Record<string, { label: string; emoji: string; color: string; b
 
 type Visual = {
   emoji: string;
+  emojiColor?: string;
+  emojiSize?: number;
   label: string;
   labelColor: string;
   bg: string;
@@ -143,7 +145,9 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
     }
     case "check_in_missed":
       return {
-        emoji: "❌",
+        emoji: "○",
+        emojiColor: "#9CA3AF",
+        emojiSize: 22,
         label: "Missed Check-in",
         labelColor: "#DC2626",
         bg: "#FEF2F2",
@@ -596,7 +600,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[18px] leading-none">{visual.emoji}</span>
+                      <span className="text-[18px] leading-none" style={visual.emojiColor ? { color: visual.emojiColor, fontSize: visual.emojiSize ?? 18 } : undefined}>{visual.emoji}</span>
                       <span className="text-[15px] font-bold truncate" style={{ color: visual.labelColor }}>
                         {visual.label}
                       </span>
