@@ -37,7 +37,7 @@ import {
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import goodCompany from "@/assets/good-company.jpg.asset.json";
+
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 import { setAvatarPath } from "@/lib/profile.functions";
