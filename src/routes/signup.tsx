@@ -134,6 +134,7 @@ function SignupFlow() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
   const [customGoalLabel, setCustomGoalLabel] = useState("");
+  const [goalName, setGoalName] = useState("");
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
@@ -154,21 +155,29 @@ function SignupFlow() {
   }, [goal, customGoalLabel]);
   const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
 
+  const ensureGoalName = () => {
+    if (!goalName && goal) {
+      const label = goal === "custom" ? (customGoalLabel.trim() || "My goal") : GOALS.find((x) => x.id === goal)!.label;
+      setGoalName(label);
+    }
+  };
   const ensureGroupName = () => {
-    if (!groupName && goal) {
-      const label = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
-      setGroupName(`${label} Crew`);
+    if (!groupName) {
+      const seed = goalName.trim() || (goal ? (goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label) : "");
+      if (seed) setGroupName(`${seed} Crew`);
     }
   };
 
   const next = () => {
-    if (step === "goal") ensureGroupName();
+    if (step === "goal") ensureGoalName();
+    if (step === "namegoal") ensureGroupName();
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
   };
   const back = () => {
     if (stepIdx === 0) navigate({ to: "/" });
     else setStepIdx((i) => i - 1);
   };
+
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
 
