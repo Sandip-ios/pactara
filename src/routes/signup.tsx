@@ -269,8 +269,9 @@ function SignupFlow() {
     return <CompanyStep onContinue={next} onBack={back} />;
   }
   if (step === "consistency") {
-    return <ConsistencyStep onContinue={next} onBack={back} />;
+    return <ConsistencyStep onContinue={next} onBack={back} progress={progress} />;
   }
+
 
   if (step === "greeting") {
     const days =
