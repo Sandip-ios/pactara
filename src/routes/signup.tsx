@@ -1925,31 +1925,43 @@ function NameGoalStep({
 }
 
 /* ------------ Step: Consistency (interstitial) ------------ */
-function ConsistencyStep({ onContinue, onBack }: { onContinue: () => void; onBack: () => void }) {
+function ConsistencyStep({
+  onContinue,
+  onBack,
+  progress,
+}: {
+  onContinue: () => void;
+  onBack: () => void;
+  progress: number;
+}) {
   return (
     <div
-      className="min-h-[100dvh] w-full flex flex-col bg-white"
-      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden"
+      style={{
+        background: "#FFFFFF",
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: TEXT,
+        paddingTop: 32,
+      }}
     >
-      <div className="px-5 pt-4 flex items-center gap-3">
-        <button
-          onClick={onBack}
-          aria-label="Back"
-          className="w-10 h-10 rounded-full flex items-center justify-center bg-[#F3F1EE] text-black"
-        >
+      <div className="flex items-center gap-3">
+        <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 shrink-0">
           <ChevronLeft size={22} />
         </button>
+        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
+          <div
+            className="h-full rounded-full transition-all duration-300"
+            style={{ width: `${progress}%`, background: PURPLE }}
+          />
+        </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 pt-6 pb-32">
-        <h1 className="text-[38px] font-bold tracking-tight leading-[1.05] text-black">
+      <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
+        <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
           Staying consistent takes accountability.
         </h1>
 
-        <div
-          className="mt-10 rounded-3xl p-5"
-          style={{ background: "#F5F3F0" }}
-        >
+        <div className="mt-8 rounded-3xl p-5" style={{ background: "#F5F3F0" }}>
           <div className="text-[15px] font-semibold text-black">Consistency over time</div>
 
           <div className="mt-4 relative h-[220px]">
@@ -1964,14 +1976,9 @@ function ConsistencyStep({ onContinue, onBack }: { onContinue: () => void; onBac
                   <stop offset="100%" stopColor="#EF4444" stopOpacity="0.03" />
                 </linearGradient>
               </defs>
-              {/* dashed gridlines */}
               <line x1="0" y1="60" x2="320" y2="60" stroke="#D6D2CC" strokeDasharray="4 6" />
               <line x1="0" y1="120" x2="320" y2="120" stroke="#D6D2CC" strokeDasharray="4 6" />
-              {/* going alone (red) */}
-              <path
-                d="M0,100 C 80,110 160,150 320,170 L320,200 L0,200 Z"
-                fill="url(#redFill)"
-              />
+              <path d="M0,100 C 80,110 160,150 320,170 L320,200 L0,200 Z" fill="url(#redFill)" />
               <path
                 d="M0,100 C 80,110 160,150 320,170"
                 stroke="#EF4444"
@@ -1979,11 +1986,7 @@ function ConsistencyStep({ onContinue, onBack }: { onContinue: () => void; onBac
                 fill="none"
                 strokeLinecap="round"
               />
-              {/* with pactara (purple) */}
-              <path
-                d="M0,100 C 100,80 200,55 320,30 L320,200 L0,200 Z"
-                fill="url(#purpleFill)"
-              />
+              <path d="M0,100 C 100,80 200,55 320,30 L320,200 L0,200 Z" fill="url(#purpleFill)" />
               <path
                 d="M0,100 C 100,80 200,55 320,30"
                 stroke="#7C3AED"
@@ -2019,16 +2022,11 @@ function ConsistencyStep({ onContinue, onBack }: { onContinue: () => void; onBac
         </p>
       </div>
 
-      <div className="fixed bottom-0 inset-x-0 px-5 pb-6 pt-4 bg-gradient-to-t from-white via-white to-white/0">
-        <button
-          type="button"
-          onClick={onContinue}
-          className="w-full rounded-full py-5 text-[17px] font-semibold text-white bg-[#1B1B1F]"
-        >
-          Continue
-        </button>
+      <div className="flex flex-col items-center gap-3 pt-6">
+        <PrimaryButton onClick={onContinue} label="Continue" withArrow />
       </div>
     </div>
   );
 }
+
 
