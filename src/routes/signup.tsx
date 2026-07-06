@@ -258,8 +258,9 @@ function SignupFlow() {
 
   // Full-bleed screens
   if (step === "company") {
-    return <CompanyStep onContinue={next} onBack={back} />;
+    return <CompanyStep onContinue={next} onBack={back} progress={progress} />;
   }
+
   if (step === "consistency") {
     return <ConsistencyStep onContinue={next} onBack={back} progress={progress} />;
   }
