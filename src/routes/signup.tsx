@@ -70,6 +70,7 @@ export const GOALS = [
   { id: "race", emoji: "🏅", label: "Train for a race", blurb: "Show up to the start line ready" },
   { id: "general", emoji: "🔥", label: "General fitness", blurb: "Move every day. Feel better. Together." },
   { id: "75-hard", emoji: "🪖", label: "75 Hard", blurb: "The full program. No compromises." },
+  { id: "custom", emoji: "🎯", label: "Something else", blurb: "Set your own goal in your own words" },
 ];
 
 
@@ -81,6 +82,7 @@ export const ICON_FOR_GOAL: Record<string, string> = {
   race: "🏅",
   general: "🔥",
   "75-hard": "🪖",
+  custom: "🎯",
 };
 
 type StepKey =
