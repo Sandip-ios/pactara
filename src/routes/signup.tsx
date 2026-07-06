@@ -155,24 +155,18 @@ function SignupFlow() {
   }, [goal, customGoalLabel]);
   const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
 
-  const ensureGoalName = () => {
-    if (!goalName && goal) {
-      const label = goal === "custom" ? (customGoalLabel.trim() || "My goal") : GOALS.find((x) => x.id === goal)!.label;
-      setGoalName(label);
-    }
-  };
   const ensureGroupName = () => {
-    if (!groupName) {
-      const seed = goalName.trim() || (goal ? (goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label) : "");
-      if (seed) setGroupName(`${seed} Crew`);
+    if (!groupName && goal) {
+      const seed = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
+      setGroupName(`${seed} Crew`);
     }
   };
 
   const next = () => {
-    if (step === "goal") ensureGoalName();
-    if (step === "namegoal") ensureGroupName();
+    if (step === "goal") ensureGroupName();
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
   };
+
   const back = () => {
     if (stepIdx === 0) navigate({ to: "/" });
     else setStepIdx((i) => i - 1);
