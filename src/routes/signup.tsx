@@ -28,12 +28,9 @@ import {
   Share2,
   Eye,
   EyeOff,
-  Lock,
   Plus,
   Star,
-  TrendingUp,
   Users,
-  Flame,
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
