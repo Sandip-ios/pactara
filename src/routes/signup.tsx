@@ -1874,44 +1874,6 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
   );
 }
 
-/* ------------ Step: Name your goal ------------ */
-function NameGoalStep({
-  goalName,
-  setGoalName,
-  goalEmoji,
-}: {
-  goalName: string;
-  setGoalName: (v: string) => void;
-  goalEmoji: string;
-}) {
-  const [touched, setTouched] = useState(false);
-  const error = touched && goalName.trim().length === 0 ? "Give your goal a name you'll recognize" : null;
-  return (
-    <div>
-      <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">Name your goal</h1>
-      <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
-        Make it yours — this is what you'll see every day.
-      </p>
-      <div className="mt-7">
-        <Field label="GOAL NAME" error={error}>
-          <div className="flex items-center gap-2">
-            <span className="text-[18px]">{goalEmoji}</span>
-            <input
-              className={inputClass}
-              value={goalName}
-              onChange={(e) => setGoalName(e.target.value)}
-              onBlur={() => setTouched(true)}
-              placeholder="e.g. Lose 15 lbs by summer"
-              maxLength={60}
-              autoFocus
-              aria-invalid={!!error}
-            />
-          </div>
-        </Field>
-      </div>
-    </div>
-  );
-}
 
 /* ------------ Step: Consistency (interstitial) ------------ */
 function ConsistencyStep({
