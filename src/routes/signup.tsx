@@ -358,16 +358,6 @@ function SignupFlow() {
             setConfirmPw={setConfirmPw}
           />
         )}
-        {step === "starting" && (
-          <StartingPointStep
-            frontPhoto={frontPhoto}
-            setFrontPhoto={setFrontPhoto}
-            sidePhoto={sidePhoto}
-            setSidePhoto={setSidePhoto}
-            startWeight={startWeight}
-            setStartWeight={setStartWeight}
-          />
-        )}
       </div>
 
       {/* Footer actions */}
@@ -395,14 +385,7 @@ function SignupFlow() {
               </p>
             </div>
           </>
-        ) : step === "notify" ? null : step === "starting" ? (
-          <>
-            <PrimaryButton onClick={next} label="Continue" />
-            <button onClick={next} className="text-[15px] font-medium" style={{ color: TEXT_MUTED }}>
-              Skip for now
-            </button>
-          </>
-        ) : (
+        ) : step === "notify" ? null : (
           <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
         )}
       </div>
