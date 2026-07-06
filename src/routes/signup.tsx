@@ -716,7 +716,7 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
     },
     {
       name: "Tori",
-      date: "March 12, 2026",
+      date: "July 5, 2026",
       text: "Great app for staying accountable with friends and hitting my goals.",
     },
     {
