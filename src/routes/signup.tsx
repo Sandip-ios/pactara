@@ -711,17 +711,17 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
   const reviews = [
     {
       name: "Erfan",
-      date: "April 4, 2026",
+      date: "July 3, 2026",
       text: "Pactara has completely changed how I stick to my fitness goals. Having friends committed alongside me keeps me accountable in a way no other app has. The group dynamic is genuinely motivating and I actually look forward to checking in. Highly recommend for anyone who struggles to stay consistent on their own!",
     },
     {
       name: "Tori",
-      date: "March 12, 2026",
+      date: "July 5, 2026",
       text: "Great app for staying accountable with friends and hitting my goals.",
     },
     {
       name: "N",
-      date: "May 2, 2025",
+      date: "July 6, 2026",
       text: "I love this app. It's quickly become my most used app on my phone. It makes staying on track the easiest it can ever be. I enjoy it every single day.",
     },
   ];
