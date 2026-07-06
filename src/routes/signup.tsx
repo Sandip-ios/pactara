@@ -90,24 +90,27 @@ type StepKey =
   | "email"
   | "photo"
   | "goal"
-  | "company"
-  | "group"
+  | "consistency"
+  | "namegoal"
   | "commitment"
+  | "group"
+  | "company"
   | "invite"
   | "notify"
   | "password"
-  | "paywall"
   | "starting"
-  | "greeting"
-  | "how";
+  | "how"
+  | "greeting";
 
 const STEPS: StepKey[] = [
   "name",
   "email",
   "photo",
   "goal",
-  "group",
+  "consistency",
+  "namegoal",
   "commitment",
+  "group",
   "company",
   "invite",
   "notify",
@@ -116,6 +119,7 @@ const STEPS: StepKey[] = [
   "how",
   "greeting",
 ];
+
 
 
 function SignupFlow() {
