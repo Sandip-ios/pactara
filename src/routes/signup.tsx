@@ -264,9 +264,18 @@ function SignupFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
+    const frequencyLabel = frequency === "daily" ? "Every day" : `${daysPerWeek}× per week`;
     return (
       <>
-        <GreetingStep firstName={firstName} days={days} onContinue={finish} onBack={back} />
+        <GreetingStep
+          firstName={firstName}
+          days={days}
+          goalLabel={goalLabel}
+          goalEmoji={goalEmoji}
+          frequencyLabel={frequencyLabel}
+          onContinue={finish}
+          onBack={back}
+        />
         {finishing && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl px-6 py-5 text-[15px] font-medium">Creating your account…</div>
@@ -280,9 +289,9 @@ function SignupFlow() {
       </>
     );
   }
-  if (step === "how") {
-    return <HowItWorksStep onDone={next} onBack={back} />;
-  }
+
+
+
 
 
   return (
