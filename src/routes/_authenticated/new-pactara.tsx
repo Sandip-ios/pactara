@@ -187,7 +187,14 @@ function NewPactaraFlow() {
       </div>
 
       <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
-        {step === "goal" && <GoalStep goal={goal} setGoal={setGoal} />}
+        {step === "goal" && (
+          <GoalStep
+            goal={goal}
+            setGoal={setGoal}
+            customGoalLabel={customGoalLabel}
+            setCustomGoalLabel={setCustomGoalLabel}
+          />
+        )}
         {step === "group" && (
           <GroupStep
             groupName={groupName}
