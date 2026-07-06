@@ -1670,34 +1670,8 @@ export function GreetingStep({
         </p>
       </div>
 
-      {/* How it works */}
-      <div className="mt-8 rounded-3xl p-5" style={{ background: PURPLE_SOFT }}>
-        <div className="text-[17px] font-bold">How it works</div>
-        <div className="mt-4 flex flex-col gap-3">
-          {howSteps.map((s) => (
-            <div key={s.n} className="rounded-2xl p-4 flex items-start gap-3 bg-white">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[14px] font-bold shrink-0"
-                style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
-              >
-                {s.n}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[16px]">{s.emoji}</span>
-                  <div className="text-[15px] font-semibold">{s.title}</div>
-                </div>
-                <p className="mt-1 text-[13px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
-                  {s.text}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Commitment details */}
-      <div className="mt-4 rounded-3xl p-5" style={{ background: "#F5F3F0" }}>
+      <div className="mt-8 rounded-3xl p-5" style={{ background: "#F5F3F0" }}>
         <div className="text-[17px] font-bold">Your commitment</div>
         <div className="mt-4 flex flex-col gap-2">
           <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
@@ -1721,6 +1695,32 @@ export function GreetingStep({
               <div className="text-[15px] font-semibold">{frequencyLabel}</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* How it works */}
+      <div className="mt-4 rounded-3xl p-5" style={{ background: PURPLE_SOFT }}>
+        <div className="text-[17px] font-bold">How it works</div>
+        <div className="mt-4 flex flex-col gap-3">
+          {howSteps.map((s) => (
+            <div key={s.n} className="rounded-2xl p-4 flex items-start gap-3 bg-white">
+              <div
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-[14px] font-bold shrink-0"
+                style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
+              >
+                {s.n}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-[16px]">{s.emoji}</span>
+                  <div className="text-[15px] font-semibold">{s.title}</div>
+                </div>
+                <p className="mt-1 text-[13px] leading-[1.45]" style={{ color: TEXT_MUTED }}>
+                  {s.text}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
