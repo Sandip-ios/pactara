@@ -53,6 +53,18 @@ function VideoRecordScreen() {
     }
   };
 
+  const streamIsLive = (stream: MediaStream | null) =>
+    Boolean(stream?.getVideoTracks().some((track) => track.readyState === "live"));
+
+  const attachStream = (stream: MediaStream) => {
+    streamRef.current = stream;
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+    setReady(true);
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -61,23 +73,17 @@ function VideoRecordScreen() {
           setError("Camera not supported on this device.");
           return;
         }
-        let stream = takeCheckInStream();
-        if (!stream) {
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: { ideal: "environment" } },
-            audio: true,
-          });
-        }
+        const stream = takeCheckInStream();
+        if (!stream) return;
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(() => {});
+        if (!streamIsLive(stream)) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
         }
-        setReady(true);
+        attachStream(stream);
       } catch (err) {
         const name = (err as DOMException)?.name;
         if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
@@ -103,12 +109,41 @@ function VideoRecordScreen() {
     }
   };
 
-  const startRecording = () => {
-    if (!streamRef.current || recording) return;
+  const startRecording = async () => {
+    if (recording) return;
+    setError(null);
+
+    let stream = streamRef.current;
+    if (!streamIsLive(stream)) {
+      stopStream();
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setError("Camera not supported on this device.");
+        return;
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+        attachStream(stream);
+      } catch (err) {
+        const name = (err as DOMException)?.name;
+        if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
+        else setError("Camera unavailable.");
+        return;
+      }
+    }
+
+    if (!stream) {
+      setError("Camera unavailable.");
+      return;
+    }
+
     const mimeType = pickMimeType();
     let rec: MediaRecorder;
     try {
-      rec = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
+      rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
     } catch {
       setError("Recording isn't supported on this browser.");
       return;
