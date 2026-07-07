@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { Clock, Camera, Eye } from "lucide-react";
-import phoneImage from "@/assets/how-to-record-phone.jpg";
+
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 
