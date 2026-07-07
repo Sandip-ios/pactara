@@ -284,13 +284,23 @@ function VideoRecordScreen() {
         >
           <X size={20} />
         </button>
-        <button
-          onClick={() => setHelpOpen(true)}
-          className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"
-          aria-label="Help"
-        >
-          <HelpCircle size={20} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={switchCamera}
+            disabled={recording || switching}
+            className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center disabled:opacity-40"
+            aria-label="Switch camera"
+          >
+            <SwitchCamera size={20} />
+          </button>
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"
+            aria-label="Help"
+          >
+            <HelpCircle size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Bottom recording UI */}
