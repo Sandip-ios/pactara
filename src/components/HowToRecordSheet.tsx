@@ -11,7 +11,7 @@ type Props = {
 
 function PhoneIllustration() {
   return (
-    <svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+    <svg width="200" height="200" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
       {/* phone body */}
       <rect x="20" y="6" width="56" height="84" rx="10" fill="#E5E7EB" />
       {/* top notch */}
@@ -54,7 +54,7 @@ function Tip({
   );
 }
 
-export default function HowToRecordSheet({ open, onClose, onRecord, onSkip }: Props) {
+export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -83,29 +83,27 @@ export default function HowToRecordSheet({ open, onClose, onRecord, onSkip }: Pr
         </div>
 
         <div className="px-6">
-          <div className="pt-2 flex justify-center">
+          <div className="pt-4 flex justify-center">
             <PhoneIllustration />
           </div>
 
-          <h2 className="mt-2 text-center text-[22px] font-bold text-[#111827] tracking-tight">
+          <h2 className="mt-4 text-center text-[22px] font-bold text-[#111827] tracking-tight">
             For the best proof video:
           </h2>
 
-          <div className="mt-4 h-px bg-neutral-200" />
-
-          <div className="mt-5 space-y-5">
+          <div className="mt-6 space-y-5">
             <Tip
-              icon={<Clock size={22} strokeWidth={1.75} />}
+              icon={<Clock size={24} strokeWidth={1.75} />}
               title="Keep it to 5–15 seconds"
               desc="Long enough to be real, short enough to be painless"
             />
             <Tip
-              icon={<Camera size={22} strokeWidth={1.75} />}
+              icon={<Camera size={24} strokeWidth={1.75} />}
               title="Record live — no uploads"
               desc="Camera only. No photo library access."
             />
             <Tip
-              icon={<Eye size={22} strokeWidth={1.75} />}
+              icon={<Eye size={24} strokeWidth={1.75} />}
               title="Show what you actually did"
               desc="Your workout, your meal — make it visible"
             />
@@ -113,16 +111,9 @@ export default function HowToRecordSheet({ open, onClose, onRecord, onSkip }: Pr
 
           <button
             onClick={onRecord}
-            className="mt-6 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
+            className="mt-8 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
           >
             Record now
-          </button>
-
-          <button
-            onClick={onSkip}
-            className="mt-3 w-full text-center text-[14px] text-neutral-500 py-2"
-          >
-            Skip for today
           </button>
         </div>
       </div>
