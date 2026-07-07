@@ -45,6 +45,8 @@ function VideoRecordScreen() {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [switching, setSwitching] = useState(false);
 
   const stopStream = () => {
     if (streamRef.current) {
