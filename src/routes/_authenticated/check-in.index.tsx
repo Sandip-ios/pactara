@@ -354,6 +354,7 @@ function CheckInMood() {
         onClose={() => setSheetOpen(false)}
         onRecord={() => {
           setSheetOpen(false);
+          if (typeof window !== "undefined") localStorage.setItem("how-to-record-seen", "1");
           navigate({ to: "/check-in/camera" });
         }}
       />
