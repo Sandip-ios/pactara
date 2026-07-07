@@ -39,6 +39,7 @@ function VideoRecordScreen() {
   const startedAtRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const autoStopRef = useRef<number | null>(null);
+  const recordingRef = useRef(false);
 
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
