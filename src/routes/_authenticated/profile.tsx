@@ -176,13 +176,12 @@ function ProfilePage() {
 
       {/* Activity */}
       <section className="px-5 pt-5">
-        {groups.length > 0 && (
+        {groups.length > 1 && (
           <div className="relative mb-3">
             <button
               type="button"
-              onClick={() => groups.length > 1 && setGroupPickerOpen((v) => !v)}
-              disabled={groups.length <= 1}
-              className="w-full flex items-center justify-between gap-2 bg-white rounded-2xl px-4 py-3 text-left disabled:cursor-default"
+              onClick={() => setGroupPickerOpen((v) => !v)}
+              className="w-full flex items-center justify-between gap-2 bg-white rounded-2xl px-4 py-3 text-left"
             >
               <span className="flex items-center gap-2 min-w-0">
                 {activeGroup?.emoji && (
@@ -192,14 +191,12 @@ function ProfilePage() {
                   {activeGroup?.name ?? "Select group"}
                 </span>
               </span>
-              {groups.length > 1 && (
-                <ChevronDown
-                  size={18}
-                  className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
-                />
-              )}
+              <ChevronDown
+                size={18}
+                className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
+              />
             </button>
-            {groupPickerOpen && groups.length > 1 && (
+            {groupPickerOpen && (
               <>
                 <div
                   className="fixed inset-0 z-10"
@@ -234,6 +231,7 @@ function ProfilePage() {
             )}
           </div>
         )}
+
 
         <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
           ACTIVITY
