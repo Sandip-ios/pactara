@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserPlus, Copy, Check } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+import { shareNativeOrWeb, hapticLight } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/invite")({
   component: InvitePage,
