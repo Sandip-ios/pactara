@@ -283,6 +283,7 @@ function ReactionBar({
               side="top"
               align="start"
               onOpenAutoFocus={(event) => event.preventDefault()}
+              onCloseAutoFocus={(event) => event.preventDefault()}
               className="w-auto p-2 rounded-full border-neutral-200 shadow-lg"
               style={noSelectTouchStyle}
             >
