@@ -384,6 +384,40 @@ function VideoRecordScreen() {
           </div>
         )}
 
+        {/* Zoom presets, iPhone-style */}
+        {ready && zoomOptions.length > 1 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-black/55 backdrop-blur px-2 py-1.5">
+            {zoomOptions.map((v) => {
+              const active = Math.abs(zoom - v) < 0.01;
+              const label = v < 1 ? `.${Math.round(v * 10)}` : `${v}`;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => applyZoom(v)}
+                  className="flex items-center justify-center rounded-full transition-all touch-manipulation tabular-nums"
+                  style={{
+                    height: active ? 34 : 30,
+                    minWidth: active ? 34 : 30,
+                    padding: "0 6px",
+                    background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                    color: active ? "#FBBF24" : "#FFFFFF",
+                    fontSize: active ? 12 : 11,
+                    fontWeight: 700,
+                  }}
+                  aria-label={`Zoom ${v}x`}
+                  aria-pressed={active}
+                >
+                  {label}
+                  <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+
+
         <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
           <svg className="absolute inset-0 pointer-events-none" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
