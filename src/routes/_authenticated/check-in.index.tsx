@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
+import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 const PURPLE = "#7C3AED";
@@ -258,6 +259,7 @@ function CheckInMood() {
     setCameraError(null);
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
+    clearCheckInStream();
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
@@ -270,7 +272,9 @@ function CheckInMood() {
         video: { facingMode: { ideal: "environment" } },
         audio: true,
       });
-      stream.getTracks().forEach((t) => t.stop());
+      // Keep the stream alive and hand it to the camera page so we don't
+      // request the camera twice (which can fail on mobile Safari).
+      setCheckInStream(stream);
       setSheetOpen(true);
     } catch (err) {
       const name = (err as DOMException)?.name;

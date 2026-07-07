@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { X, HelpCircle } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
+import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
@@ -60,10 +61,13 @@ function VideoRecordScreen() {
           setError("Camera not supported on this device.");
           return;
         }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: true,
-        });
+        let stream = takeCheckInStream();
+        if (!stream) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: true,
+          });
+        }
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
