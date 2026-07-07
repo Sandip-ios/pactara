@@ -264,6 +264,7 @@ function ReactionBar({
   };
   const selectEmoji = (emoji: string) => {
     clearNativeSelection();
+    void hapticLight();
     setOverride({ emoji });
     setReactionM.mutate(emoji);
     setPickerOpen(false);
