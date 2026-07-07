@@ -18,6 +18,7 @@ import {
   getPostComments,
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
+import { hapticLight } from "@/lib/native";
 import {
   Hourglass,
   Flame,
