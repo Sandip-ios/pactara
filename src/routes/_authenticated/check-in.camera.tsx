@@ -322,7 +322,7 @@ function VideoRecordScreen() {
 
         <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
-          <svg className="absolute inset-0" width="96" height="96" viewBox="0 0 96 96">
+          <svg className="absolute inset-0 pointer-events-none" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
             <circle cx="48" cy="48" r={R} stroke="rgba(255,255,255,0.25)" strokeWidth="4" fill="none" />
             {recording && (
               <circle
@@ -339,10 +339,11 @@ function VideoRecordScreen() {
             )}
           </svg>
           <button
+            type="button"
             onClick={onTapButton}
             disabled={recording && !canStop}
             aria-label={recording ? (canStop ? "Stop recording" : "Recording") : "Start recording"}
-            className="h-20 w-20 rounded-full flex items-center justify-center transition-colors"
+            className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors touch-manipulation"
             style={{
               background: recording ? RED : "#FFFFFF",
               border: "2px solid rgba(255,255,255,0.9)",
