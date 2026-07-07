@@ -259,6 +259,7 @@ function CheckInMood() {
     setCameraError(null);
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
+    clearCheckInStream();
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
@@ -271,7 +272,9 @@ function CheckInMood() {
         video: { facingMode: { ideal: "environment" } },
         audio: true,
       });
-      stream.getTracks().forEach((t) => t.stop());
+      // Keep the stream alive and hand it to the camera page so we don't
+      // request the camera twice (which can fail on mobile Safari).
+      setCheckInStream(stream);
       setSheetOpen(true);
     } catch (err) {
       const name = (err as DOMException)?.name;
