@@ -82,7 +82,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
 
           <button
             onClick={onRecord}
-            className="mt-8 mb-6 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
+            className="mt-8 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
           >
             Record now
           </button>
