@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
 export function MediaLightbox({
@@ -23,7 +24,7 @@ export function MediaLightbox({
     };
   }, [onClose]);
 
-  return (
+  const content = (
     <div
       className="fixed inset-0 z-[90] bg-black/95 flex items-center justify-center"
       onClick={onClose}
@@ -59,4 +60,6 @@ export function MediaLightbox({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
