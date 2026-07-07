@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Clock, Camera, Eye } from "lucide-react";
-import phoneImage from "@/assets/how-to-record-phone.jpg";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 
@@ -59,18 +58,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
         </div>
 
         <div className="px-6">
-          <div className="pt-4 flex justify-center">
-            <img
-              src={phoneImage}
-              alt="Phone recording a proof video"
-              width={1024}
-              height={1024}
-              loading="lazy"
-              className="w-[260px] h-[260px] object-contain"
-            />
-          </div>
-
-          <h2 className="mt-2 text-center text-[22px] font-bold text-[#111827] tracking-tight">
+          <h2 className="pt-6 text-center text-[22px] font-bold text-[#111827] tracking-tight">
             For the best proof video:
           </h2>
 
