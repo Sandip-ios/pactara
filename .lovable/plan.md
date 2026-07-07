@@ -1,54 +1,56 @@
-## What we're building
+# Wrap Pactara as an iOS app with Capacitor
 
-The in-app experience after signup/login, with the rule: **if the user's group has only them in it (no invited members), open the full-page Invite Friends screen immediately. Otherwise, open the Home feed.**
+Add a thin native iOS layer on top of the existing TanStack Start web app so it can be installed from the App Store. The web UI, auth, routes, and Cloud backend stay exactly as they are — Capacitor loads them inside a native WebView shell and adds native camera / share / push / haptics / splash.
 
-## Backend (Lovable Cloud)
+## What I'll add to the repo
 
-Three tables, all with RLS + GRANTs:
+1. **Capacitor packages**
+   - `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`
+   - `@capacitor/camera`, `@capacitor/share`, `@capacitor/haptics`
+   - `@capacitor/status-bar`, `@capacitor/splash-screen`
+   - `@capacitor/push-notifications`
 
-- `profiles` — `id (= auth.users.id)`, `name`, `avatar_color`. Auto-created on signup via trigger.
-- `groups` — `id`, `name` (e.g. "Lose weight Crew"), `emoji`, `owner_id`, `created_at`.
-- `group_members` — `id`, `group_id`, `user_id`, `joined_at`. Unique on (group_id, user_id).
+2. **`capacitor.config.ts`** at the project root
+   - `appId: "app.pactara"`, `appName: "Pactara"`
+   - `server.url: "https://pactara.lovable.app"` so the app always loads the live web build (UI/content updates ship instantly, no App Store resubmit)
+   - Splash config matching the dark radial Pactara splash you approved
+   - iOS status bar style: light content
 
-A group is considered "needs invite" when `count(group_members where group_id = X) <= 1`.
+3. **`src/lib/native.ts`** — small helper wrapping `Capacitor.isNativePlatform()` so the web code can branch cleanly.
 
-The existing signup flow will be wired up to actually create:
-1. An auth user (email + password)
-2. A profile row (via trigger)
-3. A group based on the goal they picked
-4. A `group_members` row for themselves
+4. **Camera swap** in `src/routes/_authenticated/check-in.camera.tsx`
+   - When running natively, use `@capacitor/camera` for photo capture and video recording (better quality, real front/back switch, native permission dialog).
+   - Web browsers keep the current `getUserMedia` path.
 
-## Routing
+5. **Native share** on `src/routes/_authenticated/invite.tsx` and the check-in share modal — use `@capacitor/share` when native, fall back to `navigator.share` on web.
 
-New protected subtree `src/routes/_authenticated/` (managed gate redirects to `/login` when signed out):
+6. **Haptics** on check-in submit and reaction taps (light impact) — no-op on web.
 
-- `_authenticated/route.tsx` — gate
-- `_authenticated/home.tsx` — feed screen (screenshot 1)
-- `_authenticated/invite.tsx` — full-page invite (screenshot 3)
+7. **Push notifications** wiring
+   - On first launch after sign-in, request permission, register with APNs, and POST the device token to the existing `push.functions.ts` endpoint (add a `platform: "ios"` field).
+   - Foreground/background listeners route taps to the correct route via TanStack router.
 
-Update `login.tsx` and the signup completion step to actually authenticate via Cloud, then `navigate({ to: "/_authenticated/home" })`.
+8. **iOS-safe head + layout tweaks** in `src/routes/__root.tsx`
+   - `viewport-fit=cover`, `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style=black-translucent`
+   - Add `env(safe-area-inset-*)` padding to the bottom tab bar and the top header so nothing sits under the notch / home indicator.
 
-## The gating logic
+9. **App icon + splash image** — generate the Pactara mark at the sizes Capacitor needs and drop them where `npx cap sync` will pick them up.
 
-A small loader on `_authenticated/home.tsx` calls a `getMyGroupStatus` server function. If `memberCount <= 1`, it throws `redirect({ to: "/invite" })`. Otherwise renders the feed.
+10. **`IOS.md`** — the exact commands to run on a Mac and what to click in Xcode:
+    ```
+    bun install
+    bun run build
+    npx cap add ios
+    npx cap sync ios
+    npx cap open ios
+    ```
+    Plus: set signing team, enable Push Notifications capability, plug in an iPhone, press ▶.
 
-Invite page has "Invite friends" (native share / copy link), "Copy link", and a "Not now" link that routes back to `/home` and sets a session-scoped "dismissed" flag so we don't bounce them back into the invite page on every nav — but the next fresh login will show it again until they actually have members.
+## What stays out of scope this turn
 
-## Out of scope this turn
-
-Full Home feed interactivity (check-ins, posts, reactions) — Home will render a static version of screenshot 1 wired to the user's real name/group name. Real check-in/post functionality comes later. Bottom tab bar will be visual only.
-
-## Files
-
-New:
-- migration creating `profiles`, `groups`, `group_members` + trigger + RLS + GRANTs
-- `src/lib/groups.functions.ts` (`getMyGroupStatus`, `createGroupForUser`)
-- `src/routes/_authenticated/route.tsx`
-- `src/routes/_authenticated/home.tsx`
-- `src/routes/_authenticated/invite.tsx`
-
-Edited:
-- `src/routes/login.tsx` — wire to `supabase.auth.signInWithPassword`, redirect to `/home`
-- `src/routes/signup.tsx` — final step calls `supabase.auth.signUp` + `createGroupForUser`, then redirects
+- The Xcode / App Store Connect / Apple Developer steps (those run on your Mac, not here).
+- Apple Sign In (App Review requires it if Google Sign In stays). I'll add it as a follow-up — it needs a Supabase Auth provider config too.
+- Android — same Capacitor project supports it later with one command.
+- App Store listing copy, screenshots, privacy policy page.
 
 Confirm and I'll build it.

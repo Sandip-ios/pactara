@@ -18,6 +18,7 @@ import {
   getPostComments,
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
+import { hapticLight } from "@/lib/native";
 import {
   Hourglass,
   Flame,
@@ -230,6 +231,7 @@ function ReactionBar({
 
   const toggleCurrentReaction = () => {
     const emoji = myEmoji ?? "🔥";
+    void hapticLight();
     setOverride({ emoji: myEmoji ? null : "🔥" });
     toggle.mutate(emoji);
   };
@@ -262,6 +264,7 @@ function ReactionBar({
   };
   const selectEmoji = (emoji: string) => {
     clearNativeSelection();
+    void hapticLight();
     setOverride({ emoji });
     setReactionM.mutate(emoji);
     setPickerOpen(false);

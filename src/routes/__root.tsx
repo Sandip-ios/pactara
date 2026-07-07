@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { SplashScreen } from "@/components/SplashScreen";
+import { NativeBootstrap } from "@/components/NativeBootstrap";
 
 function NotFoundComponent() {
   return (
@@ -96,7 +97,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#0a0a0a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Pactara" },
       { title: "Pactara — Accountability that actually works." },
       { name: "description", content: "Daily check-ins. Group nudges. Streaks. Keep promises with the people who matter." },
       { name: "author", content: "Pactara" },
@@ -181,6 +186,7 @@ function RootComponent() {
       <Outlet />
       <Toaster />
       <SplashScreen />
+      <NativeBootstrap />
     </QueryClientProvider>
   );
 }

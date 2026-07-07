@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { UserPlus, Copy, Check } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
+import { shareNativeOrWeb, hapticLight } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/invite")({
   component: InvitePage,
@@ -31,18 +32,16 @@ function InvitePage() {
   }, [status.group]);
 
   const handleInvite = async () => {
-    if (typeof navigator !== "undefined" && "share" in navigator && status.group) {
-      try {
-        await navigator.share({
-          title: `Join my ${status.group.name}`,
-          text: `Join me on Pactara — we're keeping each other accountable.`,
-          url: inviteLink,
-        });
-      } catch {
-        // user cancelled
-      }
-    } else {
-      handleCopy();
+    if (!status.group) return;
+    void hapticLight();
+    const result = await shareNativeOrWeb({
+      title: `Join my ${status.group.name}`,
+      text: `Join me on Pactara — we're keeping each other accountable.`,
+      url: inviteLink,
+    });
+    if (result === "clipboard") {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
