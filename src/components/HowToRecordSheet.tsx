@@ -51,7 +51,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
       <div
         role="dialog"
         aria-modal="true"
-        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] pb-[calc(env(safe-area-inset-bottom)+24px)] max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-200"
+        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] pb-6 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-200"
       >
         <div className="pt-2 flex justify-center sticky top-0 bg-white z-10">
           <div className="h-1.5 w-10 rounded-full bg-neutral-300" />
