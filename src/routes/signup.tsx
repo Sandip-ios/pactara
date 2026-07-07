@@ -1649,7 +1649,7 @@ export function GreetingStep({
   const withList = [
     "Daily accountability from your crew",
     "Proof-based check-ins that stick",
-    "3× more likely to still be going at 90 days",
+    "3× more likely to reach their goals",
   ];
 
   return (
@@ -1919,7 +1919,7 @@ function ConsistencyStep({
 
         <p className="mt-8 text-center text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
           People who check in with a group are{" "}
-          <span className="font-bold text-black">3× more likely</span> to still be going at 90 days.
+          <span className="font-bold text-black">3× more likely</span> to reach their goals.
         </p>
       </div>
 
