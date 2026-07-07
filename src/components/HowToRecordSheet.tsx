@@ -59,7 +59,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
 
         <div className="px-6">
           <h2 className="pt-6 text-center text-[22px] font-bold text-[#111827] tracking-tight">
-            For the best proof video:
+            For the best proof video
           </h2>
 
           <div className="mt-6 space-y-5">
