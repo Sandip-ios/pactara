@@ -13,13 +13,13 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "always",
-    backgroundColor: "#000000",
+    backgroundColor: "#F5F2EE",
   },
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
       launchShowDuration: 1200,
-      backgroundColor: "#0a0a0a",
+      backgroundColor: "#F5F2EE",
       showSpinner: false,
     },
     PushNotifications: {
