@@ -194,7 +194,6 @@ function VideoRecordScreen() {
   };
 
   const stopRecording = () => {
-    if (!recording) return;
     if (autoStopRef.current) {
       window.clearTimeout(autoStopRef.current);
       autoStopRef.current = null;
@@ -203,6 +202,7 @@ function VideoRecordScreen() {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    recordingRef.current = false;
     setRecording(false);
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") {
