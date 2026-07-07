@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
+import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -248,12 +249,13 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
 function CheckInMood() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const onContinue = () => {
     if (!selected) return;
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
-    navigate({ to: "/check-in/camera" });
+    setSheetOpen(true);
   };
 
   return (
@@ -307,6 +309,20 @@ function CheckInMood() {
         </button>
       </div>
 
+      <HowToRecordSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onRecord={() => {
+          setSheetOpen(false);
+          navigate({ to: "/check-in/camera" });
+        }}
+        onSkip={() => {
+          setSheetOpen(false);
+          sessionStorage.removeItem("checkin-mood");
+          clearCheckInPhoto();
+          navigate({ to: "/home" });
+        }}
+      />
     </div>
   );
 }

@@ -1,185 +1,303 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Camera, ChevronLeft, ImagePlus, RefreshCw } from "lucide-react";
-import { MOODS, type MoodId } from "./check-in.index";
+import { X, HelpCircle } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
+import HowToRecordSheet from "@/components/HowToRecordSheet";
+
+const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
+const PURPLE = "#7C3AED";
+const RED = "#EF4444";
+const GREEN = "#10B981";
+const MIN_SECS = 5;
+const MAX_SECS = 15;
 
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
-  component: CameraPage,
+  component: VideoRecordScreen,
 });
 
-function CameraPage() {
+function pickMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  const candidates = [
+    "video/mp4",
+    "video/webm;codecs=vp9,opus",
+    "video/webm;codecs=vp8,opus",
+    "video/webm",
+  ];
+  for (const t of candidates) {
+    if (MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return "";
+}
+
+function VideoRecordScreen() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const nativeCameraInputRef = useRef<HTMLInputElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const [facing, setFacing] = useState<"user" | "environment">("environment");
-  const [active, setActive] = useState(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const startedAtRef = useRef<number>(0);
+  const rafRef = useRef<number | null>(null);
+  const autoStopRef = useRef<number | null>(null);
+
+  const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
+  const [helpOpen, setHelpOpen] = useState(false);
 
-  const moodId = (typeof window !== "undefined" ? (sessionStorage.getItem("checkin-mood") as MoodId | null) : null);
-  const mood = MOODS.find((m) => m.id === moodId) ?? MOODS[0];
-
-  const isSecure = typeof window !== "undefined" && (window.isSecureContext || window.location.hostname === "localhost");
-
-  // Must be called from a user gesture (iOS Safari requirement).
-  const startCamera = async (nextFacing: "user" | "environment" = facing) => {
-    setError(null);
-    if (!isSecure) {
-      setError("Camera needs HTTPS. Use the library button to attach a photo.");
-      return;
-    }
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setError("Camera not supported on this browser. Use the library button.");
-      return;
-    }
-    try {
-      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: nextFacing } },
-        audio: false,
-      });
-      streamRef.current = stream;
-      setActive(true);
-      setFacing(nextFacing);
-      const v = videoRef.current;
-      if (v) {
-        v.srcObject = stream;
-        v.play().catch(() => {});
-      }
-    } catch (err) {
-      const name = (err as DOMException)?.name;
-      if (name === "NotAllowedError") {
-        setError("Camera permission denied. Enable it in your browser settings, or use the library.");
-      } else if (name === "NotFoundError" || name === "OverconstrainedError") {
-        setError("No camera found. Use the library button to attach a photo.");
-      } else if (name === "NotReadableError") {
-        setError("Camera is in use by another app. Close it and try again.");
-      } else {
-        setError("Camera unavailable. Use the library button to attach a photo.");
-      }
-      setActive(false);
+  const stopStream = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     }
   };
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setError("Camera not supported on this device.");
+          return;
+        }
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: true,
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(() => {});
+        }
+        setReady(true);
+      } catch (err) {
+        const name = (err as DOMException)?.name;
+        if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
+        else setError("Camera unavailable.");
+      }
+    })();
     return () => {
-      if (streamRef.current) streamRef.current.getTracks().forEach((t) => t.stop());
+      cancelled = true;
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
+      if (recorderRef.current && recorderRef.current.state !== "inactive") {
+        try { recorderRef.current.stop(); } catch { /* noop */ }
+      }
+      stopStream();
     };
   }, []);
 
-  const capture = () => {
-    const video = videoRef.current;
-    if (!active || !video || !video.videoWidth) {
-      // Fall back to the native camera input on devices where getUserMedia is blocked.
-      nativeCameraInputRef.current?.click();
+  const tick = () => {
+    const secs = (Date.now() - startedAtRef.current) / 1000;
+    setElapsed(secs);
+    if (secs < MAX_SECS) {
+      rafRef.current = requestAnimationFrame(tick);
+    }
+  };
+
+  const startRecording = () => {
+    if (!streamRef.current || recording) return;
+    const mimeType = pickMimeType();
+    let rec: MediaRecorder;
+    try {
+      rec = new MediaRecorder(streamRef.current, mimeType ? { mimeType } : undefined);
+    } catch {
+      setError("Recording isn't supported on this browser.");
       return;
     }
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.drawImage(video, 0, 0);
-    canvas.toBlob((blob) => {
-      if (blob) setCheckInPhoto(blob);
+    chunksRef.current = [];
+    rec.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    rec.onstop = () => {
+      const type = rec.mimeType || "video/webm";
+      const blob = new Blob(chunksRef.current, { type });
+      chunksRef.current = [];
+      if (blob.size > 0) setCheckInPhoto(blob);
+      stopStream();
       navigate({ to: "/check-in/notes" });
-    }, "image/jpeg", 0.85);
+    };
+    recorderRef.current = rec;
+    startedAtRef.current = Date.now();
+    setElapsed(0);
+    setRecording(true);
+    rec.start();
+    rafRef.current = requestAnimationFrame(tick);
+    autoStopRef.current = window.setTimeout(() => {
+      stopRecording();
+    }, MAX_SECS * 1000);
   };
 
-  const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setCheckInPhoto(file);
-    navigate({ to: "/check-in/notes" });
+  const stopRecording = () => {
+    if (!recording) return;
+    if (autoStopRef.current) {
+      window.clearTimeout(autoStopRef.current);
+      autoStopRef.current = null;
+    }
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+    setRecording(false);
+    const rec = recorderRef.current;
+    if (rec && rec.state !== "inactive") {
+      try { rec.stop(); } catch { /* noop */ }
+    }
   };
+
+  const onTapButton = () => {
+    if (!recording) {
+      startRecording();
+      return;
+    }
+    if (elapsed >= MIN_SECS) stopRecording();
+  };
+
+  const cancel = () => {
+    if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    if (recorderRef.current && recorderRef.current.state !== "inactive") {
+      try {
+        recorderRef.current.onstop = null;
+        recorderRef.current.stop();
+      } catch { /* noop */ }
+    }
+    stopStream();
+    navigate({ to: "/check-in" });
+  };
+
+  const progress = Math.min(1, elapsed / MAX_SECS);
+  const R = 42;
+  const C = 2 * Math.PI * R;
+  const dash = C * progress;
+
+  const timerLabel = (() => {
+    const s = Math.floor(elapsed);
+    return `0:${String(s).padStart(2, "0")}`;
+  })();
+
+  const canStop = recording && elapsed >= MIN_SECS;
 
   return (
-    <div className="fixed inset-0 bg-black text-white" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-      <video ref={videoRef} autoPlay playsInline muted className="absolute inset-0 w-full h-full object-cover" />
+    <div
+      className="fixed inset-0 text-white overflow-hidden"
+      style={{
+        fontFamily: JAKARTA,
+        background: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%)",
+      }}
+    >
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="absolute inset-0 w-full h-full object-cover opacity-70"
+      />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(13,13,13,0.35) 0%, rgba(26,26,46,0.55) 100%)" }} />
 
-      {!active && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-8 gap-4">
-          {error ? (
-            <p className="text-neutral-300 text-[15px] leading-snug max-w-[280px]">{error}</p>
-          ) : (
-            <p className="text-neutral-300 text-[15px] leading-snug max-w-[280px]">
-              Tap below to turn on the camera, or attach a photo from your library.
-            </p>
-          )}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => startCamera(facing)}
-              className="rounded-full bg-white text-black px-5 py-2.5 text-[15px] font-semibold flex items-center gap-2"
-            >
-              <Camera size={18} />
-              Enable camera
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-full border border-white/60 text-white px-5 py-2.5 text-[15px] font-semibold"
-            >
-              Library
-            </button>
+      {!ready && !error && (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3 opacity-70">
+            <div className="h-14 w-14 rounded-2xl border border-white/30 flex items-center justify-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <p className="text-[14px]">Camera preview</p>
           </div>
         </div>
       )}
 
-      <div className="absolute top-0 inset-x-0 pt-4 px-4 flex items-center gap-3">
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center px-8">
+          <p className="text-center text-[15px] text-white/80 max-w-[280px]">{error}</p>
+        </div>
+      )}
+
+      {/* Top controls */}
+      <div className="absolute top-0 inset-x-0 pt-[calc(env(safe-area-inset-top)+12px)] px-4 flex items-center justify-between">
         <button
-          onClick={() => navigate({ to: "/check-in" })}
+          onClick={cancel}
           className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"
-          aria-label="Back"
+          aria-label="Cancel"
         >
-          <ChevronLeft size={20} />
+          <X size={20} />
         </button>
-        <div className="rounded-full bg-black/50 backdrop-blur px-4 py-2 flex items-center gap-2">
-          <span className="text-[18px] leading-none">{mood.emoji}</span>
-          <span className="text-[15px] font-semibold" style={{ color: mood.color }}>{mood.label}</span>
-        </div>
-      </div>
-
-      <div className="absolute bottom-0 inset-x-0 pb-6 flex flex-col items-center">
-        <div className="w-full flex items-center justify-around pt-6">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
-            aria-label="Pick from library"
-          >
-            <ImagePlus size={22} />
-          </button>
-          <button
-            onClick={capture}
-            className="h-20 w-20 rounded-full bg-white/10 border-4 border-white flex items-center justify-center"
-            aria-label="Capture"
-          >
-            <span className="h-16 w-16 rounded-full bg-white/90" />
-          </button>
-          <button
-            onClick={() => (active ? startCamera(facing === "user" ? "environment" : "user") : startCamera(facing))}
-            className="h-12 w-12 rounded-xl border border-white/40 flex items-center justify-center"
-            aria-label="Flip camera"
-          >
-            <RefreshCw size={20} />
-          </button>
-        </div>
         <button
-          onClick={() => navigate({ to: "/check-in/notes" })}
-          className="mt-4 text-[15px] font-medium text-white/90 px-4"
+          onClick={() => setHelpOpen(true)}
+          className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"
+          aria-label="Help"
         >
-          Skip
+          <HelpCircle size={20} />
         </button>
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={onFile} />
-      <input
-        ref={nativeCameraInputRef}
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-        className="hidden"
-        onChange={onFile}
+      {/* Bottom recording UI */}
+      <div className="absolute inset-x-0 bottom-0 pb-[calc(env(safe-area-inset-bottom)+32px)] flex flex-col items-center gap-3">
+        {recording && canStop && (
+          <div
+            className="px-4 py-2 rounded-full text-white text-[13px] font-semibold"
+            style={{ background: GREEN }}
+          >
+            ✓ Min reached — tap to stop
+          </div>
+        )}
+
+        {recording && (
+          <div className="px-3 py-1.5 rounded-full bg-black/60 text-white text-[14px] font-semibold tabular-nums">
+            {timerLabel}
+          </div>
+        )}
+
+        <div className="relative h-24 w-24 flex items-center justify-center">
+          {/* Progress ring */}
+          <svg className="absolute inset-0" width="96" height="96" viewBox="0 0 96 96">
+            <circle cx="48" cy="48" r={R} stroke="rgba(255,255,255,0.25)" strokeWidth="4" fill="none" />
+            {recording && (
+              <circle
+                cx="48"
+                cy="48"
+                r={R}
+                stroke={PURPLE}
+                strokeWidth="4"
+                fill="none"
+                strokeLinecap="round"
+                strokeDasharray={`${dash} ${C - dash}`}
+                transform="rotate(-90 48 48)"
+              />
+            )}
+          </svg>
+          <button
+            onClick={onTapButton}
+            disabled={recording && !canStop}
+            aria-label={recording ? (canStop ? "Stop recording" : "Recording") : "Start recording"}
+            className="h-20 w-20 rounded-full flex items-center justify-center transition-colors"
+            style={{
+              background: recording ? RED : "#FFFFFF",
+              border: "2px solid rgba(255,255,255,0.9)",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+              opacity: recording && !canStop ? 0.9 : 1,
+              cursor: recording && !canStop ? "not-allowed" : "pointer",
+            }}
+          />
+        </div>
+
+        {!recording && (
+          <p className="text-[13px] text-white/70">Tap to start recording</p>
+        )}
+      </div>
+
+      <HowToRecordSheet
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onRecord={() => setHelpOpen(false)}
+        onSkip={() => {
+          setHelpOpen(false);
+          cancel();
+          navigate({ to: "/home" });
+        }}
       />
     </div>
   );
