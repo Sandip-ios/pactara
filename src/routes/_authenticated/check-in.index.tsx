@@ -251,11 +251,36 @@ function CheckInMood() {
   const [selected, setSelected] = useState<MoodId | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
 
-  const onContinue = () => {
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  const onContinue = async () => {
     if (!selected) return;
+    setCameraError(null);
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
-    setSheetOpen(true);
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera not supported on this device.");
+      setSheetOpen(true);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: true,
+      });
+      stream.getTracks().forEach((t) => t.stop());
+      setSheetOpen(true);
+    } catch (err) {
+      const name = (err as DOMException)?.name;
+      if (name === "NotAllowedError") {
+        setCameraError("Camera permission denied. Enable it in your browser settings to record your check-in.");
+      } else {
+        setCameraError("Camera unavailable.");
+      }
+      setSheetOpen(true);
+    }
   };
 
   return (
@@ -294,6 +319,14 @@ function CheckInMood() {
           );
         })}
       </div>
+
+      {cameraError && (
+        <div className="px-6 pb-4">
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[14px] text-red-700">
+            {cameraError}
+          </div>
+        </div>
+      )}
 
       <div className="fixed inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}>
         <button
