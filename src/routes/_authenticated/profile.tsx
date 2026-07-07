@@ -289,18 +289,8 @@ function ProfilePage() {
             value={`${data?.checkInRatePct ?? 0}%`}
             sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${Math.max(data?.daysSinceJoin ?? 0, (data?.uniqueDaysCheckedIn ?? 0) + (data?.missedCount ?? 0))} days`}
           />
-          <InsightRow
-            icon={<Clock size={18} style={{ color: "#16A34A" }} />}
-            iconBg={GREEN_SOFT}
-            label="On-time rate"
-            value={`${data?.onTimeRatePct ?? 0}%`}
-            sub={
-              (data?.missedCount ?? 0) === 0
-                ? "No missed days yet"
-                : `${data?.missedCount} missed`
-            }
-          />
           <WeekDeltaRow thisWeek={data?.thisWeek ?? 0} lastWeek={data?.lastWeek ?? 0} />
+
         </div>
       </section>
 
