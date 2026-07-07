@@ -149,10 +149,6 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       const diffMs = Date.now() - joinDate.getTime();
       daysSinceJoin = Math.max(1, Math.floor(diffMs / 86400000) + 1);
     }
-    const checkInRatePct = Math.min(
-      100,
-      Math.round((uniqueDays / daysSinceJoin) * 100),
-    );
 
     const now = Date.now();
     const dayMs = 86400000;
@@ -174,11 +170,21 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       .eq("check_in_missed", true);
     if (activeGroupId) missedQuery = missedQuery.eq("group_id", activeGroupId);
     const { count: missedCount } = await missedQuery;
-    const totalExpected = dates.length + (missedCount ?? 0);
+    const missed = missedCount ?? 0;
+    // Denominator = every day the user was expected to check in.
+    // Use the max of days-since-join and (checked + missed) so a missed day
+    // is always counted even if joinedAt is off by a day (timezone).
+    const expectedDays = Math.max(daysSinceJoin, uniqueDays + missed);
+    const checkInRatePct =
+      expectedDays > 0
+        ? Math.min(100, Math.round((uniqueDays / expectedDays) * 100))
+        : 0;
+    const totalExpected = uniqueDays + missed;
     const onTimeRatePct =
       totalExpected > 0
-        ? Math.round((dates.length / totalExpected) * 100)
+        ? Math.round((uniqueDays / totalExpected) * 100)
         : 0;
+
 
     return {
       name: profile?.name ?? "",
