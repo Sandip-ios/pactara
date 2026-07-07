@@ -309,6 +309,20 @@ function CheckInMood() {
         </button>
       </div>
 
+      <HowToRecordSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onRecord={() => {
+          setSheetOpen(false);
+          navigate({ to: "/check-in/camera" });
+        }}
+        onSkip={() => {
+          setSheetOpen(false);
+          sessionStorage.removeItem("checkin-mood");
+          clearCheckInPhoto();
+          navigate({ to: "/home" });
+        }}
+      />
     </div>
   );
 }
