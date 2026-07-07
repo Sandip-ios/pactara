@@ -39,7 +39,7 @@ export function MediaLightbox({
         <X size={22} />
       </button>
       <div
-        className="w-full h-full flex items-center justify-center"
+        className="w-full h-full flex items-center justify-center p-4"
         onClick={(e) => e.stopPropagation()}
       >
         {kind === "video" ? (
@@ -48,13 +48,13 @@ export function MediaLightbox({
             controls
             autoPlay
             playsInline
-            className="w-full h-full object-contain bg-black"
+            className="max-w-full max-h-full w-auto h-auto object-contain bg-black"
           />
         ) : (
           <img
             src={src}
             alt=""
-            className="w-full h-full object-contain"
+            className="max-w-full max-h-full w-auto h-auto object-contain"
           />
         )}
       </div>
