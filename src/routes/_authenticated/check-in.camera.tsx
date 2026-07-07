@@ -310,8 +310,14 @@ function VideoRecordScreen() {
         style={{
           // Mirror the front camera preview like Snapchat / Instagram so
           // the user sees themselves the way they see themselves in a
-          // mirror. Rear camera is never mirrored.
-          transform: facingMode === "user" ? "scaleX(-1)" : "none",
+          // mirror. Rear camera is never mirrored. When the platform
+          // doesn't support native zoom, we fall back to a CSS scale so
+          // the pinch/preset zoom still feels responsive.
+          transform: `${facingMode === "user" ? "scaleX(-1) " : ""}${
+            !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
+          }`.trim() || "none",
+          transformOrigin: "center center",
+          transition: "transform 180ms ease-out",
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
