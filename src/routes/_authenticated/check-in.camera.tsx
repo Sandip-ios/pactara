@@ -211,7 +211,7 @@ function VideoRecordScreen() {
   };
 
   const onTapButton = () => {
-    if (!recording) {
+    if (!recordingRef.current) {
       startRecording();
       return;
     }
