@@ -316,12 +316,6 @@ function CheckInMood() {
           setSheetOpen(false);
           navigate({ to: "/check-in/camera" });
         }}
-        onSkip={() => {
-          setSheetOpen(false);
-          sessionStorage.removeItem("checkin-mood");
-          clearCheckInPhoto();
-          navigate({ to: "/home" });
-        }}
       />
     </div>
   );

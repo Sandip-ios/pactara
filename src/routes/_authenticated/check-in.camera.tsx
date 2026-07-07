@@ -293,11 +293,6 @@ function VideoRecordScreen() {
         open={helpOpen}
         onClose={() => setHelpOpen(false)}
         onRecord={() => setHelpOpen(false)}
-        onSkip={() => {
-          setHelpOpen(false);
-          cancel();
-          navigate({ to: "/home" });
-        }}
       />
     </div>
   );
