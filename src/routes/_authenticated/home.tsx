@@ -46,7 +46,7 @@ async function uploadThoughtPhoto(file: File): Promise<string | null> {
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
-const TIMELINE_DAY_START_HOUR = 4;
+const TIMELINE_DAY_START_HOUR = 0;
 
 function formatLocalDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
