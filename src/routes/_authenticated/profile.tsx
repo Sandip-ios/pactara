@@ -287,7 +287,7 @@ function ProfilePage() {
             iconBg={PURPLE_SOFT}
             label="Check-in rate"
             value={`${data?.checkInRatePct ?? 0}%`}
-            sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${data?.daysSinceJoin ?? 0} days`}
+            sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${Math.max(data?.daysSinceJoin ?? 0, (data?.uniqueDaysCheckedIn ?? 0) + (data?.missedCount ?? 0))} days`}
           />
           <InsightRow
             icon={<Clock size={18} style={{ color: "#16A34A" }} />}
