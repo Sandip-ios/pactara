@@ -146,6 +146,16 @@
     color: var(--color-foreground);
   }
 
+  /* Prevent iOS Safari from zooming the page when focusing an input
+     with a font-size smaller than 16px. */
+  @supports (-webkit-touch-callout: none) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    textarea,
+    select {
+      font-size: 16px;
+    }
+  }
+
 }
 
 @utility no-scrollbar {
