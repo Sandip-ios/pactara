@@ -231,6 +231,7 @@ function ReactionBar({
 
   const toggleCurrentReaction = () => {
     const emoji = myEmoji ?? "🔥";
+    void hapticLight();
     setOverride({ emoji: myEmoji ? null : "🔥" });
     toggle.mutate(emoji);
   };
