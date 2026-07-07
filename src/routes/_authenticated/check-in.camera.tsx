@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { X, HelpCircle } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
+import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
