@@ -393,7 +393,7 @@ function HomePage() {
               value={composerText}
               onChange={(e) => setComposerText(e.target.value)}
               placeholder={`What's on your mind, ${firstName}?`}
-              className="flex-1 resize-none outline-none text-[15px] placeholder:text-neutral-400 min-h-[96px] bg-transparent"
+              className="flex-1 resize-none outline-none text-[16px] placeholder:text-neutral-400 min-h-[96px] bg-transparent"
             />
           </div>
           {imagePreview && (
