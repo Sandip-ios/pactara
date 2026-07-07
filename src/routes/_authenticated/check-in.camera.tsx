@@ -61,10 +61,13 @@ function VideoRecordScreen() {
           setError("Camera not supported on this device.");
           return;
         }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: true,
-        });
+        let stream = takeCheckInStream();
+        if (!stream) {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: "environment" } },
+            audio: true,
+          });
+        }
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
