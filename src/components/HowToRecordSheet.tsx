@@ -59,7 +59,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
 
         <div className="px-6">
           <h2 className="pt-6 text-center text-[22px] font-bold text-[#111827] tracking-tight">
-            For the best proof video:
+            For the best proof video
           </h2>
 
           <div className="mt-6 space-y-5">
@@ -82,7 +82,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
 
           <button
             onClick={onRecord}
-            className="mt-8 mb-2 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
+            className="mt-8 mb-6 w-full h-14 rounded-full bg-[#111827] text-white text-[16px] font-bold active:opacity-90"
           >
             Record now
           </button>
