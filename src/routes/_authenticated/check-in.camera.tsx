@@ -135,6 +135,11 @@ function VideoRecordScreen() {
       }
     }
 
+    if (!stream) {
+      setError("Camera unavailable.");
+      return;
+    }
+
     const mimeType = pickMimeType();
     let rec: MediaRecorder;
     try {
