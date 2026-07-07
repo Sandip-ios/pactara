@@ -186,6 +186,7 @@ function RootComponent() {
       <Outlet />
       <Toaster />
       <SplashScreen />
+      <NativeBootstrap />
     </QueryClientProvider>
   );
 }
