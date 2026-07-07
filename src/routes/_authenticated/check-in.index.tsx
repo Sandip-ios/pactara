@@ -320,6 +320,14 @@ function CheckInMood() {
         })}
       </div>
 
+      {cameraError && (
+        <div className="px-6 pb-4">
+          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[14px] text-red-700">
+            {cameraError}
+          </div>
+        </div>
+      )}
+
       <div className="fixed inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}>
         <button
           onClick={onContinue}
