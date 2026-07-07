@@ -39,6 +39,7 @@ function VideoRecordScreen() {
   const startedAtRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const autoStopRef = useRef<number | null>(null);
+  const recordingRef = useRef(false);
 
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -183,6 +184,7 @@ function VideoRecordScreen() {
     recorderRef.current = rec;
     startedAtRef.current = Date.now();
     setElapsed(0);
+    recordingRef.current = true;
     setRecording(true);
     rec.start();
     rafRef.current = requestAnimationFrame(tick);
@@ -192,7 +194,6 @@ function VideoRecordScreen() {
   };
 
   const stopRecording = () => {
-    if (!recording) return;
     if (autoStopRef.current) {
       window.clearTimeout(autoStopRef.current);
       autoStopRef.current = null;
@@ -201,6 +202,7 @@ function VideoRecordScreen() {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
     }
+    recordingRef.current = false;
     setRecording(false);
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") {
@@ -209,7 +211,7 @@ function VideoRecordScreen() {
   };
 
   const onTapButton = () => {
-    if (!recording) {
+    if (!recordingRef.current) {
       startRecording();
       return;
     }
