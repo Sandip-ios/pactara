@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
+import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
