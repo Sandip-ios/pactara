@@ -84,14 +84,16 @@ export async function shareNativeOrWeb(payload: {
 
   if (
     typeof navigator !== "undefined" &&
-    navigator.clipboard &&
     payload.url
   ) {
-    try {
-      await navigator.clipboard.writeText(payload.url);
-      return "clipboard";
-    } catch {
-      return "cancelled";
+    const nav = navigator as Navigator & { clipboard?: { writeText: (s: string) => Promise<void> } };
+    if (nav.clipboard) {
+      try {
+        await nav.clipboard.writeText(payload.url);
+        return "clipboard";
+      } catch {
+        return "cancelled";
+      }
     }
   }
   return "cancelled";
