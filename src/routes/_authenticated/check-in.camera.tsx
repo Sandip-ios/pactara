@@ -150,23 +150,9 @@ function VideoRecordScreen() {
     let stream = streamRef.current;
     if (!streamIsLive(stream)) {
       stopStream();
-      if (!navigator.mediaDevices?.getUserMedia) {
-        setError("Camera not supported on this device.");
-        return;
-      }
-
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
-        attachStream(stream);
-      } catch (err) {
-        const name = (err as DOMException)?.name;
-        if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
-        else setError("Camera unavailable.");
-        return;
-      }
+      stream = await requestStream(facingMode);
+      if (!stream) return;
+      attachStream(stream);
     }
 
     if (!stream) {
