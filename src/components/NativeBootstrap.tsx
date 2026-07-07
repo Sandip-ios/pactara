@@ -14,8 +14,8 @@ export function NativeBootstrap() {
     (async () => {
       try {
         const { StatusBar, Style } = await import("@capacitor/status-bar");
-        // Dark icons/text on our light cream background
-        await StatusBar.setStyle({ style: Style.Dark });
+        // Style.Light = dark icons/text (for our light cream background)
+        await StatusBar.setStyle({ style: Style.Light });
         if (nativePlatform() === "android") {
           await StatusBar.setBackgroundColor({ color: "#F5F2EE" });
         }
