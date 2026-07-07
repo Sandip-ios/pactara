@@ -14,7 +14,7 @@ export function WelcomeSheet({ firstName, onClose }: Props) {
     step === 0 ? PURPLE : step === 1 ? "#F59E0B" : step === 2 ? "#22C55E" : PURPLE;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="fixed inset-0 z-[70] flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div className="relative w-full bg-[#F5F2EE] rounded-t-3xl pt-3 pb-8 px-6 max-h-[92dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
         <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
