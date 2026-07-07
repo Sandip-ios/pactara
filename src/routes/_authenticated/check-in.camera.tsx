@@ -184,6 +184,7 @@ function VideoRecordScreen() {
     recorderRef.current = rec;
     startedAtRef.current = Date.now();
     setElapsed(0);
+    recordingRef.current = true;
     setRecording(true);
     rec.start();
     rafRef.current = requestAnimationFrame(tick);
