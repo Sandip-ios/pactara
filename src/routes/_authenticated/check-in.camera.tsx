@@ -48,6 +48,13 @@ function VideoRecordScreen() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [zoomOptions, setZoomOptions] = useState<number[]>([1]);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; native: boolean }>({
+    min: 1,
+    max: 1,
+    native: false,
+  });
 
   const stopStream = () => {
     if (streamRef.current) {
@@ -59,14 +66,47 @@ function VideoRecordScreen() {
   const streamIsLive = (stream: MediaStream | null) =>
     Boolean(stream?.getVideoTracks().some((track) => track.readyState === "live"));
 
+  const detectZoom = (stream: MediaStream) => {
+    const track = stream.getVideoTracks()[0];
+    const caps = (track && "getCapabilities" in track
+      ? (track as MediaStreamTrack & { getCapabilities?: () => MediaTrackCapabilities }).getCapabilities?.()
+      : undefined) as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
+    const nativeZoom = caps?.zoom;
+    const min = nativeZoom ? nativeZoom.min : 1;
+    const max = nativeZoom ? nativeZoom.max : 4; // CSS-scale fallback caps at 4x
+    const native = Boolean(nativeZoom);
+    const presets = [0.5, 1, 2, 4, 8].filter((v) => v >= min && v <= max);
+    if (!presets.includes(1) && min <= 1 && 1 <= max) presets.unshift(1);
+    setZoomRange({ min, max, native });
+    setZoomOptions(presets.length ? presets : [1]);
+    setZoom(1);
+  };
+
+  const applyZoom = async (value: number) => {
+    const stream = streamRef.current;
+    setZoom(value);
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    if (zoomRange.native) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: value } as MediaTrackConstraintSet & { zoom: number }] });
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
     }
+    detectZoom(stream);
     setReady(true);
   };
+
 
   const requestStream = async (mode: "environment" | "user") => {
     if (!navigator.mediaDevices?.getUserMedia) {
