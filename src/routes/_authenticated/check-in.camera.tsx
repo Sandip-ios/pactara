@@ -74,8 +74,18 @@ function VideoRecordScreen() {
       return null;
     }
     try {
+      // Request a portrait HD stream at the device's natural aspect. Asking
+      // for explicit dimensions + 9:16 aspect prevents the browser from
+      // handing back a low-res/landscape stream that then gets stretched by
+      // object-cover — which is what makes faces look wide/distorted.
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: mode } },
+        video: {
+          facingMode: { ideal: mode },
+          width: { ideal: 1080 },
+          height: { ideal: 1920 },
+          aspectRatio: { ideal: 9 / 16 },
+          frameRate: { ideal: 30 },
+        },
         audio: false,
       });
       return stream;
