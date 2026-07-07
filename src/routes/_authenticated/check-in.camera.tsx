@@ -67,30 +67,47 @@ function VideoRecordScreen() {
     setReady(true);
   };
 
+  const requestStream = async (mode: "environment" | "user") => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setError("Camera not supported on this device.");
+      return null;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: mode } },
+        audio: false,
+      });
+      return stream;
+    } catch (err) {
+      const name = (err as DOMException)?.name;
+      if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
+      else if (name === "NotFoundError") setError("No camera found on this device.");
+      else if (name === "NotReadableError") setError("Camera is being used by another app.");
+      else setError("Camera unavailable.");
+      return null;
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      try {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          setError("Camera not supported on this device.");
-          return;
-        }
-        const stream = takeCheckInStream();
-        if (!stream) return;
+      const existing = takeCheckInStream();
+      if (existing && streamIsLive(existing)) {
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          existing.getTracks().forEach((t) => t.stop());
           return;
         }
-        if (!streamIsLive(stream)) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        attachStream(stream);
-      } catch (err) {
-        const name = (err as DOMException)?.name;
-        if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
-        else setError("Camera unavailable.");
+        attachStream(existing);
+        return;
       }
+      if (existing) existing.getTracks().forEach((t) => t.stop());
+      const stream = await requestStream(facingMode);
+      if (!stream) return;
+      if (cancelled) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      attachStream(stream);
     })();
     return () => {
       cancelled = true;
@@ -101,7 +118,22 @@ function VideoRecordScreen() {
       }
       stopStream();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const switchCamera = async () => {
+    if (recording || switching) return;
+    setSwitching(true);
+    const next = facingMode === "environment" ? "user" : "environment";
+    stopStream();
+    setReady(false);
+    const stream = await requestStream(next);
+    if (stream) {
+      setFacingMode(next);
+      attachStream(stream);
+    }
+    setSwitching(false);
+  };
 
   const tick = () => {
     const secs = (Date.now() - startedAtRef.current) / 1000;
