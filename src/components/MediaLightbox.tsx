@@ -34,7 +34,11 @@ export function MediaLightbox({
       <button
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-4 right-4 h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white z-10"
+        className="absolute h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white z-10"
+        style={{
+          top: "calc(env(safe-area-inset-top) + 12px)",
+          right: "calc(env(safe-area-inset-right) + 12px)",
+        }}
       >
         <X size={22} />
       </button>
