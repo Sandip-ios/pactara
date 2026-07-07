@@ -404,7 +404,7 @@ function VideoRecordScreen() {
                     height: active ? 34 : 30,
                     minWidth: active ? 34 : 30,
                     padding: "0 6px",
-                    background: active ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.35)",
+                    background: active ? "rgba(0,0,0,0.55)" : "transparent",
                     color: active ? "#FBBF24" : "#FFFFFF",
                     fontSize: active ? 12 : 11,
                     fontWeight: 700,
