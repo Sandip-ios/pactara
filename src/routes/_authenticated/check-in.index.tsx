@@ -272,10 +272,13 @@ function CheckInMood() {
         video: { facingMode: { ideal: "environment" } },
         audio: true,
       });
-      // Keep the stream alive and hand it to the camera page so we don't
-      // request the camera twice (which can fail on mobile Safari).
       setCheckInStream(stream);
-      setSheetOpen(true);
+      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
+      if (seen) {
+        navigate({ to: "/check-in/camera" });
+      } else {
+        setSheetOpen(true);
+      }
     } catch (err) {
       const name = (err as DOMException)?.name;
       if (name === "NotAllowedError") {
