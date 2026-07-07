@@ -72,13 +72,17 @@ function VideoRecordScreen() {
       ? (track as MediaStreamTrack & { getCapabilities?: () => MediaTrackCapabilities }).getCapabilities?.()
       : undefined) as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
     const nativeZoom = caps?.zoom;
-    const min = nativeZoom ? nativeZoom.min : 1;
-    const max = nativeZoom ? nativeZoom.max : 4; // CSS-scale fallback caps at 4x
-    const native = Boolean(nativeZoom);
+    // Only treat native zoom as useful when it actually spans a range.
+    // Front cameras often report zoom capability with min=max=1, which would
+    // hide the zoom pill entirely — fall back to CSS scale in that case so
+    // the front camera gets the same presets as the rear.
+    const useNative = Boolean(nativeZoom && nativeZoom.max > nativeZoom.min);
+    const min = useNative ? nativeZoom!.min : 1;
+    const max = useNative ? nativeZoom!.max : 4; // CSS-scale fallback caps at 4x
     const presets = [0.5, 1, 2, 4, 8].filter((v) => v >= min && v <= max);
     if (!presets.includes(1) && min <= 1 && 1 <= max) presets.unshift(1);
-    setZoomRange({ min, max, native });
-    setZoomOptions(presets.length ? presets : [1]);
+    setZoomRange({ min, max, native: useNative });
+    setZoomOptions(presets.length > 1 ? presets : [1, 2, 4]);
     setZoom(1);
   };
 
