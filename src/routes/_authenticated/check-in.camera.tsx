@@ -390,7 +390,7 @@ function VideoRecordScreen() {
 
         {/* Zoom presets, iPhone-style */}
         {ready && zoomOptions.length > 1 && (
-          <div className="flex items-center gap-1.5 rounded-full bg-black/55 backdrop-blur px-2 py-1.5">
+          <div className="flex items-center gap-1.5 px-2 py-1.5">
             {zoomOptions.map((v) => {
               const active = Math.abs(zoom - v) < 0.01;
               const label = v < 1 ? `.${Math.round(v * 10)}` : `${v}`;
@@ -404,7 +404,7 @@ function VideoRecordScreen() {
                     height: active ? 34 : 30,
                     minWidth: active ? 34 : 30,
                     padding: "0 6px",
-                    background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                    background: active ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.35)",
                     color: active ? "#FBBF24" : "#FFFFFF",
                     fontSize: active ? 12 : 11,
                     fontWeight: 700,
