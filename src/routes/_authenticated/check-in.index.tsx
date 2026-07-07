@@ -249,12 +249,13 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
 function CheckInMood() {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const onContinue = () => {
     if (!selected) return;
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
-    navigate({ to: "/check-in/camera" });
+    setSheetOpen(true);
   };
 
   return (
