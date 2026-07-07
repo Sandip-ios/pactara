@@ -7,7 +7,6 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onRecord: () => void;
-  onSkip: () => void;
 };
 
 function PhoneIllustration() {
