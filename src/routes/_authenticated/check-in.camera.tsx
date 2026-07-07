@@ -266,9 +266,15 @@ function VideoRecordScreen() {
         autoPlay
         playsInline
         muted
-        className="absolute inset-0 w-full h-full object-cover opacity-70"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          // Mirror the front camera preview like Snapchat / Instagram so
+          // the user sees themselves the way they see themselves in a
+          // mirror. Rear camera is never mirrored.
+          transform: facingMode === "user" ? "scaleX(-1)" : "none",
+        }}
       />
-      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(13,13,13,0.35) 0%, rgba(26,26,46,0.55) 100%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
 
       {!ready && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
