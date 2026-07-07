@@ -48,6 +48,13 @@ function VideoRecordScreen() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [zoomOptions, setZoomOptions] = useState<number[]>([1]);
+  const [zoomRange, setZoomRange] = useState<{ min: number; max: number; native: boolean }>({
+    min: 1,
+    max: 1,
+    native: false,
+  });
 
   const stopStream = () => {
     if (streamRef.current) {
@@ -59,14 +66,47 @@ function VideoRecordScreen() {
   const streamIsLive = (stream: MediaStream | null) =>
     Boolean(stream?.getVideoTracks().some((track) => track.readyState === "live"));
 
+  const detectZoom = (stream: MediaStream) => {
+    const track = stream.getVideoTracks()[0];
+    const caps = (track && "getCapabilities" in track
+      ? (track as MediaStreamTrack & { getCapabilities?: () => MediaTrackCapabilities }).getCapabilities?.()
+      : undefined) as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
+    const nativeZoom = caps?.zoom;
+    const min = nativeZoom ? nativeZoom.min : 1;
+    const max = nativeZoom ? nativeZoom.max : 4; // CSS-scale fallback caps at 4x
+    const native = Boolean(nativeZoom);
+    const presets = [0.5, 1, 2, 4, 8].filter((v) => v >= min && v <= max);
+    if (!presets.includes(1) && min <= 1 && 1 <= max) presets.unshift(1);
+    setZoomRange({ min, max, native });
+    setZoomOptions(presets.length ? presets : [1]);
+    setZoom(1);
+  };
+
+  const applyZoom = async (value: number) => {
+    const stream = streamRef.current;
+    setZoom(value);
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    if (zoomRange.native) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: value } as MediaTrackConstraintSet & { zoom: number }] });
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
     }
+    detectZoom(stream);
     setReady(true);
   };
+
 
   const requestStream = async (mode: "environment" | "user") => {
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -270,8 +310,14 @@ function VideoRecordScreen() {
         style={{
           // Mirror the front camera preview like Snapchat / Instagram so
           // the user sees themselves the way they see themselves in a
-          // mirror. Rear camera is never mirrored.
-          transform: facingMode === "user" ? "scaleX(-1)" : "none",
+          // mirror. Rear camera is never mirrored. When the platform
+          // doesn't support native zoom, we fall back to a CSS scale so
+          // the pinch/preset zoom still feels responsive.
+          transform: `${facingMode === "user" ? "scaleX(-1) " : ""}${
+            !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
+          }`.trim() || "none",
+          transformOrigin: "center center",
+          transition: "transform 180ms ease-out",
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
@@ -337,6 +383,40 @@ function VideoRecordScreen() {
             {timerLabel}
           </div>
         )}
+
+        {/* Zoom presets, iPhone-style */}
+        {ready && zoomOptions.length > 1 && (
+          <div className="flex items-center gap-1.5 rounded-full bg-black/55 backdrop-blur px-2 py-1.5">
+            {zoomOptions.map((v) => {
+              const active = Math.abs(zoom - v) < 0.01;
+              const label = v < 1 ? `.${Math.round(v * 10)}` : `${v}`;
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => applyZoom(v)}
+                  className="flex items-center justify-center rounded-full transition-all touch-manipulation tabular-nums"
+                  style={{
+                    height: active ? 34 : 30,
+                    minWidth: active ? 34 : 30,
+                    padding: "0 6px",
+                    background: active ? "rgba(255,255,255,0.14)" : "transparent",
+                    color: active ? "#FBBF24" : "#FFFFFF",
+                    fontSize: active ? 12 : 11,
+                    fontWeight: 700,
+                  }}
+                  aria-label={`Zoom ${v}x`}
+                  aria-pressed={active}
+                >
+                  {label}
+                  <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+
 
         <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
