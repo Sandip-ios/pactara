@@ -183,6 +183,12 @@ function HomePage() {
     queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }),
     refetchOnWindowFocus: true,
   });
+  const { data: streaksData } = useQuery({
+    queryKey: ["group-member-streaks", selectedGroupId],
+    queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
+    staleTime: 60_000,
+  });
+
 
 
   const [showOnboarding, setShowOnboarding] = useState(false);
