@@ -63,6 +63,48 @@ export const deletePushSubscription = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// -- FCM tokens (native iOS/Android via @capacitor-firebase/messaging) --------
+
+export const saveFcmToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { token: string; platform: "ios" | "android" | "web" }) => {
+    if (!input?.token || typeof input.token !== "string") throw new Error("Missing token");
+    if (!["ios", "android", "web"].includes(input.platform)) throw new Error("Bad platform");
+    return { token: input.token, platform: input.platform };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("fcm_tokens" as never).upsert(
+      {
+        user_id: userId,
+        token: data.token,
+        platform: data.platform,
+        last_used_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "token" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteFcmToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { token: string }) => {
+    if (!input?.token) throw new Error("Missing token");
+    return { token: input.token };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("fcm_tokens" as never)
+      .delete()
+      .eq("user_id", userId)
+      .eq("token", data.token);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 export const nudgeUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { targetUserId: string }) => {
