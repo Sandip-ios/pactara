@@ -367,20 +367,21 @@ function HomePage() {
 
 
       {!composerOpen ? (
-        <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
+        <div className="mx-4 mt-3 p-3 flex items-center gap-3">
           <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold overflow-hidden" style={{ background: PURPLE }}>
             {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
           <button
             onClick={() => setComposerOpen(true)}
-            className="flex-1 text-left rounded-full bg-neutral-100 px-4 py-3 text-[15px] text-neutral-400"
+            className="flex-1 text-left rounded-full bg-white/60 border border-neutral-200 px-4 py-3 text-[15px] text-neutral-500"
           >
             What's on your mind, {firstName}?
           </button>
-          <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+          <button onClick={pickImage} className="h-10 w-10 rounded-lg flex items-center justify-center" aria-label="Add photo">
             <ImageIcon size={20} className="text-green-600" />
           </button>
         </div>
+
       ) : (
         <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
           <div className="flex gap-3 p-4">
