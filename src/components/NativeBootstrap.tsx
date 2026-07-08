@@ -69,7 +69,7 @@ export function NativeBootstrap() {
         // Style.Light = dark icons/text (for our light cream background)
         await StatusBar.setStyle({ style: Style.Light });
         if (nativePlatform() === "android") {
-          await StatusBar.setBackgroundColor({ color: "#F5F2EE" });
+          await StatusBar.setBackgroundColor({ color: "#FFFFFF" });
         }
       } catch {
         // ignore
