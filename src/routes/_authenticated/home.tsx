@@ -310,13 +310,6 @@ function HomePage() {
 
 
 
-
-      {myGroups.length > 1 && (
-        <div className="bg-transparent border-b border-neutral-200">
-          <div className="flex gap-6 overflow-x-auto px-6 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {myGroups.map((g) => {
-              const active = g.id === selectedGroupId;
-              return (
       {(() => {
         const activeGroup = myGroups.find((g) => g.id === selectedGroupId) ?? myGroups[0];
         const duration = 30;
@@ -366,8 +359,6 @@ function HomePage() {
       })()}
 
 
-        );
-      })()}
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
