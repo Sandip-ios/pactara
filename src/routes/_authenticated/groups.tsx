@@ -551,6 +551,7 @@ function EditCommitmentDrawer({
         if (v) {
           setLocalDuration(duration);
           setLocalFreq(frequency);
+          setLocalDaysPerWeek(daysPerWeek);
         }
       }}
     >
