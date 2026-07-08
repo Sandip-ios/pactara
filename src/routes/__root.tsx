@@ -182,6 +182,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* White band covering the iOS status bar safe area */}
+      <div
+        aria-hidden
+        className="fixed inset-x-0 top-0 z-[9999] bg-white pointer-events-none"
+        style={{ height: "env(safe-area-inset-top)" }}
+      />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster />
