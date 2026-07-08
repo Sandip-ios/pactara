@@ -105,7 +105,7 @@ function AccountSettingsHub() {
             icon={<Bell size={18} style={{ color: PURPLE }} />}
             iconBg={PURPLE_SOFT}
             title="Notifications"
-            subtitle="Push, email, reminders"
+            subtitle="Push and reminders"
             onClick={() => navigate({ to: "/account-settings/notifications" })}
           />
         </div>
