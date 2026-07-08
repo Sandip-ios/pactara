@@ -705,29 +705,42 @@ export function GoalStep({
 export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () => void; onBack: () => void; progress: number }) {
   const reviews = [
     {
-      name: "Erfan",
-      date: "July 3, 2026",
-      text: "Pactara has completely changed how I stick to my fitness goals. Having friends committed alongside me keeps me accountable in a way no other app has. The group dynamic is genuinely motivating and I actually look forward to checking in. Highly recommend for anyone who struggles to stay consistent on their own!",
+      name: "Marcus",
+      date: "June 28, 2026",
+      stars: 5,
+      text: "Been trying to stay consistent with workouts for years. Something about my group seeing when I miss a day just… works. Two weeks in and I haven't skipped once.",
     },
     {
-      name: "Tori",
-      date: "July 5, 2026",
-      text: "Great app for staying accountable with friends and hitting my goals.",
+      name: "Priya",
+      date: "July 1, 2026",
+      stars: 4,
+      text: "Really solid app. Wish there were more customization on the check-in photos, but the group accountability piece is exactly what I needed.",
     },
     {
-      name: "N",
-      date: "July 6, 2026",
-      text: "I love this app. It's quickly become my most used app on my phone. It makes staying on track the easiest it can ever be. I enjoy it every single day.",
+      name: "DJ",
+      date: "July 4, 2026",
+      stars: 5,
+      text: "My roommate and I started a group as a joke and now we're both 3 weeks into actually working out consistently for the first time ever. Didn't expect that.",
     },
   ];
 
-  const Stars = () => (
+  const Stars = ({ count = 5 }: { count?: number }) => (
     <div className="flex items-center gap-1">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <Star key={i} size={16} fill="#E9B949" stroke="#E9B949" />
-      ))}
+      {[0, 1, 2, 3, 4].map((i) => {
+        const filled = i < count;
+        return (
+          <Star
+            key={i}
+            size={16}
+            fill={filled ? "#E9B949" : "none"}
+            stroke={filled ? "#E9B949" : "#D6D0C4"}
+          />
+        );
+      })}
     </div>
   );
+
+
 
   const Laurel = ({ flip = false }: { flip?: boolean }) => (
     <svg
@@ -802,7 +815,7 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
               style={{ background: "#F1EEF7" }}
             >
               <div className="flex items-center justify-between">
-                <Stars />
+                <Stars count={r.stars} />
                 <div className="text-[13px] text-[#6B6660]">
                   {r.name}, {r.date}
                 </div>
