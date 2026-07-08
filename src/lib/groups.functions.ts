@@ -289,6 +289,10 @@ export const listMyGroups = createServerFn({ method: "GET" })
         memberCount: members.length,
         members,
         createdAt: g.created_at,
+        durationDays: (g as { duration_days?: number }).duration_days ?? 30,
+        startDate: (g as { start_date?: string }).start_date ?? null,
+        frequency: (g as { frequency?: "daily" | "weekly" | "specific" }).frequency ?? "daily",
+        daysPerWeek: (g as { days_per_week?: number }).days_per_week ?? 7,
       };
     });
     // Preserve membership order (most recently joined first)
