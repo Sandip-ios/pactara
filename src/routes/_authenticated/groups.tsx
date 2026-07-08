@@ -19,7 +19,7 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
-import { listMyGroups, renameGroup } from "@/lib/groups.functions";
+import { listMyGroups, renameGroup, updateGroupCommitment } from "@/lib/groups.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import {
   Popover,
