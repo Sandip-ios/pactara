@@ -640,11 +640,11 @@ function EditCommitmentDrawer({
             </div>
             <div className="mt-3 grid grid-cols-7 gap-2">
               {[1, 2, 3, 4, 5, 6, 7].map((d) => {
-                const active = daysPerWeek === d;
+                const active = localDaysPerWeek === d;
                 return (
                   <button
                     key={d}
-                    onClick={() => setDaysPerWeek(d)}
+                    onClick={() => setLocalDaysPerWeek(d)}
                     className="aspect-square rounded-xl text-[16px] font-bold flex items-center justify-center"
                     style={{
                       background: active ? PURPLE : "#F4F1ED",
