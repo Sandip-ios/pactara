@@ -316,11 +316,16 @@ function HomePage() {
 
       {(() => {
         const activeGroup = myGroups.find((g) => g.id === selectedGroupId) ?? myGroups[0];
-        const duration = 30;
+        const duration = (activeGroup as { durationDays?: number } | undefined)?.durationDays ?? 30;
+        const startSource =
+          (activeGroup as { startDate?: string | null } | undefined)?.startDate ??
+          activeGroup?.createdAt;
         let dayNumber = 1;
-        if (activeGroup?.createdAt) {
-          const created = new Date(activeGroup.createdAt);
-          const startLocal = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+        if (startSource) {
+          const start = (activeGroup as { startDate?: string | null } | undefined)?.startDate
+            ? new Date(`${(activeGroup as { startDate: string }).startDate}T00:00:00`)
+            : new Date(activeGroup!.createdAt as string);
+          const startLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate());
           const now = new Date();
           const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
           const diffDays = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
