@@ -1664,7 +1664,7 @@ export function GreetingStep({
   const name = firstName || "friend";
   const howSteps = [
     { n: "1", emoji: "🌅", title: "Set your morning ritual", text: "Each morning, commit to one daily action with your group." },
-    { n: "2", emoji: "📸", title: "Check in with proof", text: "Snap a quick photo or note showing you did the thing." },
+    { n: "2", emoji: "📸", title: "Check in with proof", text: "Record a quick 5–15 second video in the app showing you did the thing." },
     { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, nudge. The group keeps you accountable." },
   ];
   const withoutList = [
