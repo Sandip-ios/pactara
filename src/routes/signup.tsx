@@ -815,7 +815,7 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
               style={{ background: "#F1EEF7" }}
             >
               <div className="flex items-center justify-between">
-                <Stars />
+                <Stars count={r.stars} />
                 <div className="text-[13px] text-[#6B6660]">
                   {r.name}, {r.date}
                 </div>
