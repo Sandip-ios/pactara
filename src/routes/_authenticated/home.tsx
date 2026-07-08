@@ -362,38 +362,6 @@ function HomePage() {
         );
       })()}
 
-      {(streaksData?.members.length ?? 0) > 0 && (
-        <div className="pt-3">
-          <div className="flex gap-3 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {(streaksData?.members ?? []).map((m) => {
-              const initial = (m.name || "U").slice(0, 1).toUpperCase();
-              return (
-                <div key={m.userId} className="shrink-0 flex flex-col items-center pb-2">
-                  <div className="relative">
-                    <div
-                      className="h-[72px] w-[72px] rounded-full flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
-                      style={{ background: m.avatarColor }}
-                    >
-                      {m.avatarUrl ? (
-                        <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        initial
-                      )}
-                    </div>
-
-                    <div
-                      className="absolute left-1/2 -translate-x-1/2 -bottom-2 flex items-center gap-0.5 rounded-full bg-white px-1.5 py-0.5 text-[11px] font-bold text-neutral-800 shadow-sm"
-                    >
-                      <span className="text-[11px] leading-none">🔥</span>
-                      <span className="leading-none">{m.streak}</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
 
 
