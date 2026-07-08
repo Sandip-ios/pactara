@@ -203,10 +203,10 @@ function PlanPage() {
         <PlanCard
           emoji="🔥"
           name="Monthly"
-          tagline="Unlimited groups. Cancel anytime."
+          tagline="Unlimited groups. Start a new challenge anytime."
           price="$12.99"
           period="/ month"
-          bullets={["Unlimited groups", "Daily & photo check-ins", "2 streak freezes to start"]}
+          bullets={["Unlimited groups", "Daily & photo check-ins", "2 streak freezes to start", "New challenge = new group"]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
           checkColor="#9A9AA5"
