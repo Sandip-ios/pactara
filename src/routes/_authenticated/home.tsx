@@ -328,7 +328,7 @@ function HomePage() {
         }
         const hasMultiple = myGroups.length > 1;
         return (
-          <div className="px-6 pt-4 flex items-center justify-between text-[15px]">
+          <div className="px-6 pt-4 pb-3 border-b border-neutral-200 flex items-center justify-between text-[15px]">
             {hasMultiple ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
