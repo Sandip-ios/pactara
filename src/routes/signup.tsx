@@ -741,13 +741,6 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
   );
 
 
-  const Stars = () => (
-    <div className="flex items-center gap-1">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <Star key={i} size={16} fill="#E9B949" stroke="#E9B949" />
-      ))}
-    </div>
-  );
 
   const Laurel = ({ flip = false }: { flip?: boolean }) => (
     <svg
