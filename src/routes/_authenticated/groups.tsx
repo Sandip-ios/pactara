@@ -19,7 +19,7 @@ import {
   MessageCircle,
   Share2,
 } from "lucide-react";
-import { listMyGroups, renameGroup } from "@/lib/groups.functions";
+import { listMyGroups, renameGroup, updateGroupCommitment } from "@/lib/groups.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import {
   Popover,
@@ -61,6 +61,10 @@ type GroupItem = {
   memberCount: number;
   members?: GroupMember[];
   createdAt?: string;
+  durationDays?: number;
+  startDate?: string | null;
+  frequency?: "daily" | "weekly" | "specific";
+  daysPerWeek?: number;
 };
 
 function GroupsPage() {
@@ -207,10 +211,13 @@ function GroupCard({
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Presentation-only commitment state (not persisted yet)
-  const [duration, setDuration] = useState(30);
-  const [frequency, setFrequency] = useState<"daily" | "specific">("daily");
+  // Shared challenge timeframe stored on the group.
+  const duration = group.durationDays ?? 30;
+  const frequency: "daily" | "specific" =
+    group.frequency === "specific" || group.frequency === "weekly" ? "specific" : "daily";
+  const daysPerWeek = group.daysPerWeek ?? 7;
 
   const inviteLink = `https://pactara.lovable.app/join/${group.id}`;
   const shareText = `Join me on Pactara — we're keeping each other accountable.`;
@@ -250,10 +257,15 @@ function GroupCard({
     setShareOpen(true);
   };
 
+  // Shared countdown: derived from the group's start_date + duration_days,
+  // so every member sees the same "days left" regardless of when they joined.
   const dayNumber = (() => {
-    if (!group.createdAt) return 1;
-    const created = new Date(group.createdAt);
-    const startLocal = new Date(created.getFullYear(), created.getMonth(), created.getDate());
+    const startSource = group.startDate ?? group.createdAt;
+    if (!startSource) return 1;
+    const start = group.startDate
+      ? new Date(`${group.startDate}T00:00:00`)
+      : new Date(group.createdAt as string);
+    const startLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     const now = new Date();
     const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const diff = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
@@ -261,7 +273,7 @@ function GroupCard({
   })();
   const daysLeft = Math.max(0, duration - dayNumber);
   const initials = (firstName || "U").slice(0, 1).toUpperCase();
-  const summary = `${duration}d · ${frequency === "daily" ? "daily" : "custom"}`;
+  const summary = `${duration}d · ${frequency === "daily" ? "daily" : `${daysPerWeek}/wk`}`;
 
   return (
     <div className="mx-4 rounded-2xl overflow-hidden bg-white shadow-sm">
@@ -393,10 +405,21 @@ function GroupCard({
         onOpenChange={setCommitmentOpen}
         duration={duration}
         frequency={frequency}
-        onSave={(d, f) => {
-          setDuration(d);
-          setFrequency(f);
-          setCommitmentOpen(false);
+        daysPerWeek={daysPerWeek}
+        onSave={async (d, f, dpw) => {
+          try {
+            await updateGroupCommitment({
+              data: {
+                groupId: group.id,
+                durationDays: d,
+                frequency: f === "specific" ? "specific" : "daily",
+                daysPerWeek: dpw,
+              },
+            });
+            await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+          } finally {
+            setCommitmentOpen(false);
+          }
         }}
       />
       <ShareInviteDrawer
@@ -504,17 +527,19 @@ function EditCommitmentDrawer({
   onOpenChange,
   duration,
   frequency,
+  daysPerWeek,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   duration: number;
   frequency: "daily" | "specific";
-  onSave: (duration: number, frequency: "daily" | "specific") => void;
+  daysPerWeek: number;
+  onSave: (duration: number, frequency: "daily" | "specific", daysPerWeek: number) => void;
 }) {
   const [localDuration, setLocalDuration] = useState(duration);
   const [localFreq, setLocalFreq] = useState<"daily" | "specific">(frequency);
-  const [daysPerWeek, setDaysPerWeek] = useState(7);
+  const [localDaysPerWeek, setLocalDaysPerWeek] = useState(daysPerWeek);
 
   const presets = [30, 60, 90];
 
@@ -526,6 +551,7 @@ function EditCommitmentDrawer({
         if (v) {
           setLocalDuration(duration);
           setLocalFreq(frequency);
+          setLocalDaysPerWeek(daysPerWeek);
         }
       }}
     >
@@ -614,11 +640,11 @@ function EditCommitmentDrawer({
             </div>
             <div className="mt-3 grid grid-cols-7 gap-2">
               {[1, 2, 3, 4, 5, 6, 7].map((d) => {
-                const active = daysPerWeek === d;
+                const active = localDaysPerWeek === d;
                 return (
                   <button
                     key={d}
-                    onClick={() => setDaysPerWeek(d)}
+                    onClick={() => setLocalDaysPerWeek(d)}
                     className="aspect-square rounded-xl text-[16px] font-bold flex items-center justify-center"
                     style={{
                       background: active ? PURPLE : "#F4F1ED",
@@ -635,7 +661,7 @@ function EditCommitmentDrawer({
 
         <div className="mt-6 pt-5 border-t border-neutral-100">
           <button
-            onClick={() => onSave(localDuration, localFreq)}
+            onClick={() => onSave(localDuration, localFreq, localDaysPerWeek)}
             className="w-full rounded-2xl py-4 text-white text-[16px] font-bold"
             style={{
               background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,

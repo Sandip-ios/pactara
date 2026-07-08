@@ -250,24 +250,36 @@ export type Database = {
       groups: {
         Row: {
           created_at: string
+          days_per_week: number
+          duration_days: number
           emoji: string
+          frequency: string
           id: string
           name: string
           owner_id: string
+          start_date: string
         }
         Insert: {
           created_at?: string
+          days_per_week?: number
+          duration_days?: number
           emoji?: string
+          frequency?: string
           id?: string
           name: string
           owner_id: string
+          start_date?: string
         }
         Update: {
           created_at?: string
+          days_per_week?: number
+          duration_days?: number
           emoji?: string
+          frequency?: string
           id?: string
           name?: string
           owner_id?: string
+          start_date?: string
         }
         Relationships: []
       }

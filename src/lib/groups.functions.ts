@@ -226,7 +226,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
     const groupIds = memberships.map((m) => m.group_id);
     const { data: groups, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji, owner_id, created_at")
+      .select("id, name, emoji, owner_id, created_at, duration_days, start_date, frequency, days_per_week")
       .in("id", groupIds);
     if (gErr) throw new Error(gErr.message);
 
@@ -289,6 +289,10 @@ export const listMyGroups = createServerFn({ method: "GET" })
         memberCount: members.length,
         members,
         createdAt: g.created_at,
+        durationDays: (g as { duration_days?: number }).duration_days ?? 30,
+        startDate: (g as { start_date?: string }).start_date ?? null,
+        frequency: (g as { frequency?: "daily" | "weekly" | "specific" }).frequency ?? "daily",
+        daysPerWeek: (g as { days_per_week?: number }).days_per_week ?? 7,
       };
     });
     // Preserve membership order (most recently joined first)
@@ -310,23 +314,48 @@ export const listMyGroups = createServerFn({ method: "GET" })
  */
 export const createGroupForUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { name: string; emoji: string }) => {
-    if (!input || typeof input.name !== "string" || typeof input.emoji !== "string") {
-      throw new Error("Invalid input");
-    }
-    const name = input.name.trim().slice(0, 80);
-    if (!name) throw new Error("Group name required");
-    return { name, emoji: input.emoji.slice(0, 8) || "🔥" };
-  })
+  .inputValidator(
+    (input: {
+      name: string;
+      emoji: string;
+      durationDays?: number;
+      frequency?: "daily" | "weekly" | "specific";
+      daysPerWeek?: number;
+    }) => {
+      if (!input || typeof input.name !== "string" || typeof input.emoji !== "string") {
+        throw new Error("Invalid input");
+      }
+      const name = input.name.trim().slice(0, 80);
+      if (!name) throw new Error("Group name required");
+      const durationDays =
+        typeof input.durationDays === "number" && input.durationDays > 0
+          ? Math.min(365, Math.floor(input.durationDays))
+          : 30;
+      const frequency: "daily" | "weekly" | "specific" =
+        input.frequency === "weekly" || input.frequency === "specific" ? input.frequency : "daily";
+      const daysPerWeek =
+        typeof input.daysPerWeek === "number" && input.daysPerWeek >= 1 && input.daysPerWeek <= 7
+          ? Math.floor(input.daysPerWeek)
+          : 7;
+      return { name, emoji: input.emoji.slice(0, 8) || "🔥", durationDays, frequency, daysPerWeek };
+    },
+  )
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    // Use the admin client to bypass RLS — we've already validated the user
-    // via requireSupabaseAuth and set owner_id from the verified JWT claims.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const today = new Date().toISOString().slice(0, 10);
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .insert({ name: data.name, emoji: data.emoji, owner_id: userId })
+      .insert({
+        name: data.name,
+        emoji: data.emoji,
+        owner_id: userId,
+        duration_days: data.durationDays,
+        frequency: data.frequency,
+        days_per_week: data.daysPerWeek,
+        start_date: today,
+      } as never)
       .select("id, name, emoji")
       .single();
     if (gErr) throw new Error(gErr.message);
@@ -338,6 +367,46 @@ export const createGroupForUser = createServerFn({ method: "POST" })
 
     return group;
   });
+
+/**
+ * Updates a group's shared commitment (duration, frequency). Owner-only.
+ * All members see the same countdown since it's stored on the group.
+ */
+export const updateGroupCommitment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      groupId: string;
+      durationDays: number;
+      frequency: "daily" | "weekly" | "specific";
+      daysPerWeek?: number;
+    }) => {
+      if (!input?.groupId) throw new Error("Missing group");
+      const durationDays = Math.min(365, Math.max(1, Math.floor(input.durationDays)));
+      const frequency =
+        input.frequency === "weekly" || input.frequency === "specific" ? input.frequency : "daily";
+      const daysPerWeek =
+        typeof input.daysPerWeek === "number" && input.daysPerWeek >= 1 && input.daysPerWeek <= 7
+          ? Math.floor(input.daysPerWeek)
+          : 7;
+      return { groupId: String(input.groupId), durationDays, frequency, daysPerWeek };
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("groups")
+      .update({
+        duration_days: data.durationDays,
+        frequency: data.frequency,
+        days_per_week: data.daysPerWeek,
+      } as never)
+      .eq("id", data.groupId)
+      .eq("owner_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
 
 /**
  * Updates the current user's profile name (called after signup).
