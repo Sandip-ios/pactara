@@ -1176,7 +1176,7 @@ export function NotifyStep({ onAllow }: { onAllow: () => void }) {
         <div className="px-6 pt-6 pb-5 text-center">
           <div className="text-[17px] font-semibold">"Pactara" Would Like to Send You Notifications</div>
           <div className="mt-3 text-[14px] leading-[1.45]" style={{ color: "#3A3A3A" }}>
-            Get notified when your group checks in, hits a streak, or needs a nudge. You can change this in Settings anytime.
+            Get notified when someone in your group checks in, plus reminders to make your morning commitment and check in yourself. You can change this in Settings anytime.
           </div>
         </div>
         <div className="grid grid-cols-2 border-t border-black/10">
