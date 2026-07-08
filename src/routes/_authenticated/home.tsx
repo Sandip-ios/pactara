@@ -317,17 +317,11 @@ function HomePage() {
       {(streaksData?.members.length ?? 0) > 0 && (
         <div className="pt-4">
           <div className="flex gap-3 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {(streaksData?.members ?? []).map((m, idx) => {
+            {(streaksData?.members ?? []).map((m) => {
               const initial = (m.name || "U").slice(0, 1).toUpperCase();
-              const isTop = idx === 0 && m.streak > 0;
               return (
-                <div key={m.userId} className="shrink-0 flex flex-col items-center">
+                <div key={m.userId} className="shrink-0 flex flex-col items-center pb-2">
                   <div className="relative">
-                    {isTop && (
-                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[14px] leading-none z-10">
-                        👑
-                      </div>
-                    )}
                     <div
                       className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-[18px] overflow-hidden"
                       style={{ background: m.avatarColor }}
@@ -338,14 +332,18 @@ function HomePage() {
                         initial
                       )}
                     </div>
-                  </div>
-                  <div className="mt-1 flex items-center gap-0.5 text-[12px] font-semibold text-neutral-700">
-                    <span>🔥</span>
-                    <span>{m.streak}</span>
+                    <div
+                      className="absolute left-1/2 -translate-x-1/2 -bottom-2 flex items-center gap-0.5 rounded-full bg-white px-1.5 py-0.5 text-[11px] font-bold text-neutral-800 shadow-sm"
+                      style={{ background: BG === "#F5F2EE" ? "#FFFFFF" : "#FFFFFF" }}
+                    >
+                      <span className="text-[11px] leading-none">🔥</span>
+                      <span className="leading-none">{m.streak}</span>
+                    </div>
                   </div>
                 </div>
               );
             })}
+
           </div>
         </div>
       )}
