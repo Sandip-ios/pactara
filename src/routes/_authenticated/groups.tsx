@@ -405,10 +405,21 @@ function GroupCard({
         onOpenChange={setCommitmentOpen}
         duration={duration}
         frequency={frequency}
-        onSave={(d, f) => {
-          setDuration(d);
-          setFrequency(f);
-          setCommitmentOpen(false);
+        daysPerWeek={daysPerWeek}
+        onSave={async (d, f, dpw) => {
+          try {
+            await updateGroupCommitment({
+              data: {
+                groupId: group.id,
+                durationDays: d,
+                frequency: f === "specific" ? "specific" : "daily",
+                daysPerWeek: dpw,
+              },
+            });
+            await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+          } finally {
+            setCommitmentOpen(false);
+          }
         }}
       />
       <ShareInviteDrawer
