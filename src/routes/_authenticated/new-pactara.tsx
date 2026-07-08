@@ -104,7 +104,21 @@ function NewPactaraFlow() {
     setFinishing(true);
     try {
       const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
-      await createGroupForUser({ data: { name: finalGroupName, emoji: goalEmoji } });
+      const durationDays =
+        goal === "75-hard"
+          ? 75
+          : duration === "custom"
+            ? Math.max(1, Math.min(365, parseInt(customDays, 10) || 30))
+            : duration;
+      await createGroupForUser({
+        data: {
+          name: finalGroupName,
+          emoji: goalEmoji,
+          durationDays,
+          frequency: frequency === "weekly" ? "specific" : "daily",
+          daysPerWeek,
+        },
+      });
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
       navigate({ to: "/groups" });
     } catch (e) {
