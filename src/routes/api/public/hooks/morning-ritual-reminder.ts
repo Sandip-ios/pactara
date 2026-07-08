@@ -134,15 +134,6 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
           expired: expired.length,
           fcmExpired,
         });
-
-
-        return Response.json({
-          ok: true,
-          sent,
-          due: dueUserIds.length,
-          subscriptions: subs?.length ?? 0,
-          expired: expired.length,
-        });
       },
     },
   },
