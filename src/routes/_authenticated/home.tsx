@@ -373,7 +373,7 @@ function HomePage() {
           </div>
           <button
             onClick={() => setComposerOpen(true)}
-            className="flex-1 text-left rounded-full px-4 py-3 text-[15px] text-neutral-500"
+            className="flex-1 text-left rounded-full pr-4 py-3 text-[15px] text-neutral-500"
           >
             What's on your mind, {firstName}?
           </button>
