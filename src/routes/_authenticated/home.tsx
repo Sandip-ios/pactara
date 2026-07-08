@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { toast } from "sonner";
-import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { nudgeUser } from "@/lib/push.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
