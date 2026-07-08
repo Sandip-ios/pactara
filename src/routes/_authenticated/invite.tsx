@@ -66,6 +66,10 @@ function InvitePage() {
 
   const groupName = status.group?.name ?? "your Crew";
   const emoji = status.group?.emoji ?? "🔥";
+  const createdAt = (status.group as { created_at?: string } | null)?.created_at;
+  const dayNumber = createdAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000) + 1)
+    : 1;
 
   return (
     <div
@@ -95,9 +99,10 @@ function InvitePage() {
         <h1 className="text-[34px] font-bold leading-[1.1] tracking-tight max-w-[340px]">
           Invite friends to <span>{emoji}</span> {groupName}
         </h1>
-        <p className="mt-4 text-[16px] max-w-[300px]" style={{ color: TEXT_MUTED }}>
-          Groups with friends check in 3× more often.
+        <p className="mt-4 text-[16px] max-w-[320px]" style={{ color: TEXT_MUTED }}>
+          You're on Day {dayNumber} of your challenge — invite friends so they don't miss what's already in motion.
         </p>
+
       </div>
 
       <div className="flex flex-col gap-3">
