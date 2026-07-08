@@ -367,7 +367,7 @@ function HomePage() {
 
 
       {!composerOpen ? (
-        <div className="mx-4 mt-3 p-3 flex items-center gap-3">
+        <div className="mx-4 mt-3 p-3 flex items-center gap-[10px]">
           <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold overflow-hidden" style={{ background: PURPLE }}>
             {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
