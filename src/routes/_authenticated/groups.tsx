@@ -661,7 +661,7 @@ function EditCommitmentDrawer({
 
         <div className="mt-6 pt-5 border-t border-neutral-100">
           <button
-            onClick={() => onSave(localDuration, localFreq)}
+            onClick={() => onSave(localDuration, localFreq, localDaysPerWeek)}
             className="w-full rounded-2xl py-4 text-white text-[16px] font-bold"
             style={{
               background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
