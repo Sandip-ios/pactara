@@ -128,7 +128,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         bg: "#F4EEFF",
         border: "#E5D9FE",
         body: node.text,
-        time: timeAgo(node.at),
+        time: timeLabel(node.at),
         dot: { fill: PURPLE, ring: PURPLE },
       };
     case "ritual_missed":
@@ -139,7 +139,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         bg: "#FEF6E4",
         border: "#FBE4B6",
         body: `Your group is already moving${firstName ? `, ${firstName}` : ""}. Jump in.`,
-        time: timeAgo(node.at),
+        time: timeLabel(node.at),
         dot: { fill: "#F59E0B", ring: "#F59E0B" },
       };
     case "thought":
@@ -151,7 +151,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         border: "#CFFAFE",
         body: node.text,
         photoUrl: node.photoUrl,
-        time: timeAgo(node.at),
+        time: timeLabel(node.at),
         dot: { fill: "#0F766E", ring: "#0F766E" },
       };
     case "check_in": {
@@ -165,7 +165,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         body: node.note,
         photoUrl: node.photoUrl,
         activity: node.activity,
-        time: timeAgo(node.at),
+        time: timeLabel(node.at),
         dot: { fill: mood?.color ?? "#16A34A", ring: mood?.color ?? "#16A34A" },
       };
     }
@@ -179,7 +179,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         bg: "#FEF2F2",
         border: "#FECACA",
         body: "Your group missed you yesterday. They're showing up again today.",
-        time: timeAgo(node.at),
+        time: timeLabel(node.at),
         dot: { fill: "#FFFFFF", ring: "#DC2626" },
       };
     case "pending":
