@@ -64,7 +64,7 @@ function PlanPage() {
     { label: "Photo check-ins", monthly: true, annual: true },
     { label: "Unlimited groups", monthly: true, annual: true },
     { label: "Streak freezes to start", monthly: "2", annual: "2" },
-    { label: "Back-to-back challenges", monthly: false, annual: true },
+    { label: "Continue with your same group", monthly: false, annual: true },
     { label: "Early feature access", monthly: false, annual: true },
   ] as const;
 
