@@ -314,6 +314,41 @@ function HomePage() {
         }
       >
 
+      {(streaksData?.members.length ?? 0) > 0 && (
+        <div className="pt-4">
+          <div className="flex gap-3 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {(streaksData?.members ?? []).map((m, idx) => {
+              const initial = (m.name || "U").slice(0, 1).toUpperCase();
+              const isTop = idx === 0 && m.streak > 0;
+              return (
+                <div key={m.userId} className="shrink-0 flex flex-col items-center">
+                  <div className="relative">
+                    {isTop && (
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 text-[14px] leading-none z-10">
+                        👑
+                      </div>
+                    )}
+                    <div
+                      className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-[18px] overflow-hidden"
+                      style={{ background: m.avatarColor }}
+                    >
+                      {m.avatarUrl ? (
+                        <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        initial
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-1 flex items-center gap-0.5 text-[12px] font-semibold text-neutral-700">
+                    <span>🔥</span>
+                    <span>{m.streak}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
 
       {(() => {
