@@ -20,6 +20,7 @@ export function NativeBootstrap() {
     const saveToken = async (token: string) => {
       if (!token || cancelled) return;
       try {
+        console.info("[push] saving FCM token", { platform, tokenLength: token.length });
         await saveFcmToken({ data: { token, platform } });
         console.info("[push] FCM token saved");
       } catch (err) {
@@ -32,18 +33,28 @@ export function NativeBootstrap() {
       registering = true;
       try {
         const { data: auth } = await supabase.auth.getSession();
-        if (!auth.session || cancelled) return;
+        if (!auth.session || cancelled) {
+          console.info("[push] waiting for signed-in session before FCM registration");
+          return;
+        }
 
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+        console.info("[push] checking Firebase Messaging permission");
         const perm = await FirebaseMessaging.checkPermissions();
         let granted = perm.receive === "granted";
         if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
+          console.info("[push] requesting Firebase Messaging permission");
           const req = await FirebaseMessaging.requestPermissions();
           granted = req.receive === "granted";
         }
-        if (!granted || cancelled) return;
+        if (!granted || cancelled) {
+          console.info("[push] notification permission not granted", { receive: perm.receive });
+          return;
+        }
 
+        console.info("[push] requesting FCM registration token");
         const { token } = await FirebaseMessaging.getToken();
+        console.info("[push] received FCM token", { tokenLength: token?.length ?? 0 });
         await saveToken(token);
       } catch (err) {
         console.warn("[push] Firebase Messaging registration failed", err);
@@ -78,7 +89,14 @@ export function NativeBootstrap() {
         // upsert the new one so the backend targets the current device.
         listenerHandles.push(
           FirebaseMessaging.addListener("tokenReceived", async (event) => {
+            console.info("[push] tokenReceived event", { tokenLength: event?.token?.length ?? 0 });
             if (event?.token) await saveToken(event.token);
+          }),
+        );
+
+        listenerHandles.push(
+          FirebaseMessaging.addListener("apnsTokenReceived", (event) => {
+            console.info("[push] APNs token received", { tokenLength: event?.token?.length ?? 0 });
           }),
         );
 
