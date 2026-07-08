@@ -226,7 +226,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
     const groupIds = memberships.map((m) => m.group_id);
     const { data: groups, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji, owner_id, created_at")
+      .select("id, name, emoji, owner_id, created_at, duration_days, start_date, frequency, days_per_week")
       .in("id", groupIds);
     if (gErr) throw new Error(gErr.message);
 
