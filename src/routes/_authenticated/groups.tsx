@@ -61,6 +61,10 @@ type GroupItem = {
   memberCount: number;
   members?: GroupMember[];
   createdAt?: string;
+  durationDays?: number;
+  startDate?: string | null;
+  frequency?: "daily" | "weekly" | "specific";
+  daysPerWeek?: number;
 };
 
 function GroupsPage() {
