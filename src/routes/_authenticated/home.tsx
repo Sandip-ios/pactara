@@ -470,64 +470,6 @@ function HomePage() {
       )}
 
 
-      {(pendingData?.pending.length ?? 0) > 0 && (
-        <>
-          <div className="px-6 pt-6">
-            <div className="text-[15px] font-bold">
-              Waiting to check in{" "}
-              <span className="text-neutral-400 font-normal">{pendingData?.pending.length ?? 0}</span>
-            </div>
-          </div>
-
-          <div className="mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {(pendingData?.pending ?? []).map((p) => {
-              const personInitials = (p.name || "U").slice(0, 1).toUpperCase();
-              return (
-                <div
-                  key={p.id}
-                  className="shrink-0 w-[160px] rounded-2xl bg-white border border-purple-100 p-4 flex flex-col items-center"
-                >
-                  <div
-                    className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden"
-                    style={{ background: p.avatarColor || "#22C55E" }}
-                  >
-                    {p.avatarUrl ? (
-                      <img src={p.avatarUrl} alt="" className="h-full w-full object-cover" />
-                    ) : (
-                      personInitials
-                    )}
-                  </div>
-
-                  <div className="mt-2 text-[15px] font-semibold">{p.isMe ? "You" : p.name.split(" ")[0]}</div>
-                  {p.isMe ? (
-                    <button
-                      onClick={() => navigate({ to: "/check-in" })}
-                      className="mt-3 w-full rounded-full py-2 text-white text-[14px] font-semibold"
-                      style={{ background: PURPLE }}
-                    >
-                      Check in
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => nudgeMutation.mutate({ data: { targetUserId: p.id } })}
-                      disabled={nudgeMutation.isPending || nudgedIds.has(p.id)}
-                      className="mt-3 w-full rounded-full py-2 text-[14px] font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60"
-                      style={{
-                        background: nudgedIds.has(p.id) ? "#EFE9FB" : PURPLE,
-                        color: nudgedIds.has(p.id) ? PURPLE : "#fff",
-                      }}
-                    >
-                      <Zap size={14} strokeWidth={2.5} />
-                      {nudgedIds.has(p.id) ? "Nudged" : "Nudge"}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
-
 
       {(feedData?.items.length ?? 0) > 0 ? (
         <div className="pb-2">
