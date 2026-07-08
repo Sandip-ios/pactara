@@ -1800,7 +1800,7 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
       n: "2",
       emoji: "📸",
       title: "Check in with proof",
-      text: "Snap a quick photo or note showing you did the thing. Your group sees it the moment you post.",
+      text: "Record a quick 5–15 second video in the app showing you did the thing. Your group sees it the moment you post.",
     },
     {
       n: "3",
