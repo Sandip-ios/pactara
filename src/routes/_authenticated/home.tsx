@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
@@ -52,22 +52,8 @@ function formatLocalDate(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function formatInTimezone(d: Date, tz: string) {
-  try {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      timeZone: tz,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).formatToParts(d);
-    const y = parts.find((p) => p.type === "year")?.value ?? "1970";
-    const m = parts.find((p) => p.type === "month")?.value ?? "01";
-    const day = parts.find((p) => p.type === "day")?.value ?? "01";
-    return `${y}-${m}-${day}`;
-  } catch {
-    return formatLocalDate(d);
-  }
-}
+
+
 
 
 function timelineDateFor(iso: string) {
@@ -497,42 +483,11 @@ function HomePage() {
 
       {(feedData?.items.length ?? 0) > 0 ? (
         <div className="pb-2">
-          {(() => {
-            const sorted = splitFeedIntoTimelineCards(feedData!.items);
-            const userTz = groupsData?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-            const today = new Date();
-            const todayStr = formatInTimezone(today, userTz);
-            const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-            const yesterdayStr = formatInTimezone(yesterday, userTz);
-
-            const labelFor = (iso: string) => {
-              if (iso === todayStr) return "Today";
-              if (iso === yesterdayStr) return "Yesterday";
-              const [y, m, d] = iso.split("-").map(Number);
-              return new Date(y, m - 1, d).toLocaleDateString(undefined, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              });
-            };
-            const out: ReactNode[] = [];
-            let lastDate: string | null = null;
-            for (const item of sorted) {
-              if (item.localDate !== lastDate) {
-                out.push(
-                  <div key={`hdr-${item.localDate}`} className="px-6 pt-6 pb-1">
-                    <div className="text-[13px] font-bold uppercase tracking-wide text-neutral-500">
-                      {labelFor(item.localDate)}
-                    </div>
-                  </div>,
-                );
-                lastDate = item.localDate;
-              }
-              out.push(<TimelineCard key={`${item.id}-${item.localDate}`} item={item} />);
-            }
-            return out;
-          })()}
+          {splitFeedIntoTimelineCards(feedData!.items).map((item) => (
+            <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
+          ))}
         </div>
+
       ) : (
         <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
           <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
