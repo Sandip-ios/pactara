@@ -580,7 +580,11 @@ export function TimelineCard({ item }: { item: FeedItem }) {
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-[17px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</span>
           </div>
-          <div className="text-[13px] text-neutral-400 mt-0.5">{timeAgo(item.updatedAt)}</div>
+          <div className="text-[13px] text-neutral-400 mt-0.5">{(() => {
+            const c = nodes.filter((n) => n.kind !== "pending").length;
+            return `${c} ${c === 1 ? "update" : "updates"}`;
+          })()}</div>
+
         </div>
       </div>
 
