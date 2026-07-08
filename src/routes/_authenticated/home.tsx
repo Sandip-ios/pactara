@@ -323,7 +323,7 @@ function HomePage() {
                 <div key={m.userId} className="shrink-0 flex flex-col items-center pb-2">
                   <div className="relative">
                     <div
-                      className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-[18px] overflow-hidden"
+                      className="h-[72px] w-[72px] rounded-full flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
                       style={{ background: m.avatarColor }}
                     >
                       {m.avatarUrl ? (
@@ -332,6 +332,7 @@ function HomePage() {
                         initial
                       )}
                     </div>
+
                     <div
                       className="absolute left-1/2 -translate-x-1/2 -bottom-2 flex items-center gap-0.5 rounded-full bg-white px-1.5 py-0.5 text-[11px] font-bold text-neutral-800 shadow-sm"
                       style={{ background: BG === "#F5F2EE" ? "#FFFFFF" : "#FFFFFF" }}
