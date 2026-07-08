@@ -131,7 +131,7 @@ function GroupsPage() {
             <Plus size={20} />
           </span>
           <div>
-            <div className="text-[16px] font-bold leading-tight">Start a new Pactara</div>
+            <div className="text-[16px] font-bold leading-tight">Start a new challenge</div>
             <div className="text-[12px] text-white/80 mt-1">New group, new commitment</div>
           </div>
         </button>
