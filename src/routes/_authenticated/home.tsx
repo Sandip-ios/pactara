@@ -445,7 +445,7 @@ function HomePage() {
                 <div key={m.userId} className="shrink-0 flex flex-col items-center pb-2">
                   <div className="relative">
                     <div
-                      className="h-[128px] w-[80px] rounded-2xl flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
+                      className="h-[128px] w-[80px] rounded-lg flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
                       style={{ background: m.avatarColor }}
                     >
                       {m.avatarUrl ? (
