@@ -94,6 +94,48 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
             .in("id", expired);
         }
 
+        // --- FCM (iOS / Android) --------------------------------------------
+        let fcmSent = 0;
+        let fcmExpired = 0;
+        if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+          const { data: fcmRows } = await supabaseAdmin
+            .from("fcm_tokens" as never)
+            .select("token, user_id")
+            .in("user_id", dueUserIds);
+          const tokens = ((fcmRows ?? []) as Array<{ token: string }>).map((r) => r.token);
+          if (tokens.length > 0) {
+            try {
+              const { sendFcm } = await import("@/lib/fcm.server");
+              const result = await sendFcm(tokens, {
+                title: "Morning ritual",
+                body: "Take a moment for today's morning ritual ☀️",
+                url: "/home",
+              });
+              fcmSent = result.sent;
+              fcmExpired = result.expired.length;
+              if (result.expired.length > 0) {
+                await supabaseAdmin
+                  .from("fcm_tokens" as never)
+                  .delete()
+                  .in("token", result.expired);
+              }
+            } catch (err) {
+              console.warn("[cron] FCM send failed", err);
+            }
+          }
+        }
+
+        return Response.json({
+          ok: true,
+          sent,
+          fcmSent,
+          due: dueUserIds.length,
+          subscriptions: subs?.length ?? 0,
+          expired: expired.length,
+          fcmExpired,
+        });
+
+
         return Response.json({
           ok: true,
           sent,
