@@ -631,21 +631,23 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                   className="flex-1 rounded-2xl border p-3"
                   style={{ background: visual.bg, borderColor: visual.border }}
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[18px] leading-none" style={visual.emojiColor ? { color: visual.emojiColor, fontSize: visual.emojiSize ?? 18 } : undefined}>{visual.emoji}</span>
-                      <span className="text-[15px] font-bold truncate" style={{ color: visual.labelColor }}>
-                        {visual.label}
-                      </span>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 min-w-0">
+                      <span className="text-[18px] leading-none mt-0.5" style={visual.emojiColor ? { color: visual.emojiColor, fontSize: visual.emojiSize ?? 18 } : undefined}>{visual.emoji}</span>
+                      <div className="min-w-0 flex flex-col">
+                        <span className="text-[15px] font-bold truncate" style={{ color: visual.labelColor }}>
+                          {visual.label}
+                        </span>
+                        {visual.time && (
+                          <span className="text-[12px] text-neutral-400 mt-0.5">{visual.time}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      {visual.time && (
-                        <span className="text-[12px] text-neutral-400">{visual.time}</span>
-                      )}
-                      {canDelete && (
+                    {canDelete && (
+                      <div className="shrink-0">
                         <CheckInMenu checkInId={node.id} />
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                   {visual.body && <ExpandableText text={visual.body} />}
                   {visual.photoUrl && (() => {
