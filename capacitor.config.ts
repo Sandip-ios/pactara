@@ -22,13 +22,9 @@ const config: CapacitorConfig = {
       backgroundColor: "#F5F2EE",
       showSpinner: false,
     },
-    PushNotifications: {
-      presentationOptions: ["badge", "sound", "alert"],
-    },
     FirebaseMessaging: {
       presentationOptions: ["badge", "sound", "alert"],
     },
-
   },
 };
 

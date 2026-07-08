@@ -1,18 +1,56 @@
 import { useEffect } from "react";
+import type { PluginListenerHandle } from "@capacitor/core";
 import { isNative, nativePlatform } from "@/lib/native";
+import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 
 /**
- * Runs once on mount inside the Capacitor shell. Configures the status bar,
- * hides the native splash, and registers this device for push notifications
- * via Firebase Cloud Messaging. The FCM token is stored server-side so the
- * backend can target this device (iOS via APNs bridged by Firebase, Android
- * via FCM directly). Safe no-op on web.
+ * Runs inside the Capacitor shell. Configures native UI and registers this
+ * device for push notifications after the user is signed in. Safe no-op on web.
  */
 export function NativeBootstrap() {
   useEffect(() => {
     if (!isNative()) return;
     let cancelled = false;
+    let registering = false;
+    const listenerHandles: Array<Promise<PluginListenerHandle>> = [];
+
+    const platform = nativePlatform() === "android" ? "android" : "ios";
+
+    const saveToken = async (token: string) => {
+      if (!token || cancelled) return;
+      try {
+        await saveFcmToken({ data: { token, platform } });
+        console.info("[push] FCM token saved");
+      } catch (err) {
+        console.warn("[push] saveFcmToken failed", err);
+      }
+    };
+
+    const registerForPush = async () => {
+      if (registering || cancelled) return;
+      registering = true;
+      try {
+        const { data: auth } = await supabase.auth.getSession();
+        if (!auth.session || cancelled) return;
+
+        const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+        const perm = await FirebaseMessaging.checkPermissions();
+        let granted = perm.receive === "granted";
+        if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
+          const req = await FirebaseMessaging.requestPermissions();
+          granted = req.receive === "granted";
+        }
+        if (!granted || cancelled) return;
+
+        const { token } = await FirebaseMessaging.getToken();
+        await saveToken(token);
+      } catch (err) {
+        console.warn("[push] Firebase Messaging registration failed", err);
+      } finally {
+        registering = false;
+      }
+    };
 
     (async () => {
       try {
@@ -33,55 +71,44 @@ export function NativeBootstrap() {
         // ignore
       }
 
-      // --- Push registration via Firebase Cloud Messaging --------------------
       try {
-        const { FirebaseMessaging } = await import(
-          "@capacitor-firebase/messaging"
-        );
-
-        const perm = await FirebaseMessaging.checkPermissions();
-        let granted = perm.receive === "granted";
-        if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
-          const req = await FirebaseMessaging.requestPermissions();
-          granted = req.receive === "granted";
-        }
-        if (!granted || cancelled) return;
-
-        const { token } = await FirebaseMessaging.getToken();
-        if (!token || cancelled) return;
-
-        const platform = nativePlatform() === "android" ? "android" : "ios";
-        try {
-          await saveFcmToken({ data: { token, platform } });
-        } catch (err) {
-          console.warn("[push] saveFcmToken failed", err);
-        }
+        const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
 
         // If Firebase issues a fresh token later (reinstall, restore, etc.),
         // upsert the new one so the backend targets the current device.
-        FirebaseMessaging.addListener("tokenReceived", async (event) => {
-          if (!event?.token) return;
-          try {
-            await saveFcmToken({ data: { token: event.token, platform } });
-          } catch (err) {
-            console.warn("[push] token refresh save failed", err);
-          }
-        });
+        listenerHandles.push(
+          FirebaseMessaging.addListener("tokenReceived", async (event) => {
+            if (event?.token) await saveToken(event.token);
+          }),
+        );
 
-        FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
-          const url =
-            (event?.notification?.data as { url?: string } | undefined)?.url;
-          if (url && typeof window !== "undefined") {
-            window.location.assign(url);
-          }
-        });
+        listenerHandles.push(
+          FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
+            const url = (event?.notification?.data as { url?: string } | undefined)?.url;
+            if (url && typeof window !== "undefined") {
+              window.location.assign(url);
+            }
+          }),
+        );
       } catch (err) {
-        console.warn("[push] Firebase Messaging init failed", err);
+        console.warn("[push] Firebase Messaging listeners failed", err);
       }
+
+      await registerForPush();
     })();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        window.setTimeout(() => void registerForPush(), 0);
+      }
+    });
 
     return () => {
       cancelled = true;
+      authListener.subscription.unsubscribe();
+      listenerHandles.forEach((handle) => {
+        void handle.then((listener) => listener.remove()).catch(() => undefined);
+      });
     };
   }, []);
 

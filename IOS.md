@@ -54,15 +54,51 @@ In Xcode:
    - **+ Capability → Background Modes → Remote notifications**
 2. Drag **`GoogleService-Info.plist`** (from step 1) into
    `ios/App/App/`. Check "Copy items if needed" and add it to the App target.
-3. Drop the Pactara app icon into
+3. Open `ios/App/App/AppDelegate.swift` and initialize Firebase plus the
+   notification bridge:
+
+   ```swift
+   import UIKit
+   import Capacitor
+   import FirebaseCore
+
+   @UIApplicationMain
+   class AppDelegate: UIResponder, UIApplicationDelegate {
+       var window: UIWindow?
+
+       func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+           if FirebaseApp.app() == nil {
+               FirebaseApp.configure()
+           }
+           return true
+       }
+
+       func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+           NotificationCenter.default.post(name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+       }
+
+       func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+           NotificationCenter.default.post(name: .capacitorDidFailToRegisterForRemoteNotifications, object: error)
+       }
+
+       func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+           NotificationCenter.default.post(name: Notification.Name("didReceiveRemoteNotification"), object: completionHandler, userInfo: userInfo)
+       }
+   }
+   ```
+
+   If your generated file already has the `AppDelegate` class, add only the
+   `import FirebaseCore`, `FirebaseApp.configure()` block, and the three
+   notification methods inside that existing class.
+4. Drop the Pactara app icon into
    `ios/App/App/Assets.xcassets/AppIcon.appiconset` (source at
    `public/pactara-icon.png`).
-4. Plug in your iPhone, select it as the run destination, press ▶.
+5. Plug in your iPhone, select it as the run destination, press ▶.
 
-On first launch the app requests notification permission, obtains an FCM
-token via `@capacitor-firebase/messaging`, and calls the `saveFcmToken`
-server function to store it against the signed-in user. From that point,
-the morning-ritual cron and teammate nudges deliver to the device.
+After sign-in the app requests notification permission, obtains an FCM token
+via `@capacitor-firebase/messaging`, and calls the `saveFcmToken` server
+function to store it against the signed-in user. From that point, the
+morning-ritual cron and teammate nudges deliver to the device.
 
 ### How it fits together
 
