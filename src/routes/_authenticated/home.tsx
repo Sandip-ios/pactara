@@ -456,9 +456,9 @@ function HomePage() {
                     </div>
 
                     <div
-                      className="absolute left-1/2 -translate-x-1/2 -bottom-2 flex items-center gap-0.5 rounded-full bg-white px-1.5 py-0.5 text-[11px] font-bold text-neutral-800 shadow-sm"
+                      className="absolute left-1/2 -translate-x-1/2 -bottom-3 flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[14px] font-bold text-neutral-800 shadow-sm"
                     >
-                      <span className="text-[11px] leading-none">🔥</span>
+                      <span className="text-[14px] leading-none">🔥</span>
                       <span className="leading-none">{m.streak}</span>
                     </div>
                   </div>
