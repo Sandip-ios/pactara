@@ -2,7 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Image as ImageIcon, Send, Zap } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
