@@ -497,3 +497,130 @@ export const createCheckIn = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export type GroupMemberStreak = {
+  userId: string;
+  name: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+  isYou: boolean;
+  streak: number;
+};
+
+/**
+ * Returns each group member's current streak (consecutive days with a
+ * check-in or applied streak freeze, ending today or yesterday in the
+ * user's timezone).
+ */
+export const getGroupMemberStreaks = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId?: string | null }) => ({
+    groupId: input?.groupId ? String(input.groupId) : null,
+  }))
+  .handler(async ({ context, data }): Promise<{ members: GroupMemberStreak[] }> => {
+    const { supabase, userId } = context;
+
+    let groupId = data.groupId;
+    if (!groupId) {
+      const { data: m } = await supabase
+        .from("group_members")
+        .select("group_id, joined_at")
+        .eq("user_id", userId)
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      groupId = (m?.group_id as string | undefined) ?? null;
+    }
+    if (!groupId) return { members: [] };
+
+    const tz = await getUserTimezone(supabase, userId);
+    const today = localDateFor(tz);
+    const yesterday = (() => {
+      const [y, mo, d] = today.split("-").map(Number);
+      const dt = new Date(Date.UTC(y, mo - 1, d));
+      dt.setUTCDate(dt.getUTCDate() - 1);
+      return dt.toISOString().slice(0, 10);
+    })();
+
+    const { data: members } = await supabase
+      .from("group_members")
+      .select("user_id, joined_at")
+      .eq("group_id", groupId)
+      .order("joined_at", { ascending: true });
+    const memberIds = (members ?? []).map((m) => m.user_id as string);
+    if (memberIds.length === 0) return { members: [] };
+
+    const [profRes, ciRes, freezeRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, name, avatar_color, avatar_url")
+        .in("id", memberIds),
+      supabase
+        .from("check_ins")
+        .select("user_id, checkin_date")
+        .eq("group_id", groupId)
+        .in("user_id", memberIds)
+        .lte("checkin_date", today)
+        .order("checkin_date", { ascending: false })
+        .limit(4000),
+      supabase
+        .from("streak_freezes_used")
+        .select("user_id, freeze_date")
+        .eq("group_id", groupId)
+        .in("user_id", memberIds)
+        .lte("freeze_date", today)
+        .limit(4000),
+    ]);
+
+    const daysByUser = new Map<string, Set<string>>();
+    for (const id of memberIds) daysByUser.set(id, new Set());
+    for (const r of ciRes.data ?? []) {
+      daysByUser.get(r.user_id as string)?.add(r.checkin_date as string);
+    }
+    for (const r of freezeRes.data ?? []) {
+      daysByUser.get(r.user_id as string)?.add(r.freeze_date as string);
+    }
+
+    const computeStreak = (days: Set<string>): number => {
+      let streak = 0;
+      const start = days.has(today) ? today : days.has(yesterday) ? yesterday : null;
+      if (!start) return 0;
+      const [y, mo, d] = start.split("-").map(Number);
+      const cursor = new Date(Date.UTC(y, mo - 1, d));
+      while (true) {
+        const iso = cursor.toISOString().slice(0, 10);
+        if (days.has(iso)) {
+          streak += 1;
+          cursor.setUTCDate(cursor.getUTCDate() - 1);
+        } else break;
+      }
+      return streak;
+    };
+
+    const profileById = new Map<string, { name: string; avatarColor: string; avatarPath: string | null }>();
+    for (const p of profRes.data ?? []) {
+      profileById.set(p.id as string, {
+        name: ((p.name as string) ?? "").trim() || "Member",
+        avatarColor: (p as { avatar_color?: string | null }).avatar_color ?? "#7C3AED",
+        avatarPath: (p as { avatar_url?: string | null }).avatar_url ?? null,
+      });
+    }
+
+    const out: GroupMemberStreak[] = await Promise.all(
+      memberIds.map(async (id) => {
+        const prof = profileById.get(id);
+        return {
+          userId: id,
+          name: prof?.name ?? "Member",
+          avatarUrl: await signAvatar(supabase, prof?.avatarPath ?? null),
+          avatarColor: prof?.avatarColor ?? "#7C3AED",
+          isYou: id === userId,
+          streak: computeStreak(daysByUser.get(id) ?? new Set()),
+        };
+      }),
+    );
+
+    // Sort by streak desc, then name.
+    out.sort((a, b) => (b.streak - a.streak) || a.name.localeCompare(b.name));
+    return { members: out };
+  });
