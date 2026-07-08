@@ -2,7 +2,14 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Image as ImageIcon, Send, Zap } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
@@ -303,35 +310,6 @@ function HomePage() {
 
 
 
-
-      {myGroups.length > 1 && (
-        <div className="bg-transparent border-b border-neutral-200">
-          <div className="flex gap-6 overflow-x-auto px-6 pt-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {myGroups.map((g) => {
-              const active = g.id === selectedGroupId;
-              return (
-                <button
-                  key={g.id}
-                  onClick={() => setSelectedGroupId(g.id)}
-                  className="shrink-0 pb-2 -mb-px flex items-center gap-1.5 whitespace-nowrap"
-                  style={{
-                    color: active ? "#0A0A0A" : "#A3A3A3",
-                    borderBottom: active ? `2px solid ${PURPLE}` : "2px solid transparent",
-                    fontWeight: active ? 800 : 500,
-                  }}
-                >
-                  {g.emoji && <span className="text-[15px]">{g.emoji}</span>}
-                  <span className="text-[15px]">{g.name}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {!status && <div aria-hidden className="px-6 pt-4 text-[13px] opacity-0">.</div>}
-
-
       {(() => {
         const activeGroup = myGroups.find((g) => g.id === selectedGroupId) ?? myGroups[0];
         const duration = 30;
@@ -344,14 +322,43 @@ function HomePage() {
           const diffDays = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
           dayNumber = Math.min(duration, Math.max(1, diffDays + 1));
         }
-        const daysLeft = Math.max(0, duration - dayNumber);
+        const hasMultiple = myGroups.length > 1;
         return (
-          <div className="px-6 pt-4 flex items-center justify-between text-[13px]">
-            <span className="font-semibold">Day {dayNumber} of {duration}</span>
-            <span className="text-neutral-400">{daysLeft}d left</span>
+          <div className="px-6 pt-4 flex items-center justify-between text-[15px]">
+            {hasMultiple ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70">
+                    {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
+                    <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
+                    <ChevronDown size={16} className="text-neutral-500" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="min-w-[220px]">
+                  {myGroups.map((g) => (
+                    <DropdownMenuItem
+                      key={g.id}
+                      onSelect={() => setSelectedGroupId(g.id)}
+                      className="flex items-center gap-2"
+                    >
+                      {g.emoji && <span>{g.emoji}</span>}
+                      <span className="truncate">{g.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center gap-1.5 font-bold text-neutral-900">
+                {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
+                <span className="truncate max-w-[220px]">{activeGroup?.name ?? ""}</span>
+              </div>
+            )}
+            <span className="text-neutral-400 text-[13px]">Day {dayNumber} of {duration}</span>
           </div>
         );
       })()}
+
+
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 rounded-2xl bg-white p-3 flex items-center gap-3 shadow-sm">
