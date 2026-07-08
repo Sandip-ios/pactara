@@ -1,10 +1,13 @@
 import { useEffect } from "react";
 import { isNative, nativePlatform } from "@/lib/native";
+import { saveFcmToken } from "@/lib/push.functions";
 
 /**
  * Runs once on mount inside the Capacitor shell. Configures the status bar,
- * hides the native splash, and registers for push notifications (best-effort).
- * Safe no-op on web.
+ * hides the native splash, and registers this device for push notifications
+ * via Firebase Cloud Messaging. The FCM token is stored server-side so the
+ * backend can target this device (iOS via APNs bridged by Firebase, Android
+ * via FCM directly). Safe no-op on web.
  */
 export function NativeBootstrap() {
   useEffect(() => {
@@ -30,29 +33,50 @@ export function NativeBootstrap() {
         // ignore
       }
 
+      // --- Push registration via Firebase Cloud Messaging --------------------
       try {
-        const { PushNotifications } = await import(
-          "@capacitor/push-notifications"
+        const { FirebaseMessaging } = await import(
+          "@capacitor-firebase/messaging"
         );
-        const perm = await PushNotifications.checkPermissions();
+
+        const perm = await FirebaseMessaging.checkPermissions();
         let granted = perm.receive === "granted";
         if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
-          const req = await PushNotifications.requestPermissions();
+          const req = await FirebaseMessaging.requestPermissions();
           granted = req.receive === "granted";
         }
-        if (granted && !cancelled) {
-          await PushNotifications.register();
-          PushNotifications.addListener("registration", (token) => {
-            // Backend APNs delivery is not wired yet — see IOS.md.
-            // For now we log the token so it can be captured during device testing.
-            console.log("[push] APNs token:", token.value);
-          });
-          PushNotifications.addListener("registrationError", (err) => {
-            console.warn("[push] registration error", err);
-          });
+        if (!granted || cancelled) return;
+
+        const { token } = await FirebaseMessaging.getToken();
+        if (!token || cancelled) return;
+
+        const platform = nativePlatform() === "android" ? "android" : "ios";
+        try {
+          await saveFcmToken({ data: { token, platform } });
+        } catch (err) {
+          console.warn("[push] saveFcmToken failed", err);
         }
-      } catch {
-        // ignore
+
+        // If Firebase issues a fresh token later (reinstall, restore, etc.),
+        // upsert the new one so the backend targets the current device.
+        FirebaseMessaging.addListener("tokenReceived", async (event) => {
+          if (!event?.token) return;
+          try {
+            await saveFcmToken({ data: { token: event.token, platform } });
+          } catch (err) {
+            console.warn("[push] token refresh save failed", err);
+          }
+        });
+
+        FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
+          const url =
+            (event?.notification?.data as { url?: string } | undefined)?.url;
+          if (url && typeof window !== "undefined") {
+            window.location.assign(url);
+          }
+        });
+      } catch (err) {
+        console.warn("[push] Firebase Messaging init failed", err);
       }
     })();
 

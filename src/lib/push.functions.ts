@@ -63,6 +63,48 @@ export const deletePushSubscription = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// -- FCM tokens (native iOS/Android via @capacitor-firebase/messaging) --------
+
+export const saveFcmToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { token: string; platform: "ios" | "android" | "web" }) => {
+    if (!input?.token || typeof input.token !== "string") throw new Error("Missing token");
+    if (!["ios", "android", "web"].includes(input.platform)) throw new Error("Bad platform");
+    return { token: input.token, platform: input.platform };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("fcm_tokens" as never).upsert(
+      {
+        user_id: userId,
+        token: data.token,
+        platform: data.platform,
+        last_used_at: new Date().toISOString(),
+      } as never,
+      { onConflict: "token" },
+    );
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const deleteFcmToken = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { token: string }) => {
+    if (!input?.token) throw new Error("Missing token");
+    return { token: input.token };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("fcm_tokens" as never)
+      .delete()
+      .eq("user_id", userId)
+      .eq("token", data.token);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+
 export const nudgeUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { targetUserId: string }) => {
@@ -96,51 +138,79 @@ export const nudgeUser = createServerFn({ method: "POST" })
     const publicKey = process.env.VAPID_PUBLIC_KEY;
     const privateKey = process.env.VAPID_PRIVATE_KEY;
     const subject = process.env.VAPID_SUBJECT || "mailto:reminders@pactara.lovable.app";
-    if (!publicKey || !privateKey) {
-      return { ok: false, sent: 0, reason: "no-vapid" };
-    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: subs } = await supabaseAdmin
-      .from("push_subscriptions" as never)
-      .select("id, endpoint, p256dh, auth")
-      .eq("user_id", data.targetUserId);
 
-    const subscriptions = (subs ?? []) as Array<{
-      id: string;
-      endpoint: string;
-      p256dh: string;
-      auth: string;
-    }>;
-    if (subscriptions.length === 0) return { ok: true, sent: 0 };
-
-    const { default: webpush } = await import("web-push");
-    webpush.setVapidDetails(subject, publicKey, privateKey);
-    const payload = JSON.stringify({
+    const notif = {
       title: `${fromName} nudged you 👋`,
       body: "Your crew is waiting on your check-in.",
       url: "/check-in",
-    });
+    };
 
     let sent = 0;
-    const expired: string[] = [];
-    for (const s of subscriptions) {
-      try {
-        await webpush.sendNotification(
-          { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-          payload,
-        );
-        sent++;
-      } catch (err) {
-        const status = (err as { statusCode?: number })?.statusCode;
-        if (status === 404 || status === 410) expired.push(s.id);
+
+    // --- Web Push (browser) --------------------------------------------------
+    if (publicKey && privateKey) {
+      const { data: subs } = await supabaseAdmin
+        .from("push_subscriptions" as never)
+        .select("id, endpoint, p256dh, auth")
+        .eq("user_id", data.targetUserId);
+      const subscriptions = (subs ?? []) as Array<{
+        id: string;
+        endpoint: string;
+        p256dh: string;
+        auth: string;
+      }>;
+      if (subscriptions.length > 0) {
+        const { default: webpush } = await import("web-push");
+        webpush.setVapidDetails(subject, publicKey, privateKey);
+        const payload = JSON.stringify(notif);
+        const expired: string[] = [];
+        for (const s of subscriptions) {
+          try {
+            await webpush.sendNotification(
+              { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+              payload,
+            );
+            sent++;
+          } catch (err) {
+            const status = (err as { statusCode?: number })?.statusCode;
+            if (status === 404 || status === 410) expired.push(s.id);
+          }
+        }
+        if (expired.length > 0) {
+          await supabaseAdmin
+            .from("push_subscriptions" as never)
+            .delete()
+            .in("id", expired);
+        }
       }
     }
-    if (expired.length > 0) {
-      await supabaseAdmin
-        .from("push_subscriptions" as never)
-        .delete()
-        .in("id", expired);
+
+    // --- FCM (iOS / Android via Firebase) ------------------------------------
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      const { data: fcmRows } = await supabaseAdmin
+        .from("fcm_tokens" as never)
+        .select("token")
+        .eq("user_id", data.targetUserId);
+      const tokens = ((fcmRows ?? []) as Array<{ token: string }>).map((r) => r.token);
+      if (tokens.length > 0) {
+        try {
+          const { sendFcm } = await import("@/lib/fcm.server");
+          const result = await sendFcm(tokens, notif);
+          sent += result.sent;
+          if (result.expired.length > 0) {
+            await supabaseAdmin
+              .from("fcm_tokens" as never)
+              .delete()
+              .in("token", result.expired);
+          }
+        } catch (err) {
+          console.warn("[nudge] FCM send failed", err);
+        }
+      }
     }
+
     return { ok: true, sent };
   });
+
