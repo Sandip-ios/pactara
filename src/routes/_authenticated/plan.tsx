@@ -219,13 +219,14 @@ function PlanPage() {
           <PlanCard
             emoji="⚡"
             name="Annual"
-            tagline="Unlimited groups, back-to-back challenges, all year."
+            tagline="Unlimited groups, keep your streaks running all year."
             price="$79.99"
             period="/ year"
             subPrice="Just $6.67/mo"
             bullets={[
               "Everything in Monthly",
-              "Run back-to-back challenges",
+              "Restart challenges with your same group — no need to rebuild your crew",
+              "Streaks and history carry over between challenges",
               "Early access to new features",
             ]}
             buttonLabel={selectedPlan === "annual" ? "Selected" : "Choose Annual"}
