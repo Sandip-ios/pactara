@@ -66,6 +66,10 @@ function InvitePage() {
 
   const groupName = status.group?.name ?? "your Crew";
   const emoji = status.group?.emoji ?? "🔥";
+  const createdAt = (status.group as { created_at?: string } | null)?.created_at;
+  const dayNumber = createdAt
+    ? Math.max(1, Math.floor((Date.now() - new Date(createdAt).getTime()) / 86_400_000) + 1)
+    : 1;
 
   return (
     <div
