@@ -72,6 +72,31 @@ function timeAgo(iso: string) {
   return `${d}d`;
 }
 
+function formatClockTime(d: Date) {
+  let h = d.getHours();
+  const m = d.getMinutes();
+  const ampm = h >= 12 ? "pm" : "am";
+  h = h % 12;
+  if (h === 0) h = 12;
+  return `${h}:${String(m).padStart(2, "0")} ${ampm}`;
+}
+
+function timeLabel(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday.getTime() - 86400000);
+  const clock = formatClockTime(d);
+  if (d >= startOfToday) return `Today at ${clock}`;
+  if (d >= startOfYesterday) return `Yesterday at ${clock}`;
+  const weekAgo = new Date(startOfToday.getTime() - 6 * 86400000);
+  if (d >= weekAgo) {
+    return `${d.toLocaleDateString(undefined, { weekday: "long" })} at ${clock}`;
+  }
+  return `${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })} at ${clock}`;
+}
+
+
 const MOOD_META: Record<string, { label: string; emoji: string; color: string; bg: string; border: string }> = {
   crushed: { label: "Crushed it", emoji: "🏆", color: "#16A34A", bg: "#ECFDF3", border: "#D1FADF" },
   showed: { label: "Showed up", emoji: "💪", color: PURPLE, bg: "#F4EEFF", border: "#E5D9FE" },
