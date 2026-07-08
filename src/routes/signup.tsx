@@ -635,9 +635,9 @@ export function GoalStep({
 }) {
   return (
     <div className="h-full flex flex-col min-h-0">
-      <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your fitness goal?</h1>
+      <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">What's your challenge?</h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
-        Your group will train toward this together.
+        Pick what your group will work toward together.
       </p>
 
       <div className="mt-6 flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pb-2 -mx-6 px-6">
