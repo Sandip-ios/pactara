@@ -168,9 +168,10 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji")
+      .select("id, name, emoji, created_at")
       .eq("id", membership.group_id)
       .maybeSingle();
+
     if (gErr) throw new Error(gErr.message);
 
     const { count, error: cErr } = await supabase
