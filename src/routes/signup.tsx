@@ -1664,7 +1664,7 @@ export function GreetingStep({
   const name = firstName || "friend";
   const howSteps = [
     { n: "1", emoji: "🌅", title: "Set your morning ritual", text: "Each morning, commit to one daily action with your group." },
-    { n: "2", emoji: "📸", title: "Check in with proof", text: "Snap a quick photo or note showing you did the thing." },
+    { n: "2", emoji: "📸", title: "Check in with proof", text: "Record a quick 5–15 second video in the app showing you did the thing." },
     { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, nudge. The group keeps you accountable." },
   ];
   const withoutList = [
@@ -1703,7 +1703,7 @@ export function GreetingStep({
           <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
             <span className="text-[22px]">{goalEmoji}</span>
             <div className="flex-1">
-              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Goal</div>
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Challenge</div>
               <div className="text-[15px] font-semibold">{goalLabel}</div>
             </div>
           </div>
@@ -1800,7 +1800,7 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
       n: "2",
       emoji: "📸",
       title: "Check in with proof",
-      text: "Snap a quick photo or note showing you did the thing. Your group sees it the moment you post.",
+      text: "Record a quick 5–15 second video in the app showing you did the thing. Your group sees it the moment you post.",
     },
     {
       n: "3",
