@@ -714,7 +714,7 @@ export function CompanyStep({ onContinue, onBack, progress }: { onContinue: () =
       name: "Priya",
       date: "July 1, 2026",
       stars: 4,
-      text: "Really solid app. Wish there were more customization on the check-in photos, but the group accountability piece is exactly what I needed.",
+      text: "Really solid app. Wish there were a few more filter options for the check-in videos, but the group accountability piece is exactly what I needed.",
     },
     {
       name: "DJ",
