@@ -144,7 +144,6 @@
   body {
     background-color: #ffffff;
     color: var(--color-foreground);
-    padding-top: env(safe-area-inset-top);
   }
 
   /* Prevent iOS Safari from zooming the page when focusing an input
