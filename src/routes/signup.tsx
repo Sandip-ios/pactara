@@ -24,6 +24,7 @@ import {
   CircleHelp,
   Clock,
   CreditCard,
+  Link2,
   Scale,
   Share2,
   Eye,
@@ -394,13 +395,13 @@ function SignupFlow() {
           </>
         ) : step === "invite" ? (
           <>
-            <PrimaryButton onClick={next} label="Invite your people" icon={<Share2 size={18} />} />
+            <PrimaryButton onClick={next} label="Invite your friends" icon={<Link2 size={18} />} />
             <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
               <button onClick={next} className="text-[15px] font-medium underline" style={{ color: TEXT_MUTED }}>
                 Skip for now
               </button>
               <p className="text-[13px] text-center" style={{ color: LABEL }}>
-                You can invite people later from inside the app.
+                You can invite people later, but they'll join the challenge already in progress.
               </p>
             </div>
           </>
@@ -1137,12 +1138,10 @@ export function InviteStep() {
         <Users size={40} color="#475569" strokeWidth={1.8} />
       </div>
       <h1 className="mt-7 text-[36px] font-bold tracking-tight leading-[1.05]">
-        Invite your accountability crew
+        Invite your crew
       </h1>
       <p className="mt-4 text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-        People who check in with a group are
-        <br />
-        3× more likely to reach their goal.
+        Your challenge starts today. Invite your friends now so they don't miss Day 1.
       </p>
     </div>
   );

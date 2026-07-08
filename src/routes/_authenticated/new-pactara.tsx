@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ChevronLeft, Share2 } from "lucide-react";
+import { ChevronLeft, Link2 } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getProfileOverview } from "@/lib/profile.functions";
@@ -247,7 +247,7 @@ function NewPactaraFlow() {
       <div className="flex flex-col items-center gap-3 pt-6">
         {step === "invite" ? (
           <>
-            <PrimaryButton onClick={next} label="Invite your people" icon={<Share2 size={18} />} />
+            <PrimaryButton onClick={next} label="Invite your friends" icon={<Link2 size={18} />} />
             <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
               <button
                 onClick={next}
@@ -257,7 +257,7 @@ function NewPactaraFlow() {
                 Skip for now
               </button>
               <p className="text-[13px] text-center" style={{ color: "#8A8580" }}>
-                You can invite people later from inside the app.
+                You can invite people later, but they'll join the challenge already in progress.
               </p>
             </div>
           </>
