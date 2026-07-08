@@ -149,13 +149,6 @@ function NotificationsPage() {
           value={prefs.push_enabled}
           onChange={(v) => save.mutate({ push_enabled: v })}
         />
-        <Divider />
-        <ToggleRow
-          title="Email notifications"
-          subtitle="Get important updates by email"
-          value={prefs.email_enabled}
-          onChange={(v) => save.mutate({ email_enabled: v })}
-        />
       </Card>
 
       <SectionLabel>MORNING RITUAL</SectionLabel>
