@@ -527,17 +527,19 @@ function EditCommitmentDrawer({
   onOpenChange,
   duration,
   frequency,
+  daysPerWeek,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   duration: number;
   frequency: "daily" | "specific";
-  onSave: (duration: number, frequency: "daily" | "specific") => void;
+  daysPerWeek: number;
+  onSave: (duration: number, frequency: "daily" | "specific", daysPerWeek: number) => void;
 }) {
   const [localDuration, setLocalDuration] = useState(duration);
   const [localFreq, setLocalFreq] = useState<"daily" | "specific">(frequency);
-  const [daysPerWeek, setDaysPerWeek] = useState(7);
+  const [localDaysPerWeek, setLocalDaysPerWeek] = useState(daysPerWeek);
 
   const presets = [30, 60, 90];
 
