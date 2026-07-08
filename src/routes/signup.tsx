@@ -1137,12 +1137,10 @@ export function InviteStep() {
         <Users size={40} color="#475569" strokeWidth={1.8} />
       </div>
       <h1 className="mt-7 text-[36px] font-bold tracking-tight leading-[1.05]">
-        Invite your accountability crew
+        Invite your crew
       </h1>
       <p className="mt-4 text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-        People who check in with a group are
-        <br />
-        3× more likely to reach their goal.
+        Your challenge starts today. Invite your friends now so they don't miss Day 1.
       </p>
     </div>
   );
