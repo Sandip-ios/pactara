@@ -1703,7 +1703,7 @@ export function GreetingStep({
           <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
             <span className="text-[22px]">{goalEmoji}</span>
             <div className="flex-1">
-              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Goal</div>
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Challenge</div>
               <div className="text-[15px] font-semibold">{goalLabel}</div>
             </div>
           </div>
