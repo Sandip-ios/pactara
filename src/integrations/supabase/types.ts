@@ -254,6 +254,7 @@ export type Database = {
           duration_days: number
           emoji: string
           frequency: string
+          goal: string | null
           id: string
           name: string
           owner_id: string
@@ -265,6 +266,7 @@ export type Database = {
           duration_days?: number
           emoji?: string
           frequency?: string
+          goal?: string | null
           id?: string
           name: string
           owner_id: string
@@ -276,6 +278,7 @@ export type Database = {
           duration_days?: number
           emoji?: string
           frequency?: string
+          goal?: string | null
           id?: string
           name?: string
           owner_id?: string

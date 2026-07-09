@@ -114,6 +114,7 @@ function NewPactaraFlow() {
         data: {
           name: finalGroupName,
           emoji: goalEmoji,
+          goal: goalLabel,
           durationDays,
           frequency: frequency === "weekly" ? "specific" : "daily",
           daysPerWeek,
