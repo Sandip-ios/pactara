@@ -442,6 +442,54 @@ function GroupCard({
         onCopy={handleCopy}
         copied={copied}
       />
+      <Drawer open={deleteOpen} onOpenChange={(o) => !deleting && setDeleteOpen(o)}>
+        <DrawerContent className="rounded-t-3xl">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="text-[20px] font-bold">
+              Delete {group.name}?
+            </DrawerTitle>
+            <DrawerDescription>
+              This permanently deletes the group, its messages, and all check-ins.
+              This can't be undone.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-6 space-y-3">
+            {deleteErr && (
+              <div className="rounded-xl px-3 py-2 text-[13px] bg-red-100 text-red-800">
+                {deleteErr}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteOpen(false)}
+                disabled={deleting}
+                className="flex-1 rounded-full bg-neutral-200 text-neutral-800 py-3 font-semibold text-[15px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  setDeleteErr(null);
+                  try {
+                    await deleteGroup({ data: { groupId: group.id } });
+                    await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+                    setDeleteOpen(false);
+                  } catch (e) {
+                    setDeleteErr(e instanceof Error ? e.message : "Failed to delete");
+                  } finally {
+                    setDeleting(false);
+                  }
+                }}
+                disabled={deleting}
+                className="flex-1 rounded-full bg-red-600 text-white py-3 font-semibold text-[15px] disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 }
