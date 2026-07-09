@@ -57,6 +57,7 @@ type GroupItem = {
   id: string;
   name: string;
   emoji: string;
+  goal?: string | null;
   isAdmin: boolean;
   memberCount: number;
   members?: GroupMember[];
