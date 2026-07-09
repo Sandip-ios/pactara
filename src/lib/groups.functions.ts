@@ -286,6 +286,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
         id: g.id,
         name: g.name,
         emoji: g.emoji,
+        goal: (g as { goal?: string | null }).goal ?? null,
         isAdmin: g.owner_id === userId,
         memberCount: members.length,
         members,
