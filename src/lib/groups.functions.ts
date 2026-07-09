@@ -319,6 +319,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
     (input: {
       name: string;
       emoji: string;
+      goal?: string;
       durationDays?: number;
       frequency?: "daily" | "weekly" | "specific";
       daysPerWeek?: number;
@@ -328,6 +329,10 @@ export const createGroupForUser = createServerFn({ method: "POST" })
       }
       const name = input.name.trim().slice(0, 80);
       if (!name) throw new Error("Group name required");
+      const goal =
+        typeof input.goal === "string" && input.goal.trim().length > 0
+          ? input.goal.trim().slice(0, 80)
+          : null;
       const durationDays =
         typeof input.durationDays === "number" && input.durationDays > 0
           ? Math.min(365, Math.floor(input.durationDays))
@@ -338,7 +343,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
         typeof input.daysPerWeek === "number" && input.daysPerWeek >= 1 && input.daysPerWeek <= 7
           ? Math.floor(input.daysPerWeek)
           : 7;
-      return { name, emoji: input.emoji.slice(0, 8) || "🔥", durationDays, frequency, daysPerWeek };
+      return { name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek };
     },
   )
   .handler(async ({ data, context }) => {
@@ -351,6 +356,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
       .insert({
         name: data.name,
         emoji: data.emoji,
+        goal: data.goal,
         owner_id: userId,
         duration_days: data.durationDays,
         frequency: data.frequency,
