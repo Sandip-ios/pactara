@@ -49,19 +49,25 @@ const ALL_STEPS: StepKey[] = [
 ];
 
 // Skip the notification opt-in screen if the user has already responded
-// to the browser/OS notification prompt (granted or denied).
-function computeSteps(): StepKey[] {
+// to the notification prompt (granted or denied) in the browser OR the
+// native iOS/Android app.
+function skipNotifySync(): boolean {
   if (typeof window !== "undefined" && "Notification" in window) {
-    if (Notification.permission !== "default") {
-      return ALL_STEPS.filter((s) => s !== "notify");
-    }
+    if (Notification.permission !== "default") return true;
   }
-  return ALL_STEPS;
+  return false;
 }
 
-const STEPS: StepKey[] = computeSteps();
-
-
+async function skipNotifyNative(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+    const perm = await FirebaseMessaging.checkPermissions();
+    return perm.receive === "granted" || perm.receive === "denied";
+  } catch {
+    return false;
+  }
+}
 
 function NewPactaraFlow() {
   const navigate = useNavigate();
@@ -82,6 +88,22 @@ function NewPactaraFlow() {
   const [customDays, setCustomDays] = useState("");
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [daysPerWeek, setDaysPerWeek] = useState(3);
+
+  const [skipNotify, setSkipNotify] = useState<boolean>(() => skipNotifySync());
+  useEffect(() => {
+    let cancelled = false;
+    skipNotifyNative().then((v) => {
+      if (!cancelled && v) setSkipNotify(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const STEPS = useMemo<StepKey[]>(
+    () => (skipNotify ? ALL_STEPS.filter((s) => s !== "notify") : ALL_STEPS),
+    [skipNotify],
+  );
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
