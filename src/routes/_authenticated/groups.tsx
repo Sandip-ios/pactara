@@ -322,6 +322,11 @@ function GroupCard({
                 icon={<Trash2 size={18} className="text-red-500" />}
                 label="Delete group"
                 danger
+                onClick={() => {
+                  setMenuOpen(false);
+                  setDeleteErr(null);
+                  setDeleteOpen(true);
+                }}
               />
             </PopoverContent>
           </Popover>
