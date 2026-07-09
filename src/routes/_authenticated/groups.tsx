@@ -327,7 +327,6 @@ function GroupCard({
           <span className="text-[28px] leading-none">{group.emoji || "🔥"}</span>
           <div className="flex-1">
             <div className="text-white text-[22px] font-bold leading-tight">{group.name}</div>
-            <div className="text-white/80 text-[13px] mt-0.5">Lose weight</div>
           </div>
         </div>
 
