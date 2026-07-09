@@ -37,7 +37,7 @@ type StepKey =
   | "notify"
   | "greeting";
 
-const STEPS: StepKey[] = [
+const ALL_STEPS: StepKey[] = [
   "goal",
   "group",
   "commitment",
@@ -46,6 +46,19 @@ const STEPS: StepKey[] = [
   "notify",
   "greeting",
 ];
+
+// Skip the notification opt-in screen if the user has already responded
+// to the browser/OS notification prompt (granted or denied).
+function computeSteps(): StepKey[] {
+  if (typeof window !== "undefined" && "Notification" in window) {
+    if (Notification.permission !== "default") {
+      return ALL_STEPS.filter((s) => s !== "notify");
+    }
+  }
+  return ALL_STEPS;
+}
+
+const STEPS: StepKey[] = computeSteps();
 
 
 
