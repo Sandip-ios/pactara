@@ -465,7 +465,7 @@ function CommentSection({ postId }: { postId: string }) {
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a comment…"
           maxLength={1000}
-          className="flex-1 h-10 rounded-full bg-neutral-100 border border-transparent px-4 text-[14px] outline-none focus:border-[#7C3AED] focus:bg-white"
+          className="flex-1 h-10 rounded-full bg-neutral-100 border border-transparent px-4 text-[16px] outline-none focus:border-[#7C3AED] focus:bg-white"
         />
         <button
           type="submit"
