@@ -460,6 +460,29 @@ export const renameGroup = createServerFn({ method: "POST" })
   });
 
 /**
+ * Deletes a group. Only the owner can delete. Cascades to members, messages,
+ * posts, etc. via ON DELETE CASCADE.
+ */
+export const deleteGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId: string }) => {
+    if (!input || typeof input.groupId !== "string" || !input.groupId.trim()) {
+      throw new Error("Missing group");
+    }
+    return { groupId: input.groupId.trim() };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("groups")
+      .delete()
+      .eq("id", data.groupId)
+      .eq("owner_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
  * Lists group members who haven't yet checked in today (UTC date),
  * excluding the current user if they've already checked in.
  */
