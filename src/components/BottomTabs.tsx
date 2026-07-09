@@ -60,7 +60,7 @@ export function BottomTabs() {
         >
           <Zap size={24} />
         </span>
-        <span className="text-[11px] font-medium">Check In</span>
+        <span className="text-[11px] font-medium" style={{ color: isActive("/check-in") ? PURPLE : "#A3A3A3" }}>Check In</span>
       </button>
       <TabItem
         icon={
