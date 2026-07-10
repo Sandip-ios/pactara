@@ -19,6 +19,7 @@ import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { supabase } from "@/integrations/supabase/client";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
@@ -200,6 +201,22 @@ function HomePage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [pendingBadges, setPendingBadges] = useState<number[] | null>(null);
+
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    const raw = sessionStorage.getItem("pending-badge-announce");
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setPendingBadges(parsed.filter((n) => typeof n === "number"));
+      }
+    } catch {
+      // ignore malformed value
+    }
+    sessionStorage.removeItem("pending-badge-announce");
+  }, []);
 
   const queryClient = useQueryClient();
   const postThoughtFn = useServerFn(postThought);
@@ -501,6 +518,9 @@ function HomePage() {
       </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
       {showWelcome && <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />}
+      {pendingBadges && pendingBadges.length > 0 && (
+        <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
+      )}
     </div>
   );
 }
