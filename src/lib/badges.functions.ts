@@ -1,10 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { BADGE_MILESTONES } from "./badges";
-
-function ymd(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 function bestStreakFromDates(dates: string[]): number {
   if (dates.length === 0) return 0;
@@ -29,42 +26,25 @@ function bestStreakFromDates(dates: string[]): number {
 
 /** Compute user's overall best streak across all groups and insert any newly earned milestone badges. */
 export async function awardBadgesForUser(
-  supabase: {
-    from: (t: string) => {
-      select: (
-        s: string,
-      ) => { eq: (c: string, v: string) => Promise<{ data: unknown }> };
-      insert: (rows: unknown) => Promise<{ error: { message: string } | null }>;
-    };
-  },
+  supabase: SupabaseClient,
   userId: string,
 ): Promise<number[]> {
-  // Pull all check-in dates for user (across all groups)
-  const { data: rows } = await (supabase as unknown as {
-    from: (t: string) => {
-      select: (
-        s: string,
-      ) => { eq: (c: string, v: string) => Promise<{ data: { checkin_date: string }[] | null }> };
-    };
-  })
+  const { data: rows } = await supabase
     .from("check_ins")
     .select("checkin_date")
     .eq("user_id", userId);
-  const dates = (rows ?? []).map((r) => r.checkin_date);
-  // Include today as part of streak calc (check_in should already be inserted)
+  const dates = ((rows ?? []) as { checkin_date: string }[]).map(
+    (r) => r.checkin_date,
+  );
   const bestOverall = bestStreakFromDates(dates);
 
-  const { data: existing } = await (supabase as unknown as {
-    from: (t: string) => {
-      select: (
-        s: string,
-      ) => { eq: (c: string, v: string) => Promise<{ data: { streak_days: number }[] | null }> };
-    };
-  })
+  const { data: existing } = await supabase
     .from("earned_badges")
     .select("streak_days")
     .eq("user_id", userId);
-  const already = new Set((existing ?? []).map((e) => e.streak_days));
+  const already = new Set(
+    ((existing ?? []) as { streak_days: number }[]).map((e) => e.streak_days),
+  );
 
   const toInsert = BADGE_MILESTONES.filter(
     (m) => m <= bestOverall && !already.has(m),
@@ -77,12 +57,8 @@ export async function awardBadgesForUser(
     streak_days: m,
     earned_at: now,
   }));
-  await (supabase as unknown as {
-    from: (t: string) => { insert: (rows: unknown) => Promise<{ error: unknown }> };
-  })
-    .from("earned_badges")
-    .insert(rowsToInsert);
-  return toInsert as number[];
+  await supabase.from("earned_badges").insert(rowsToInsert);
+  return [...toInsert];
 }
 
 export type EarnedBadge = { streakDays: number; earnedAt: string };
@@ -92,17 +68,13 @@ export const getMyBadges = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<EarnedBadge[]> => {
     const { supabase, userId } = context;
     // Backfill: award any milestones already reached but never recorded.
-    await awardBadgesForUser(supabase as never, userId);
+    await awardBadgesForUser(supabase, userId);
     const { data } = await supabase
       .from("earned_badges")
       .select("streak_days, earned_at")
       .eq("user_id", userId)
       .order("streak_days", { ascending: true });
-    return (data ?? []).map((r: { streak_days: number; earned_at: string }) => ({
-      streakDays: r.streak_days,
-      earnedAt: r.earned_at,
-    }));
+    return ((data ?? []) as { streak_days: number; earned_at: string }[]).map(
+      (r) => ({ streakDays: r.streak_days, earnedAt: r.earned_at }),
+    );
   });
-
-// helper suppress unused warning
-void ymd;
