@@ -404,7 +404,8 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] w-full pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div className="px-6 pt-10">
+      {switcher}
+      <div className="px-6 pt-6">
         <h1 className="text-[34px] font-black leading-tight tracking-tight">Let's check you in</h1>
         <p className="text-neutral-500 text-[15px] mt-1">How did today go?</p>
       </div>
