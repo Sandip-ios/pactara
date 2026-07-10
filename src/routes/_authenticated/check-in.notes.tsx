@@ -101,7 +101,7 @@ function NotesPage() {
   // Warm the celebration data in the background so the modal opens with real numbers.
   useQuery({
     queryKey: ["checkin-celebration-prefetch"],
-    queryFn: () => getCelebrationFn(),
+    queryFn: () => getCelebrationFn({ data: { groupId: getActiveGroupId() } }),
     staleTime: 30_000,
   });
 
@@ -115,7 +115,7 @@ function NotesPage() {
 
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string }) =>
+    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string; groupId?: string | null }) =>
       recordCheckInFn({ data: vars }),
   });
 
@@ -124,6 +124,7 @@ function NotesPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
+      const activeGroupId = getActiveGroupId();
       let photoUrl: string | undefined;
       const photo = getCheckInPhoto();
       if (photo) {
@@ -135,6 +136,7 @@ function NotesPage() {
         mood: mood || undefined,
         activity: activity || undefined,
         photoUrl,
+        groupId: activeGroupId,
       });
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
 
@@ -148,7 +150,7 @@ function NotesPage() {
         return;
       }
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
-      const celebration = await getCelebrationFn().catch(() => ({
+      const celebration = await getCelebrationFn({ data: { groupId: activeGroupId } }).catch(() => ({
         streakCount: 1,
         groupName: "Your group",
         teammates: [],
