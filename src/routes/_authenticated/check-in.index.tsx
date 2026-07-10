@@ -359,7 +359,7 @@ function MorningRitual({
   );
 }
 
-function CheckInMood() {
+function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
