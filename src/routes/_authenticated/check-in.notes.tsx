@@ -232,7 +232,11 @@ function NotesPage() {
               <video
                 src={photoPreview}
                 controls
+                muted
+                autoPlay
+                loop
                 playsInline
+                preload="auto"
                 className="w-full max-w-[224px] aspect-[9/16] object-cover rounded-2xl bg-black"
               />
             ) : (
