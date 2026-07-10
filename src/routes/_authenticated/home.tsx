@@ -517,6 +517,9 @@ function HomePage() {
       </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
       {showWelcome && <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />}
+      {pendingBadges && pendingBadges.length > 0 && (
+        <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
+      )}
     </div>
   );
 }
