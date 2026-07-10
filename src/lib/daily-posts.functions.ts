@@ -79,21 +79,38 @@ async function signPhoto(
   return data?.signedUrl ?? null;
 }
 
-async function getMyGroupAndTz(supabase: SupabaseClient, userId: string) {
-  const { data: membership } = await supabase
-    .from("group_members")
-    .select("group_id, joined_at")
-    .eq("user_id", userId)
-    .order("joined_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+async function getMyGroupAndTz(
+  supabase: SupabaseClient,
+  userId: string,
+  preferredGroupId?: string | null,
+) {
+  let groupId: string | null = null;
+  if (preferredGroupId) {
+    const { data: member } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId)
+      .eq("group_id", preferredGroupId)
+      .maybeSingle();
+    if (member?.group_id) groupId = member.group_id;
+  }
+  if (!groupId) {
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    groupId = membership?.group_id ?? null;
+  }
   const { data: profile } = await supabase
     .from("profiles")
     .select("timezone")
     .eq("id", userId)
     .maybeSingle();
   return {
-    groupId: membership?.group_id ?? null,
+    groupId,
     timezone: profile?.timezone ?? "UTC",
   };
 }
@@ -125,14 +142,15 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
 
 export const postMorningRitual = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text: string }) => ({
+  .inputValidator((input: { text: string; groupId?: string | null }) => ({
     text: String(input?.text ?? "").slice(0, 280).trim(),
+    groupId: input?.groupId ?? null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text) throw new Error("Empty ritual");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
@@ -175,15 +193,16 @@ export const getTodayRitualStatus = createServerFn({ method: "GET" })
 /** Posts an extra "what's on your mind" thought; appears as another node on today's timeline. */
 export const postThought = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text?: string; photoUrl?: string }) => ({
+  .inputValidator((input: { text?: string; photoUrl?: string; groupId?: string | null }) => ({
     text: input?.text?.slice(0, 500)?.trim() ?? null,
     photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
+    groupId: input?.groupId ?? null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text && !data.photoUrl) throw new Error("Empty thought");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
@@ -219,16 +238,17 @@ export const postThought = createServerFn({ method: "POST" })
 export const recordCheckIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { note?: string; photoUrl?: string; mood?: string; activity?: string }) => ({
+    (input: { note?: string; photoUrl?: string; mood?: string; activity?: string; groupId?: string | null }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
       mood: input?.mood?.slice(0, 40) ?? null,
       activity: input?.activity?.slice(0, 40) ?? null,
+      groupId: input?.groupId ?? null,
     }),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
@@ -750,9 +770,12 @@ export type CelebrationData = {
 
 export const getCheckInCelebrationData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<CelebrationData> => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ?? null,
+  }))
+  .handler(async ({ context, data }): Promise<CelebrationData> => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) {
       return { streakCount: 1, groupName: "Your group", teammates: [] };
     }
