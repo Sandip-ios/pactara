@@ -236,16 +236,17 @@ export const postThought = createServerFn({ method: "POST" })
 export const recordCheckIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { note?: string; photoUrl?: string; mood?: string; activity?: string }) => ({
+    (input: { note?: string; photoUrl?: string; mood?: string; activity?: string; groupId?: string | null }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
       mood: input?.mood?.slice(0, 40) ?? null,
       activity: input?.activity?.slice(0, 40) ?? null,
+      groupId: input?.groupId ?? null,
     }),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
