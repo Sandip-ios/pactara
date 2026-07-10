@@ -144,6 +144,12 @@ function NotesPage() {
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
       queryClient.invalidateQueries({ queryKey: ["my-badges"] });
 
+      // Stash any new badges so /home can also announce them — safety net in case
+      // the user dismisses fast or the local modal never mounts.
+      if (newBadges.length > 0 && typeof sessionStorage !== "undefined") {
+        sessionStorage.setItem("pending-badge-announce", JSON.stringify(newBadges));
+      }
+
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
       if (hide && newBadges.length === 0) {
         finalizeAndExit();
