@@ -75,7 +75,7 @@ function NotesPage() {
     setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
   }, []);
 
-  type ShareState = { photoUrl: string | null; celebration: CelebrationData };
+  type ShareState = { photoUrl: string | null; celebration: CelebrationData; newBadges: number[] };
   const [shareData, setShareData] = useState<ShareState | null>(null);
 
   const getCelebrationFn = useServerFn(getCheckInCelebrationData);
@@ -111,18 +111,20 @@ function NotesPage() {
         const path = await uploadCheckInPhoto(photo.blob);
         if (path) photoUrl = path;
       }
-      await mutation.mutateAsync({
+      const result = await mutation.mutateAsync({
         note: note || undefined,
         mood: mood || undefined,
         activity: activity || undefined,
         photoUrl,
       });
+      const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
 
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["my-badges"] });
 
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
-      if (hide) {
+      if (hide && newBadges.length === 0) {
         finalizeAndExit();
         return;
       }
@@ -132,7 +134,7 @@ function NotesPage() {
         groupName: "Your group",
         teammates: [],
       }));
-      setShareData({ photoUrl: photoForShare, celebration });
+      setShareData({ photoUrl: photoForShare, celebration, newBadges });
     } catch (err) {
       console.error("check-in submit failed", err);
       setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
@@ -284,6 +286,7 @@ function NotesPage() {
           streakCount={shareData.celebration.streakCount}
           groupName={shareData.celebration.groupName}
           teammates={shareData.celebration.teammates}
+          newBadges={shareData.newBadges}
           onShare={handleShareWin}
           onDismiss={handleShareClose}
         />
