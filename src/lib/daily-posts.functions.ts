@@ -142,14 +142,15 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
 
 export const postMorningRitual = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text: string }) => ({
+  .inputValidator((input: { text: string; groupId?: string | null }) => ({
     text: String(input?.text ?? "").slice(0, 280).trim(),
+    groupId: input?.groupId ?? null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text) throw new Error("Empty ritual");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
