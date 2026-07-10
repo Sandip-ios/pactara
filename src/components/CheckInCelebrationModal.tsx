@@ -70,6 +70,7 @@ export function CheckInCelebrationModal({
   groupName,
   teammates,
   streakCopy,
+  newBadges,
   onShare,
   onDismiss,
   open = true,
