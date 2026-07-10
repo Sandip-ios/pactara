@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Share as ShareIcon, X } from "lucide-react";
+import { BADGE_META } from "@/lib/badges";
 
 /**
  * CheckInCelebrationModal — Pactara
@@ -43,6 +44,7 @@ export type CheckInCelebrationModalProps = {
   groupName: string;
   teammates: Teammate[];
   streakCopy?: string;
+  newBadges?: number[];
   onShare: () => void;
   onDismiss: () => void;
   onInvite?: () => void;
