@@ -27,19 +27,38 @@ export const Route = createFileRoute("/_authenticated/check-in/notes")({
   component: NotesPage,
 });
 
+function getActiveGroupId(): string | null {
+  if (typeof localStorage === "undefined") return null;
+  return localStorage.getItem("active-group-id");
+}
+
+async function resolveGroupId(userId: string): Promise<string | null> {
+  const preferred = getActiveGroupId();
+  if (preferred) {
+    const { data: member } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId)
+      .eq("group_id", preferred)
+      .maybeSingle();
+    if (member?.group_id) return member.group_id;
+  }
+  const { data: membership } = await supabase
+    .from("group_members")
+    .select("group_id, joined_at")
+    .eq("user_id", userId)
+    .order("joined_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return membership?.group_id ?? null;
+}
+
 async function uploadCheckInPhoto(blob: Blob): Promise<string | null> {
   try {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData.user?.id;
     if (!userId) return null;
-    const { data: membership } = await supabase
-      .from("group_members")
-      .select("group_id, joined_at")
-      .eq("user_id", userId)
-      .order("joined_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    const groupId = membership?.group_id;
+    const groupId = await resolveGroupId(userId);
     if (!groupId) return null;
     const mime = blob.type || "image/jpeg";
     const ext = mime.startsWith("video/")
