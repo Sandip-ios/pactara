@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
 import { getStreakFreezeInfo, applyStreakFreeze } from "@/lib/streak-freezes.functions";
 import { listMyGroups } from "@/lib/groups.functions";
+import { getMyBadges } from "@/lib/badges.functions";
+import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { PullToRefresh } from "@/components/PullToRefresh";
 
 
@@ -49,6 +51,11 @@ function ProfilePage() {
   const { data } = useQuery({
     queryKey: ["profile-overview", selectedGroupId],
     queryFn: () => getProfileOverview({ data: { groupId: selectedGroupId } }),
+  });
+
+  const { data: badges } = useQuery({
+    queryKey: ["my-badges"],
+    queryFn: () => getMyBadges(),
   });
 
   const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;
@@ -266,15 +273,7 @@ function ProfilePage() {
           </button>
 
           <div className="mt-5 pt-4 border-t border-neutral-100">
-            <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-2">
-              EARNED SO FAR
-            </div>
-            <div className="flex items-center gap-2 text-[14px] text-neutral-400">
-              <Award size={16} />
-              {(data?.bestStreak ?? 0) >= 3
-                ? `${data?.bestStreak}-day streak badge earned.`
-                : "Check in 3 days straight to earn your first badge."}
-            </div>
+            <BadgesGrid earned={badges ?? []} />
           </div>
         </div>
 
