@@ -193,15 +193,16 @@ export const getTodayRitualStatus = createServerFn({ method: "GET" })
 /** Posts an extra "what's on your mind" thought; appears as another node on today's timeline. */
 export const postThought = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text?: string; photoUrl?: string }) => ({
+  .inputValidator((input: { text?: string; photoUrl?: string; groupId?: string | null }) => ({
     text: input?.text?.slice(0, 500)?.trim() ?? null,
     photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
+    groupId: input?.groupId ?? null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text && !data.photoUrl) throw new Error("Empty thought");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
