@@ -770,9 +770,12 @@ export type CelebrationData = {
 
 export const getCheckInCelebrationData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<CelebrationData> => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ?? null,
+  }))
+  .handler(async ({ context, data }): Promise<CelebrationData> => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) {
       return { streakCount: 1, groupName: "Your group", teammates: [] };
     }
