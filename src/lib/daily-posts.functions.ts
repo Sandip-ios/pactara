@@ -270,7 +270,15 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     );
     if (dpErr) throw new Error(dpErr.message);
 
-    return { ok: true };
+    let newBadges: number[] = [];
+    try {
+      const { awardBadgesForUser } = await import("./badges.functions");
+      newBadges = await awardBadgesForUser(supabase, userId);
+    } catch (err) {
+      console.error("badge award failed", err);
+    }
+
+    return { ok: true, newBadges };
   });
 
 export type TimelineNode =

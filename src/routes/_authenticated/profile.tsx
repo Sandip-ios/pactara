@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
 import { getStreakFreezeInfo, applyStreakFreeze } from "@/lib/streak-freezes.functions";
 import { listMyGroups } from "@/lib/groups.functions";
+import { getMyBadges } from "@/lib/badges.functions";
+import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { PullToRefresh } from "@/components/PullToRefresh";
 
 
@@ -49,6 +51,11 @@ function ProfilePage() {
   const { data } = useQuery({
     queryKey: ["profile-overview", selectedGroupId],
     queryFn: () => getProfileOverview({ data: { groupId: selectedGroupId } }),
+  });
+
+  const { data: badges } = useQuery({
+    queryKey: ["my-badges"],
+    queryFn: () => getMyBadges(),
   });
 
   const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;
@@ -266,15 +273,7 @@ function ProfilePage() {
           </button>
 
           <div className="mt-5 pt-4 border-t border-neutral-100">
-            <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-2">
-              EARNED SO FAR
-            </div>
-            <div className="flex items-center gap-2 text-[14px] text-neutral-400">
-              <Award size={16} />
-              {(data?.bestStreak ?? 0) >= 3
-                ? `${data?.bestStreak}-day streak badge earned.`
-                : "Check in 3 days straight to earn your first badge."}
-            </div>
+            <BadgesGrid earned={badges ?? []} />
           </div>
         </div>
 
@@ -744,5 +743,61 @@ function StreakFreezeSheet({
     </div>
   );
 }
+
+function BadgesGrid({ earned }: { earned: { streakDays: number; earnedAt: string }[] }) {
+  const earnedMap = new Map(earned.map((e) => [e.streakDays, e.earnedAt]));
+  const earnedCount = earned.length;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[12px] font-semibold tracking-wider text-neutral-400">
+          BADGES
+        </div>
+        <div className="text-[12px] font-semibold text-neutral-400">
+          {earnedCount} / {BADGE_MILESTONES.length}
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3">
+        {BADGE_MILESTONES.map((m) => {
+          const meta = BADGE_META[m];
+          const isEarned = earnedMap.has(m);
+          const earnedAt = earnedMap.get(m);
+          return (
+            <div
+              key={m}
+              className="flex flex-col items-center text-center rounded-2xl py-3 px-1"
+              style={{ background: isEarned ? "#FAF7F2" : "transparent" }}
+            >
+              <img
+                src={meta.image}
+                alt={`${m} day badge`}
+                width={64}
+                height={64}
+                loading="lazy"
+                className="h-16 w-16"
+                style={{
+                  filter: isEarned ? "none" : "grayscale(1)",
+                  opacity: isEarned ? 1 : 0.35,
+                }}
+              />
+              <div
+                className="mt-1 text-[13px] font-bold leading-tight"
+                style={{ color: isEarned ? "#0B1220" : "#9CA3AF" }}
+              >
+                {m} {m === 1 ? "day" : "days"}
+              </div>
+              <div className="text-[11px] leading-tight mt-0.5" style={{ color: "#9CA3AF" }}>
+                {isEarned && earnedAt
+                  ? new Date(earnedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                  : "Locked"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 
 

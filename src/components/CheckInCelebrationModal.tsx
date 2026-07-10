@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Share as ShareIcon, X } from "lucide-react";
+import { BADGE_META } from "@/lib/badges";
 
 /**
  * CheckInCelebrationModal — Pactara
@@ -43,6 +44,7 @@ export type CheckInCelebrationModalProps = {
   groupName: string;
   teammates: Teammate[];
   streakCopy?: string;
+  newBadges?: number[];
   onShare: () => void;
   onDismiss: () => void;
   onInvite?: () => void;
@@ -68,6 +70,7 @@ export function CheckInCelebrationModal({
   groupName,
   teammates,
   streakCopy,
+  newBadges,
   onShare,
   onDismiss,
   open = true,
@@ -134,6 +137,34 @@ export function CheckInCelebrationModal({
 
       {/* Content */}
       <div className="flex-1 px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
+        {newBadges && newBadges.length > 0 && (
+          <div
+            className="mb-4 flex items-center gap-3 rounded-2xl px-4 py-3"
+            style={{
+              background: "linear-gradient(135deg, #FFF7E6 0%, #EEE4FF 100%)",
+              border: `1px solid ${COLORS.border}`,
+            }}
+          >
+            <img
+              src={BADGE_META[newBadges[newBadges.length - 1]]?.image}
+              alt=""
+              width={48}
+              height={48}
+              className="h-12 w-12 shrink-0"
+            />
+            <div className="min-w-0">
+              <div className="text-[11px] font-bold tracking-[0.14em]" style={{ color: COLORS.primary }}>
+                {newBadges.length > 1 ? "NEW BADGES UNLOCKED" : "NEW BADGE UNLOCKED"}
+              </div>
+              <div className="text-[15px] font-bold truncate" style={{ color: COLORS.ink }}>
+                {newBadges
+                  .map((d) => BADGE_META[d]?.title)
+                  .filter(Boolean)
+                  .join(" · ")}
+              </div>
+            </div>
+          </div>
+        )}
         <div
           className="overflow-hidden rounded-[20px]"
           style={{ border: `1px solid ${COLORS.border}`, background: "#fff" }}

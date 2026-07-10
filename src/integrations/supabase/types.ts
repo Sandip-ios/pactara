@@ -153,6 +153,27 @@ export type Database = {
           },
         ]
       }
+      earned_badges: {
+        Row: {
+          earned_at: string
+          id: string
+          streak_days: number
+          user_id: string
+        }
+        Insert: {
+          earned_at?: string
+          id?: string
+          streak_days: number
+          user_id: string
+        }
+        Update: {
+          earned_at?: string
+          id?: string
+          streak_days?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       fcm_tokens: {
         Row: {
           created_at: string
