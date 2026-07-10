@@ -661,13 +661,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                         >
                           {isVideo ? (
                             <div className="w-full aspect-square rounded-xl overflow-hidden bg-black">
-                              <video
-                                src={src}
-                                muted
-                                playsInline
-                                preload="metadata"
-                                className="w-full h-full object-cover pointer-events-none"
-                              />
+                              <VideoThumb src={src} />
                             </div>
                           ) : (
                             <img src={src} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
