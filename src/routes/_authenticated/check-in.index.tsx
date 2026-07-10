@@ -134,25 +134,135 @@ function handleListBeforeInput(
   onInput();
 }
 
+function useSelectedGroup() {
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+  });
+  const groups = groupsData?.groups ?? [];
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem("active-group-id");
+  });
+  useEffect(() => {
+    if (groups.length === 0) return;
+    const exists = selectedGroupId && groups.some((g) => g.id === selectedGroupId);
+    if (!exists) setSelectedGroupId(groups[0].id as string);
+  }, [groups, selectedGroupId]);
+  useEffect(() => {
+    if (selectedGroupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", selectedGroupId);
+    }
+  }, [selectedGroupId]);
+  return { groups, selectedGroupId, setSelectedGroupId };
+}
+
+function GroupSwitcher({
+  groups,
+  selectedGroupId,
+  onSelect,
+}: {
+  groups: { id: string; name: string }[];
+  selectedGroupId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const active = groups.find((g) => g.id === selectedGroupId) ?? groups[0];
+  if (!active || groups.length < 2) {
+    if (!active) return null;
+    return (
+      <div className="px-6 pt-6">
+        <div className="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-700">
+          {active.name}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="px-6 pt-6 relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-800"
+      >
+        {active.name}
+        <ChevronDown size={14} />
+      </button>
+      {open && (
+        <>
+          <button
+            aria-hidden
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-30 bg-transparent"
+          />
+          <div className="absolute left-6 z-40 mt-2 min-w-[200px] rounded-xl bg-white ring-1 ring-neutral-200 shadow-lg py-1">
+            {groups.map((g) => {
+              const isActive = g.id === (selectedGroupId ?? active.id);
+              return (
+                <button
+                  key={g.id}
+                  onClick={() => {
+                    onSelect(g.id);
+                    setOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-[14px] hover:bg-neutral-50 flex items-center justify-between gap-2"
+                >
+                  <span className="truncate">{g.name}</span>
+                  {isActive && <Check size={14} style={{ color: PURPLE }} />}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function CheckInRouter() {
+  const { groups, selectedGroupId, setSelectedGroupId } = useSelectedGroup();
   const getStatus = useServerFn(getTodayRitualStatus);
   const { data, isLoading } = useQuery({
-    queryKey: ["today-ritual-status"],
-    queryFn: () => getStatus(),
+    queryKey: ["today-ritual-status", selectedGroupId],
+    queryFn: () => getStatus({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
-  const [localPosted, setLocalPosted] = useState(false);
+  const [localPosted, setLocalPosted] = useState<string | null>(null);
 
   if (isLoading || !data) {
     return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
   }
 
-  const showRitual = data.beforeNoon && !data.posted && !localPosted;
-  return showRitual ? <MorningRitual onPosted={() => setLocalPosted(true)} /> : <CheckInMood />;
+  const postedForThisGroup = localPosted && localPosted === selectedGroupId;
+  const showRitual = data.beforeNoon && !data.posted && !postedForThisGroup;
+  const switcher = (
+    <GroupSwitcher
+      groups={groups}
+      selectedGroupId={selectedGroupId}
+      onSelect={setSelectedGroupId}
+    />
+  );
+  return showRitual ? (
+    <MorningRitual
+      groupId={selectedGroupId}
+      switcher={switcher}
+      onPosted={() => setLocalPosted(selectedGroupId)}
+    />
+  ) : (
+    <CheckInMood switcher={switcher} />
+  );
 }
 
 
-function MorningRitual({ onPosted }: { onPosted: () => void }) {
+function MorningRitual({
+  groupId,
+  switcher,
+  onPosted,
+}: {
+  groupId: string | null;
+  switcher: React.ReactNode;
+  onPosted: () => void;
+}) {
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [count, setCount] = useState(0);
@@ -178,7 +288,7 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
   const onPost = () => {
     const text = textareaRef.current?.value.trim();
     if (!text) return;
-    mutation.mutate({ data: { text } });
+    mutation.mutate({ data: { text, groupId } });
   };
 
   const canPost = count > 0 && count <= MAX && !mutation.isPending;
@@ -188,8 +298,9 @@ function MorningRitual({ onPosted }: { onPosted: () => void }) {
       className="min-h-[100dvh] w-full pb-32"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      {switcher}
 
-      <div className="px-6 pt-8">
+      <div className="px-6 pt-4">
         <div className="text-[13px] font-bold" style={{ color: PURPLE }}>
           It's time for your morning ritual
         </div>
