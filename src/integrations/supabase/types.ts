@@ -156,23 +156,34 @@ export type Database = {
       earned_badges: {
         Row: {
           earned_at: string
+          group_id: string
           id: string
           streak_days: number
           user_id: string
         }
         Insert: {
           earned_at?: string
+          group_id: string
           id?: string
           streak_days: number
           user_id: string
         }
         Update: {
           earned_at?: string
+          group_id?: string
           id?: string
           streak_days?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "earned_badges_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fcm_tokens: {
         Row: {
