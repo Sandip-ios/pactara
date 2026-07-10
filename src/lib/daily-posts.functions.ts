@@ -172,12 +172,15 @@ export const postMorningRitual = createServerFn({ method: "POST" })
 
 export const getTodayRitualStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input?: { groupId?: string | null }) => ({
+    groupId: input?.groupId ?? null,
+  }))
+  .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId);
+    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) return { posted: false, beforeNoon: localHourFor(timezone) < 12 };
     const today = localDateFor(timezone);
-    const { data } = await supabase
+    const { data: post } = await supabase
       .from("daily_posts")
       .select("morning_ritual_posted_at")
       .eq("user_id", userId)
@@ -185,7 +188,7 @@ export const getTodayRitualStatus = createServerFn({ method: "GET" })
       .eq("local_date", today)
       .maybeSingle();
     return {
-      posted: Boolean(data?.morning_ritual_posted_at),
+      posted: Boolean(post?.morning_ritual_posted_at),
       beforeNoon: localHourFor(timezone) < 12,
     };
   });
