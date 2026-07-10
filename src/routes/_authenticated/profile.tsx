@@ -65,8 +65,8 @@ function ProfilePage() {
   });
 
   const { data: badges } = useQuery({
-    queryKey: ["my-badges"],
-    queryFn: () => getMyBadges(),
+    queryKey: ["my-badges", selectedGroupId],
+    queryFn: () => getMyBadges({ data: { groupId: selectedGroupId } }),
   });
 
   const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;

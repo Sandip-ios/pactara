@@ -293,7 +293,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     let newBadges: number[] = [];
     try {
       const { awardBadgesForUser } = await import("./badges.functions");
-      newBadges = await awardBadgesForUser(supabase, userId);
+      newBadges = await awardBadgesForUser(supabase, userId, groupId);
     } catch (err) {
       console.error("badge award failed", err);
     }
