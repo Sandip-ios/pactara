@@ -79,21 +79,38 @@ async function signPhoto(
   return data?.signedUrl ?? null;
 }
 
-async function getMyGroupAndTz(supabase: SupabaseClient, userId: string) {
-  const { data: membership } = await supabase
-    .from("group_members")
-    .select("group_id, joined_at")
-    .eq("user_id", userId)
-    .order("joined_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+async function getMyGroupAndTz(
+  supabase: SupabaseClient,
+  userId: string,
+  preferredGroupId?: string | null,
+) {
+  let groupId: string | null = null;
+  if (preferredGroupId) {
+    const { data: member } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId)
+      .eq("group_id", preferredGroupId)
+      .maybeSingle();
+    if (member?.group_id) groupId = member.group_id;
+  }
+  if (!groupId) {
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("group_id, joined_at")
+      .eq("user_id", userId)
+      .order("joined_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    groupId = membership?.group_id ?? null;
+  }
   const { data: profile } = await supabase
     .from("profiles")
     .select("timezone")
     .eq("id", userId)
     .maybeSingle();
   return {
-    groupId: membership?.group_id ?? null,
+    groupId,
     timezone: profile?.timezone ?? "UTC",
   };
 }
