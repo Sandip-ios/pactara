@@ -172,6 +172,10 @@ function NotesPage() {
 
   const handleShareClose = () => {
     if (shareData?.photoUrl) URL.revokeObjectURL(shareData.photoUrl);
+    // User already saw the badge here — don't re-announce on /home.
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem("pending-badge-announce");
+    }
     setShareData(null);
     finalizeAndExit();
   };
