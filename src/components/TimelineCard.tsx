@@ -97,6 +97,42 @@ function timeLabel(iso: string) {
 }
 
 
+function VideoThumb({ src }: { src: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const seekedRef = useRef(false);
+  return (
+    <video
+      ref={ref}
+      src={src}
+      muted
+      playsInline
+      preload="auto"
+      // iOS Safari won't render a first frame from preload=metadata.
+      // Nudge it: play briefly (muted) then pause on the first frame.
+      onLoadedMetadata={() => {
+        const v = ref.current;
+        if (!v) return;
+        v.play()
+          .then(() => {
+            if (seekedRef.current) return;
+            seekedRef.current = true;
+            v.pause();
+            try {
+              v.currentTime = 0.1;
+            } catch {}
+          })
+          .catch(() => {
+            try {
+              v.currentTime = 0.1;
+            } catch {}
+          });
+      }}
+      className="w-full h-full object-cover pointer-events-none"
+    />
+  );
+}
+
+
 const MOOD_META: Record<string, { label: string; emoji: string; color: string; bg: string; border: string }> = {
   crushed: { label: "Crushed it", emoji: "🏆", color: "#16A34A", bg: "#ECFDF3", border: "#D1FADF" },
   showed: { label: "Showed up", emoji: "💪", color: PURPLE, bg: "#F4EEFF", border: "#E5D9FE" },
