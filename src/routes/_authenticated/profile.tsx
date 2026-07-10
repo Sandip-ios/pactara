@@ -32,7 +32,10 @@ function ProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const saveAvatarPath = useServerFn(setAvatarPath);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
+    if (typeof localStorage === "undefined") return null;
+    return localStorage.getItem("active-group-id");
+  });
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [freezeOpen, setFreezeOpen] = useState(false);
 
@@ -43,10 +46,18 @@ function ProfilePage() {
   const groups = groupsData?.groups ?? [];
 
   useEffect(() => {
-    if (!selectedGroupId && groups.length > 0) {
+    if (groups.length === 0) return;
+    const exists = selectedGroupId && groups.some((g) => g.id === selectedGroupId);
+    if (!exists) {
       setSelectedGroupId(groups[0].id as string);
     }
   }, [groups, selectedGroupId]);
+
+  useEffect(() => {
+    if (selectedGroupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", selectedGroupId);
+    }
+  }, [selectedGroupId]);
 
   const { data } = useQuery({
     queryKey: ["profile-overview", selectedGroupId],
