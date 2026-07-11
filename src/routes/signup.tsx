@@ -235,7 +235,8 @@ function SignupFlow() {
       }
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
-      navigate({ to: "/home" });
+      setStepIdx(STEPS.indexOf("paywall"));
+      setFinishing(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setFinishError(msg);
