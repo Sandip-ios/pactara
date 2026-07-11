@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CheckCircle2, Star, Flame, TrendingUp, Users } from "lucide-react";
+import { CheckCircle2, Star, Flame, TrendingUp, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -9,14 +9,21 @@ const INK = "#13131F";
 const MUTED = "#5A5A66";
 const ORANGE = "#C2410C";
 
+type Mode = "intro" | "blocked";
+
 type Props = {
   firstName?: string | null;
   daysActive?: number;
+  mode?: Mode;
+  onDismiss?: () => void;
 };
 
-export function TrialEndedPaywall({ firstName, daysActive }: Props) {
+export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onDismiss }: Props) {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
+  const [plan, setPlan] = useState<"yearly" | "monthly">("yearly");
+
+  const isIntro = mode === "intro";
 
   const testimonials = [
     {
@@ -54,15 +61,62 @@ export function TrialEndedPaywall({ firstName, daysActive }: Props) {
     navigate({ to: "/login" });
   }
 
+  function handleSubscribe() {
+    alert("Payments aren't connected yet — check back soon.");
+  }
+
+  const eyebrow = isIntro ? "START YOUR 7-DAY FREE TRIAL" : "YOUR TRIAL HAS ENDED";
+  const heading = isIntro ? (
+    <>Try Pactara<br />free for 7 days</>
+  ) : (
+    <>Keep your<br />progress going</>
+  );
+  const sub = isIntro ? (
+    <>
+      {firstName ? `${firstName}, get ` : "Get "} full access — cancel anytime.
+      <br />No charge until your trial ends.
+    </>
+  ) : (
+    <>
+      {firstName ? `${firstName}, you've ` : "You've "}
+      built {daysActive ? `${daysActive} days of` : "real"} momentum.
+      <br />
+      Subscribe to keep showing up.
+    </>
+  );
+
+  const priceMonthly = "$12.99";
+  const priceYearly = "$79.99";
+  const yearlyMonthly = "$6.67";
+  const ctaLabel =
+    plan === "yearly"
+      ? isIntro
+        ? `Start free trial — then ${priceYearly}/year`
+        : `Subscribe — ${priceYearly}/year`
+      : isIntro
+      ? `Start free trial — then ${priceMonthly}/month`
+      : `Subscribe — ${priceMonthly}/month`;
+
   return (
     <div
       className="fixed inset-0 z-[100] w-full flex flex-col overflow-y-auto"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}
     >
       <div className="min-h-[100dvh] flex flex-col shrink-0">
+        {isIntro && onDismiss && (
+          <button
+            type="button"
+            onClick={onDismiss}
+            aria-label="Close"
+            className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white shadow-sm flex items-center justify-center z-10"
+            style={{ color: MUTED }}
+          >
+            <X size={18} />
+          </button>
+        )}
         <div className="px-6 pt-10 text-center shrink-0">
           <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
-            YOUR TRIAL HAS ENDED
+            {eyebrow}
           </div>
           <h1
             className="mt-2 text-[34px] leading-[1.02] tracking-tight"
@@ -71,21 +125,16 @@ export function TrialEndedPaywall({ firstName, daysActive }: Props) {
               color: INK,
             }}
           >
-            Keep your
-            <br />
-            progress going
+            {heading}
           </h1>
           <p className="mt-3 text-[14px] leading-[1.45]" style={{ color: MUTED }}>
-            {firstName ? `${firstName}, you've ` : "You've "}
-            built {daysActive ? `${daysActive} days of` : "real"} momentum.
-            <br />
-            Subscribe to keep showing up — <span className="font-semibold" style={{ color: INK }}>$12.99/month</span>.
+            {sub}
           </p>
         </div>
 
         <div className="mt-6 mx-6 rounded-2xl bg-white p-4 shrink-0" style={{ boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)" }}>
           <div className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: MUTED }}>
-            What you keep
+            {isIntro ? "What you get" : "What you keep"}
           </div>
           <ul className="mt-3 space-y-2.5">
             {keepFeatures.map(({ Icon, label }, i) => (
@@ -102,6 +151,57 @@ export function TrialEndedPaywall({ firstName, daysActive }: Props) {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div className="mt-4 mx-6 grid grid-cols-2 gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={() => setPlan("yearly")}
+            className="relative rounded-2xl bg-white p-3 text-left transition-all"
+            style={{
+              border: `2px solid ${plan === "yearly" ? PURPLE : "transparent"}`,
+              boxShadow:
+                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+            }}
+          >
+            <div
+              className="absolute -top-2 right-3 px-2 py-0.5 rounded-full text-[10px] font-bold text-white"
+              style={{ background: PURPLE }}
+            >
+              SAVE 49%
+            </div>
+            <div className="text-[11px] font-bold tracking-wide" style={{ color: MUTED }}>
+              YEARLY
+            </div>
+            <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
+              {yearlyMonthly}
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+            </div>
+            <div className="text-[11px]" style={{ color: MUTED }}>
+              {priceYearly} billed yearly
+            </div>
+          </button>
+          <button
+            type="button"
+            onClick={() => setPlan("monthly")}
+            className="rounded-2xl bg-white p-3 text-left transition-all"
+            style={{
+              border: `2px solid ${plan === "monthly" ? PURPLE : "transparent"}`,
+              boxShadow:
+                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+            }}
+          >
+            <div className="text-[11px] font-bold tracking-wide" style={{ color: MUTED }}>
+              MONTHLY
+            </div>
+            <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
+              {priceMonthly}
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+            </div>
+            <div className="text-[11px]" style={{ color: MUTED }}>
+              Billed monthly
+            </div>
+          </button>
         </div>
 
         <div
@@ -160,25 +260,33 @@ export function TrialEndedPaywall({ firstName, daysActive }: Props) {
 
           <button
             type="button"
-            onClick={() => {
-              // Payment integration not connected yet
-              alert("Payments aren't connected yet — check back soon.");
-            }}
-            className="mt-3 w-full h-[54px] rounded-full text-white text-[16px] font-semibold"
+            onClick={handleSubscribe}
+            className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4"
             style={{ background: PURPLE }}
           >
-            Subscribe — $12.99/month
+            {ctaLabel}
           </button>
 
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="mt-3 w-full text-[14px] font-medium"
-            style={{ color: MUTED }}
-          >
-            {signingOut ? "Signing out…" : "Sign out"}
-          </button>
+          {isIntro ? (
+            <button
+              type="button"
+              onClick={onDismiss}
+              className="mt-3 w-full text-[14px] font-medium"
+              style={{ color: MUTED }}
+            >
+              Maybe later
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="mt-3 w-full text-[14px] font-medium"
+              style={{ color: MUTED }}
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
+          )}
         </div>
       </div>
     </div>

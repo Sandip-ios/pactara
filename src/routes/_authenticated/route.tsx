@@ -46,7 +46,9 @@ function AuthLayout() {
       const created = new Date(profile.created_at).getTime();
       const now = Date.now();
       const daysActive = Math.max(0, Math.floor((now - created) / 86400000));
-      const expired = now - created > TRIAL_DAYS * 86400000;
+      const subscribed =
+        typeof localStorage !== "undefined" && localStorage.getItem("pactara-subscribed") === "1";
+      const expired = !subscribed && now - created > TRIAL_DAYS * 86400000;
       const firstName = (profile.name || "").split(" ")[0] || null;
       setTrialState({ expired, firstName, daysActive });
     })();
