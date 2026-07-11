@@ -35,6 +35,8 @@ import {
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
@@ -96,7 +98,8 @@ type StepKey =
   | "invite"
   | "notify"
   | "password"
-  | "greeting";
+  | "greeting"
+  | "paywall";
 
 const STEPS: StepKey[] = [
   "name",
@@ -112,7 +115,9 @@ const STEPS: StepKey[] = [
   "notify",
   "password",
   "greeting",
+  "paywall",
 ];
+
 
 
 
@@ -232,7 +237,8 @@ function SignupFlow() {
       }
       if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
-      navigate({ to: "/home" });
+      setStepIdx(STEPS.indexOf("paywall"));
+      setFinishing(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setFinishError(msg);
@@ -304,6 +310,17 @@ function SignupFlow() {
       </>
     );
   }
+
+  if (step === "paywall") {
+    return (
+      <TrialEndedPaywall
+        firstName={firstName}
+        mode="intro"
+        onDismiss={() => navigate({ to: "/home" })}
+      />
+    );
+  }
+
 
 
 
