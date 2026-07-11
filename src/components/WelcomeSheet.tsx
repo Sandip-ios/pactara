@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Flame, Sun, CheckCircle2, Camera, X, ChevronRight, Check } from "lucide-react";
-import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 
 const PURPLE = "#7C3AED";
 
@@ -9,11 +8,7 @@ type Props = { firstName: string; onClose: () => void };
 export function WelcomeSheet({ firstName, onClose }: Props) {
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState("Hit the gym before 8am — chest & shoulders. No excuses. 💪");
-  const total = 5;
-
-  if (step === total - 1) {
-    return <TrialEndedPaywall firstName={firstName} mode="intro" onDismiss={onClose} />;
-  }
+  const total = 4;
 
   const accent =
     step === 0 ? PURPLE : step === 1 ? "#F59E0B" : step === 2 ? "#22C55E" : PURPLE;
