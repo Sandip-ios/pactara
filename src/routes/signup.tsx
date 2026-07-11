@@ -96,7 +96,8 @@ type StepKey =
   | "invite"
   | "notify"
   | "password"
-  | "greeting";
+  | "greeting"
+  | "paywall";
 
 const STEPS: StepKey[] = [
   "name",
@@ -112,7 +113,9 @@ const STEPS: StepKey[] = [
   "notify",
   "password",
   "greeting",
+  "paywall",
 ];
+
 
 
 
