@@ -20,7 +20,6 @@ import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
-import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { supabase } from "@/integrations/supabase/client";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
@@ -195,7 +194,7 @@ function HomePage() {
 
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
-  const [showTrialIntro, setShowTrialIntro] = useState(false);
+  
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState("");
   const composerRef = useRef<HTMLTextAreaElement>(null);
@@ -520,25 +519,7 @@ function HomePage() {
       </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
       {showWelcome && (
-        <WelcomeSheet
-          firstName={firstName}
-          onClose={() => {
-            setShowWelcome(false);
-            if (typeof localStorage !== "undefined" && !localStorage.getItem("pactara-seen-trial-intro")) {
-              setShowTrialIntro(true);
-            }
-          }}
-        />
-      )}
-      {showTrialIntro && (
-        <TrialEndedPaywall
-          firstName={firstName}
-          mode="intro"
-          onDismiss={() => {
-            if (typeof localStorage !== "undefined") localStorage.setItem("pactara-seen-trial-intro", "1");
-            setShowTrialIntro(false);
-          }}
-        />
+        <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />
       )}
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
