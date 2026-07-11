@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import proofAsset from "@/assets/proof.jpg.asset.json";
-import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 
 type Props = { firstName: string; onClose: () => void };
 
@@ -9,14 +8,12 @@ const SERIF = 'Georgia, "Times New Roman", serif';
 const INK = "#1A1B2A";
 const PURPLE = "#7C3AED";
 
-export function OnboardingSheet({ firstName, onClose }: Props) {
+export function OnboardingSheet({ firstName: _firstName, onClose }: Props) {
   const [step, setStep] = useState(0);
-  const total = 4;
+  const total = 3;
   const isLast = step === total - 1;
 
-  if (isLast) {
-    return <TrialEndedPaywall firstName={firstName} mode="intro" onDismiss={onClose} />;
-  }
+
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
