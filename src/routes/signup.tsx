@@ -309,6 +309,17 @@ function SignupFlow() {
     );
   }
 
+  if (step === "paywall") {
+    return (
+      <TrialEndedPaywall
+        firstName={firstName}
+        mode="intro"
+        onDismiss={() => navigate({ to: "/home" })}
+      />
+    );
+  }
+
+
 
 
 
