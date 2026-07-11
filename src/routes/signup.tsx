@@ -35,6 +35,8 @@ import {
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
+
 
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
