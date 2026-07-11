@@ -520,25 +520,7 @@ function HomePage() {
       </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
       {showWelcome && (
-        <WelcomeSheet
-          firstName={firstName}
-          onClose={() => {
-            setShowWelcome(false);
-            if (typeof localStorage !== "undefined" && !localStorage.getItem("pactara-seen-trial-intro")) {
-              setShowTrialIntro(true);
-            }
-          }}
-        />
-      )}
-      {showTrialIntro && (
-        <TrialEndedPaywall
-          firstName={firstName}
-          mode="intro"
-          onDismiss={() => {
-            if (typeof localStorage !== "undefined") localStorage.setItem("pactara-seen-trial-intro", "1");
-            setShowTrialIntro(false);
-          }}
-        />
+        <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />
       )}
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
