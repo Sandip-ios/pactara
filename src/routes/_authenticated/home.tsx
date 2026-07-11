@@ -20,6 +20,7 @@ import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
+import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { supabase } from "@/integrations/supabase/client";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
