@@ -52,6 +52,26 @@ In Xcode:
    - Bundle Identifier: `app.pactara`
    - **+ Capability → Push Notifications**
    - **+ Capability → Background Modes → Remote notifications**
+1a. **Info.plist — camera & microphone permissions** (required for check-in video)
+
+   Open `ios/App/App/Info.plist` and add these keys inside the top-level `<dict>`.
+   Without them iOS strips `navigator.mediaDevices` and the camera screen shows
+   "Camera not supported on this device."
+
+   ```xml
+   <key>NSCameraUsageDescription</key>
+   <string>Pactara uses the camera so you can record your daily check-in video.</string>
+   <key>NSMicrophoneUsageDescription</key>
+   <string>Pactara uses the microphone to record audio with your check-in video.</string>
+   <key>NSPhotoLibraryAddUsageDescription</key>
+   <string>Pactara saves your check-in video to your photo library when you choose to.</string>
+   ```
+
+   The native check-in screen uses the system camera app (via a `capture`
+   file input), which requires `NSCameraUsageDescription` and
+   `NSMicrophoneUsageDescription` to be present or iOS will silently refuse
+   to launch it.
+
 2. Drag **`GoogleService-Info.plist`** (from step 1) into
    `ios/App/App/`. Check "Copy items if needed" and add it to the App target.
 3. Open `ios/App/App/AppDelegate.swift` and initialize Firebase plus the
