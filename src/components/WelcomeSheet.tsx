@@ -44,7 +44,7 @@ export function WelcomeSheet({ firstName, onClose }: Props) {
           <StepMorning plan={plan} setPlan={setPlan} />
         )}
         {step === 2 && (
-          <StepCheckin onTry={() => setStep(3)} />
+          <StepCheckin />
         )}
         {step === 3 && (
           <StepPhoto />
@@ -160,7 +160,7 @@ function StepMorning({ plan, setPlan }: { plan: string; setPlan: (s: string) => 
   );
 }
 
-function StepCheckin({ onTry }: { onTry: () => void }) {
+function StepCheckin() {
   const [picked, setPicked] = useState(0);
   const opts = [
     { label: "Crushed it", sub: "Trained, tracked, or hit my target today", icon: <Check size={16} className="text-white" />, iconBg: "bg-white/20" },
@@ -199,14 +199,6 @@ function StepCheckin({ onTry }: { onTry: () => void }) {
           </button>
         ))}
       </div>
-
-      <button
-        onClick={onTry}
-        className="mt-4 w-full rounded-full py-4 text-white text-[16px] font-semibold shadow-lg"
-        style={{ background: "#22C55E", boxShadow: "0 10px 30px -10px #22C55E" }}
-      >
-        Try it now →
-      </button>
     </div>
   );
 }
