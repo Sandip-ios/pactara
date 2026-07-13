@@ -478,7 +478,7 @@ function VideoRecordScreen() {
         )}
 
         {/* Zoom presets, iPhone-style */}
-        {ready && zoomOptions.length > 1 && (
+        {ready && !recording && zoomOptions.length > 1 && (
           <div className="flex items-center gap-1.5 px-2 py-1.5">
             {zoomOptions.map((v) => {
               const active = Math.abs(zoom - v) < 0.01;
