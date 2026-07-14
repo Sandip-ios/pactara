@@ -162,3 +162,6 @@
   scrollbar-width: none;
   &::-webkit-scrollbar { display: none; }
 }
+
+/* Hide the app's BottomTabs while a modal/sheet is open. */
+body.modal-open [data-bottom-tabs] { display: none !important; }

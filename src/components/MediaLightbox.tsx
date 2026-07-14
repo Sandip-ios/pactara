@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 export function MediaLightbox({
   src,
@@ -11,6 +12,7 @@ export function MediaLightbox({
   kind: "image" | "video";
   onClose: () => void;
 }) {
+  useHideBottomTabs();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();

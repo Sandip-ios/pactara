@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Clock, Camera, Eye } from "lucide-react";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 
@@ -30,6 +31,7 @@ function Tip({
 }
 
 export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
+  useHideBottomTabs(open);
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;

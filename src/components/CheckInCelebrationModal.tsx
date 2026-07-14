@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Share as ShareIcon, X } from "lucide-react";
 import { BADGE_META } from "@/lib/badges";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 /**
  * CheckInCelebrationModal — Pactara
@@ -75,6 +76,7 @@ export function CheckInCelebrationModal({
   onDismiss,
   open = true,
 }: CheckInCelebrationModalProps) {
+  useHideBottomTabs(open);
   const reduceMotion = useMemo(prefersReducedMotion, []);
   const shareBtnRef = useRef<HTMLButtonElement>(null);
 

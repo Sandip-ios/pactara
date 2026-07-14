@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ListChecks, X, Circle, CheckCircle2 } from "lucide-react";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const PURPLE = "#7C3AED";
 const ORANGE = "#F59E0B";
@@ -62,6 +63,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState<Set<TaskId>>(() => new Set());
+  useHideBottomTabs(open);
 
   useEffect(() => {
     setDone(readDone());
