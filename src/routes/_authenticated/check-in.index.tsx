@@ -363,9 +363,8 @@ function MorningRitual({
 function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-
   const [cameraError, setCameraError] = useState<string | null>(null);
+
 
   const onContinue = async (moodId: MoodId) => {
     setCameraError(null);
