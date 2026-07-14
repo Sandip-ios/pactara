@@ -367,15 +367,12 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
 
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  const onContinue = async () => {
-    if (!selected) return;
+  const onContinue = async (moodId: MoodId) => {
     setCameraError(null);
-    sessionStorage.setItem("checkin-mood", selected);
+    sessionStorage.setItem("checkin-mood", moodId);
     clearCheckInPhoto();
     clearCheckInStream();
 
-    // On native (iOS/Android) the camera route uses the OS camera picker,
-    // so we don't need — and shouldn't attempt — a web getUserMedia pre-flight.
     // On native (iOS/Android) the WebView has camera permission via Info.plist,
     // so go straight to the in-app recorder without a prompt sheet.
     if (isNative()) {
@@ -385,7 +382,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
-      setSheetOpen(true);
       return;
     }
 
@@ -395,12 +391,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         audio: true,
       });
       setCheckInStream(stream);
-      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
-      if (seen) {
-        navigate({ to: "/check-in/camera" });
-      } else {
-        setSheetOpen(true);
-      }
+      navigate({ to: "/check-in/camera" });
     } catch (err) {
       const name = (err as DOMException)?.name;
       if (name === "NotAllowedError") {
@@ -408,7 +399,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
       } else {
         setCameraError("Camera unavailable.");
       }
-      setSheetOpen(true);
     }
   };
 
