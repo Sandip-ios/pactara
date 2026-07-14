@@ -451,29 +451,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         </div>
       )}
 
-      <div className="fixed inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}>
-        <button
-          onClick={onContinue}
-          disabled={!selected}
-          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
-          style={{
-            background: selected ? PURPLE : "#D9D6D1",
-            boxShadow: "none",
-          }}
-        >
-          Continue <ArrowRight size={18} />
-        </button>
-      </div>
-
-      <HowToRecordSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onRecord={() => {
-          setSheetOpen(false);
-          if (typeof window !== "undefined") localStorage.setItem("how-to-record-seen", "1");
-          navigate({ to: "/check-in/camera" });
-        }}
-      />
     </div>
   );
 }
