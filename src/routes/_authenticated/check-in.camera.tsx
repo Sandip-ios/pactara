@@ -20,6 +20,7 @@ function CameraRoute() {
   return <VideoRecordScreen />;
 }
 
+function pickMimeType(): string {
   if (typeof MediaRecorder === "undefined") return "";
   const candidates = [
     "video/mp4",
