@@ -35,7 +35,7 @@ export function BottomTabs() {
   return (
     <nav
       className="fixed bottom-0 inset-x-0 z-[60] bg-white border-t border-neutral-200 px-2 pt-2 grid grid-cols-5 items-end"
-      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 8px)" }}
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
 
       <TabItem
