@@ -415,10 +415,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           return (
             <button
               key={m.id}
-              onClick={() => {
-                setSelected(m.id);
-                onContinue(m.id);
-              }}
+              onClick={() => setSelected(m.id)}
               className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
               style={{
                 background: active ? m.bg : "#FFFFFF",
@@ -449,6 +446,21 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           </div>
         </div>
       )}
+
+      <div
+        className="fixed inset-x-0 px-4 z-40"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
+      >
+        <button
+          onClick={() => selected && onContinue(selected)}
+          disabled={!selected}
+          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
+          style={{ background: selected ? PURPLE : "#D9D6D1" }}
+        >
+          Continue <ArrowRight size={18} />
+        </button>
+      </div>
+
 
     </div>
   );
