@@ -9,6 +9,7 @@ import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
+import { isNative } from "@/lib/native";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -372,6 +373,18 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     sessionStorage.setItem("checkin-mood", selected);
     clearCheckInPhoto();
     clearCheckInStream();
+
+    // On native (iOS/Android) the camera route uses the OS camera picker,
+    // so we don't need — and shouldn't attempt — a web getUserMedia pre-flight.
+    if (isNative()) {
+      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
+      if (seen) {
+        navigate({ to: "/check-in/camera" });
+      } else {
+        setSheetOpen(true);
+      }
+      return;
+    }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
