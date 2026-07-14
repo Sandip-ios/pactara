@@ -374,6 +374,18 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     clearCheckInPhoto();
     clearCheckInStream();
 
+    // On native (iOS/Android) the camera route uses the OS camera picker,
+    // so we don't need — and shouldn't attempt — a web getUserMedia pre-flight.
+    if (isNative()) {
+      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
+      if (seen) {
+        navigate({ to: "/check-in/camera" });
+      } else {
+        setSheetOpen(true);
+      }
+      return;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
       setSheetOpen(true);
