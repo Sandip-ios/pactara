@@ -8,8 +8,10 @@ import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.funct
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
+import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 import { isNative } from "@/lib/native";
+
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
