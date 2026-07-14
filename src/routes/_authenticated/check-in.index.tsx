@@ -416,7 +416,10 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           return (
             <button
               key={m.id}
-              onClick={() => setSelected(m.id)}
+              onClick={() => {
+                setSelected(m.id);
+                onContinue(m.id);
+              }}
               className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
               style={{
                 background: active ? m.bg : "#FFFFFF",
