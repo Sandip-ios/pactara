@@ -295,7 +295,7 @@ function MorningRitual({
 
   return (
     <div
-      className="min-h-[100dvh] w-full pb-32"
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-32"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       {switcher}
@@ -403,7 +403,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   };
 
   return (
-    <div className="min-h-[100dvh] w-full pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       {switcher}
       <div className="px-6 pt-6">
         <h1 className="text-[34px] font-black leading-tight tracking-tight">Let's check you in</h1>

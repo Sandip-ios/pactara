@@ -40,7 +40,7 @@ export function SubPage({
 }) {
   return (
     <div
-      className="min-h-[100dvh] w-full pb-28"
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <header className="bg-white px-4 pt-5 pb-4 flex items-center gap-2">
