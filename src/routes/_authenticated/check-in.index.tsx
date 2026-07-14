@@ -366,6 +366,9 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [howToOpen, setHowToOpen] = useState(false);
+
+
 
 
   const onContinue = async (moodId: MoodId) => {
