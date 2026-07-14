@@ -4,7 +4,6 @@ import { X, HelpCircle, SwitchCamera } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
-import { isNative } from "@/lib/native";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 const PURPLE = "#7C3AED";
@@ -18,7 +17,6 @@ export const Route = createFileRoute("/_authenticated/check-in/camera")({
 });
 
 function CameraRoute() {
-  if (isNative()) return <NativeVideoCapture />;
   return <VideoRecordScreen />;
 }
 
