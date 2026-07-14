@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Share2, X, Download } from "lucide-react";
 import { MOODS, type MoodId } from "@/routes/_authenticated/check-in.index";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const ACTIVITY_LABELS: Record<string, { emoji: string; label: string }> = {
   meal: { emoji: "🥗", label: "Meal" },
@@ -29,6 +30,7 @@ export function CheckInShareModal({
   data: CheckInShareData;
   onClose: () => void;
 }) {
+  useHideBottomTabs();
   const cardRef = useRef<HTMLDivElement>(null);
   const [hide, setHide] = useState(false);
   const [sharing, setSharing] = useState(false);

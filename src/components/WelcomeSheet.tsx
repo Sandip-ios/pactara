@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Flame, Sun, CheckCircle2, Camera, X, ChevronRight, Check } from "lucide-react";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const PURPLE = "#7C3AED";
 
 type Props = { firstName: string; onClose: () => void };
 
 export function WelcomeSheet({ firstName, onClose }: Props) {
+  useHideBottomTabs();
   const [step, setStep] = useState(0);
   const [plan, setPlan] = useState("Hit the gym before 8am — chest & shoulders. No excuses. 💪");
   const total = 4;

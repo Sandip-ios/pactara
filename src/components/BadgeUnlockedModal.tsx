@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { BADGE_META } from "@/lib/badges";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 export type BadgeUnlockedModalProps = {
   badges: number[];
@@ -8,6 +9,7 @@ export type BadgeUnlockedModalProps = {
 };
 
 export function BadgeUnlockedModal({ badges, onClose }: BadgeUnlockedModalProps) {
+  useHideBottomTabs();
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";

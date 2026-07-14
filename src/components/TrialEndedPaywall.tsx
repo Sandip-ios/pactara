@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, Star, Flame, TrendingUp, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EC";
@@ -19,6 +20,7 @@ type Props = {
 };
 
 export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onDismiss }: Props) {
+  useHideBottomTabs();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const [plan, setPlan] = useState<"yearly" | "monthly">("yearly");
