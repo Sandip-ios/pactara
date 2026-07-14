@@ -122,7 +122,7 @@ function PlanPage() {
 
   return (
     <div
-      className="min-h-[100dvh] w-full overflow-y-auto pb-28"
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <div className="px-6 pt-6 max-w-[480px] mx-auto">
