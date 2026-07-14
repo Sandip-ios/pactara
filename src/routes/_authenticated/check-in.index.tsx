@@ -8,7 +8,7 @@ import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.funct
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
-import HowToRecordSheet from "@/components/HowToRecordSheet";
+
 import { isNative } from "@/lib/native";
 
 const PURPLE = "#7C3AED";
@@ -363,32 +363,24 @@ function MorningRitual({
 function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-
   const [cameraError, setCameraError] = useState<string | null>(null);
 
-  const onContinue = async () => {
-    if (!selected) return;
+
+  const onContinue = async (moodId: MoodId) => {
     setCameraError(null);
-    sessionStorage.setItem("checkin-mood", selected);
+    sessionStorage.setItem("checkin-mood", moodId);
     clearCheckInPhoto();
     clearCheckInStream();
 
-    // On native (iOS/Android) the camera route uses the OS camera picker,
-    // so we don't need — and shouldn't attempt — a web getUserMedia pre-flight.
+    // On native (iOS/Android) the WebView has camera permission via Info.plist,
+    // so go straight to the in-app recorder without a prompt sheet.
     if (isNative()) {
-      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
-      if (seen) {
-        navigate({ to: "/check-in/camera" });
-      } else {
-        setSheetOpen(true);
-      }
+      navigate({ to: "/check-in/camera" });
       return;
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
-      setSheetOpen(true);
       return;
     }
 
@@ -398,12 +390,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         audio: true,
       });
       setCheckInStream(stream);
-      const seen = typeof window !== "undefined" && localStorage.getItem("how-to-record-seen") === "1";
-      if (seen) {
-        navigate({ to: "/check-in/camera" });
-      } else {
-        setSheetOpen(true);
-      }
+      navigate({ to: "/check-in/camera" });
     } catch (err) {
       const name = (err as DOMException)?.name;
       if (name === "NotAllowedError") {
@@ -411,7 +398,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
       } else {
         setCameraError("Camera unavailable.");
       }
-      setSheetOpen(true);
     }
   };
 
@@ -429,7 +415,10 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           return (
             <button
               key={m.id}
-              onClick={() => setSelected(m.id)}
+              onClick={() => {
+                setSelected(m.id);
+                onContinue(m.id);
+              }}
               className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
               style={{
                 background: active ? m.bg : "#FFFFFF",
@@ -461,29 +450,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         </div>
       )}
 
-      <div className="fixed inset-x-0 px-4 z-50" style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}>
-        <button
-          onClick={onContinue}
-          disabled={!selected}
-          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
-          style={{
-            background: selected ? PURPLE : "#D9D6D1",
-            boxShadow: "none",
-          }}
-        >
-          Continue <ArrowRight size={18} />
-        </button>
-      </div>
-
-      <HowToRecordSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        onRecord={() => {
-          setSheetOpen(false);
-          if (typeof window !== "undefined") localStorage.setItem("how-to-record-seen", "1");
-          navigate({ to: "/check-in/camera" });
-        }}
-      />
     </div>
   );
 }
