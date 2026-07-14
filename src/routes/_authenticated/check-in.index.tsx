@@ -8,8 +8,10 @@ import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.funct
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
+import HowToRecordSheet from "@/components/HowToRecordSheet";
 
 import { isNative } from "@/lib/native";
+
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -364,6 +366,9 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState<MoodId | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [howToOpen, setHowToOpen] = useState(false);
+
+
 
 
   const onContinue = async (moodId: MoodId) => {
@@ -452,7 +457,15 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
       >
         <button
-          onClick={() => selected && onContinue(selected)}
+          onClick={() => {
+            if (!selected) return;
+            const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
+            if (!seen) {
+              setHowToOpen(true);
+              return;
+            }
+            onContinue(selected);
+          }}
           disabled={!selected}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
           style={{ background: selected ? PURPLE : "#D9D6D1" }}
@@ -460,6 +473,17 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           Continue <ArrowRight size={18} />
         </button>
       </div>
+
+      <HowToRecordSheet
+        open={howToOpen}
+        onClose={() => setHowToOpen(false)}
+        onRecord={() => {
+          if (typeof localStorage !== "undefined") localStorage.setItem("howto-record-seen", "1");
+          setHowToOpen(false);
+          if (selected) onContinue(selected);
+        }}
+      />
+
 
 
     </div>
