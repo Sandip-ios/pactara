@@ -710,18 +710,9 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                           className="block w-full p-0 border-0 bg-transparent"
                         >
                           {isVideo ? (
-                            <div className="w-full aspect-square rounded-xl overflow-hidden bg-black">
-                              <VideoThumb src={src} />
-                            </div>
+                            <VideoBlock src={src} />
                           ) : (
                             <img src={src} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
-                          )}
-                          {isVideo && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="h-14 w-14 rounded-full bg-black/60 flex items-center justify-center">
-                                <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
-                              </div>
-                            </div>
                           )}
                         </button>
                         {visual.activity && (
