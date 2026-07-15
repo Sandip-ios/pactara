@@ -10,9 +10,6 @@ import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 
-import { isNative } from "@/lib/native";
-
-
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
 
@@ -377,13 +374,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     clearCheckInPhoto();
     clearCheckInStream();
 
-    // On native (iOS/Android) the WebView has camera permission via Info.plist,
-    // so go straight to the in-app recorder without a prompt sheet.
-    if (isNative()) {
-      navigate({ to: "/check-in/camera" });
-      return;
-    }
-
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
       return;
@@ -391,7 +381,13 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1080 },
+          height: { ideal: 1920 },
+          aspectRatio: { ideal: 9 / 16 },
+          frameRate: { ideal: 30 },
+        },
         audio: true,
       });
       setCheckInStream(stream);
