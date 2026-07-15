@@ -98,7 +98,7 @@ function timeLabel(iso: string) {
 }
 
 
-function VideoThumb({ src, onPlayingChange }: { src: string; onPlayingChange?: (playing: boolean) => void }) {
+function VideoThumb({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const primedRef = useRef(false);
 
@@ -138,9 +138,6 @@ function VideoThumb({ src, onPlayingChange }: { src: string; onPlayingChange?: (
           v.currentTime = 0.1;
         } catch {}
       }}
-      onPlay={() => onPlayingChange?.(true)}
-      onPause={() => onPlayingChange?.(false)}
-      onEnded={() => onPlayingChange?.(false)}
       className="w-full h-full object-cover pointer-events-none"
     />
   );
