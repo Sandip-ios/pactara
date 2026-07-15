@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
@@ -97,38 +98,71 @@ function timeLabel(iso: string) {
 }
 
 
-function VideoThumb({ src }: { src: string }) {
+function VideoThumb({ src, onPlayingChange }: { src: string; onPlayingChange?: (playing: boolean) => void }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const seekedRef = useRef(false);
+  const primedRef = useRef(false);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+            v.play().catch(() => {});
+          } else {
+            v.pause();
+          }
+        }
+      },
+      { threshold: [0, 0.6, 1] },
+    );
+    io.observe(v);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <video
       ref={ref}
       src={src}
       muted
+      loop
       playsInline
       preload="auto"
-      // iOS Safari won't render a first frame from preload=metadata.
-      // Nudge it: play briefly (muted) then pause on the first frame.
       onLoadedMetadata={() => {
         const v = ref.current;
-        if (!v) return;
-        v.play()
-          .then(() => {
-            if (seekedRef.current) return;
-            seekedRef.current = true;
-            v.pause();
-            try {
-              v.currentTime = 0.1;
-            } catch {}
-          })
-          .catch(() => {
-            try {
-              v.currentTime = 0.1;
-            } catch {}
-          });
+        if (!v || primedRef.current) return;
+        primedRef.current = true;
+        // Prime first frame for iOS Safari
+        try {
+          v.currentTime = 0.1;
+        } catch {}
       }}
+      onPlay={() => onPlayingChange?.(true)}
+      onPause={() => onPlayingChange?.(false)}
+      onEnded={() => onPlayingChange?.(false)}
       className="w-full h-full object-cover pointer-events-none"
     />
+  );
+}
+
+function VideoBlock({ src }: { src: string }) {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <div className="w-full aspect-square rounded-xl overflow-hidden bg-black relative">
+      <VideoThumb src={src} onPlayingChange={setPlaying} />
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        {playing ? (
+          <div className="h-11 w-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+            <div className="w-0 h-0 border-y-[8px] border-y-transparent border-l-[13px] border-l-white ml-0.5" />
+          </div>
+        ) : (
+          <div className="h-14 w-14 rounded-full bg-black/60 flex items-center justify-center">
+            <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -696,18 +730,9 @@ export function TimelineCard({ item }: { item: FeedItem }) {
                           className="block w-full p-0 border-0 bg-transparent"
                         >
                           {isVideo ? (
-                            <div className="w-full aspect-square rounded-xl overflow-hidden bg-black">
-                              <VideoThumb src={src} />
-                            </div>
+                            <VideoBlock src={src} />
                           ) : (
                             <img src={src} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
-                          )}
-                          {isVideo && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                              <div className="h-14 w-14 rounded-full bg-black/60 flex items-center justify-center">
-                                <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
-                              </div>
-                            </div>
                           )}
                         </button>
                         {visual.activity && (
