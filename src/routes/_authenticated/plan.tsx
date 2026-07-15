@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 export const Route = createFileRoute("/_authenticated/plan")({
   ssr: false,
@@ -511,6 +512,7 @@ function BottomSheet({
   children: React.ReactNode;
   onClose: () => void;
 }) {
+  useHideBottomTabs();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);

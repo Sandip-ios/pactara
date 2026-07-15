@@ -1,9 +1,10 @@
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomTabs } from "@/components/BottomTabs";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
+import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
 
 const TRIAL_DAYS = 7;
 
@@ -19,7 +20,13 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const tabsHiddenByModal = useSyncExternalStore(
+    subscribeBottomTabsHidden,
+    areBottomTabsHidden,
+    () => false,
+  );
   const hideTabs =
+    tabsHiddenByModal ||
     pathname.startsWith("/check-in/") ||
     pathname === "/invite" ||
     pathname === "/new-pactara" ||
