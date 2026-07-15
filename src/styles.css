@@ -164,4 +164,7 @@
 }
 
 /* Hide the app's BottomTabs while a modal/sheet is open. */
-body.modal-open [data-bottom-tabs] { display: none !important; }
+body.modal-open [data-bottom-tabs],
+body[data-bottom-tabs-hidden="true"] [data-bottom-tabs] {
+  display: none !important;
+}

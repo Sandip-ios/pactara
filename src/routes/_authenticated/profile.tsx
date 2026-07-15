@@ -12,6 +12,7 @@ import { listMyGroups } from "@/lib/groups.functions";
 import { getMyBadges } from "@/lib/badges.functions";
 import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 
 const PURPLE = "#7C3AED";
@@ -372,6 +373,7 @@ function HistorySheet({
   days: { date: string; checked: boolean }[];
   onClose: () => void;
 }) {
+  useHideBottomTabs();
   const checkedCount = days.filter((d) => d.checked).length;
   // Group by month
   const groups = new Map<string, { date: string; checked: boolean }[]>();
@@ -640,6 +642,7 @@ function StreakFreezeSheet({
   onClose: () => void;
   onApplied: () => void;
 }) {
+  useHideBottomTabs();
   const apply = useServerFn(applyStreakFreeze);
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["streak-freeze-info", groupId],
