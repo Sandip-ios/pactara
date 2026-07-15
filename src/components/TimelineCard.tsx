@@ -98,7 +98,7 @@ function timeLabel(iso: string) {
 }
 
 
-function VideoThumb({ src, onPlayingChange }: { src: string; onPlayingChange?: (playing: boolean) => void }) {
+function VideoThumb({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const primedRef = useRef(false);
 
@@ -138,30 +138,15 @@ function VideoThumb({ src, onPlayingChange }: { src: string; onPlayingChange?: (
           v.currentTime = 0.1;
         } catch {}
       }}
-      onPlay={() => onPlayingChange?.(true)}
-      onPause={() => onPlayingChange?.(false)}
-      onEnded={() => onPlayingChange?.(false)}
       className="w-full h-full object-cover pointer-events-none"
     />
   );
 }
 
 function VideoBlock({ src }: { src: string }) {
-  const [playing, setPlaying] = useState(false);
   return (
     <div className="w-full aspect-square rounded-xl overflow-hidden bg-black relative">
-      <VideoThumb src={src} onPlayingChange={setPlaying} />
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        {playing ? (
-          <div className="h-11 w-11 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
-            <div className="w-0 h-0 border-y-[8px] border-y-transparent border-l-[13px] border-l-white ml-0.5" />
-          </div>
-        ) : (
-          <div className="h-14 w-14 rounded-full bg-black/60 flex items-center justify-center">
-            <div className="w-0 h-0 border-y-[10px] border-y-transparent border-l-[16px] border-l-white ml-1" />
-          </div>
-        )}
-      </div>
+      <VideoThumb src={src} />
     </div>
   );
 }
