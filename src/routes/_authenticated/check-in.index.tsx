@@ -10,9 +10,6 @@ import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 
-import { isNative } from "@/lib/native";
-
-
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
 
@@ -377,13 +374,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     clearCheckInPhoto();
     clearCheckInStream();
 
-    // On native (iOS/Android) the WebView has camera permission via Info.plist,
-    // so go straight to the in-app recorder without a prompt sheet.
-    if (isNative()) {
-      navigate({ to: "/check-in/camera" });
-      return;
-    }
-
     if (!navigator.mediaDevices?.getUserMedia) {
       setCameraError("Camera not supported on this device.");
       return;
@@ -391,7 +381,13 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1080 },
+          height: { ideal: 1920 },
+          aspectRatio: { ideal: 9 / 16 },
+          frameRate: { ideal: 30 },
+        },
         audio: true,
       });
       setCheckInStream(stream);
@@ -404,6 +400,18 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
         setCameraError("Camera unavailable.");
       }
     }
+  };
+
+  const onSelectMood = (moodId: MoodId) => {
+    setSelected(moodId);
+    setCameraError(null);
+    const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
+    if (!seen) {
+      sessionStorage.setItem("checkin-mood", moodId);
+      setHowToOpen(true);
+      return;
+    }
+    void onContinue(moodId);
   };
 
   return (
@@ -420,7 +428,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           return (
             <button
               key={m.id}
-              onClick={() => setSelected(m.id)}
+              onClick={() => onSelectMood(m.id)}
               className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
               style={{
                 background: active ? m.bg : "#FFFFFF",
@@ -451,28 +459,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           </div>
         </div>
       )}
-
-      <div
-        className="fixed inset-x-0 px-4 z-40"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
-      >
-        <button
-          onClick={() => {
-            if (!selected) return;
-            const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
-            if (!seen) {
-              setHowToOpen(true);
-              return;
-            }
-            onContinue(selected);
-          }}
-          disabled={!selected}
-          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
-          style={{ background: selected ? PURPLE : "#D9D6D1" }}
-        >
-          Continue <ArrowRight size={18} />
-        </button>
-      </div>
 
       <HowToRecordSheet
         open={howToOpen}
