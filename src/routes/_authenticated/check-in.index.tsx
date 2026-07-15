@@ -406,6 +406,18 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     }
   };
 
+  const onSelectMood = (moodId: MoodId) => {
+    setSelected(moodId);
+    setCameraError(null);
+    const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
+    if (!seen) {
+      sessionStorage.setItem("checkin-mood", moodId);
+      setHowToOpen(true);
+      return;
+    }
+    void onContinue(moodId);
+  };
+
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       {switcher}
@@ -420,7 +432,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           return (
             <button
               key={m.id}
-              onClick={() => setSelected(m.id)}
+              onClick={() => onSelectMood(m.id)}
               className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
               style={{
                 background: active ? m.bg : "#FFFFFF",
@@ -451,28 +463,6 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
           </div>
         </div>
       )}
-
-      <div
-        className="fixed inset-x-0 px-4 z-40"
-        style={{ bottom: "calc(env(safe-area-inset-bottom) + 88px)" }}
-      >
-        <button
-          onClick={() => {
-            if (!selected) return;
-            const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
-            if (!seen) {
-              setHowToOpen(true);
-              return;
-            }
-            onContinue(selected);
-          }}
-          disabled={!selected}
-          className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
-          style={{ background: selected ? PURPLE : "#D9D6D1" }}
-        >
-          Continue <ArrowRight size={18} />
-        </button>
-      </div>
 
       <HowToRecordSheet
         open={howToOpen}
