@@ -30,6 +30,10 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const [plan, setPlan] = useState<"yearly" | "monthly">("yearly");
+  const [offerings, setOfferings] = useState<PactaraOfferings | null>(null);
+  const [loadingOfferings, setLoadingOfferings] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const isIntro = mode === "intro";
 
