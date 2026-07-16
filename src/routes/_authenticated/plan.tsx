@@ -159,6 +159,16 @@ function PlanPage() {
         ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
         : "Choose a plan below to keep your progress.";
 
+  const monthlyPrice = offerings?.monthly?.product?.priceString ?? "$12.99";
+  const annualPrice = offerings?.annual?.product?.priceString ?? "$79.99";
+  const annualMonthlyPrice = (() => {
+    const annualPriceValue = offerings?.annual?.product?.price;
+    if (typeof annualPriceValue === "number" && annualPriceValue > 0) {
+      return `$${(annualPriceValue / 12).toFixed(2)}`;
+    }
+    return "$6.67";
+  })();
+
   return (
     <div
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
