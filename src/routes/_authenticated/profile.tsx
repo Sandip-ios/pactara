@@ -41,6 +41,7 @@ function ProfilePage() {
   });
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [freezeOpen, setFreezeOpen] = useState(false);
+  const [subscriptionActive, setSubscriptionActive] = useState(false);
 
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
