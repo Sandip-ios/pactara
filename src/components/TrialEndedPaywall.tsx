@@ -103,9 +103,12 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     try {
       const customerInfo = await purchasePackage(pkg);
       if (customerInfo) {
-        // Purchase completed successfully; the parent route will detect the
-        // active entitlement and dismiss the paywall on its next check.
-        window.location.reload();
+        if (isIntro && onDismiss) {
+          onDismiss();
+        } else {
+          // Blocked paywall: reload so the auth layout sees the active entitlement.
+          window.location.reload();
+        }
       }
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong. Please try again.");
