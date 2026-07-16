@@ -85,10 +85,7 @@ function AuthLayout() {
       <Outlet />
       {!hideTabs && <BottomTabs />}
       {trialState && !trialState.loading && trialState.expired && (
-        <TrialEndedPaywall
-          firstName={trialState.firstName}
-          daysActive={trialState.daysActive}
-        />
+        <TrialEndedPaywall firstName={trialState.firstName} daysActive={trialState.daysActive} />
       )}
     </>
   );

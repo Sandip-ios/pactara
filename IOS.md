@@ -52,7 +52,7 @@ In Xcode:
    - Bundle Identifier: `app.pactara`
    - **+ Capability → Push Notifications**
    - **+ Capability → Background Modes → Remote notifications**
-1a. **Info.plist — camera & microphone permissions** (required for check-in video)
+     1a. **Info.plist — camera & microphone permissions** (required for check-in video)
 
    Open `ios/App/App/Info.plist` and add these keys inside the top-level `<dict>`.
    Without them iOS strips `navigator.mediaDevices` and the camera screen shows
@@ -110,6 +110,7 @@ In Xcode:
    If your generated file already has the `AppDelegate` class, add only the
    `import FirebaseCore`, `FirebaseApp.configure()` block, and the three
    notification methods inside that existing class.
+
 4. Drop the Pactara app icon into
    `ios/App/App/Assets.xcassets/AppIcon.appiconset` (source at
    `public/pactara-icon.png`).

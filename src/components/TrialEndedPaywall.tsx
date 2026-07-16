@@ -130,14 +130,23 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   const eyebrow = isIntro ? "START YOUR 7-DAY FREE TRIAL" : "YOUR TRIAL HAS ENDED";
   const heading = isIntro ? (
-    <>Try Pactara<br />free for 7 days</>
+    <>
+      Try Pactara
+      <br />
+      free for 7 days
+    </>
   ) : (
-    <>Keep your<br />progress going</>
+    <>
+      Keep your
+      <br />
+      progress going
+    </>
   );
   const sub = isIntro ? (
     <>
       {firstName ? `${firstName}, get ` : "Get "} full access — cancel anytime.
-      <br />No charge until your trial ends.
+      <br />
+      No charge until your trial ends.
     </>
   ) : (
     <>
@@ -166,8 +175,8 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
         ? `Start free trial — then ${priceYearly}/year`
         : `Subscribe — ${priceYearly}/year`
       : isIntro
-      ? `Start free trial — then ${priceMonthly}/month`
-      : `Subscribe — ${priceMonthly}/month`;
+        ? `Start free trial — then ${priceMonthly}/month`
+        : `Subscribe — ${priceMonthly}/month`;
 
   return (
     <div
@@ -204,8 +213,16 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           </p>
         </div>
 
-        <div className="mt-6 mx-6 rounded-2xl bg-white p-4 shrink-0" style={{ boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)" }}>
-          <div className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: MUTED }}>
+        <div
+          className="mt-6 mx-6 rounded-2xl bg-white p-4 shrink-0"
+          style={{
+            boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+          }}
+        >
+          <div
+            className="text-[12px] font-semibold tracking-wide uppercase"
+            style={{ color: MUTED }}
+          >
             {isIntro ? "What you get" : "What you keep"}
           </div>
           <ul className="mt-3 space-y-2.5">
@@ -232,8 +249,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             className="relative rounded-2xl bg-white p-3 text-left transition-all"
             style={{
               border: `2px solid ${plan === "yearly" ? PURPLE : "transparent"}`,
-              boxShadow:
-                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+              boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
             }}
           >
             <div
@@ -247,7 +263,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </div>
             <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
               {yearlyMonthly}
-              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>
+                /mo
+              </span>
             </div>
             <div className="text-[11px]" style={{ color: MUTED }}>
               {priceYearly} billed yearly
@@ -259,8 +277,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             className="rounded-2xl bg-white p-3 text-left transition-all"
             style={{
               border: `2px solid ${plan === "monthly" ? PURPLE : "transparent"}`,
-              boxShadow:
-                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+              boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
             }}
           >
             <div className="text-[11px] font-bold tracking-wide" style={{ color: MUTED }}>
@@ -268,7 +285,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </div>
             <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
               {priceMonthly}
-              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>
+                /mo
+              </span>
             </div>
             <div className="text-[11px]" style={{ color: MUTED }}>
               Billed monthly
@@ -287,12 +306,15 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
                 className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden h-full"
                 style={{
                   width: 220,
-                  boxShadow:
-                    "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+                  boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
                 }}
               >
                 <div className="relative shrink-0 h-[182px] overflow-hidden">
-                  <img src={t.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img
+                    src={t.image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div
                     className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
                     style={{ background: INK }}

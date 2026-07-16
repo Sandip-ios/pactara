@@ -1,5 +1,9 @@
 import { isNative } from "@/lib/native";
-import type { CustomerInfo, PurchasesOffering, PurchasesPackage } from "@revenuecat/purchases-capacitor";
+import type {
+  CustomerInfo,
+  PurchasesOffering,
+  PurchasesPackage,
+} from "@revenuecat/purchases-capacitor";
 
 export const REVENUECAT_ENTITLEMENT_ID = "premium";
 

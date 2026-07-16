@@ -65,10 +65,7 @@ function PlanPage() {
 
       if (isNative()) {
         try {
-          const [info, offers] = await Promise.all([
-            getCustomerInfo(),
-            getOfferings(),
-          ]);
+          const [info, offers] = await Promise.all([getCustomerInfo(), getOfferings()]);
           setCustomerInfo(info);
           setOfferings(offers);
         } catch (err) {
@@ -103,7 +100,11 @@ function PlanPage() {
 
   const Cell = ({ v }: { v: boolean | string }) => {
     if (typeof v === "string")
-      return <span className="text-[14px]" style={{ color: INK }}>{v}</span>;
+      return (
+        <span className="text-[14px]" style={{ color: INK }}>
+          {v}
+        </span>
+      );
     if (v) return <Check size={20} strokeWidth={2.5} style={{ color: ORANGE }} />;
     return <span style={{ color: "#C9C9D1" }}>—</span>;
   };
@@ -233,11 +234,7 @@ function PlanPage() {
               Plan
             </div>
           </div>
-          <button
-            onClick={() => setHelpOpen(true)}
-            aria-label="Help"
-            className="p-1 -mr-1"
-          >
+          <button onClick={() => setHelpOpen(true)} aria-label="Help" className="p-1 -mr-1">
             <HelpCircle size={22} style={{ color: MUTED }} />
           </button>
         </div>
@@ -249,10 +246,7 @@ function PlanPage() {
         >
           <div className="flex items-center gap-2">
             <Sparkles size={16} style={{ color: PURPLE }} />
-            <span
-              className="text-[12px] font-bold tracking-[0.12em]"
-              style={{ color: PURPLE }}
-            >
+            <span className="text-[12px] font-bold tracking-[0.12em]" style={{ color: PURPLE }}>
               CURRENT PLAN
             </span>
           </div>
@@ -300,7 +294,12 @@ function PlanPage() {
           tagline="Unlimited groups. Start a new challenge anytime."
           price={monthlyPrice}
           period="/ month"
-          bullets={["Unlimited groups", "Daily & video check-ins", "2 streak freezes to start", "New challenge = new group"]}
+          bullets={[
+            "Unlimited groups",
+            "Daily & video check-ins",
+            "2 streak freezes to start",
+            "New challenge = new group",
+          ]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
           checkColor="#9A9AA5"
@@ -334,10 +333,7 @@ function PlanPage() {
         </div>
 
         {/* Compare */}
-        <h2
-          className="mt-10 text-[28px] tracking-tight"
-          style={{ fontFamily: SERIF, color: INK }}
-        >
+        <h2 className="mt-10 text-[28px] tracking-tight" style={{ fontFamily: SERIF, color: INK }}>
           Compare plans
         </h2>
         <div
@@ -351,10 +347,16 @@ function PlanPage() {
             <div className="text-[12px] font-bold tracking-[0.1em]" style={{ color: "#8A8A95" }}>
               FEATURE
             </div>
-            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: PURPLE }}>
+            <div
+              className="text-[12px] font-bold tracking-[0.1em] text-center"
+              style={{ color: PURPLE }}
+            >
               MONTHLY
             </div>
-            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: ORANGE }}>
+            <div
+              className="text-[12px] font-bold tracking-[0.1em] text-center"
+              style={{ color: ORANGE }}
+            >
               ANNUAL
             </div>
           </div>
@@ -367,12 +369,15 @@ function PlanPage() {
               <div className="text-[15px] font-semibold" style={{ color: INK }}>
                 {f.label}
               </div>
-              <div className="flex justify-center"><Cell v={f.monthly} /></div>
-              <div className="flex justify-center"><Cell v={f.annual} /></div>
+              <div className="flex justify-center">
+                <Cell v={f.monthly} />
+              </div>
+              <div className="flex justify-center">
+                <Cell v={f.annual} />
+              </div>
             </div>
           ))}
         </div>
-
 
         <p className="mt-8 text-center text-[13px] leading-[1.5]" style={{ color: MUTED }}>
           Prices in USD. Subscriptions renew automatically until cancelled.
@@ -418,7 +423,9 @@ function PlanPage() {
               className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80 disabled:opacity-60"
               style={{ background: pendingPlan === "annual" ? ORANGE : PURPLE }}
             >
-              {purchasing ? "Processing…" : `Confirm ${pendingPlan === "annual" ? "Annual" : "Monthly"}`}
+              {purchasing
+                ? "Processing…"
+                : `Confirm ${pendingPlan === "annual" ? "Annual" : "Monthly"}`}
             </button>
             <button
               onClick={closeConfirm}
@@ -439,8 +446,8 @@ function PlanPage() {
             Manage subscription
           </h3>
           <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
-            Switch between Monthly and Annual anytime. To cancel, change, or refund,
-            use iOS Settings → Apple ID → Subscriptions.
+            Switch between Monthly and Annual anytime. To cancel, change, or refund, use iOS
+            Settings → Apple ID → Subscriptions.
           </p>
           <div className="mt-5 space-y-3">
             <button
@@ -549,9 +556,7 @@ function PlanCard({
     <div
       className="mt-6 relative rounded-[22px] bg-white p-6"
       style={
-        highlight
-          ? { border: `2px solid ${ORANGE}` }
-          : { boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }
+        highlight ? { border: `2px solid ${ORANGE}` } : { boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }
       }
     >
       {badge && (
@@ -615,13 +620,7 @@ function PlanCard({
   );
 }
 
-function BottomSheet({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
+function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   useHideBottomTabs();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

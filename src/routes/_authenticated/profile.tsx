@@ -1,10 +1,28 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Clock, Percent, ChevronDown, Snowflake } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Clock,
+  Percent,
+  ChevronDown,
+  Snowflake,
+} from "lucide-react";
 
 import { useServerFn } from "@tanstack/react-start";
-import { Flame, CalendarDays, Target, Zap, SlidersHorizontal, LogOut, ChevronRight, Camera, Award } from "lucide-react";
+import {
+  Flame,
+  CalendarDays,
+  Target,
+  Zap,
+  SlidersHorizontal,
+  LogOut,
+  ChevronRight,
+  Camera,
+  Award,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getProfileOverview, setAvatarPath } from "@/lib/profile.functions";
 import { getStreakFreezeInfo, applyStreakFreeze } from "@/lib/streak-freezes.functions";
@@ -15,7 +33,6 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
 import { isNative } from "@/lib/native";
-
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -86,7 +103,6 @@ function ProfilePage() {
   });
 
   const activeGroup = groups.find((g) => g.id === selectedGroupId) ?? groups[0] ?? null;
-
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();
@@ -164,208 +180,212 @@ function ProfilePage() {
           })
         }
       >
-
-
-      {/* Identity card */}
-      <section className="bg-white px-6 py-5 flex items-center gap-4">
-        <div className="relative">
-          <button
-            type="button"
-            onClick={openPicker}
-            aria-label="Change photo"
-            className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
-            style={{ background: data?.avatarColor || PURPLE }}
-          >
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
-            ) : (
-              initial
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={openPicker}
-            aria-label="Change photo"
-            disabled={uploading}
-            className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm disabled:opacity-60"
-          >
-            <Camera size={14} className="text-neutral-600" />
-          </button>
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-[22px] font-bold truncate">{firstName}</div>
-          <div className="text-[14px] text-neutral-500 truncate">{goal}</div>
-        </div>
-        <button
-          type="button"
-          onClick={openPicker}
-          disabled={uploading}
-          className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-60"
-          style={{ background: PURPLE_SOFT, color: PURPLE }}
-        >
-          {uploading ? "Uploading…" : "Edit photo"}
-        </button>
-      </section>
-
-
-      {/* Activity */}
-      <section className="px-5 pt-5">
-        {groups.length > 1 && (
-          <div className="relative mb-3">
+        {/* Identity card */}
+        <section className="bg-white px-6 py-5 flex items-center gap-4">
+          <div className="relative">
             <button
               type="button"
-              onClick={() => setGroupPickerOpen((v) => !v)}
-              className="w-full flex items-center justify-between gap-2 bg-white rounded-2xl px-4 py-3 text-left"
+              onClick={openPicker}
+              aria-label="Change photo"
+              className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
+              style={{ background: data?.avatarColor || PURPLE }}
             >
-              <span className="flex items-center gap-2 min-w-0">
-                {activeGroup?.emoji && (
-                  <span className="text-[18px] leading-none">{activeGroup.emoji}</span>
-                )}
-                <span className="text-[15px] font-semibold truncate">
-                  {activeGroup?.name ?? "Select group"}
-                </span>
-              </span>
-              <ChevronDown
-                size={18}
-                className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
-              />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Profile" className="h-full w-full object-cover" />
+              ) : (
+                initial
+              )}
             </button>
-            {groupPickerOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setGroupPickerOpen(false)}
-                />
-                <div className="absolute z-20 left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-neutral-100 overflow-hidden">
-                  {groups.map((g) => {
-                    const active = g.id === selectedGroupId;
-                    return (
-                      <button
-                        key={g.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedGroupId(g.id as string);
-                          setGroupPickerOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-50"
-                        style={active ? { background: PURPLE_SOFT } : undefined}
-                      >
-                        {g.emoji && <span className="text-[18px] leading-none">{g.emoji}</span>}
-                        <span
-                          className="text-[15px] font-semibold truncate flex-1"
-                          style={active ? { color: PURPLE } : undefined}
-                        >
-                          {g.name}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+            <button
+              type="button"
+              onClick={openPicker}
+              aria-label="Change photo"
+              disabled={uploading}
+              className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm disabled:opacity-60"
+            >
+              <Camera size={14} className="text-neutral-600" />
+            </button>
           </div>
-        )}
-
-
-        <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
-          ACTIVITY
-        </div>
-
-
-        <div className="grid grid-cols-3 gap-3">
-          <StatCard icon={<Flame size={18} style={{ color: PURPLE }} />} bg={PURPLE_SOFT} label="Day streak" value={stat(data?.currentStreak ?? 0)} />
-          <StatCard icon={<CalendarDays size={18} style={{ color: PURPLE }} />} bg={PURPLE_SOFT} label="Total check-ins" value={stat(data?.totalCheckIns ?? 0)} />
-          <StatCard icon={<Target size={18} style={{ color: "#16A34A" }} />} bg={GREEN_SOFT} label="Best streak" value={stat(data?.bestStreak ?? 0)} />
-        </div>
-
-        {/* Streak freezes */}
-        <StreakFreezeCard
-          available={data?.streakFreezesAvailable ?? 0}
-          onUse={() => setFreezeOpen(true)}
-        />
-
-
-        {/* Past 7 days */}
-        <div className="mt-3 rounded-2xl bg-white p-5">
-          <div className="text-[16px] font-bold">Past 7 days</div>
-          <Past7Days days={data?.past7 ?? []} />
-
+          <div className="flex-1 min-w-0">
+            <div className="text-[22px] font-bold truncate">{firstName}</div>
+            <div className="text-[14px] text-neutral-500 truncate">{goal}</div>
+          </div>
           <button
             type="button"
-            onClick={() => setHistoryOpen(true)}
-            className="mt-4 w-full text-center text-[13px] font-semibold py-2 rounded-full"
+            onClick={openPicker}
+            disabled={uploading}
+            className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-60"
             style={{ background: PURPLE_SOFT, color: PURPLE }}
           >
-            View past 3 months
+            {uploading ? "Uploading…" : "Edit photo"}
           </button>
+        </section>
 
-          <div className="mt-5 pt-4 border-t border-neutral-100">
-            <BadgesGrid earned={badges ?? []} />
+        {/* Activity */}
+        <section className="px-5 pt-5">
+          {groups.length > 1 && (
+            <div className="relative mb-3">
+              <button
+                type="button"
+                onClick={() => setGroupPickerOpen((v) => !v)}
+                className="w-full flex items-center justify-between gap-2 bg-white rounded-2xl px-4 py-3 text-left"
+              >
+                <span className="flex items-center gap-2 min-w-0">
+                  {activeGroup?.emoji && (
+                    <span className="text-[18px] leading-none">{activeGroup.emoji}</span>
+                  )}
+                  <span className="text-[15px] font-semibold truncate">
+                    {activeGroup?.name ?? "Select group"}
+                  </span>
+                </span>
+                <ChevronDown
+                  size={18}
+                  className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {groupPickerOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setGroupPickerOpen(false)} />
+                  <div className="absolute z-20 left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-neutral-100 overflow-hidden">
+                    {groups.map((g) => {
+                      const active = g.id === selectedGroupId;
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGroupId(g.id as string);
+                            setGroupPickerOpen(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-neutral-50"
+                          style={active ? { background: PURPLE_SOFT } : undefined}
+                        >
+                          {g.emoji && <span className="text-[18px] leading-none">{g.emoji}</span>}
+                          <span
+                            className="text-[15px] font-semibold truncate flex-1"
+                            style={active ? { color: PURPLE } : undefined}
+                          >
+                            {g.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
+            ACTIVITY
           </div>
-        </div>
 
-        {/* Deeper insights */}
-        <div className="mt-3 rounded-2xl bg-white p-5 space-y-4">
-          <div className="text-[16px] font-bold">Insights</div>
+          <div className="grid grid-cols-3 gap-3">
+            <StatCard
+              icon={<Flame size={18} style={{ color: PURPLE }} />}
+              bg={PURPLE_SOFT}
+              label="Day streak"
+              value={stat(data?.currentStreak ?? 0)}
+            />
+            <StatCard
+              icon={<CalendarDays size={18} style={{ color: PURPLE }} />}
+              bg={PURPLE_SOFT}
+              label="Total check-ins"
+              value={stat(data?.totalCheckIns ?? 0)}
+            />
+            <StatCard
+              icon={<Target size={18} style={{ color: "#16A34A" }} />}
+              bg={GREEN_SOFT}
+              label="Best streak"
+              value={stat(data?.bestStreak ?? 0)}
+            />
+          </div>
 
-          <InsightRow
-            icon={<Percent size={18} style={{ color: PURPLE }} />}
-            iconBg={PURPLE_SOFT}
-            label="Check-in rate"
-            value={`${data?.checkInRatePct ?? 0}%`}
-            sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${Math.max(data?.daysSinceJoin ?? 0, (data?.uniqueDaysCheckedIn ?? 0) + (data?.missedCount ?? 0))} days`}
-          />
-          <WeekDeltaRow thisWeek={data?.thisWeek ?? 0} lastWeek={data?.lastWeek ?? 0} />
-
-        </div>
-      </section>
-
-
-      {/* Settings */}
-      <section className="px-5 pt-6">
-        <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
-          SETTINGS
-        </div>
-
-        <div className="rounded-2xl bg-white overflow-hidden">
-          <Row
-            icon={<Zap size={18} style={{ color: PURPLE }} />}
-            iconBg={PURPLE_SOFT}
-            title="Plan"
-            subtitle={subscriptionActive ? "Active subscription" : "Free trial · 7 days free, then $12.99/mo"}
-            onClick={() => navigate({ to: "/plan" })}
-          />
-          <div className="h-px bg-neutral-100 ml-[68px]" />
-          <Row
-            icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
-            iconBg={PURPLE_SOFT}
-            title="Account settings"
-            subtitle="Name, email, password, privacy"
-            onClick={() => navigate({ to: "/account-settings" })}
+          {/* Streak freezes */}
+          <StreakFreezeCard
+            available={data?.streakFreezesAvailable ?? 0}
+            onUse={() => setFreezeOpen(true)}
           />
 
-          <div className="h-px bg-neutral-100 ml-[68px]" />
-          <button
-            onClick={handleSignOut}
-            className="w-full flex items-center gap-4 px-4 py-4 text-left"
-          >
-            <span
-              className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ background: RED_SOFT }}
+          {/* Past 7 days */}
+          <div className="mt-3 rounded-2xl bg-white p-5">
+            <div className="text-[16px] font-bold">Past 7 days</div>
+            <Past7Days days={data?.past7 ?? []} />
+
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(true)}
+              className="mt-4 w-full text-center text-[13px] font-semibold py-2 rounded-full"
+              style={{ background: PURPLE_SOFT, color: PURPLE }}
             >
-              <LogOut size={18} className="text-red-500" />
-            </span>
-            <span className="flex-1 text-[16px] font-semibold text-red-500">Sign out</span>
-          </button>
-        </div>
-      </section>
+              View past 3 months
+            </button>
 
+            <div className="mt-5 pt-4 border-t border-neutral-100">
+              <BadgesGrid earned={badges ?? []} />
+            </div>
+          </div>
+
+          {/* Deeper insights */}
+          <div className="mt-3 rounded-2xl bg-white p-5 space-y-4">
+            <div className="text-[16px] font-bold">Insights</div>
+
+            <InsightRow
+              icon={<Percent size={18} style={{ color: PURPLE }} />}
+              iconBg={PURPLE_SOFT}
+              label="Check-in rate"
+              value={`${data?.checkInRatePct ?? 0}%`}
+              sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${Math.max(data?.daysSinceJoin ?? 0, (data?.uniqueDaysCheckedIn ?? 0) + (data?.missedCount ?? 0))} days`}
+            />
+            <WeekDeltaRow thisWeek={data?.thisWeek ?? 0} lastWeek={data?.lastWeek ?? 0} />
+          </div>
+        </section>
+
+        {/* Settings */}
+        <section className="px-5 pt-6">
+          <div className="text-[12px] font-semibold tracking-wider text-neutral-400 mb-3 px-1">
+            SETTINGS
+          </div>
+
+          <div className="rounded-2xl bg-white overflow-hidden">
+            <Row
+              icon={<Zap size={18} style={{ color: PURPLE }} />}
+              iconBg={PURPLE_SOFT}
+              title="Plan"
+              subtitle={
+                subscriptionActive
+                  ? "Active subscription"
+                  : "Free trial · 7 days free, then $12.99/mo"
+              }
+              onClick={() => navigate({ to: "/plan" })}
+            />
+            <div className="h-px bg-neutral-100 ml-[68px]" />
+            <Row
+              icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
+              iconBg={PURPLE_SOFT}
+              title="Account settings"
+              subtitle="Name, email, password, privacy"
+              onClick={() => navigate({ to: "/account-settings" })}
+            />
+
+            <div className="h-px bg-neutral-100 ml-[68px]" />
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-4 px-4 py-4 text-left"
+            >
+              <span
+                className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: RED_SOFT }}
+              >
+                <LogOut size={18} className="text-red-500" />
+              </span>
+              <span className="flex-1 text-[16px] font-semibold text-red-500">Sign out</span>
+            </button>
+          </div>
+        </section>
       </PullToRefresh>
       {historyOpen && (
-        <HistorySheet
-          days={data?.past90 ?? []}
-          onClose={() => setHistoryOpen(false)}
-        />
+        <HistorySheet days={data?.past90 ?? []} onClose={() => setHistoryOpen(false)} />
       )}
       {freezeOpen && (
         <StreakFreezeSheet
@@ -475,7 +495,9 @@ function StatCard({
       >
         {icon}
       </span>
-      <div className={`text-[22px] font-bold leading-tight ${value === "—" ? "text-neutral-300" : ""}`}>
+      <div
+        className={`text-[22px] font-bold leading-tight ${value === "—" ? "text-neutral-300" : ""}`}
+      >
         {value}
       </div>
       <div className="text-[12px] text-neutral-500 mt-1 leading-tight">{label}</div>
@@ -584,9 +606,7 @@ function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: numb
   const Icon = up ? TrendingUp : down ? TrendingDown : Minus;
   const sign = delta > 0 ? `+${delta}` : String(delta);
   const sub =
-    lastWeek === 0 && thisWeek === 0
-      ? "No check-ins yet"
-      : `${sign} vs last week (${lastWeek})`;
+    lastWeek === 0 && thisWeek === 0 ? "No check-ins yet" : `${sign} vs last week (${lastWeek})`;
   return (
     <div className="flex items-center gap-3">
       <span
@@ -596,9 +616,7 @@ function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: numb
         <Icon size={18} style={{ color }} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-[14px] font-semibold text-neutral-900 leading-tight">
-          This week
-        </div>
+        <div className="text-[14px] font-semibold text-neutral-900 leading-tight">This week</div>
         <div className="text-[12px] text-neutral-500 leading-tight mt-0.5">{sub}</div>
       </div>
       <div className="text-[18px] font-bold text-neutral-900">{thisWeek}</div>
@@ -609,13 +627,7 @@ function WeekDeltaRow({ thisWeek, lastWeek }: { thisWeek: number; lastWeek: numb
 const ICE = "#38BDF8";
 const ICE_SOFT = "#E0F2FE";
 
-function StreakFreezeCard({
-  available,
-  onUse,
-}: {
-  available: number;
-  onUse: () => void;
-}) {
+function StreakFreezeCard({ available, onUse }: { available: number; onUse: () => void }) {
   const canUse = available > 0;
   return (
     <div className="mt-3 rounded-2xl bg-white p-5 flex items-center gap-3">
@@ -626,9 +638,7 @@ function StreakFreezeCard({
         <Snowflake size={20} style={{ color: ICE }} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-[15px] font-bold text-neutral-900 leading-tight">
-          Streak freezes
-        </div>
+        <div className="text-[15px] font-bold text-neutral-900 leading-tight">Streak freezes</div>
         <div className="text-[12px] text-neutral-500 mt-0.5 leading-snug">
           {canUse
             ? `${available} left. Apply one to a missed day to keep your streak alive.`
@@ -719,8 +729,8 @@ function StreakFreezeSheet({
             <div className="text-[20px] font-bold">Use a streak freeze</div>
           </div>
           <div className="text-[13px] text-neutral-500 mt-1">
-            {available} freeze{available === 1 ? "" : "s"} available. A freeze only
-            protects yesterday, and only if your streak is still alive today.
+            {available} freeze{available === 1 ? "" : "s"} available. A freeze only protects
+            yesterday, and only if your streak is still alive today.
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
@@ -753,9 +763,7 @@ function StreakFreezeSheet({
               </button>
             </div>
           ) : (
-            <div className="text-center text-[13px] text-neutral-400 py-8">
-              {emptyMessage}
-            </div>
+            <div className="text-center text-[13px] text-neutral-400 py-8">{emptyMessage}</div>
           )}
         </div>
 
@@ -779,9 +787,7 @@ function BadgesGrid({ earned }: { earned: { streakDays: number; earnedAt: string
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <div className="text-[12px] font-semibold tracking-wider text-neutral-400">
-          BADGES
-        </div>
+        <div className="text-[12px] font-semibold tracking-wider text-neutral-400">BADGES</div>
         <div className="text-[12px] font-semibold text-neutral-400">
           {earnedCount} / {BADGE_MILESTONES.length}
         </div>
@@ -817,7 +823,10 @@ function BadgesGrid({ earned }: { earned: { streakDays: number; earnedAt: string
               </div>
               <div className="text-[11px] leading-tight mt-0.5" style={{ color: "#9CA3AF" }}>
                 {isEarned && earnedAt
-                  ? new Date(earnedAt).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                  ? new Date(earnedAt).toLocaleDateString(undefined, {
+                      month: "short",
+                      day: "numeric",
+                    })
                   : "Locked"}
               </div>
             </div>
@@ -827,6 +836,3 @@ function BadgesGrid({ earned }: { earned: { streakDays: number; earnedAt: string
     </div>
   );
 }
-
-
-
