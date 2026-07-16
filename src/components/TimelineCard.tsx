@@ -129,19 +129,31 @@ function VideoThumb({ src }: { src: string }) {
       loop
       playsInline
       preload="auto"
+      // iOS Safari won't paint a first frame from preload alone or from a
+      // bare currentTime seek. Briefly play muted then pause so the frame
+      // is rendered; without this the thumbnail stays solid black.
       onLoadedMetadata={() => {
         const v = ref.current;
         if (!v || primedRef.current) return;
         primedRef.current = true;
-        // Prime first frame for iOS Safari
-        try {
-          v.currentTime = 0.1;
-        } catch {}
+        v.play()
+          .then(() => {
+            v.pause();
+            try {
+              v.currentTime = 0.1;
+            } catch {}
+          })
+          .catch(() => {
+            try {
+              v.currentTime = 0.1;
+            } catch {}
+          });
       }}
       className="w-full h-full object-cover pointer-events-none"
     />
   );
 }
+
 
 function VideoBlock({ src }: { src: string }) {
   return (
