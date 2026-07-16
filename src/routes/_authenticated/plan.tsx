@@ -62,6 +62,23 @@ function PlanPage() {
         .eq("id", uid)
         .maybeSingle();
       if (profile?.created_at) setCreatedAt(new Date(profile.created_at));
+
+      if (isNative()) {
+        try {
+          const [info, offers] = await Promise.all([
+            getCustomerInfo(),
+            getOfferings(),
+          ]);
+          setCustomerInfo(info);
+          setOfferings(offers);
+        } catch (err) {
+          console.error("[plan] failed to load RevenueCat data", err);
+        } finally {
+          setCheckingStatus(false);
+        }
+      } else {
+        setCheckingStatus(false);
+      }
     })();
   }, []);
 
