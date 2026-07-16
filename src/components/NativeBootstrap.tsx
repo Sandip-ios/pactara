@@ -66,6 +66,12 @@ export function NativeBootstrap() {
 
     (async () => {
       try {
+        await configureRevenueCat();
+      } catch (err) {
+        console.warn("[revenuecat] initial configure failed", err);
+      }
+
+      try {
         const { StatusBar, Style } = await import("@capacitor/status-bar");
         // Style.Light = dark icons/text (for our light cream background)
         await StatusBar.setStyle({ style: Style.Light });
