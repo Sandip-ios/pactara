@@ -38,7 +38,7 @@ export function MediaLightbox({
         aria-label="Close"
         className="absolute h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white z-10"
         style={{
-          top: "calc(env(safe-area-inset-top) + 12px)",
+          top: "24px",
           right: "calc(env(safe-area-inset-right) + 12px)",
         }}
       >
