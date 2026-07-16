@@ -439,8 +439,8 @@ function PlanPage() {
             Manage subscription
           </h3>
           <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
-            Switch between Monthly and Annual anytime. Cancellations take effect at the
-            end of your current billing period.
+            Switch between Monthly and Annual anytime. To cancel, change, or refund,
+            use iOS Settings → Apple ID → Subscriptions.
           </p>
           <div className="mt-5 space-y-3">
             <button
@@ -452,6 +452,14 @@ function PlanPage() {
               style={{ background: "#F1EEE8", color: INK }}
             >
               Switch plan
+            </button>
+            <button
+              onClick={handleRestore}
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[15px] font-semibold disabled:opacity-60"
+              style={{ background: "#F1EEE8", color: INK }}
+            >
+              Restore purchases
             </button>
             {selectedPlan && (
               <button
