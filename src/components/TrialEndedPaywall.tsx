@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Star, Flame, TrendingUp, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import {
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+  type PactaraOfferings,
+} from "@/lib/revenuecat";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EC";
@@ -24,8 +30,30 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const [plan, setPlan] = useState<"yearly" | "monthly">("yearly");
+  const [offerings, setOfferings] = useState<PactaraOfferings | null>(null);
+  const [loadingOfferings, setLoadingOfferings] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const isIntro = mode === "intro";
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingOfferings(true);
+        const result = await getOfferings();
+        if (!cancelled) setOfferings(result);
+      } catch (err) {
+        console.error("[paywall] failed to load offerings", err);
+      } finally {
+        if (!cancelled) setLoadingOfferings(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const testimonials = [
     {
@@ -63,20 +91,62 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     navigate({ to: "/login" });
   }
 
-  function handleSubscribe() {
-    alert("Payments aren't connected yet — check back soon.");
+  async function handleSubscribe() {
+    if (purchasing) return;
+    const pkg = plan === "yearly" ? annualPkg : monthlyPkg;
+    if (!pkg) {
+      setError("Subscription options aren't available right now. Please try again later.");
+      return;
+    }
+    setPurchasing(true);
+    setError(null);
+    try {
+      const customerInfo = await purchasePackage(pkg);
+      if (customerInfo) {
+        if (isIntro && onDismiss) {
+          onDismiss();
+        } else {
+          // Blocked paywall: reload so the auth layout sees the active entitlement.
+          window.location.reload();
+        }
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong. Please try again.");
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  async function handleRestore() {
+    try {
+      const customerInfo = await restorePurchases();
+      if (customerInfo) {
+        window.location.reload();
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Could not restore purchases.");
+    }
   }
 
   const eyebrow = isIntro ? "START YOUR 7-DAY FREE TRIAL" : "YOUR TRIAL HAS ENDED";
   const heading = isIntro ? (
-    <>Try Pactara<br />free for 7 days</>
+    <>
+      Try Pactara
+      <br />
+      free for 7 days
+    </>
   ) : (
-    <>Keep your<br />progress going</>
+    <>
+      Keep your
+      <br />
+      progress going
+    </>
   );
   const sub = isIntro ? (
     <>
       {firstName ? `${firstName}, get ` : "Get "} full access — cancel anytime.
-      <br />No charge until your trial ends.
+      <br />
+      No charge until your trial ends.
     </>
   ) : (
     <>
@@ -87,17 +157,26 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     </>
   );
 
-  const priceMonthly = "$12.99";
-  const priceYearly = "$79.99";
-  const yearlyMonthly = "$6.67";
+  const monthlyPkg = offerings?.monthly;
+  const annualPkg = offerings?.annual;
+
+  const priceMonthly = monthlyPkg?.product?.priceString ?? "$12.99";
+  const priceYearly = annualPkg?.product?.priceString ?? "$79.99";
+  const yearlyMonthly = (() => {
+    const annualPrice = annualPkg?.product?.price;
+    if (typeof annualPrice === "number" && annualPrice > 0) {
+      return `$${(annualPrice / 12).toFixed(2)}`;
+    }
+    return "$6.67";
+  })();
   const ctaLabel =
     plan === "yearly"
       ? isIntro
         ? `Start free trial — then ${priceYearly}/year`
         : `Subscribe — ${priceYearly}/year`
       : isIntro
-      ? `Start free trial — then ${priceMonthly}/month`
-      : `Subscribe — ${priceMonthly}/month`;
+        ? `Start free trial — then ${priceMonthly}/month`
+        : `Subscribe — ${priceMonthly}/month`;
 
   return (
     <div
@@ -134,8 +213,16 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           </p>
         </div>
 
-        <div className="mt-6 mx-6 rounded-2xl bg-white p-4 shrink-0" style={{ boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)" }}>
-          <div className="text-[12px] font-semibold tracking-wide uppercase" style={{ color: MUTED }}>
+        <div
+          className="mt-6 mx-6 rounded-2xl bg-white p-4 shrink-0"
+          style={{
+            boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+          }}
+        >
+          <div
+            className="text-[12px] font-semibold tracking-wide uppercase"
+            style={{ color: MUTED }}
+          >
             {isIntro ? "What you get" : "What you keep"}
           </div>
           <ul className="mt-3 space-y-2.5">
@@ -162,8 +249,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             className="relative rounded-2xl bg-white p-3 text-left transition-all"
             style={{
               border: `2px solid ${plan === "yearly" ? PURPLE : "transparent"}`,
-              boxShadow:
-                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+              boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
             }}
           >
             <div
@@ -177,7 +263,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </div>
             <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
               {yearlyMonthly}
-              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>
+                /mo
+              </span>
             </div>
             <div className="text-[11px]" style={{ color: MUTED }}>
               {priceYearly} billed yearly
@@ -189,8 +277,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             className="rounded-2xl bg-white p-3 text-left transition-all"
             style={{
               border: `2px solid ${plan === "monthly" ? PURPLE : "transparent"}`,
-              boxShadow:
-                "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+              boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
             }}
           >
             <div className="text-[11px] font-bold tracking-wide" style={{ color: MUTED }}>
@@ -198,7 +285,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </div>
             <div className="mt-1 text-[18px] font-bold" style={{ color: INK }}>
               {priceMonthly}
-              <span className="text-[12px] font-medium" style={{ color: MUTED }}>/mo</span>
+              <span className="text-[12px] font-medium" style={{ color: MUTED }}>
+                /mo
+              </span>
             </div>
             <div className="text-[11px]" style={{ color: MUTED }}>
               Billed monthly
@@ -217,12 +306,15 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
                 className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden h-full"
                 style={{
                   width: 220,
-                  boxShadow:
-                    "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
+                  boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
                 }}
               >
                 <div className="relative shrink-0 h-[182px] overflow-hidden">
-                  <img src={t.image} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                  <img
+                    src={t.image}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
                   <div
                     className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
                     style={{ background: INK }}
@@ -260,20 +352,40 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             Cancel anytime in Settings
           </div>
 
+          {error && (
+            <p className="mt-3 text-center text-[13px]" style={{ color: "#B42318" }}>
+              {error}
+            </p>
+          )}
+
           <button
             type="button"
             onClick={handleSubscribe}
-            className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4"
+            disabled={purchasing || loadingOfferings}
+            className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4 disabled:opacity-60"
             style={{ background: PURPLE }}
           >
-            {ctaLabel}
+            {purchasing ? "Processing…" : ctaLabel}
           </button>
+
+          {!isIntro && (
+            <button
+              type="button"
+              onClick={handleRestore}
+              disabled={purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
+              style={{ color: MUTED }}
+            >
+              Restore purchases
+            </button>
+          )}
 
           {isIntro ? (
             <button
               type="button"
               onClick={onDismiss}
-              className="mt-3 w-full text-[14px] font-medium"
+              disabled={purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
               style={{ color: MUTED }}
             >
               Maybe later
@@ -282,8 +394,8 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             <button
               type="button"
               onClick={handleSignOut}
-              disabled={signingOut}
-              className="mt-3 w-full text-[14px] font-medium"
+              disabled={signingOut || purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
               style={{ color: MUTED }}
             >
               {signingOut ? "Signing out…" : "Sign out"}

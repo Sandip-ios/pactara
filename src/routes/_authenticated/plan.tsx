@@ -4,6 +4,16 @@ import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import {
+  getCustomerInfo,
+  getOfferings,
+  isSubscriptionActive,
+  purchasePackage,
+  restorePurchases,
+  type CustomerInfo,
+  type PactaraOfferings,
+} from "@/lib/revenuecat";
+import { isNative } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/plan")({
   ssr: false,
@@ -31,6 +41,11 @@ function PlanPage() {
   const [pendingPlan, setPendingPlan] = useState<PlanChoice>(null);
   const [manageOpen, setManageOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [offerings, setOfferings] = useState<PactaraOfferings | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -47,6 +62,20 @@ function PlanPage() {
         .eq("id", uid)
         .maybeSingle();
       if (profile?.created_at) setCreatedAt(new Date(profile.created_at));
+
+      if (isNative()) {
+        try {
+          const [info, offers] = await Promise.all([getCustomerInfo(), getOfferings()]);
+          setCustomerInfo(info);
+          setOfferings(offers);
+        } catch (err) {
+          console.error("[plan] failed to load RevenueCat data", err);
+        } finally {
+          setCheckingStatus(false);
+        }
+      } else {
+        setCheckingStatus(false);
+      }
     })();
   }, []);
 
@@ -71,7 +100,11 @@ function PlanPage() {
 
   const Cell = ({ v }: { v: boolean | string }) => {
     if (typeof v === "string")
-      return <span className="text-[14px]" style={{ color: INK }}>{v}</span>;
+      return (
+        <span className="text-[14px]" style={{ color: INK }}>
+          {v}
+        </span>
+      );
     if (v) return <Check size={20} strokeWidth={2.5} style={{ color: ORANGE }} />;
     return <span style={{ color: "#C9C9D1" }}>—</span>;
   };
@@ -83,17 +116,47 @@ function PlanPage() {
   const openConfirm = (plan: Exclude<PlanChoice, null>) => setPendingPlan(plan);
   const closeConfirm = () => setPendingPlan(null);
 
-  const confirmPlan = () => {
+  const confirmPlan = async () => {
     if (!pendingPlan) return;
-    setSelectedPlan(pendingPlan);
-    try {
-      localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
-    } catch {}
-    toast.success(
-      pendingPlan === "annual"
-        ? "You're on Annual. Billing starts after your 7-day trial."
-        : "You're on Monthly. Billing starts after your 7-day trial.",
-    );
+    const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
+    if (isNative()) {
+      if (!pkg) {
+        setError("Subscription options aren't available right now. Please try again later.");
+        setPendingPlan(null);
+        return;
+      }
+      setPurchasing(true);
+      setError(null);
+      try {
+        const result = await purchasePackage(pkg);
+        if (result) {
+          setSelectedPlan(pendingPlan);
+          setCustomerInfo(result);
+          try {
+            localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
+          } catch {}
+          toast.success(
+            pendingPlan === "annual"
+              ? "You're subscribed to Annual."
+              : "You're subscribed to Monthly.",
+          );
+        }
+      } catch (err: any) {
+        setError(err?.message ?? "Purchase failed. Please try again.");
+      } finally {
+        setPurchasing(false);
+      }
+    } else {
+      setSelectedPlan(pendingPlan);
+      try {
+        localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
+      } catch {}
+      toast.success(
+        pendingPlan === "annual"
+          ? "You're on Annual. Billing starts after your 7-day trial."
+          : "You're on Monthly. Billing starts after your 7-day trial.",
+      );
+    }
     setPendingPlan(null);
   };
 
@@ -106,20 +169,51 @@ function PlanPage() {
     toast.success("Plan selection cleared.");
   };
 
-  const currentLabel = selectedPlan
-    ? selectedPlan === "annual"
-      ? "Annual (saved)"
-      : "Monthly (saved)"
-    : isTrial
-      ? "Free trial"
-      : "Trial ended";
-  const currentSub = selectedPlan
-    ? selectedPlan === "annual"
-      ? "$79.99/yr · billed after your 7-day trial"
-      : "$12.99/mo · billed after your 7-day trial"
-    : isTrial
-      ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
-      : "Choose a plan below to keep your progress.";
+  const handleRestore = async () => {
+    setError(null);
+    try {
+      const info = await restorePurchases();
+      if (info) {
+        setCustomerInfo(info);
+        toast.success("Purchases restored successfully.");
+      } else {
+        toast.info("No purchases to restore.");
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Could not restore purchases.");
+    }
+  };
+
+  const subscriptionActive = isSubscriptionActive(customerInfo);
+
+  const currentLabel = subscriptionActive
+    ? "Subscribed"
+    : selectedPlan
+      ? selectedPlan === "annual"
+        ? "Annual (saved)"
+        : "Monthly (saved)"
+      : isTrial
+        ? "Free trial"
+        : "Trial ended";
+  const currentSub = subscriptionActive
+    ? "Your subscription is active."
+    : selectedPlan
+      ? selectedPlan === "annual"
+        ? "$79.99/yr · billed after your 7-day trial"
+        : "$12.99/mo · billed after your 7-day trial"
+      : isTrial
+        ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
+        : "Choose a plan below to keep your progress.";
+
+  const monthlyPrice = offerings?.monthly?.product?.priceString ?? "$12.99";
+  const annualPrice = offerings?.annual?.product?.priceString ?? "$79.99";
+  const annualMonthlyPrice = (() => {
+    const annualPriceValue = offerings?.annual?.product?.price;
+    if (typeof annualPriceValue === "number" && annualPriceValue > 0) {
+      return `$${(annualPriceValue / 12).toFixed(2)}`;
+    }
+    return "$6.67";
+  })();
 
   return (
     <div
@@ -140,11 +234,7 @@ function PlanPage() {
               Plan
             </div>
           </div>
-          <button
-            onClick={() => setHelpOpen(true)}
-            aria-label="Help"
-            className="p-1 -mr-1"
-          >
+          <button onClick={() => setHelpOpen(true)} aria-label="Help" className="p-1 -mr-1">
             <HelpCircle size={22} style={{ color: MUTED }} />
           </button>
         </div>
@@ -156,10 +246,7 @@ function PlanPage() {
         >
           <div className="flex items-center gap-2">
             <Sparkles size={16} style={{ color: PURPLE }} />
-            <span
-              className="text-[12px] font-bold tracking-[0.12em]"
-              style={{ color: PURPLE }}
-            >
+            <span className="text-[12px] font-bold tracking-[0.12em]" style={{ color: PURPLE }}>
               CURRENT PLAN
             </span>
           </div>
@@ -205,9 +292,14 @@ function PlanPage() {
           emoji="🔥"
           name="Monthly"
           tagline="Unlimited groups. Start a new challenge anytime."
-          price="$12.99"
+          price={monthlyPrice}
           period="/ month"
-          bullets={["Unlimited groups", "Daily & video check-ins", "2 streak freezes to start", "New challenge = new group"]}
+          bullets={[
+            "Unlimited groups",
+            "Daily & video check-ins",
+            "2 streak freezes to start",
+            "New challenge = new group",
+          ]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
           checkColor="#9A9AA5"
@@ -221,9 +313,9 @@ function PlanPage() {
             emoji="⚡"
             name="Annual"
             tagline="Unlimited groups, keep your streaks running all year."
-            price="$79.99"
+            price={annualPrice}
             period="/ year"
-            subPrice="Just $6.67/mo"
+            subPrice={`Just ${annualMonthlyPrice}/mo`}
             bullets={[
               "Everything in Monthly",
               "Restart challenges with your same group — no need to rebuild your crew",
@@ -241,10 +333,7 @@ function PlanPage() {
         </div>
 
         {/* Compare */}
-        <h2
-          className="mt-10 text-[28px] tracking-tight"
-          style={{ fontFamily: SERIF, color: INK }}
-        >
+        <h2 className="mt-10 text-[28px] tracking-tight" style={{ fontFamily: SERIF, color: INK }}>
           Compare plans
         </h2>
         <div
@@ -258,10 +347,16 @@ function PlanPage() {
             <div className="text-[12px] font-bold tracking-[0.1em]" style={{ color: "#8A8A95" }}>
               FEATURE
             </div>
-            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: PURPLE }}>
+            <div
+              className="text-[12px] font-bold tracking-[0.1em] text-center"
+              style={{ color: PURPLE }}
+            >
               MONTHLY
             </div>
-            <div className="text-[12px] font-bold tracking-[0.1em] text-center" style={{ color: ORANGE }}>
+            <div
+              className="text-[12px] font-bold tracking-[0.1em] text-center"
+              style={{ color: ORANGE }}
+            >
               ANNUAL
             </div>
           </div>
@@ -274,12 +369,15 @@ function PlanPage() {
               <div className="text-[15px] font-semibold" style={{ color: INK }}>
                 {f.label}
               </div>
-              <div className="flex justify-center"><Cell v={f.monthly} /></div>
-              <div className="flex justify-center"><Cell v={f.annual} /></div>
+              <div className="flex justify-center">
+                <Cell v={f.monthly} />
+              </div>
+              <div className="flex justify-center">
+                <Cell v={f.annual} />
+              </div>
             </div>
           ))}
         </div>
-
 
         <p className="mt-8 text-center text-[13px] leading-[1.5]" style={{ color: MUTED }}>
           Prices in USD. Subscriptions renew automatically until cancelled.
@@ -306,22 +404,33 @@ function PlanPage() {
             </h3>
             <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
               {pendingPlan === "annual"
-                ? "$79.99 / year (just $6.67/mo) after your 7-day trial."
-                : "$12.99 / month after your 7-day trial."}{" "}
+                ? `${annualPrice} / year (just ${annualMonthlyPrice}/mo) after your 7-day trial.`
+                : `${monthlyPrice} / month after your 7-day trial.`}{" "}
               Cancel anytime before your trial ends and you won't be charged.
             </p>
           </div>
+
+          {error && (
+            <p className="mt-4 text-center text-[13px]" style={{ color: "#B42318" }}>
+              {error}
+            </p>
+          )}
+
           <div className="mt-6 space-y-3">
             <button
               onClick={confirmPlan}
-              className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80"
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80 disabled:opacity-60"
               style={{ background: pendingPlan === "annual" ? ORANGE : PURPLE }}
             >
-              Confirm {pendingPlan === "annual" ? "Annual" : "Monthly"}
+              {purchasing
+                ? "Processing…"
+                : `Confirm ${pendingPlan === "annual" ? "Annual" : "Monthly"}`}
             </button>
             <button
               onClick={closeConfirm}
-              className="w-full rounded-full py-4 text-[16px] font-semibold"
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[16px] font-semibold disabled:opacity-60"
               style={{ background: "#F1EEE8", color: INK }}
             >
               Not now
@@ -337,8 +446,8 @@ function PlanPage() {
             Manage subscription
           </h3>
           <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
-            Switch between Monthly and Annual anytime. Cancellations take effect at the
-            end of your current billing period.
+            Switch between Monthly and Annual anytime. To cancel, change, or refund, use iOS
+            Settings → Apple ID → Subscriptions.
           </p>
           <div className="mt-5 space-y-3">
             <button
@@ -350,6 +459,14 @@ function PlanPage() {
               style={{ background: "#F1EEE8", color: INK }}
             >
               Switch plan
+            </button>
+            <button
+              onClick={handleRestore}
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[15px] font-semibold disabled:opacity-60"
+              style={{ background: "#F1EEE8", color: INK }}
+            >
+              Restore purchases
             </button>
             {selectedPlan && (
               <button
@@ -439,9 +556,7 @@ function PlanCard({
     <div
       className="mt-6 relative rounded-[22px] bg-white p-6"
       style={
-        highlight
-          ? { border: `2px solid ${ORANGE}` }
-          : { boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }
+        highlight ? { border: `2px solid ${ORANGE}` } : { boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }
       }
     >
       {badge && (
@@ -505,13 +620,7 @@ function PlanCard({
   );
 }
 
-function BottomSheet({
-  children,
-  onClose,
-}: {
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
+function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   useHideBottomTabs();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();

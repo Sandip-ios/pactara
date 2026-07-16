@@ -3,6 +3,7 @@ import type { PluginListenerHandle } from "@capacitor/core";
 import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
+import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
 
 /**
  * Runs inside the Capacitor shell. Configures native UI and registers this
@@ -65,6 +66,12 @@ export function NativeBootstrap() {
 
     (async () => {
       try {
+        await configureRevenueCat();
+      } catch (err) {
+        console.warn("[revenuecat] initial configure failed", err);
+      }
+
+      try {
         const { StatusBar, Style } = await import("@capacitor/status-bar");
         // Style.Light = dark icons/text (for our light cream background)
         await StatusBar.setStyle({ style: Style.Light });
@@ -118,6 +125,14 @@ export function NativeBootstrap() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         window.setTimeout(() => void registerForPush(), 0);
+        window.setTimeout(() => {
+          supabase.auth.getUser().then(({ data }) => {
+            if (data.user?.id) void logInRevenueCat(data.user.id);
+          });
+        }, 0);
+      }
+      if (event === "SIGNED_OUT") {
+        window.setTimeout(() => void logOutRevenueCat(), 0);
       }
     });
 
