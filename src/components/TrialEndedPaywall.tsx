@@ -327,20 +327,40 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             Cancel anytime in Settings
           </div>
 
+          {error && (
+            <p className="mt-3 text-center text-[13px]" style={{ color: "#B42318" }}>
+              {error}
+            </p>
+          )}
+
           <button
             type="button"
             onClick={handleSubscribe}
-            className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4"
+            disabled={purchasing || loadingOfferings}
+            className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4 disabled:opacity-60"
             style={{ background: PURPLE }}
           >
-            {ctaLabel}
+            {purchasing ? "Processing…" : ctaLabel}
           </button>
+
+          {!isIntro && (
+            <button
+              type="button"
+              onClick={handleRestore}
+              disabled={purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
+              style={{ color: MUTED }}
+            >
+              Restore purchases
+            </button>
+          )}
 
           {isIntro ? (
             <button
               type="button"
               onClick={onDismiss}
-              className="mt-3 w-full text-[14px] font-medium"
+              disabled={purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
               style={{ color: MUTED }}
             >
               Maybe later
@@ -349,8 +369,8 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             <button
               type="button"
               onClick={handleSignOut}
-              disabled={signingOut}
-              className="mt-3 w-full text-[14px] font-medium"
+              disabled={signingOut || purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
               style={{ color: MUTED }}
             >
               {signingOut ? "Signing out…" : "Sign out"}
