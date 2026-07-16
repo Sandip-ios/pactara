@@ -4,6 +4,16 @@ import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import {
+  getCustomerInfo,
+  getOfferings,
+  isSubscriptionActive,
+  purchasePackage,
+  restorePurchases,
+  type CustomerInfo,
+  type PactaraOfferings,
+} from "@/lib/revenuecat";
+import { isNative } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/plan")({
   ssr: false,
