@@ -125,6 +125,14 @@ export function NativeBootstrap() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         window.setTimeout(() => void registerForPush(), 0);
+        window.setTimeout(() => {
+          supabase.auth.getUser().then(({ data }) => {
+            if (data.user?.id) void logInRevenueCat(data.user.id);
+          });
+        }, 0);
+      }
+      if (event === "SIGNED_OUT") {
+        window.setTimeout(() => void logOutRevenueCat(), 0);
       }
     });
 
