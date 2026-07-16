@@ -68,6 +68,7 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
 
   const handleTimeUpdate = () => {
     const video = videoRef.current;
@@ -89,22 +90,40 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
     setProgress(value);
   };
 
+  const togglePlay = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused || video.ended) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
   return (
     <div className="relative w-full h-full bg-black">
       <video
         ref={videoRef}
         src={src}
         autoPlay
-        muted
         loop
         playsInline
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
         className="w-full h-full object-cover bg-black"
+      />
+      <button
+        type="button"
+        onClick={togglePlay}
+        aria-label={isPlaying ? "Pause video" : "Play video"}
+        className="absolute inset-0 z-0 bg-transparent"
       />
       <div
         className="absolute left-0 right-0 px-4 z-10"
         style={{ bottom: "calc(env(safe-area-inset-bottom) + 12px)" }}
+        onClick={(e) => e.stopPropagation()}
       >
         <input
           type="range"
