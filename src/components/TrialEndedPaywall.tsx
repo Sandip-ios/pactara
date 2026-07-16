@@ -37,6 +37,24 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   const isIntro = mode === "intro";
 
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoadingOfferings(true);
+        const result = await getOfferings();
+        if (!cancelled) setOfferings(result);
+      } catch (err) {
+        console.error("[paywall] failed to load offerings", err);
+      } finally {
+        if (!cancelled) setLoadingOfferings(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const testimonials = [
     {
       badge: "🔥 21 day streak",
