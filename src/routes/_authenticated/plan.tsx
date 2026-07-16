@@ -399,22 +399,31 @@ function PlanPage() {
             </h3>
             <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>
               {pendingPlan === "annual"
-                ? "$79.99 / year (just $6.67/mo) after your 7-day trial."
-                : "$12.99 / month after your 7-day trial."}{" "}
+                ? `${annualPrice} / year (just ${annualMonthlyPrice}/mo) after your 7-day trial.`
+                : `${monthlyPrice} / month after your 7-day trial.`}{" "}
               Cancel anytime before your trial ends and you won't be charged.
             </p>
           </div>
+
+          {error && (
+            <p className="mt-4 text-center text-[13px]" style={{ color: "#B42318" }}>
+              {error}
+            </p>
+          )}
+
           <div className="mt-6 space-y-3">
             <button
               onClick={confirmPlan}
-              className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80"
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[16px] font-semibold text-white active:opacity-80 disabled:opacity-60"
               style={{ background: pendingPlan === "annual" ? ORANGE : PURPLE }}
             >
-              Confirm {pendingPlan === "annual" ? "Annual" : "Monthly"}
+              {purchasing ? "Processing…" : `Confirm ${pendingPlan === "annual" ? "Annual" : "Monthly"}`}
             </button>
             <button
               onClick={closeConfirm}
-              className="w-full rounded-full py-4 text-[16px] font-semibold"
+              disabled={purchasing}
+              className="w-full rounded-full py-4 text-[16px] font-semibold disabled:opacity-60"
               style={{ background: "#F1EEE8", color: INK }}
             >
               Not now
