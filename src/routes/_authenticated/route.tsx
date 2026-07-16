@@ -38,7 +38,8 @@ function AuthLayout() {
     expired: boolean;
     firstName: string | null;
     daysActive: number;
-  } | null>(null);
+    loading: boolean;
+  } | null>({ expired: false, firstName: null, daysActive: 0, loading: true });
 
   useEffect(() => {
     let cancelled = false;
@@ -55,11 +56,23 @@ function AuthLayout() {
       const created = new Date(profile.created_at).getTime();
       const now = Date.now();
       const daysActive = Math.max(0, Math.floor((now - created) / 86400000));
-      const subscribed =
-        typeof localStorage !== "undefined" && localStorage.getItem("pactara-subscribed") === "1";
+
+      let subscribed = false;
+      if (isNative()) {
+        try {
+          const customerInfo = await getCustomerInfo();
+          subscribed = isSubscriptionActive(customerInfo);
+        } catch (err) {
+          console.error("[auth-layout] RevenueCat subscription check failed", err);
+        }
+      } else {
+        subscribed =
+          typeof localStorage !== "undefined" && localStorage.getItem("pactara-subscribed") === "1";
+      }
+
       const expired = !subscribed && now - created > TRIAL_DAYS * 86400000;
       const firstName = (profile.name || "").split(" ")[0] || null;
-      setTrialState({ expired, firstName, daysActive });
+      setTrialState({ expired, firstName, daysActive, loading: false });
     })();
     return () => {
       cancelled = true;
