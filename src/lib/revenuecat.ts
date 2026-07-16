@@ -69,7 +69,7 @@ export async function getOfferings(): Promise<PactaraOfferings | null> {
   if (!isNative()) return null;
   try {
     const Purchases = await loadPurchases();
-    const { offerings } = await Purchases.getOfferings();
+    const offerings = await Purchases.getOfferings();
     const offering = offerings.current;
     if (!offering) {
       console.warn("[revenuecat] no current offering");
