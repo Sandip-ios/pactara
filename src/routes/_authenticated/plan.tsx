@@ -41,6 +41,11 @@ function PlanPage() {
   const [pendingPlan, setPendingPlan] = useState<PlanChoice>(null);
   const [manageOpen, setManageOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
+  const [offerings, setOfferings] = useState<PactaraOfferings | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [purchasing, setPurchasing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     try {
