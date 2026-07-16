@@ -14,7 +14,7 @@ async function loadPurchases() {
 }
 
 /** Initialize RevenueCat and identify the user with their Supabase ID. */
-export async function configureRevenueCat(userId: string) {
+export async function configureRevenueCat(userId?: string | null) {
   if (!isNative()) return;
   if (!PUBLIC_KEY) {
     console.warn("[revenuecat] VITE_REVENUECAT_PUBLIC_KEY is not set");
