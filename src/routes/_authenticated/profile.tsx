@@ -13,6 +13,8 @@ import { getMyBadges } from "@/lib/badges.functions";
 import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
+import { isNative } from "@/lib/native";
 
 
 const PURPLE = "#7C3AED";
