@@ -115,9 +115,18 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     </>
   );
 
-  const priceMonthly = "$12.99";
-  const priceYearly = "$79.99";
-  const yearlyMonthly = "$6.67";
+  const monthlyPkg = offerings?.monthly;
+  const annualPkg = offerings?.annual;
+
+  const priceMonthly = monthlyPkg?.product?.priceString ?? "$12.99";
+  const priceYearly = annualPkg?.product?.priceString ?? "$79.99";
+  const yearlyMonthly = (() => {
+    const annualPrice = annualPkg?.product?.price;
+    if (typeof annualPrice === "number" && annualPrice > 0) {
+      return `$${(annualPrice / 12).toFixed(2)}`;
+    }
+    return "$6.67";
+  })();
   const ctaLabel =
     plan === "yearly"
       ? isIntro
