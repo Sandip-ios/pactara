@@ -253,7 +253,7 @@ function PlanPage() {
           emoji="🔥"
           name="Monthly"
           tagline="Unlimited groups. Start a new challenge anytime."
-          price="$12.99"
+          price={monthlyPrice}
           period="/ month"
           bullets={["Unlimited groups", "Daily & video check-ins", "2 streak freezes to start", "New challenge = new group"]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
@@ -269,9 +269,9 @@ function PlanPage() {
             emoji="⚡"
             name="Annual"
             tagline="Unlimited groups, keep your streaks running all year."
-            price="$79.99"
+            price={annualPrice}
             period="/ year"
-            subPrice="Just $6.67/mo"
+            subPrice={`Just ${annualMonthlyPrice}/mo`}
             bullets={[
               "Everything in Monthly",
               "Restart challenges with your same group — no need to rebuild your crew",
