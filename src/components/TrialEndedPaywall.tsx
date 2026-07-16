@@ -91,8 +91,38 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     navigate({ to: "/login" });
   }
 
-  function handleSubscribe() {
-    alert("Payments aren't connected yet — check back soon.");
+  async function handleSubscribe() {
+    if (purchasing) return;
+    const pkg = plan === "yearly" ? annualPkg : monthlyPkg;
+    if (!pkg) {
+      setError("Subscription options aren't available right now. Please try again later.");
+      return;
+    }
+    setPurchasing(true);
+    setError(null);
+    try {
+      const customerInfo = await purchasePackage(pkg);
+      if (customerInfo) {
+        // Purchase completed successfully; the parent route will detect the
+        // active entitlement and dismiss the paywall on its next check.
+        window.location.reload();
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Something went wrong. Please try again.");
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
+  async function handleRestore() {
+    try {
+      const customerInfo = await restorePurchases();
+      if (customerInfo) {
+        window.location.reload();
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Could not restore purchases.");
+    }
   }
 
   const eyebrow = isIntro ? "START YOUR 7-DAY FREE TRIAL" : "YOUR TRIAL HAS ENDED";
