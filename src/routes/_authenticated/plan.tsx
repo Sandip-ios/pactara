@@ -138,20 +138,26 @@ function PlanPage() {
     toast.success("Plan selection cleared.");
   };
 
-  const currentLabel = selectedPlan
-    ? selectedPlan === "annual"
-      ? "Annual (saved)"
-      : "Monthly (saved)"
-    : isTrial
-      ? "Free trial"
-      : "Trial ended";
-  const currentSub = selectedPlan
-    ? selectedPlan === "annual"
-      ? "$79.99/yr · billed after your 7-day trial"
-      : "$12.99/mo · billed after your 7-day trial"
-    : isTrial
-      ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
-      : "Choose a plan below to keep your progress.";
+  const subscriptionActive = isSubscriptionActive(customerInfo);
+
+  const currentLabel = subscriptionActive
+    ? "Subscribed"
+    : selectedPlan
+      ? selectedPlan === "annual"
+        ? "Annual (saved)"
+        : "Monthly (saved)"
+      : isTrial
+        ? "Free trial"
+        : "Trial ended";
+  const currentSub = subscriptionActive
+    ? "Your subscription is active."
+    : selectedPlan
+      ? selectedPlan === "annual"
+        ? "$79.99/yr · billed after your 7-day trial"
+        : "$12.99/mo · billed after your 7-day trial"
+      : isTrial
+        ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
+        : "Choose a plan below to keep your progress.";
 
   return (
     <div
