@@ -115,17 +115,47 @@ function PlanPage() {
   const openConfirm = (plan: Exclude<PlanChoice, null>) => setPendingPlan(plan);
   const closeConfirm = () => setPendingPlan(null);
 
-  const confirmPlan = () => {
+  const confirmPlan = async () => {
     if (!pendingPlan) return;
-    setSelectedPlan(pendingPlan);
-    try {
-      localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
-    } catch {}
-    toast.success(
-      pendingPlan === "annual"
-        ? "You're on Annual. Billing starts after your 7-day trial."
-        : "You're on Monthly. Billing starts after your 7-day trial.",
-    );
+    const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
+    if (isNative()) {
+      if (!pkg) {
+        setError("Subscription options aren't available right now. Please try again later.");
+        setPendingPlan(null);
+        return;
+      }
+      setPurchasing(true);
+      setError(null);
+      try {
+        const result = await purchasePackage(pkg);
+        if (result) {
+          setSelectedPlan(pendingPlan);
+          setCustomerInfo(result);
+          try {
+            localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
+          } catch {}
+          toast.success(
+            pendingPlan === "annual"
+              ? "You're subscribed to Annual."
+              : "You're subscribed to Monthly.",
+          );
+        }
+      } catch (err: any) {
+        setError(err?.message ?? "Purchase failed. Please try again.");
+      } finally {
+        setPurchasing(false);
+      }
+    } else {
+      setSelectedPlan(pendingPlan);
+      try {
+        localStorage.setItem(PLAN_PREF_KEY, pendingPlan);
+      } catch {}
+      toast.success(
+        pendingPlan === "annual"
+          ? "You're on Annual. Billing starts after your 7-day trial."
+          : "You're on Monthly. Billing starts after your 7-day trial.",
+      );
+    }
     setPendingPlan(null);
   };
 
@@ -136,6 +166,21 @@ function PlanPage() {
     } catch {}
     setManageOpen(false);
     toast.success("Plan selection cleared.");
+  };
+
+  const handleRestore = async () => {
+    setError(null);
+    try {
+      const info = await restorePurchases();
+      if (info) {
+        setCustomerInfo(info);
+        toast.success("Purchases restored successfully.");
+      } else {
+        toast.info("No purchases to restore.");
+      }
+    } catch (err: any) {
+      setError(err?.message ?? "Could not restore purchases.");
+    }
   };
 
   const subscriptionActive = isSubscriptionActive(customerInfo);
