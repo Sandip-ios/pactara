@@ -165,6 +165,40 @@ picks them up on next launch.
   WebView. Swapping to `@capacitor/camera` for higher quality can happen in
   a follow-up.
 
+## Subscriptions (RevenueCat)
+
+Pactara uses RevenueCat for iOS in-app purchases. The Capacitor plugin
+(`@revenuecat/purchases-capacitor`) is installed in the web project. When you
+add or sync the iOS platform, it pulls in the RevenueCat iOS SDK
+automatically.
+
+### RevenueCat dashboard (one time)
+
+1. Create an entitlement called **`premium`** (or update `REVENUECAT_ENTITLEMENT_ID`
+   in `src/lib/revenuecat.ts` to match the identifier you created).
+2. Create an offering called **`default`** with:
+   - `$rc_monthly` → product `pactara_monthly`
+   - `$rc_annual` → product `pactara_annual`
+3. Copy the **Public SDK key** from RevenueCat → Project settings → API keys
+   and set it as `VITE_REVENUECAT_PUBLIC_KEY` in `.env`.
+
+### Xcode setup (one time)
+
+1. After `npx cap add ios`, open the project in Xcode and add the **In-App
+   Purchase** capability:
+   **App target → Signing & Capabilities → + Capability → In-App Purchase**.
+2. Configure your StoreKit products in App Store Connect (or create a local
+   StoreKit Configuration file for testing in Xcode).
+3. RevenueCat uses StoreKit 2 by default. Add your **In-App Purchase Key** in
+   the RevenueCat dashboard so StoreKit 2 purchases can be validated.
+
+### Testing purchases
+
+- Real purchases can only be tested on a physical iOS device or via Xcode
+  sandbox on a signed-in Apple ID.
+- The web preview will show the paywall UI but cannot complete App Store
+  purchases.
+
 ## Switching to bundled web assets (offline / no live URL)
 
 Every UI change would then require a new App Store submission — not
