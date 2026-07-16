@@ -63,6 +63,18 @@ function ProfilePage() {
     }
   }, [selectedGroupId]);
 
+  useEffect(() => {
+    if (!isNative()) return;
+    (async () => {
+      try {
+        const info = await getCustomerInfo();
+        setSubscriptionActive(isSubscriptionActive(info));
+      } catch (err) {
+        console.error("[profile] RevenueCat check failed", err);
+      }
+    })();
+  }, []);
+
   const { data } = useQuery({
     queryKey: ["profile-overview", selectedGroupId],
     queryFn: () => getProfileOverview({ data: { groupId: selectedGroupId } }),
