@@ -96,6 +96,7 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
         src={src}
         autoPlay
         muted
+        loop
         playsInline
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
