@@ -84,7 +84,7 @@ function AuthLayout() {
       <TimezoneSync />
       <Outlet />
       {!hideTabs && <BottomTabs />}
-      {trialState?.expired && (
+      {trialState && !trialState.loading && trialState.expired && (
         <TrialEndedPaywall
           firstName={trialState.firstName}
           daysActive={trialState.daysActive}
