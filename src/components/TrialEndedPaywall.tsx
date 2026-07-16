@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Star, Flame, TrendingUp, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import {
+  getOfferings,
+  purchasePackage,
+  restorePurchases,
+  type PactaraOfferings,
+} from "@/lib/revenuecat";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EC";
