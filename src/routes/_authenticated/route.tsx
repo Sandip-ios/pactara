@@ -5,6 +5,8 @@ import { BottomTabs } from "@/components/BottomTabs";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
+import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
+import { isNative } from "@/lib/native";
 
 const TRIAL_DAYS = 7;
 
