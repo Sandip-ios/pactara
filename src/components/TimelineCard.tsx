@@ -756,7 +756,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
       </div>
 
       <ReactionBar item={item} onToggleComments={() => { prefetchComments(); setCommentsOpen(true); }} onPrefetchComments={prefetchComments} commentsOpen={commentsOpen} />
-      <Drawer open={commentsOpen} onOpenChange={setCommentsOpen}>
+      <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} repositionInputs={false}>
         <DrawerContent className="h-[85vh] flex flex-col p-0">
           <DrawerHeader className="border-b border-neutral-100 py-3">
             <DrawerTitle className="text-center text-[17px] font-bold">Comments</DrawerTitle>
