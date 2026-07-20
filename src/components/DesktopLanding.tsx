@@ -374,21 +374,23 @@ function FeatureCard({
   visual,
 }: {
   className?: string;
-  title: string;
-  body: string;
+  title?: string;
+  body?: string;
   visual: ReactNode;
 }) {
   return (
     <div
       className={`relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card p-8 ${className}`}
     >
-      <div>
-        <h3 className="text-[22px] font-bold tracking-tight text-card-foreground">
-          {title}
-        </h3>
-        <p className="mt-2 max-w-md text-[15px] text-muted-foreground">{body}</p>
-      </div>
-      <div className="mt-6 flex flex-1 items-end">{visual}</div>
+      {title && (
+        <div>
+          <h3 className="text-[22px] font-bold tracking-tight text-card-foreground">
+            {title}
+          </h3>
+          {body && <p className="mt-2 max-w-md text-[15px] text-muted-foreground">{body}</p>}
+        </div>
+      )}
+      <div className={`flex flex-1 items-end ${title ? "mt-6" : ""}`}>{visual}</div>
     </div>
   );
 }
