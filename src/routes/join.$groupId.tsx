@@ -107,21 +107,6 @@ function JoinPage() {
   return (
     <div className="min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 py-8" style={{ background: DARK_BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="w-full max-w-[360px] rounded-[32px] p-6 relative" style={{ background: CARD_BG }}>
-        {/* Top row */}
-        <div className="flex items-center justify-between mb-6">
-          <span className="text-[17px] font-semibold" style={{ color: "#fff" }}>
-            Wanna do this?
-          </span>
-          <button
-            onClick={() => navigate({ to: "/" })}
-            className="h-8 w-8 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.1)" }}
-            aria-label="Close"
-          >
-            <X size={16} color="#fff" />
-          </button>
-        </div>
-
         {/* Center avatar */}
         <div className="flex flex-col items-center text-center">
           <div
@@ -132,7 +117,7 @@ function JoinPage() {
               boxShadow: "0 0 0 1px rgba(255,255,255,0.08) inset",
             }}
           >
-            {emoji}
+            {inviterInitials}
           </div>
 
           <h1 className="text-[22px] font-bold leading-tight mb-3" style={{ color: "#fff" }}>
