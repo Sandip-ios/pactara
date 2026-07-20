@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Zap, type LucideIcon } from "lucide-react";
+import { Bell, CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Video, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
@@ -323,41 +323,42 @@ function Includes() {
     <section id="features" className="bg-muted/60 py-24">
       <div className="mx-auto w-full max-w-6xl px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-4 inline-block rounded-full bg-pactara-purple-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-pactara-purple">
-            What Pactara includes
-          </div>
           <h2 className="text-[42px] font-black leading-[1.05] tracking-[-0.03em] lg:text-[52px]">
-            Everything you need to stay consistent.
+            The tools that keep you showing up
           </h2>
           <p className="mt-4 text-[17px] text-muted-foreground">
-            No noise. Just the tools that make accountability real.
+            No streak-inflating fake habits. No quiet resets. Just people who notice.
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-6">
+        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
           <FeatureCard
-            className="md:col-span-4"
+            icon={Users}
+            iconTone="purple"
             title="A group that's actually watching"
             body="Not 5,000 strangers. 3–5 friends who'll text you when you miss."
             visual={<GroupVisual />}
           />
           <FeatureCard
-            className="md:col-span-2"
-            title="Streaks that mean something"
-            body="Because you built them with people, not alone."
-            visual={<StreakVisual />}
+            icon={Bell}
+            iconTone="red"
+            title="They notice when you don't show up"
+            body="Miss a check-in and your group gets a nudge. No hiding it."
+            visual={<NudgeVisual />}
           />
           <FeatureCard
-            className="md:col-span-3"
-            title="Morning ritual"
-            body="Post your plan. Now they're watching."
-            visual={<MorningVisual />}
-          />
-          <FeatureCard
-            className="md:col-span-3"
+            icon={Video}
+            iconTone="blue"
             title="Daily check-in in 10 seconds"
-            body="A quick video recorded in the app, a mood, done. No streak-inflating fake habits."
+            body="A quick video recorded in the app, a mood, done."
             visual={<CheckinImage />}
+          />
+          <FeatureCard
+            icon={Flame}
+            iconTone="amber"
+            title="Streaks that don't lie"
+            body="Miss a day, it resets — visible to everyone in your group."
+            visual={<StreakVisual />}
           />
         </div>
       </div>
@@ -365,13 +366,24 @@ function Includes() {
   );
 }
 
+const iconToneMap = {
+  purple: "bg-pactara-purple-soft text-pactara-purple",
+  red: "bg-red-100 text-red-600",
+  blue: "bg-blue-100 text-blue-600",
+  amber: "bg-amber-100 text-amber-600",
+} as const;
+
 function FeatureCard({
   className = "",
+  icon: Icon,
+  iconTone = "purple",
   title,
   body,
   visual,
 }: {
   className?: string;
+  icon?: LucideIcon;
+  iconTone?: keyof typeof iconToneMap;
   title?: string;
   body?: string;
   visual: ReactNode;
@@ -382,10 +394,17 @@ function FeatureCard({
     >
       {title && (
         <div>
-          <h3 className="text-[22px] font-bold tracking-tight text-card-foreground">
-            {title}
-          </h3>
-          {body && <p className="mt-2 max-w-md text-[15px] text-muted-foreground">{body}</p>}
+          <div className="mb-3 flex items-center gap-3">
+            {Icon && (
+              <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${iconToneMap[iconTone]}`}>
+                <Icon className="h-5 w-5" />
+              </span>
+            )}
+            <h3 className="text-[22px] font-bold tracking-tight text-card-foreground">
+              {title}
+            </h3>
+          </div>
+          {body && <p className="max-w-md text-[15px] text-muted-foreground">{body}</p>}
         </div>
       )}
       <div className={`flex flex-1 items-end ${title ? "mt-6" : ""}`}>{visual}</div>
@@ -395,7 +414,7 @@ function FeatureCard({
 
 function GroupVisual() {
   return (
-    <div className="w-full rounded-2xl border border-pactara-purple/12 bg-gradient-to-br from-pactara-purple-soft to-card p-5">
+    <div className="w-full rounded-2xl bg-muted/70 p-5">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-[13px] font-bold text-card-foreground">Daily run</span>
         <span className="text-[12px] text-muted-foreground">2/3 today</span>
@@ -408,10 +427,10 @@ function GroupVisual() {
         ].map((m, i) => (
           <div key={i} className="flex flex-col items-center gap-2">
             <div className="relative">
-              <Avatar letter={m.l} size={54} bg={m.bg} />
+              <Avatar letter={m.l} size={48} bg={m.bg} />
               <span
-                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-background text-[12px] font-bold text-white"
-                style={{ backgroundColor: m.done ? "#22C55E" : "#D6D3D1" }}
+                className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-card text-[11px] font-bold text-white"
+                style={{ backgroundColor: m.done ? "#22C55E" : "#9CA3AF" }}
               >
                 {m.done ? "✓" : "…"}
               </span>
@@ -426,35 +445,30 @@ function GroupVisual() {
   );
 }
 
-function StreakVisual() {
+function NudgeVisual() {
   return (
-    <div className="w-full rounded-2xl bg-muted p-5 text-center">
-      <div className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-        Current streak
-      </div>
-      <div className="mt-2 flex items-center justify-center gap-2">
-        <span className="text-[34px]">🔥</span>
-        <span className="text-[52px] font-black tracking-[-0.02em] text-pactara-purple">
-          21
+    <div className="w-full rounded-2xl bg-muted/70 p-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
+          <Bell className="h-4 w-4" />
         </span>
+        <p className="text-[13px] leading-snug text-card-foreground">
+          <span className="font-bold">Morning yoga:</span>{" "}
+          <span className="text-muted-foreground">Maya hasn't checked in today</span>
+        </p>
       </div>
-      <div className="text-[12px] text-muted-foreground">days without missing</div>
     </div>
   );
 }
 
-function MorningVisual() {
+function StreakVisual() {
   return (
-    <div className="w-full rounded-2xl bg-card p-4 shadow-lg">
+    <div className="flex w-full items-center justify-between rounded-2xl bg-muted/70 px-5 py-4">
+      <span className="text-[13px] font-medium text-muted-foreground">Current streak</span>
       <div className="flex items-center gap-2">
-        <Avatar letter="A" size={28} />
-        <div className="text-[12px] font-bold text-card-foreground">
-          Alex — morning post
-        </div>
+        <Flame className="h-5 w-5 text-amber-500" />
+        <span className="text-[24px] font-black tracking-[-0.02em] text-foreground">21</span>
       </div>
-      <p className="mt-2 text-[12.5px] leading-snug text-muted-foreground">
-        Gym before work, meal prep after. No excuses today. 💪
-      </p>
     </div>
   );
 }
@@ -473,6 +487,7 @@ function CheckinImage() {
     </div>
   );
 }
+
 
 /* ---------------- WHY CHOOSE PACTARA ---------------- */
 
