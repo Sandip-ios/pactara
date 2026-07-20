@@ -14,15 +14,29 @@ const TEXT_MUTED = "#6B6660";
 
 export const Route = createFileRoute("/join/$groupId")({
   component: JoinPage,
-  head: ({ params }) => ({
-    meta: [
-      { title: "Join an accountability group on Pactara" },
-      { name: "description", content: "You've been invited to join an accountability group on Pactara." },
-      { property: "og:title", content: "Join my accountability group on Pactara" },
-      { property: "og:description", content: "Daily check-ins with friends keeping each other accountable." },
-    ],
-    links: [{ rel: "canonical", href: `/join/${params.groupId}` }],
-  }),
+  head: ({ params }) => {
+    const ogImage = `https://pactara.lovable.app/api/public/og/invite/${params.groupId}`;
+    const url = `https://pactara.lovable.app/join/${params.groupId}`;
+    return {
+      meta: [
+        { title: "Add me on Pactara 💜" },
+        { name: "description", content: "You've been invited to join an accountability group on Pactara." },
+        { property: "og:title", content: "Add me on Pactara 💜" },
+        { property: "og:description", content: "Daily check-ins with friends keeping each other accountable." },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: url },
+        { property: "og:image", content: ogImage },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "Add me on Pactara 💜" },
+        { name: "twitter:description", content: "Daily check-ins with friends keeping each other accountable." },
+        { name: "twitter:image", content: ogImage },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
+
   errorComponent: ({ error }) => (
     <div className="min-h-[100dvh] flex items-center justify-center px-6 text-center" style={{ background: BG }}>
       <div>
