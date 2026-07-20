@@ -680,7 +680,16 @@ function Footer() {
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-[13px] text-muted-foreground md:flex-row">
         <Wordmark />
         <div>© {new Date().getFullYear()} Pactara. Show up together.</div>
-        <div className="flex gap-5">
+        <div className="flex flex-wrap justify-center gap-5">
+          <Link to="/privacy" className="hover:text-foreground">
+            Privacy
+          </Link>
+          <Link to="/terms" className="hover:text-foreground">
+            Terms
+          </Link>
+          <Link to="/support" className="hover:text-foreground">
+            Support
+          </Link>
           <Link to="/login" className="hover:text-foreground">
             Log in
           </Link>
@@ -692,6 +701,7 @@ function Footer() {
     </footer>
   );
 }
+
 
 /* ---------------- SHARED ---------------- */
 
