@@ -1322,7 +1322,7 @@ export function InviteStep({
                   markerHeight="9"
                   refX="8"
                   refY="3"
-                  orient="auto-start-reverse"
+                  orient="auto"
                 >
                   <path d="M 0 0 L 9 3 L 0 6 z" fill={PURPLE} />
                 </marker>
