@@ -142,6 +142,8 @@ function SignupFlow() {
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
+  const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
+
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
