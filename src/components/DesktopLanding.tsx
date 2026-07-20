@@ -3,7 +3,7 @@ import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, 
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
-import streakCard from "@/assets/streak-card.png.asset.json";
+import streakCard from "@/assets/streak-user.png.asset.json";
 
 
 // Replace with the real App Store URL once the app is live.
@@ -447,9 +447,9 @@ function StreakVisual() {
     <div className="flex w-full items-center justify-center">
       <img
         src={streakCard.url}
-        alt="Current streak card showing 21 days"
+        alt="Member profile with a 24-day streak"
         loading="lazy"
-        className="h-auto w-full max-w-[320px]"
+        className="h-auto w-full max-w-[160px]"
       />
     </div>
   );
