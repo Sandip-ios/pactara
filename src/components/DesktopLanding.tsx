@@ -133,7 +133,7 @@ function Hero() {
             width={1024}
             height={1024}
             loading="eager"
-            className="relative h-auto w-full max-w-[520px]"
+            className="relative h-auto w-full max-w-[598px]"
           />
         </div>
       </div>
