@@ -3,6 +3,8 @@ import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, 
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
+import streakCard from "@/assets/streak-card.png.asset.json";
+
 
 // Replace with the real App Store URL once the app is live.
 const APP_STORE_URL = "https://apps.apple.com/app/pactara";
