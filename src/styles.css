@@ -59,6 +59,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Pactara brand accent (used on marketing landing page) */
+  --color-pactara-purple: var(--pactara-purple);
+  --color-pactara-purple-foreground: var(--pactara-purple-foreground);
+  --color-pactara-purple-soft: var(--pactara-purple-soft);
+  --color-pactara-purple-deep: var(--pactara-purple-deep);
 }
 
 :root {
@@ -95,6 +101,12 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* Pactara brand accent (approximate oklch matches for #7C3AED, #5B21B6, #F3EEFF) */
+  --pactara-purple: oklch(0.55 0.22 278);
+  --pactara-purple-foreground: oklch(1 0 0);
+  --pactara-purple-soft: oklch(0.96 0.03 290);
+  --pactara-purple-deep: oklch(0.40 0.22 280);
 }
 
 .dark {
