@@ -9,8 +9,8 @@ import { toast } from "sonner";
 
 const DARK_BG = "#121214";
 const CARD_BG = "#1C1C1F";
-const AMBER = "#F59E0B";
-const AMBER_DARK = "#D97706";
+const AMBER = "#FACC15";
+const AMBER_DARK = "#EAB308";
 const MUTED = "#9CA3AF";
 
 export const Route = createFileRoute("/join/$groupId")({
