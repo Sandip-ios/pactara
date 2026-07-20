@@ -359,6 +359,8 @@ function Includes() {
           />
           <FeatureCard
             className="md:col-span-3"
+            title="Daily check-in in 10 seconds"
+            body="A quick video recorded in the app, a mood, done. No streak-inflating fake habits."
             visual={<CheckinImage />}
           />
         </div>
