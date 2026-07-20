@@ -158,7 +158,7 @@ function SocialProof() {
     {
       icon: Flame,
       title: "Daily",
-      body: "Consistency matters more than streak inflation.",
+      body: "Consistency matters more than streaks.",
     },
     {
       icon: ShieldCheck,
