@@ -1220,7 +1220,7 @@ export function InviteStep({
   const centerR = 42; // "You" circle radius (84px)
   const targetR = 34; // friend slot radius (68px)
   const arrowBaseHalf = 9; // half-width of the arrow base
-  const arrowTipRadius = 100 - targetR; // distance from center to inner edge of target slot
+  const arrowTipRadius = 42 + (100 - targetR - 42) * 0.6; // 40% shorter than reaching the slot edge
   const arrowBaseRadius = 42; // distance from center to outer edge of "You" circle
 
   const arrowPath = useMemo(() => {
