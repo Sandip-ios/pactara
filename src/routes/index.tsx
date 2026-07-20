@@ -1,6 +1,8 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DesktopLanding } from "@/components/DesktopLanding";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
