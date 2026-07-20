@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
-import { nudgeUser } from "@/lib/push.functions";
+
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
@@ -232,23 +232,6 @@ function HomePage() {
     },
   });
 
-  const nudgeFn = useServerFn(nudgeUser);
-  const [nudgedIds, setNudgedIds] = useState<Set<string>>(new Set());
-  const nudgeMutation = useMutation({
-    mutationFn: nudgeFn,
-    onSuccess: (res, vars) => {
-      const id = (vars as { data: { targetUserId: string } }).data.targetUserId;
-      setNudgedIds((prev) => new Set(prev).add(id));
-      if (res?.ok && (res.sent ?? 0) > 0) {
-        toast.success("Nudge sent");
-      } else if (res?.ok) {
-        toast("Nudge sent — they'll see it next time they open the app");
-      } else {
-        toast.error("Couldn't send nudge");
-      }
-    },
-    onError: () => toast.error("Couldn't send nudge"),
-  });
 
   const submitThought = async () => {
     const text = composerText.trim();
