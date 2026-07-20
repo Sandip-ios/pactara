@@ -34,11 +34,12 @@ export const getGroupPreview = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, owner_id, created_at")
+      .select("id, name, emoji, goal, duration_days, owner_id, created_at")
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
     if (!group) throw new Error("Group not found");
+
 
     const { data: members, error: mErr } = await supabaseAdmin
       .from("group_members")
