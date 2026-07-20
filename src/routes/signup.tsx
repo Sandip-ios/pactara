@@ -1871,7 +1871,7 @@ export function GreetingStep({
   const howSteps = [
     { n: "1", emoji: "🌅", title: "Set your morning ritual", text: "Each morning, commit to one daily action with your group." },
     { n: "2", emoji: "📸", title: "Check in with proof", text: "Record a quick 5–15 second video in the app showing you did the thing." },
-    { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, nudge. The group keeps you accountable." },
+    { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, celebrate. The group keeps you accountable." },
   ];
   const withoutList = [
     "Motivation fades after a week",
@@ -2012,7 +2012,7 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
       n: "3",
       emoji: "🤝",
       title: "Show up for your group",
-      text: "React, cheer, nudge. The group keeps you accountable, and you do the same for them.",
+      text: "React, cheer, celebrate. The group keeps you accountable, and you do the same for them.",
     },
   ];
   return (

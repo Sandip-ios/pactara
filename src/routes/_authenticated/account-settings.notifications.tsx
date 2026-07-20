@@ -166,7 +166,7 @@ function NotificationsPage() {
       <Card>
         <ToggleRow
           title="Remind me to check in"
-          subtitle="A nudge so you don't miss a day"
+          subtitle="A reminder so you don't miss a day"
           value={prefs.daily_reminder_enabled}
           onChange={(v) => save.mutate({ daily_reminder_enabled: v })}
         />

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Video, Zap, type LucideIcon } from "lucide-react";
+import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Video, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
@@ -331,20 +331,13 @@ function Includes() {
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
           <FeatureCard
             icon={Users}
             iconTone="purple"
             title="A group that's actually watching"
-            body="Not 5,000 strangers. 3–5 friends who'll text you when you miss."
+            body="Not 5,000 strangers. 3–5 friends who'll notice when you miss."
             visual={<GroupVisual />}
-          />
-          <FeatureCard
-            icon={Bell}
-            iconTone="red"
-            title="They notice when you don't show up"
-            body="Miss a check-in and your group gets a nudge. No hiding it."
-            visual={<NudgeVisual />}
           />
           <FeatureCard
             icon={Video}
@@ -445,21 +438,6 @@ function GroupVisual() {
   );
 }
 
-function NudgeVisual() {
-  return (
-    <div className="w-full rounded-2xl bg-muted/70 p-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-          <Bell className="h-4 w-4" />
-        </span>
-        <p className="text-[13px] leading-snug text-card-foreground">
-          <span className="font-bold">Maya nudged you 👋</span>{" "}
-          <span className="text-muted-foreground">— don't leave the group hanging</span>
-        </p>
-      </div>
-    </div>
-  );
-}
 
 
 function StreakVisual() {
