@@ -1,6 +1,8 @@
 import { useEffect, type ReactNode } from "react";
 import { useRouter } from "@tanstack/react-router";
 import posthog from "posthog-js";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const POSTHOG_KEY = "phc_tzge9caFkSUQFm2wmShenqMqLWKoytNvzfkjdJsdjeLw";
 const POSTHOG_HOST = "https://us.i.posthog.com";
