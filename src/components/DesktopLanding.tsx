@@ -444,15 +444,15 @@ function GroupVisual() {
 
 function StreakVisual() {
   return (
-    <div className="flex w-full items-center justify-center">
-      <div className="w-full max-w-[312px] overflow-hidden rounded-2xl">
+    <div className="flex h-[226px] w-full items-end justify-center">
+      <div className="flex h-full items-end justify-center overflow-visible">
         <img
           src={streakCard.url}
           alt="Member profile with a 24-day streak"
           width={312}
           height={522}
           loading="lazy"
-          className="h-auto w-full"
+          className="h-[221px] w-auto object-contain"
         />
       </div>
     </div>
@@ -463,7 +463,7 @@ function StreakVisual() {
 
 function CheckinImage() {
   return (
-    <div className="flex w-full items-center justify-center">
+    <div className="flex h-[226px] w-full items-end justify-center">
       <img
         src={featureCheckin}
         alt="Pactara daily check-in screen with a 5-second countdown timer"
