@@ -844,7 +844,7 @@ function ShareInviteDrawer({
 }) {
   const fullMessage = `${shareText} ${inviteLink}`;
   const encoded = encodeURIComponent(fullMessage);
-  const subject = encodeURIComponent(`Join my ${groupName} on Pactara`);
+  const subject = encodeURIComponent(`Accept your invite to my ${groupName} on Pactara`);
 
   const options: { label: string; icon: React.ReactNode; href?: string; onClick?: () => void }[] = [
     {
