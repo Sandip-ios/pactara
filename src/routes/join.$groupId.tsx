@@ -184,21 +184,6 @@ function JoinPage() {
         </div>
       </div>
 
-      {!isSignedIn && authReady && (
-        <div className="mt-6 text-center text-[13px]" style={{ color: MUTED }}>
-          Already have an account?{" "}
-          <button
-            onClick={() => {
-              if (typeof sessionStorage !== "undefined") sessionStorage.setItem("pending-invite-group", groupId);
-              navigate({ to: "/login" });
-            }}
-            className="font-semibold underline"
-            style={{ color: "#fff" }}
-          >
-            Sign in
-          </button>
-        </div>
-      )}
     </div>
   );
 }
