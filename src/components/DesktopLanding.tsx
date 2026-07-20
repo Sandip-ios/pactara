@@ -469,10 +469,10 @@ function CheckinImage() {
       <img
         src={featureCheckin}
         alt="Pactara daily check-in screen with a 5-second countdown timer"
-        width={333}
-        height={690}
+        width={1152}
+        height={928}
         loading="lazy"
-        className="h-auto w-full max-w-[320px]"
+        className="h-auto w-full max-w-[280px]"
       />
     </div>
   );
