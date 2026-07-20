@@ -1208,6 +1208,18 @@ export function InviteStep({
     return { x: Math.cos(angle) * R, y: Math.sin(angle) * R };
   });
 
+  // Arrow pointing from the center "You" circle to the next active slot
+  const nextIndex = canAddMore ? friends.length : -1;
+  const nextPosition = nextIndex >= 0 ? positions[nextIndex] : null;
+  const arrowAngle = nextPosition ? Math.atan2(nextPosition.y, nextPosition.x) : 0;
+  const arrowStart = nextPosition
+    ? { x: 140 + 40 * Math.cos(arrowAngle), y: 140 + 40 * Math.sin(arrowAngle) }
+    : null;
+  const arrowEnd = nextPosition
+    ? { x: 140 + 62 * Math.cos(arrowAngle), y: 140 + 62 * Math.sin(arrowAngle) }
+    : null;
+  const arrowMarkerId = `arrowhead-${useId()}`;
+
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
