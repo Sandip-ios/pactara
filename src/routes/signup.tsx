@@ -1251,10 +1251,10 @@ export function InviteStep({
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
-        Add your friends
+        Build your crew
       </h1>
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
-        {friends.length} of {MAX_FRIENDS} added · at least 2 to continue.
+        {friends.length} of {MAX_FRIENDS} added · add at least 2 — accountability works better with witnesses.
       </p>
 
       <div className="mt-6 flex-1 min-h-0 flex items-center justify-center">
