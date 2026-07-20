@@ -126,8 +126,12 @@ function JoinPage() {
         {/* Center avatar */}
         <div className="flex flex-col items-center text-center">
           <div
-            className="h-[120px] w-[120px] rounded-full flex items-center justify-center text-[48px] font-bold mb-6"
-            style={{ background: "rgba(255,255,255,0.12)", color: "#fff" }}
+            className="h-[140px] w-[140px] rounded-full flex items-center justify-center text-[56px] font-bold mb-6"
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              color: "#fff",
+              boxShadow: "0 0 0 1px rgba(255,255,255,0.08) inset",
+            }}
           >
             {emoji}
           </div>
