@@ -224,8 +224,8 @@ function GroupCard({
   const daysPerWeek = group.daysPerWeek ?? 7;
 
   const inviteLink = `https://pactara.lovable.app/join/${group.id}`;
-  const shareText = `Join me on Pactara — we're keeping each other accountable.`;
-  const shareTitle = `Join my ${group.name}`;
+  const shareText = `Accept your invite to my Pactara group!`;
+  const shareTitle = `Accept your invite to my Pactara group!`;
 
   const handleCopy = async () => {
     if (!inviteLink) return;
