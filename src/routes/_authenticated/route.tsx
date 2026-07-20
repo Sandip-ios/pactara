@@ -45,14 +45,21 @@ function AuthLayout() {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
-      if (!userId) return;
+      if (!userId) {
+        if (!cancelled) setTrialState({ expired: false, firstName: null, daysActive: 0, loading: false });
+        return;
+      }
       const { data: profile } = await supabase
         .from("profiles")
         .select("created_at, name")
         .eq("id", userId)
         .maybeSingle();
-      if (cancelled || !profile) return;
-      const created = new Date(profile.created_at).getTime();
+      if (cancelled) return;
+
+      const dateCandidates = [auth.user?.created_at, profile?.created_at]
+        .map((date) => (date ? new Date(date).getTime() : Number.NaN))
+        .filter((time) => Number.isFinite(time) && time > 0);
+      const created = dateCandidates.length ? Math.min(...dateCandidates) : Date.now();
       const now = Date.now();
       const daysActive = Math.max(0, Math.floor((now - created) / 86400000));
 
@@ -76,7 +83,7 @@ function AuthLayout() {
         (typeof localStorage !== "undefined" &&
           localStorage.getItem("pactara-force-paywall") === "1");
       const expired = forced || (!subscribed && now - created > TRIAL_DAYS * 86400000);
-      const firstName = (profile.name || "").split(" ")[0] || null;
+      const firstName = (profile?.name || auth.user?.user_metadata?.name || "").split(" ")[0] || null;
       setTrialState({ expired, firstName, daysActive, loading: false });
     })();
     return () => {
