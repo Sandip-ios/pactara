@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { CalendarCheck, Check, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import heroPhone from "@/assets/hero-phone.png";
+import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
 
 // Replace with the real App Store URL once the app is live.
