@@ -453,13 +453,14 @@ function NudgeVisual() {
           <Bell className="h-4 w-4" />
         </span>
         <p className="text-[13px] leading-snug text-card-foreground">
-          <span className="font-bold">Morning yoga:</span>{" "}
-          <span className="text-muted-foreground">Maya hasn't checked in today</span>
+          <span className="font-bold">Maya nudged you 👋</span>{" "}
+          <span className="text-muted-foreground">— don't leave the group hanging</span>
         </p>
       </div>
     </div>
   );
 }
+
 
 function StreakVisual() {
   return (
