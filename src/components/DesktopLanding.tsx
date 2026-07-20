@@ -145,22 +145,37 @@ function Hero() {
 
 function SocialProof() {
   const items = [
-    { value: "94%", label: "check in daily" },
-    { value: "3–5", label: "friends per group" },
-    { value: "21d", label: "avg streak" },
-    { value: "0", label: "excuses accepted" },
+    {
+      icon: Users,
+      title: "Groups of 3–5",
+      body: "Small by design, so everyone is noticed.",
+    },
+    {
+      icon: CalendarCheck,
+      title: "Built for daily check-ins",
+      body: "One promise. One check-in. Every day.",
+    },
+    {
+      icon: Flame,
+      title: "Daily",
+      body: "Consistency matters more than streak inflation.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "No excuses accepted",
+      body: "The structure does the work willpower can't.",
+    },
   ];
   return (
     <section className="border-y border-border bg-muted/60">
       <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-8 px-6 py-10 md:grid-cols-4">
         {items.map((it) => (
-          <div key={it.label} className="text-center">
-            <div className="text-[32px] font-black tracking-[-0.02em] text-pactara-purple">
-              {it.value}
+          <div key={it.title} className="text-center">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-pactara-purple-soft text-pactara-purple">
+              <it.icon className="h-5 w-5" />
             </div>
-            <div className="mt-1 text-[13px] font-medium text-muted-foreground">
-              {it.label}
-            </div>
+            <div className="text-[15px] font-bold text-foreground">{it.title}</div>
+            <div className="mt-1 text-[13px] text-muted-foreground">{it.body}</div>
           </div>
         ))}
       </div>
