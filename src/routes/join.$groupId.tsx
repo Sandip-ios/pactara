@@ -19,9 +19,9 @@ export const Route = createFileRoute("/join/$groupId")({
     const url = `https://pactara.lovable.app/join/${params.groupId}`;
     return {
       meta: [
-        { title: "Accept your invite to my Pactara group!" },
+        { title: "Add me on Pactara 💜" },
         { name: "description", content: "Add me on Pactara. Daily check-ins with friends keeping each other accountable." },
-        { property: "og:title", content: "Accept your invite to my Pactara group!" },
+        { property: "og:title", content: "Add me on Pactara 💜" },
         { property: "og:description", content: "Add me on Pactara. Daily check-ins with friends keeping each other accountable." },
         { property: "og:type", content: "website" },
         { property: "og:url", content: url },
@@ -29,10 +29,11 @@ export const Route = createFileRoute("/join/$groupId")({
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "Accept your invite to my Pactara group!" },
+        { name: "twitter:title", content: "Add me on Pactara 💜" },
         { name: "twitter:description", content: "Add me on Pactara. Daily check-ins with friends keeping each other accountable." },
         { name: "twitter:image", content: ogImage },
       ],
+
       links: [{ rel: "canonical", href: url }],
     };
   },
