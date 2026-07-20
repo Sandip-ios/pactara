@@ -9,8 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SupportRouteImport } from './routes/support'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
@@ -37,6 +40,16 @@ import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './route
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicOgInviteGroupIdRouteImport } from './routes/api/public/og/invite/$groupId'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
@@ -45,6 +58,11 @@ const SignupRoute = SignupRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PaywallPreviewRoute = PaywallPreviewRouteImport.update({
@@ -189,8 +207,11 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -217,8 +238,11 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -247,8 +271,11 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
+  '/privacy': typeof PrivacyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -277,8 +304,11 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
+    | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/support'
+    | '/terms'
     | '/groups'
     | '/home'
     | '/new-pactara'
@@ -305,8 +335,11 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
+    | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/support'
+    | '/terms'
     | '/groups'
     | '/home'
     | '/new-pactara'
@@ -334,8 +367,11 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
+    | '/privacy'
     | '/reset-password'
     | '/signup'
+    | '/support'
+    | '/terms'
     | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
@@ -364,8 +400,11 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaywallPreviewRoute: typeof PaywallPreviewRoute
+  PrivacyRoute: typeof PrivacyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
@@ -374,6 +413,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/signup': {
       id: '/signup'
       path: '/signup'
@@ -386,6 +439,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/paywall-preview': {
@@ -616,8 +676,11 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaywallPreviewRoute: PaywallPreviewRoute,
+  PrivacyRoute: PrivacyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksMorningRitualReminderRoute:
@@ -627,13 +690,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
