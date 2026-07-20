@@ -1209,22 +1209,15 @@ export function InviteStep({
   });
 
   return (
-    <div
-      className="-mx-6 -mt-10 px-6 pt-14 pb-8 flex flex-col text-center"
-      style={{
-        background: "radial-gradient(120% 80% at 50% 40%, #1a1408 0%, #0a0a0a 60%, #000 100%)",
-        minHeight: "calc(100dvh - 100px)",
-        color: "#fff",
-      }}
-    >
-      <h1 className="text-[32px] font-bold tracking-tight leading-[1.05]">
-        Add your <span style={{ color: AMBER }}>friends</span>
+    <div className="h-full flex flex-col min-h-0">
+      <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
+        Add your friends
       </h1>
-      <p className="mt-3 text-[15px]" style={{ color: "#8f8a80" }}>
-        {friends.length} of {MAX_FRIENDS} friends added
+      <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
+        {friends.length} of {MAX_FRIENDS} added · at least 2 to continue.
       </p>
 
-      <div className="relative flex-1 flex items-center justify-center">
+      <div className="mt-6 flex-1 min-h-0 flex items-center justify-center">
         <div className="relative" style={{ width: 280, height: 280 }}>
           {/* Center = you */}
           <div
@@ -1235,10 +1228,9 @@ export function InviteStep({
               transform: "translate(-50%, -50%)",
               width: 84,
               height: 84,
-              background: "rgba(245,158,11,0.15)",
-              border: `2.5px solid ${AMBER}`,
-              color: AMBER,
-              boxShadow: `0 0 40px rgba(245,158,11,0.25)`,
+              background: PURPLE_SOFT,
+              border: `2.5px solid ${PURPLE}`,
+              color: PURPLE,
             }}
           >
             {youInitial}
@@ -1261,9 +1253,9 @@ export function InviteStep({
                   className="absolute rounded-full flex items-center justify-center font-bold text-[18px]"
                   style={{
                     ...style,
-                    background: "rgba(245,158,11,0.15)",
-                    border: `2px solid ${AMBER}`,
-                    color: AMBER,
+                    background: PURPLE_SOFT,
+                    border: `2px solid ${PURPLE}`,
+                    color: PURPLE,
                   }}
                   aria-label={friends[i]}
                 >
@@ -1281,9 +1273,9 @@ export function InviteStep({
                   className="absolute rounded-full flex items-center justify-center active:scale-95 transition-transform"
                   style={{
                     ...style,
-                    background: "transparent",
-                    border: `2px dashed ${AMBER}`,
-                    color: AMBER,
+                    background: "#FFFFFF",
+                    border: `2px dashed ${PURPLE}`,
+                    color: PURPLE,
                   }}
                   aria-label="Add a friend"
                 >
@@ -1297,20 +1289,18 @@ export function InviteStep({
                 className="absolute rounded-full"
                 style={{
                   ...style,
-                  border: `1.5px solid rgba(255,255,255,0.12)`,
+                  border: `1.5px solid #E5E1DB`,
+                  background: "#FAF8F5",
                 }}
               />
             );
           })}
         </div>
       </div>
-
-      <p className="mt-4 text-[13px]" style={{ color: "#6b665f" }}>
-        Add at least 2 friends to continue. Up to {MAX_FRIENDS} allowed.
-      </p>
     </div>
   );
 }
+
 
 
 /* ------------ Step: Notify ------------ */
