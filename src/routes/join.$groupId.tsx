@@ -96,7 +96,6 @@ function JoinPage() {
 
   const inviterName = data?.inviter?.fullName?.trim() || data?.inviter?.name || "Someone";
   const groupName = data?.name ?? "this group";
-  const emoji = data?.emoji ?? "🔥";
   const inviterInitials = inviterName
     .split(" ")
     .map((n) => n[0])
