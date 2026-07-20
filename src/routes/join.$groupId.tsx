@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { X, Heart } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
