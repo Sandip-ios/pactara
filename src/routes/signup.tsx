@@ -1276,11 +1276,11 @@ export function InviteStep({
             {youInitial}
           </div>
 
-          {/* Arrow sits behind the position circles so it blends with the active slot */}
+          {/* Filled pointer from the center circle to the next active slot */}
           {canAddMore && arrowPath && (
             <svg
               className="absolute"
-              style={{ inset: 0, width: 280, height: 280, zIndex: 0, pointerEvents: "none" }}
+              style={{ inset: 0, width: 280, height: 280, zIndex: 10, pointerEvents: "none" }}
               viewBox="0 0 280 280"
             >
               <path d={arrowPath} fill={PURPLE} />
