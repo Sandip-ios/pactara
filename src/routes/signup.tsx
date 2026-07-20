@@ -24,7 +24,7 @@ import {
   CircleHelp,
   Clock,
   CreditCard,
-  Link2,
+  
   Scale,
   Share2,
   Eye,
