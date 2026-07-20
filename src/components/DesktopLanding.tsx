@@ -442,15 +442,17 @@ function GroupVisual() {
 
 function StreakVisual() {
   return (
-    <div className="flex w-full items-center justify-between rounded-2xl bg-muted/70 px-5 py-4">
-      <span className="text-[13px] font-medium text-muted-foreground">Current streak</span>
-      <div className="flex items-center gap-2">
-        <Flame className="h-5 w-5 text-amber-500" />
-        <span className="text-[24px] font-black tracking-[-0.02em] text-foreground">21</span>
-      </div>
+    <div className="flex w-full items-center justify-center">
+      <img
+        src={streakCard.url}
+        alt="Current streak card showing 21 days"
+        loading="lazy"
+        className="h-auto w-full max-w-[320px]"
+      />
     </div>
   );
 }
+
 
 function CheckinImage() {
   return (
