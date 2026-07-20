@@ -35,6 +35,7 @@ import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
+import { Route as ApiPublicOgInviteGroupIdRouteImport } from './routes/api/public/og/invite/$groupId'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -175,6 +176,12 @@ const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
   path: '/api/public/hooks/auto-miss',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOgInviteGroupIdRoute =
+  ApiPublicOgInviteGroupIdRouteImport.update({
+    id: '/api/public/og/invite/$groupId',
+    path: '/api/public/og/invite/$groupId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -229,6 +237,7 @@ export interface FileRoutesByTo {
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -258,6 +267,7 @@ export interface FileRoutesById {
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -287,6 +297,7 @@ export interface FileRouteTypes {
     | '/check-in/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/og/invite/$groupId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -314,6 +325,7 @@ export interface FileRouteTypes {
     | '/check-in'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/og/invite/$groupId'
   id:
     | '__root__'
     | '/'
@@ -342,6 +354,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check-in/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/og/invite/$groupId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -356,6 +369,7 @@ export interface RootRouteChildren {
   JoinGroupIdRoute: typeof JoinGroupIdRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
+  ApiPublicOgInviteGroupIdRoute: typeof ApiPublicOgInviteGroupIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -542,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksAutoMissRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/og/invite/$groupId': {
+      id: '/api/public/og/invite/$groupId'
+      path: '/api/public/og/invite/$groupId'
+      fullPath: '/api/public/og/invite/$groupId'
+      preLoaderRoute: typeof ApiPublicOgInviteGroupIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -601,7 +622,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksMorningRitualReminderRoute:
     ApiPublicHooksMorningRitualReminderRoute,
+  ApiPublicOgInviteGroupIdRoute: ApiPublicOgInviteGroupIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
