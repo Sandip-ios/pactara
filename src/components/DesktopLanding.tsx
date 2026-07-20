@@ -438,21 +438,6 @@ function GroupVisual() {
   );
 }
 
-function NudgeVisual() {
-  return (
-    <div className="w-full rounded-2xl bg-muted/70 p-4">
-      <div className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-100 text-red-600">
-          <Bell className="h-4 w-4" />
-        </span>
-        <p className="text-[13px] leading-snug text-card-foreground">
-          <span className="font-bold">Maya nudged you 👋</span>{" "}
-          <span className="text-muted-foreground">— don't leave the group hanging</span>
-        </p>
-      </div>
-    </div>
-  );
-}
 
 
 function StreakVisual() {
