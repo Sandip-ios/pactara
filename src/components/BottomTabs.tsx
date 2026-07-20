@@ -30,7 +30,7 @@ export function BottomTabs() {
 
 
   const isActive = (path: string) =>
-    path === "/home" ? pathname === "/home" || pathname === "/invite" : pathname.startsWith(path);
+    path === "/home" ? pathname === "/home" : pathname.startsWith(path);
 
   return (
     <nav

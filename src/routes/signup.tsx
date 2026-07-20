@@ -237,7 +237,6 @@ function SignupFlow() {
           },
         });
       }
-      if (typeof sessionStorage !== "undefined") sessionStorage.removeItem("invite-dismissed");
       if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
       setStepIdx(STEPS.indexOf("paywall"));
       setFinishing(false);

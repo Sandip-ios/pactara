@@ -72,7 +72,6 @@ function LoginPage() {
       localStorage.setItem("last-email", email);
     }
     if (typeof sessionStorage !== "undefined") {
-      sessionStorage.removeItem("invite-dismissed");
       sessionStorage.removeItem("show-welcome");
     }
     const pendingInvite =
