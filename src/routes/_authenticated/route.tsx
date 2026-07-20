@@ -69,7 +69,13 @@ function AuthLayout() {
           typeof localStorage !== "undefined" && localStorage.getItem("pactara-subscribed") === "1";
       }
 
-      const expired = !subscribed && now - created > TRIAL_DAYS * 86400000;
+      // Debug override: append ?paywall=1 to any URL, or set localStorage.pactara-force-paywall=1
+      const forced =
+        (typeof window !== "undefined" &&
+          new URLSearchParams(window.location.search).get("paywall") === "1") ||
+        (typeof localStorage !== "undefined" &&
+          localStorage.getItem("pactara-force-paywall") === "1");
+      const expired = forced || (!subscribed && now - created > TRIAL_DAYS * 86400000);
       const firstName = (profile.name || "").split(" ")[0] || null;
       setTrialState({ expired, firstName, daysActive, loading: false });
     })();
