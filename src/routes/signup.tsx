@@ -1208,17 +1208,45 @@ export function InviteStep({
     return { x: Math.cos(angle) * R, y: Math.sin(angle) * R };
   });
 
-  // Arrow pointing from the center "You" circle to the next active slot
+  // Arrow pointing from the center "You" circle to the next active slot.
+  // The arrow is drawn as a filled pointer whose base follows the center circle
+  // so it blends cleanly into the "You" avatar rather than looking like a
+  // separate line sitting on top.
   const nextIndex = canAddMore ? friends.length : -1;
   const nextPosition = nextIndex >= 0 ? positions[nextIndex] : null;
   const arrowAngle = nextPosition ? Math.atan2(nextPosition.y, nextPosition.x) : 0;
-  const arrowStart = nextPosition
-    ? { x: 140 + 40 * Math.cos(arrowAngle), y: 140 + 40 * Math.sin(arrowAngle) }
-    : null;
-  const arrowEnd = nextPosition
-    ? { x: 140 + 62 * Math.cos(arrowAngle), y: 140 + 62 * Math.sin(arrowAngle) }
-    : null;
-  const arrowMarkerId = `arrowhead-${useId()}`;
+
+  const C = 140; // center of the flower container
+  const centerR = 42; // "You" circle radius (84px)
+  const targetR = 34; // friend slot radius (68px)
+  const arrowBaseHalf = 9; // half-width of the arrow base
+  const arrowTipRadius = 100 - targetR; // distance from center to inner edge of target slot
+  const arrowBaseRadius = 42; // distance from center to outer edge of "You" circle
+
+  const arrowPath = useMemo(() => {
+    if (!nextPosition) return null;
+    const a = arrowAngle;
+    const d = arrowBaseHalf / arrowBaseRadius;
+    const baseLeft = {
+      x: C + arrowBaseRadius * Math.cos(a - d),
+      y: C + arrowBaseRadius * Math.sin(a - d),
+    };
+    const baseRight = {
+      x: C + arrowBaseRadius * Math.cos(a + d),
+      y: C + arrowBaseRadius * Math.sin(a + d),
+    };
+    const tip = {
+      x: C + arrowTipRadius * Math.cos(a),
+      y: C + arrowTipRadius * Math.sin(a),
+    };
+    const baseMid = {
+      x: C + arrowBaseRadius * Math.cos(a),
+      y: C + arrowBaseRadius * Math.sin(a),
+    };
+    // Determine the sweep flag so the arc bulges toward the tip.
+    const sweep = arrowTipRadius > arrowBaseRadius ? 1 : 0;
+    return `M ${baseLeft.x} ${baseLeft.y} A ${arrowBaseRadius} ${arrowBaseRadius} 0 0 ${sweep} ${baseRight.x} ${baseRight.y} L ${tip.x} ${tip.y} Z`;
+  }, [arrowAngle, nextPosition]);
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -1247,6 +1275,17 @@ export function InviteStep({
           >
             {youInitial}
           </div>
+
+          {/* Filled pointer from the center circle to the next active slot */}
+          {canAddMore && arrowPath && (
+            <svg
+              className="absolute"
+              style={{ inset: 0, width: 280, height: 280, zIndex: 10, pointerEvents: "none" }}
+              viewBox="0 0 280 280"
+            >
+              <path d={arrowPath} fill={PURPLE} />
+            </svg>
+          )}
 
           {positions.map((p, i) => {
             const filled = i < friends.length;
@@ -1307,38 +1346,6 @@ export function InviteStep({
               />
             );
           })}
-
-          {/* Arrow pointing to the next active slot */}
-          {canAddMore && arrowStart && arrowEnd && (
-            <svg
-              className="absolute"
-              style={{ inset: 0, width: 280, height: 280, zIndex: 10, pointerEvents: "none" }}
-              viewBox="0 0 280 280"
-            >
-              <defs>
-                <marker
-                  id={arrowMarkerId}
-                  markerWidth="9"
-                  markerHeight="9"
-                  refX="8"
-                  refY="3"
-                  orient="auto"
-                >
-                  <path d="M 0 0 L 9 3 L 0 6 z" fill={PURPLE} />
-                </marker>
-              </defs>
-              <line
-                x1={arrowStart.x}
-                y1={arrowStart.y}
-                x2={arrowEnd.x}
-                y2={arrowEnd.y}
-                stroke={PURPLE}
-                strokeWidth={3}
-                strokeLinecap="round"
-                markerEnd={`url(#${arrowMarkerId})`}
-              />
-            </svg>
-          )}
         </div>
       </div>
     </div>
