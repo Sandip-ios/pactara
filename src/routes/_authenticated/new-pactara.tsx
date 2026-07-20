@@ -88,6 +88,7 @@ function NewPactaraFlow() {
   const [customDays, setCustomDays] = useState("");
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
 
   const [skipNotify, setSkipNotify] = useState<boolean>(() => skipNotifySync());
   useEffect(() => {
