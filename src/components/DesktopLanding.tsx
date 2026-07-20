@@ -665,7 +665,7 @@ function FinalCTA() {
             Start showing up.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-[17px] text-white/80">
-            Grab your group. Set the promise. See what happens in 21 days.
+            Grab your group. Set the promise. See what happens when you show up every day.
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <AppStoreButton variant="light" className="px-7 py-4" />
