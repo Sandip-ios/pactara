@@ -331,20 +331,13 @@ function Includes() {
           </p>
         </div>
 
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-3">
           <FeatureCard
             icon={Users}
             iconTone="purple"
             title="A group that's actually watching"
-            body="Not 5,000 strangers. 3–5 friends who'll text you when you miss."
+            body="Not 5,000 strangers. 3–5 friends who'll notice when you miss."
             visual={<GroupVisual />}
-          />
-          <FeatureCard
-            icon={Bell}
-            iconTone="red"
-            title="They notice when you don't show up"
-            body="Miss a check-in and your group gets a nudge. No hiding it."
-            visual={<NudgeVisual />}
           />
           <FeatureCard
             icon={Video}
