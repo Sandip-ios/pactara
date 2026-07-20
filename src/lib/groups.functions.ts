@@ -34,11 +34,12 @@ export const getGroupPreview = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, owner_id, created_at")
+      .select("id, name, emoji, goal, duration_days, owner_id, created_at")
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
     if (!group) throw new Error("Group not found");
+
 
     const { data: members, error: mErr } = await supabaseAdmin
       .from("group_members")
@@ -79,11 +80,14 @@ export const getGroupPreview = createServerFn({ method: "GET" })
       id: group.id,
       name: group.name as string,
       emoji: (group.emoji as string) ?? "🔥",
+      goal: ((group as { goal?: string | null }).goal ?? null) as string | null,
+      durationDays: ((group as { duration_days?: number | null }).duration_days ?? 30) as number,
       memberCount: signed.length,
       members: signed,
       inviter,
     };
   });
+
 
 /**
  * Joins the current user to a group via an invite link. Idempotent.
