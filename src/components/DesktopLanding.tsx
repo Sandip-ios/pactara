@@ -53,14 +53,9 @@ function Nav() {
           </a>
         </nav>
         <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="hidden text-[14px] font-semibold text-muted-foreground hover:text-foreground sm:block"
-          >
-            Log in
-          </Link>
           <AppStoreButton />
         </div>
+
       </div>
     </header>
   );
@@ -690,12 +685,7 @@ function Footer() {
           <Link to="/support" className="hover:text-foreground">
             Support
           </Link>
-          <Link to="/login" className="hover:text-foreground">
-            Log in
-          </Link>
-          <Link to="/signup" className="hover:text-foreground">
-            Sign up
-          </Link>
+
         </div>
       </div>
     </footer>
