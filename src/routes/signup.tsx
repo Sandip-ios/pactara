@@ -1307,6 +1307,38 @@ export function InviteStep({
               />
             );
           })}
+
+          {/* Arrow pointing to the next active slot */}
+          {canAddMore && arrowStart && arrowEnd && (
+            <svg
+              className="absolute"
+              style={{ inset: 0, width: 280, height: 280, zIndex: 10, pointerEvents: "none" }}
+              viewBox="0 0 280 280"
+            >
+              <defs>
+                <marker
+                  id={arrowMarkerId}
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="8"
+                  refY="3"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 9 3 L 0 6 z" fill={PURPLE} />
+                </marker>
+              </defs>
+              <line
+                x1={arrowStart.x}
+                y1={arrowStart.y}
+                x2={arrowEnd.x}
+                y2={arrowEnd.y}
+                stroke={PURPLE}
+                strokeWidth={3}
+                strokeLinecap="round"
+                markerEnd={`url(#${arrowMarkerId})`}
+              />
+            </svg>
+          )}
         </div>
       </div>
     </div>
