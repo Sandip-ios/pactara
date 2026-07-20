@@ -143,7 +143,7 @@ function JoinPage() {
           <button
             onClick={handleJoin}
             disabled={isLoading || joining || !authReady}
-            className="mt-8 px-10 py-3.5 rounded-full text-[17px] font-bold transition-transform active:scale-[0.98] disabled:opacity-60"
+            className="mt-8 px-14 py-3.5 rounded-full text-[17px] font-bold transition-transform active:scale-[0.98] disabled:opacity-60 min-w-[200px]"
             style={{
               background: `linear-gradient(180deg, ${AMBER} 0%, ${AMBER_DARK} 100%)`,
               color: "#000",
