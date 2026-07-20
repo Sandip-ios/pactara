@@ -187,8 +187,8 @@ function JoinPage() {
         {/* Bottom attribution */}
         <div className="mt-8 rounded-2xl px-4 py-3 flex items-center justify-between" style={{ background: "rgba(255,255,255,0.08)" }}>
           <div>
-            <div className="text-[15px] font-semibold" style={{ color: "#fff" }}>
-              Add me on Pactara 💛
+            <div className="text-[15px] font-semibold flex items-center gap-1.5" style={{ color: "#fff" }}>
+              Add me on Pactara <Heart size={14} fill={AMBER} color={AMBER} />
             </div>
             <div className="text-[13px]" style={{ color: MUTED }}>
               pactara.app
