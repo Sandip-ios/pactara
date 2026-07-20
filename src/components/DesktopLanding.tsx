@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CalendarCheck, Check, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Zap, type LucideIcon } from "lucide-react";
+import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
@@ -20,7 +20,6 @@ export function DesktopLanding() {
       <HowItWorks />
       <Includes />
       <WhyChoose />
-      <Pricing />
       <FAQ />
       <FinalCTA />
       <Footer />
@@ -44,9 +43,6 @@ function Nav() {
           </a>
           <a href="#why" className="hover:text-foreground">
             Why choose
-          </a>
-          <a href="#pricing" className="hover:text-foreground">
-            Pricing
           </a>
           <a href="#faq" className="hover:text-foreground">
             FAQ
@@ -536,57 +532,6 @@ function WhyChoose() {
   );
 }
 
-/* ---------------- PRICING ---------------- */
-
-function Pricing() {
-  const perks = [
-    "Full access to groups and check-ins",
-    "Unlimited streaks and morning posts",
-    "Cancel anytime in the App Store",
-    "No credit card required to start",
-  ];
-
-  return (
-    <section id="pricing" className="bg-muted/60 py-24">
-      <div className="mx-auto w-full max-w-6xl px-6">
-        <div className="mx-auto max-w-2xl text-center">
-          <div className="mb-4 inline-block rounded-full bg-pactara-purple-soft px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-pactara-purple">
-            Pricing
-          </div>
-          <h2 className="text-[42px] font-black leading-[1.05] tracking-[-0.03em] lg:text-[52px]">
-            Start free. No surprises.
-          </h2>
-          <p className="mt-4 text-[17px] text-muted-foreground">
-            7 days to see if accountability works for you. Cancel anytime.
-          </p>
-        </div>
-
-        <div className="mt-14 mx-auto max-w-md rounded-3xl border border-border bg-card p-8 text-center">
-          <div className="text-[56px] font-black tracking-[-0.03em] text-pactara-purple">
-            7 days
-          </div>
-          <p className="text-[17px] text-muted-foreground">free trial</p>
-
-          <ul className="mt-6 space-y-3 text-left text-[15px] text-card-foreground">
-            {perks.map((p) => (
-              <li key={p} className="flex items-start gap-3">
-                <Check className="mt-0.5 h-5 w-5 shrink-0 text-pactara-purple" />
-                {p}
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-8">
-            <AppStoreButton className="w-full justify-center px-6 py-4" />
-          </div>
-          <p className="mt-3 text-[12px] text-muted-foreground">
-            Subscription billed after trial. Pricing shown in the app.
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ---------------- FAQ ---------------- */
 
