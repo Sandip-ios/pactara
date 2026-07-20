@@ -654,13 +654,8 @@ function FinalCTA() {
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <AppStoreButton variant="light" className="px-7 py-4" />
-            <Link
-              to="/login"
-              className="rounded-2xl border border-white/30 px-7 py-4 text-[16px] font-semibold text-white hover:bg-white/10"
-            >
-              I already have an account
-            </Link>
           </div>
+
         </div>
       </div>
     </section>
