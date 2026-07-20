@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { isNative } from "@/lib/native";
-import { ChevronLeft, Link2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getProfileOverview } from "@/lib/profile.functions";
