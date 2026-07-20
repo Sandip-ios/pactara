@@ -449,7 +449,7 @@ function StreakVisual() {
         src={streakCard.url}
         alt="Member profile with a 24-day streak"
         loading="lazy"
-        className="h-auto w-full max-w-[160px]"
+        className="h-auto w-full max-w-[280px]"
       />
     </div>
   );
