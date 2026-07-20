@@ -445,15 +445,12 @@ function GroupVisual() {
 function StreakVisual() {
   return (
     <div className="flex w-full items-center justify-center">
-      <div
-        className="w-full max-w-[280px] overflow-hidden rounded-2xl"
-        style={{ aspectRatio: "1152 / 928" }}
-      >
+      <div className="w-full max-w-[280px] overflow-hidden rounded-2xl">
         <img
           src={streakCard.url}
           alt="Member profile with a 24-day streak"
           loading="lazy"
-          className="h-full w-full object-cover object-bottom"
+          className="h-auto w-full"
         />
       </div>
     </div>
