@@ -472,7 +472,7 @@ function CheckinImage() {
         width={1024}
         height={1024}
         loading="lazy"
-        className="h-auto w-full max-w-[280px] rounded-2xl border border-border shadow-lg"
+        className="h-auto w-full max-w-[320px]"
       />
     </div>
   );
