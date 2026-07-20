@@ -282,11 +282,6 @@ function HomePage() {
   }, [composerOpen]);
 
   useEffect(() => {
-    const dismissed = typeof sessionStorage !== "undefined" && sessionStorage.getItem("invite-dismissed") === "1";
-    if (status && !dismissed && (!status.hasGroup || status.memberCount <= 1)) {
-      navigate({ to: "/invite", replace: true });
-      return;
-    }
     if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
       sessionStorage.removeItem("show-welcome");
       setShowWelcome(true);
