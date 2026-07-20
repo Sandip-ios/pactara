@@ -21,7 +21,6 @@ import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
-import { Route as AuthenticatedInviteRouteImport } from './routes/_authenticated/invite'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
@@ -94,11 +93,6 @@ const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
 const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
   id: '/new-pactara',
   path: '/new-pactara',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedInviteRoute = AuthenticatedInviteRouteImport.update({
-  id: '/invite',
-  path: '/invite',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
@@ -192,7 +186,6 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -220,7 +213,6 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
-  '/invite': typeof AuthenticatedInviteRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -250,7 +242,6 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
-  '/_authenticated/invite': typeof AuthenticatedInviteRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -280,7 +271,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/groups'
     | '/home'
-    | '/invite'
     | '/new-pactara'
     | '/plan'
     | '/profile'
@@ -308,7 +298,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/groups'
     | '/home'
-    | '/invite'
     | '/new-pactara'
     | '/plan'
     | '/profile'
@@ -337,7 +326,6 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/groups'
     | '/_authenticated/home'
-    | '/_authenticated/invite'
     | '/_authenticated/new-pactara'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
@@ -456,13 +444,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewPactaraRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/invite': {
-      id: '/_authenticated/invite'
-      path: '/invite'
-      fullPath: '/invite'
-      preLoaderRoute: typeof AuthenticatedInviteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/home': {
       id: '/_authenticated/home'
       path: '/home'
@@ -567,7 +548,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
-  AuthenticatedInviteRoute: typeof AuthenticatedInviteRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -586,7 +566,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
-  AuthenticatedInviteRoute: AuthenticatedInviteRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
@@ -626,13 +605,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
