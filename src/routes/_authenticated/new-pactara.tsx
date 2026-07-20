@@ -175,6 +175,8 @@ function NewPactaraFlow() {
         return groupName.trim().length > 0;
       case "commitment":
         return duration !== "custom" || customDays.trim().length > 0;
+      case "invite":
+        return invitedFriends.length >= 2;
       default:
         return true;
     }
