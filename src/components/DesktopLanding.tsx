@@ -82,7 +82,7 @@ function Hero() {
             "radial-gradient(1000px 500px at 85% -10%, rgba(124,58,237,0.18), transparent 60%), radial-gradient(700px 400px at 10% 10%, rgba(124,58,237,0.08), transparent 60%)",
         }}
       />
-      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-16 px-6 py-24 lg:grid-cols-[1.05fr_1fr] lg:py-32">
+      <div className="relative mx-auto grid w-full max-w-[1230px] grid-cols-1 items-center gap-16 px-6 py-24 lg:grid-cols-[1fr_1.2fr] lg:py-32">
         <div>
           <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-pactara-purple-soft px-3 py-1.5 text-[12px] font-bold uppercase tracking-[0.14em] text-pactara-purple">
             <span className="h-1.5 w-1.5 rounded-full bg-pactara-purple" />
@@ -133,7 +133,7 @@ function Hero() {
             width={1024}
             height={1024}
             loading="eager"
-            className="relative h-auto w-full max-w-[520px]"
+            className="relative h-auto w-full max-w-[598px]"
           />
         </div>
       </div>
