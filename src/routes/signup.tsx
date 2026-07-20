@@ -1137,24 +1137,181 @@ function FreqCard({
 }
 
 /* ------------ Step: Invite ------------ */
-export function InviteStep() {
+const MAX_FRIENDS = 8;
+const AMBER = "#F59E0B";
+const AMBER_DEEP = "#B45309";
+
+async function pickContactName(): Promise<string | null> {
+  try {
+    const { Capacitor } = await import("@capacitor/core");
+    if (Capacitor.isNativePlatform()) {
+      const { Contacts } = await import("@capacitor-community/contacts");
+      const perm = await Contacts.requestPermissions();
+      if (perm.contacts !== "granted") return null;
+      const res = await Contacts.pickContact({ projection: { name: true } });
+      const c = res?.contact;
+      const n =
+        c?.name?.display ||
+        [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
+        null;
+      return n?.trim() || null;
+    }
+  } catch {
+    // fall through to web
+  }
+  const nav = navigator as unknown as {
+    contacts?: { select: (props: string[], opts?: { multiple?: boolean }) => Promise<Array<{ name?: string[] }>> };
+  };
+  if (nav.contacts?.select) {
+    try {
+      const picked = await nav.contacts.select(["name"], { multiple: false });
+      const n = picked?.[0]?.name?.[0];
+      if (n) return n.trim();
+    } catch {
+      // fall through to prompt
+    }
+  }
+  const name = typeof window !== "undefined" ? window.prompt("Friend's name") : null;
+  return name?.trim() || null;
+}
+
+export function InviteStep({
+  firstName,
+  friends,
+  setFriends,
+}: {
+  firstName: string;
+  friends: string[];
+  setFriends: (f: string[]) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const canAddMore = friends.length < MAX_FRIENDS;
+
+  const handleAdd = async () => {
+    if (busy || !canAddMore) return;
+    setBusy(true);
+    try {
+      const name = await pickContactName();
+      if (name) setFriends([...friends, name]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const initial = (n: string) => n.trim().charAt(0).toUpperCase() || "?";
+  const youInitial = (firstName || "Y").trim().charAt(0).toUpperCase();
+
+  // 8 positions around a center, in a flower arrangement
+  const R = 100; // radius in px
+  const positions = Array.from({ length: MAX_FRIENDS }, (_, i) => {
+    const angle = (-90 + i * (360 / MAX_FRIENDS)) * (Math.PI / 180);
+    return { x: Math.cos(angle) * R, y: Math.sin(angle) * R };
+  });
+
   return (
-    <div className="flex flex-col items-center text-center pt-10">
-      <div
-        className="w-[88px] h-[88px] rounded-[22px] flex items-center justify-center"
-        style={{ background: PURPLE_SOFT }}
-      >
-        <Users size={40} color="#475569" strokeWidth={1.8} />
-      </div>
-      <h1 className="mt-7 text-[36px] font-bold tracking-tight leading-[1.05]">
-        Invite your crew
+    <div
+      className="-mx-6 -mt-10 px-6 pt-14 pb-8 flex flex-col text-center"
+      style={{
+        background: "radial-gradient(120% 80% at 50% 40%, #1a1408 0%, #0a0a0a 60%, #000 100%)",
+        minHeight: "calc(100dvh - 100px)",
+        color: "#fff",
+      }}
+    >
+      <h1 className="text-[32px] font-bold tracking-tight leading-[1.05]">
+        Add your <span style={{ color: AMBER }}>friends</span>
       </h1>
-      <p className="mt-4 text-[16px] leading-[1.5]" style={{ color: TEXT_MUTED }}>
-        Your challenge starts today. Invite your friends now so they don't miss Day 1.
+      <p className="mt-3 text-[15px]" style={{ color: "#8f8a80" }}>
+        {friends.length} of {MAX_FRIENDS} friends added
+      </p>
+
+      <div className="relative flex-1 flex items-center justify-center">
+        <div className="relative" style={{ width: 280, height: 280 }}>
+          {/* Center = you */}
+          <div
+            className="absolute rounded-full flex items-center justify-center font-bold text-[22px]"
+            style={{
+              left: "50%",
+              top: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 84,
+              height: 84,
+              background: "rgba(245,158,11,0.15)",
+              border: `2.5px solid ${AMBER}`,
+              color: AMBER,
+              boxShadow: `0 0 40px rgba(245,158,11,0.25)`,
+            }}
+          >
+            {youInitial}
+          </div>
+
+          {positions.map((p, i) => {
+            const filled = i < friends.length;
+            const isNext = i === friends.length && canAddMore;
+            const style: React.CSSProperties = {
+              left: `calc(50% + ${p.x}px)`,
+              top: `calc(50% + ${p.y}px)`,
+              transform: "translate(-50%, -50%)",
+              width: 68,
+              height: 68,
+            };
+            if (filled) {
+              return (
+                <div
+                  key={i}
+                  className="absolute rounded-full flex items-center justify-center font-bold text-[18px]"
+                  style={{
+                    ...style,
+                    background: "rgba(245,158,11,0.15)",
+                    border: `2px solid ${AMBER}`,
+                    color: AMBER,
+                  }}
+                  aria-label={friends[i]}
+                >
+                  {initial(friends[i])}
+                </div>
+              );
+            }
+            if (isNext) {
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={handleAdd}
+                  disabled={busy}
+                  className="absolute rounded-full flex items-center justify-center active:scale-95 transition-transform"
+                  style={{
+                    ...style,
+                    background: "transparent",
+                    border: `2px dashed ${AMBER}`,
+                    color: AMBER,
+                  }}
+                  aria-label="Add a friend"
+                >
+                  <Plus size={26} strokeWidth={2.5} />
+                </button>
+              );
+            }
+            return (
+              <div
+                key={i}
+                className="absolute rounded-full"
+                style={{
+                  ...style,
+                  border: `1.5px solid rgba(255,255,255,0.12)`,
+                }}
+              />
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="mt-4 text-[13px]" style={{ color: "#6b665f" }}>
+        Add at least 2 friends to continue. Up to {MAX_FRIENDS} allowed.
       </p>
     </div>
   );
 }
+
 
 /* ------------ Step: Notify ------------ */
 export function NotifyStep({ onAllow }: { onAllow: () => void }) {
