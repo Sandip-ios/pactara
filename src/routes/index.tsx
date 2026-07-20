@@ -1,6 +1,8 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DesktopLanding } from "@/components/DesktopLanding";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -41,8 +43,21 @@ type Slide = {
 function Index() {
   const navigate = useNavigate();
   const [index, setIndex] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
   const slides = useSlides();
   const total = slides.length;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  if (isDesktop) return <DesktopLanding />;
+
 
 
   const goNext = useCallback(() => {
