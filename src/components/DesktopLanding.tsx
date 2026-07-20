@@ -263,7 +263,7 @@ function HowItWorks() {
       n: "03",
       title: "Check in every day",
       body:
-        "A quick photo, a mood, a note. Your group sees it. You build the streak together.",
+        "A quick video recorded inside the app, a mood, a note. Your group sees it. You build the streak together.",
       emoji: "🔥",
     },
   ];
@@ -350,7 +350,7 @@ function Includes() {
           <FeatureCard
             className="md:col-span-3"
             title="Daily check-in in 10 seconds"
-            body="Photo, mood, done. No streak-inflating fake habits."
+            body="A quick video recorded in the app, a mood, done. No streak-inflating fake habits."
             visual={<CheckinImage />}
           />
         </div>
