@@ -3,6 +3,8 @@ import { CalendarCheck, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, 
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/phone-mockup-transparent.png";
 import featureCheckin from "@/assets/feature-checkin.png";
+import streakCard from "@/assets/streak-card.png.asset.json";
+
 
 // Replace with the real App Store URL once the app is live.
 const APP_STORE_URL = "https://apps.apple.com/app/pactara";
@@ -442,15 +444,17 @@ function GroupVisual() {
 
 function StreakVisual() {
   return (
-    <div className="flex w-full items-center justify-between rounded-2xl bg-muted/70 px-5 py-4">
-      <span className="text-[13px] font-medium text-muted-foreground">Current streak</span>
-      <div className="flex items-center gap-2">
-        <Flame className="h-5 w-5 text-amber-500" />
-        <span className="text-[24px] font-black tracking-[-0.02em] text-foreground">21</span>
-      </div>
+    <div className="flex w-full items-center justify-center">
+      <img
+        src={streakCard.url}
+        alt="Current streak card showing 21 days"
+        loading="lazy"
+        className="h-auto w-full max-w-[320px]"
+      />
     </div>
   );
 }
+
 
 function CheckinImage() {
   return (
