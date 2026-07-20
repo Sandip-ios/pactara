@@ -414,18 +414,6 @@ function SignupFlow() {
               Skip for now
             </button>
           </>
-        ) : step === "invite" ? (
-          <>
-            <PrimaryButton onClick={next} label="Invite your friends" icon={<Link2 size={18} />} />
-            <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
-              <button onClick={next} className="text-[15px] font-medium underline" style={{ color: TEXT_MUTED }}>
-                Skip for now
-              </button>
-              <p className="text-[13px] text-center" style={{ color: LABEL }}>
-                You can invite people later, but they'll join the challenge already in progress.
-              </p>
-            </div>
-          </>
         ) : step === "notify" ? null : (
           <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
         )}
