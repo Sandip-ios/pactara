@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { isNative } from "@/lib/native";
-import { ChevronLeft, Link2 } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getProfileOverview } from "@/lib/profile.functions";
@@ -88,6 +88,7 @@ function NewPactaraFlow() {
   const [customDays, setCustomDays] = useState("");
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [daysPerWeek, setDaysPerWeek] = useState(3);
+  const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
 
   const [skipNotify, setSkipNotify] = useState<boolean>(() => skipNotifySync());
   useEffect(() => {
@@ -174,6 +175,8 @@ function NewPactaraFlow() {
         return groupName.trim().length > 0;
       case "commitment":
         return duration !== "custom" || customDays.trim().length > 0;
+      case "invite":
+        return invitedFriends.length >= 2;
       default:
         return true;
     }
@@ -277,28 +280,18 @@ function NewPactaraFlow() {
             setDaysPerWeek={setDaysPerWeek}
           />
         )}
-        {step === "invite" && <InviteStep />}
+        {step === "invite" && (
+          <InviteStep
+            firstName={firstName}
+            friends={invitedFriends}
+            setFriends={setInvitedFriends}
+          />
+        )}
         {step === "notify" && <NotifyStep onAllow={next} />}
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-6">
-        {step === "invite" ? (
-          <>
-            <PrimaryButton onClick={next} label="Invite your friends" icon={<Link2 size={18} />} />
-            <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
-              <button
-                onClick={next}
-                className="text-[15px] font-medium underline"
-                style={{ color: TEXT_MUTED }}
-              >
-                Skip for now
-              </button>
-              <p className="text-[13px] text-center" style={{ color: "#8A8580" }}>
-                You can invite people later, but they'll join the challenge already in progress.
-              </p>
-            </div>
-          </>
-        ) : step === "notify" ? null : (
+        {step === "notify" ? null : (
           <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
         )}
       </div>
