@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 
 /**
  * Focuses an input on mount, but only on the client AFTER React has hydrated.
@@ -1208,6 +1208,18 @@ export function InviteStep({
     return { x: Math.cos(angle) * R, y: Math.sin(angle) * R };
   });
 
+  // Arrow pointing from the center "You" circle to the next active slot
+  const nextIndex = canAddMore ? friends.length : -1;
+  const nextPosition = nextIndex >= 0 ? positions[nextIndex] : null;
+  const arrowAngle = nextPosition ? Math.atan2(nextPosition.y, nextPosition.x) : 0;
+  const arrowStart = nextPosition
+    ? { x: 140 + 40 * Math.cos(arrowAngle), y: 140 + 40 * Math.sin(arrowAngle) }
+    : null;
+  const arrowEnd = nextPosition
+    ? { x: 140 + 62 * Math.cos(arrowAngle), y: 140 + 62 * Math.sin(arrowAngle) }
+    : null;
+  const arrowMarkerId = `arrowhead-${useId()}`;
+
   return (
     <div className="h-full flex flex-col min-h-0">
       <h1 className="text-[36px] font-bold tracking-tight leading-[1.05]">
@@ -1295,6 +1307,38 @@ export function InviteStep({
               />
             );
           })}
+
+          {/* Arrow pointing to the next active slot */}
+          {canAddMore && arrowStart && arrowEnd && (
+            <svg
+              className="absolute"
+              style={{ inset: 0, width: 280, height: 280, zIndex: 10, pointerEvents: "none" }}
+              viewBox="0 0 280 280"
+            >
+              <defs>
+                <marker
+                  id={arrowMarkerId}
+                  markerWidth="9"
+                  markerHeight="9"
+                  refX="8"
+                  refY="3"
+                  orient="auto"
+                >
+                  <path d="M 0 0 L 9 3 L 0 6 z" fill={PURPLE} />
+                </marker>
+              </defs>
+              <line
+                x1={arrowStart.x}
+                y1={arrowStart.y}
+                x2={arrowEnd.x}
+                y2={arrowEnd.y}
+                stroke={PURPLE}
+                strokeWidth={3}
+                strokeLinecap="round"
+                markerEnd={`url(#${arrowMarkerId})`}
+              />
+            </svg>
+          )}
         </div>
       </div>
     </div>
