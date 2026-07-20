@@ -53,14 +53,9 @@ function Nav() {
           </a>
         </nav>
         <div className="flex items-center gap-3">
-          <Link
-            to="/login"
-            className="hidden text-[14px] font-semibold text-muted-foreground hover:text-foreground sm:block"
-          >
-            Log in
-          </Link>
           <AppStoreButton />
         </div>
+
       </div>
     </header>
   );
@@ -659,13 +654,8 @@ function FinalCTA() {
           </p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <AppStoreButton variant="light" className="px-7 py-4" />
-            <Link
-              to="/login"
-              className="rounded-2xl border border-white/30 px-7 py-4 text-[16px] font-semibold text-white hover:bg-white/10"
-            >
-              I already have an account
-            </Link>
           </div>
+
         </div>
       </div>
     </section>
@@ -690,12 +680,7 @@ function Footer() {
           <Link to="/support" className="hover:text-foreground">
             Support
           </Link>
-          <Link to="/login" className="hover:text-foreground">
-            Log in
-          </Link>
-          <Link to="/signup" className="hover:text-foreground">
-            Sign up
-          </Link>
+
         </div>
       </div>
     </footer>
