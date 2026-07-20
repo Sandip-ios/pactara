@@ -31,7 +31,7 @@ import {
   EyeOff,
   Plus,
   Star,
-  Users,
+  
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
