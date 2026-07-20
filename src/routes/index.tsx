@@ -12,17 +12,27 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "Pactara — Fitness accountability with your group" },
+      {
+        title:
+          "Pactara — Accountability that actually works",
+      },
       {
         name: "description",
         content:
-          "Pactara keeps you accountable with a small group of people who actually show up — every single day.",
+          "Pactara keeps you accountable with a small group of people who actually show up — daily check-ins, real streaks, and no hiding. Download on the App Store.",
       },
-      { property: "og:title", content: "Pactara" },
+      {
+        property: "og:title",
+        content: "Pactara — Accountability that actually works",
+      },
       {
         property: "og:description",
-        content: "Daily check-ins. Real accountability. With a group that's watching.",
+        content:
+          "Daily check-ins. Real accountability. With a group that's watching. Get Pactara on the App Store.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://pactara.app" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -47,19 +57,6 @@ function Index() {
   const slides = useSlides();
   const total = slides.length;
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(min-width: 1024px)");
-    const update = () => setIsDesktop(mq.matches);
-    update();
-    mq.addEventListener("change", update);
-    return () => mq.removeEventListener("change", update);
-  }, []);
-
-  if (isDesktop) return <DesktopLanding />;
-
-
-
   const goNext = useCallback(() => {
     setIndex((i) => Math.min(i + 1, total - 1));
   }, [total]);
@@ -69,7 +66,6 @@ function Index() {
     [total],
   );
 
-  // Swipe handling
   const startX = useRef<number | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -85,6 +81,17 @@ function Index() {
     }
     startX.current = null;
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  if (isDesktop) return <DesktopLanding />;
 
   return (
     <div
