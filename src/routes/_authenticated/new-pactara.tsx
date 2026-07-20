@@ -277,28 +277,18 @@ function NewPactaraFlow() {
             setDaysPerWeek={setDaysPerWeek}
           />
         )}
-        {step === "invite" && <InviteStep />}
+        {step === "invite" && (
+          <InviteStep
+            firstName={firstName}
+            friends={invitedFriends}
+            setFriends={setInvitedFriends}
+          />
+        )}
         {step === "notify" && <NotifyStep onAllow={next} />}
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-6">
-        {step === "invite" ? (
-          <>
-            <PrimaryButton onClick={next} label="Invite your friends" icon={<Link2 size={18} />} />
-            <div className="flex flex-col items-center gap-2 mt-auto pt-24 pb-2">
-              <button
-                onClick={next}
-                className="text-[15px] font-medium underline"
-                style={{ color: TEXT_MUTED }}
-              >
-                Skip for now
-              </button>
-              <p className="text-[13px] text-center" style={{ color: "#8A8580" }}>
-                You can invite people later, but they'll join the challenge already in progress.
-              </p>
-            </div>
-          </>
-        ) : step === "notify" ? null : (
+        {step === "notify" ? null : (
           <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
         )}
       </div>
