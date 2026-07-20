@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Check, ChevronDown, HeartHandshake, Users, Zap, type LucideIcon } from "lucide-react";
+import { CalendarCheck, Check, ChevronDown, Flame, HeartHandshake, ShieldCheck, Users, Zap, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import heroPhone from "@/assets/hero-phone.png";
 import featureCheckin from "@/assets/feature-checkin.png";
