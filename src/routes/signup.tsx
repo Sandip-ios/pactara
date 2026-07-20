@@ -389,7 +389,7 @@ function SignupFlow() {
           />
         )}
 
-        {step === "invite" && <InviteStep />}
+        {step === "invite" && <InviteStep firstName={firstName} friends={invitedFriends} setFriends={setInvitedFriends} />}
         {step === "notify" && <NotifyStep onAllow={next} />}
         {step === "password" && (
           <PasswordStep
