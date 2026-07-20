@@ -73,20 +73,14 @@ export const Route = createFileRoute("/api/public/og/invite/$groupId")({
     Accept your invite to my Pactara group!
   </text>
 
-  <!-- Subhead -->
-  <text x="600" y="525" text-anchor="middle"
-        font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-        font-size="28" font-weight="500" fill="#9CA3AF">
-    ${escapeXml(firstName)} invited you to join ${escapeXml(groupName)}
-  </text>
-
   <!-- Footer pill -->
   <g transform="translate(600 585)">
     <rect x="-170" y="-28" width="340" height="56" rx="28" fill="#FDE047"/>
     <text x="0" y="2" text-anchor="middle" dominant-baseline="central"
           font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
-          font-size="24" font-weight="800" fill="#000000">Add me on Pactara</text>
+          font-size="24" font-weight="800" fill="#000000">Open</text>
   </g>
+
 </svg>`;
 
         return new Response(svg, {
