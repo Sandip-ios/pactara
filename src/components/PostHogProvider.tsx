@@ -22,7 +22,23 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
       person_profiles: "identified_only",
     });
     posthog.capture("$pageview");
+
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        posthog.identify(data.user.id, { email: data.user.email });
+      }
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        posthog.identify(session.user.id, { email: session.user.email });
+      } else if (event === "SIGNED_OUT") {
+        posthog.reset();
+      }
+    });
+    return () => sub.subscription.unsubscribe();
   }, []);
+
 
   useEffect(() => {
     const unsub = router.subscribe("onResolved", () => {
