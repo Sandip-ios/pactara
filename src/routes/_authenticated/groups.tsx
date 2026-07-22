@@ -223,7 +223,7 @@ function GroupCard({
     group.frequency === "specific" || group.frequency === "weekly" ? "specific" : "daily";
   const daysPerWeek = group.daysPerWeek ?? 7;
 
-  const inviteLink = `https://pactara.lovable.app/join/${group.id}`;
+  const inviteLink = `https://pactara.app/join/${group.id}`;
   const shareText = `Accept your invite to my Pactara group!`;
   const shareTitle = `Accept your invite to my Pactara group!`;
 
