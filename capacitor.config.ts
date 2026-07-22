@@ -3,12 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
-  // Load the live web build so UI/content updates ship instantly without an
-  // App Store resubmission. To bundle the web build inside the app instead
-  // (offline-capable, but every change needs a new submission), remove the
-  // `server` block and set `webDir: "dist"` after running `bun run build`.
+  // Bundle the web build inside the native app. This prevents the iOS shell
+  // from behaving like a launcher for the public website when installed from Xcode.
+  webDir: "dist",
   server: {
-    url: "https://pactara.app",
     allowNavigation: ["pactara.app", "www.pactara.app"],
     cleartext: false,
   },
