@@ -8,7 +8,7 @@ const config: CapacitorConfig = {
   // (offline-capable, but every change needs a new submission), remove the
   // `server` block and set `webDir: "dist"` after running `bun run build`.
   server: {
-    url: "https://pactara.lovable.app",
+    url: "https://www.pactara.app",
     cleartext: false,
   },
   ios: {
