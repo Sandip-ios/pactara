@@ -5,19 +5,21 @@ const FADE_MS = 400;
 const SESSION_KEY = "pactara-splash-shown";
 
 export function SplashScreen() {
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
+  const [mounted, setMounted] = useState(true);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      if (sessionStorage.getItem(SESSION_KEY)) return;
+      if (sessionStorage.getItem(SESSION_KEY)) {
+        setMounted(false);
+        setVisible(false);
+        return;
+      }
       sessionStorage.setItem(SESSION_KEY, "1");
     } catch {
       // ignore
     }
-    setMounted(true);
-    setVisible(true);
     const hide = setTimeout(() => setVisible(false), SHOW_MS);
     const unmount = setTimeout(() => setMounted(false), SHOW_MS + FADE_MS);
     return () => {
