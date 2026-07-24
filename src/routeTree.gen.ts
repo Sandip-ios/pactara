@@ -26,6 +26,7 @@ import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/p
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
+import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
@@ -124,6 +125,12 @@ const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DotwellKnownAppleAppSiteAssociationRoute =
+  DotwellKnownAppleAppSiteAssociationRouteImport.update({
+    id: '/.well-known/apple-app-site-association',
+    path: '/.well-known/apple-app-site-association',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedCheckInIndexRoute =
   AuthenticatedCheckInIndexRouteImport.update({
     id: '/check-in/',
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -243,6 +251,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -276,6 +285,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -309,6 +319,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/support'
     | '/terms'
+    | '/.well-known/apple-app-site-association'
     | '/groups'
     | '/home'
     | '/new-pactara'
@@ -340,6 +351,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/support'
     | '/terms'
+    | '/.well-known/apple-app-site-association'
     | '/groups'
     | '/home'
     | '/new-pactara'
@@ -372,6 +384,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/support'
     | '/terms'
+    | '/.well-known/apple-app-site-association'
     | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
@@ -405,6 +418,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
@@ -531,6 +545,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/groups'
       preLoaderRoute: typeof AuthenticatedGroupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.well-known/apple-app-site-association': {
+      id: '/.well-known/apple-app-site-association'
+      path: '/.well-known/apple-app-site-association'
+      fullPath: '/.well-known/apple-app-site-association'
+      preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/check-in/': {
       id: '/_authenticated/check-in/'
@@ -681,6 +702,8 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  DotwellKnownAppleAppSiteAssociationRoute:
+    DotwellKnownAppleAppSiteAssociationRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksMorningRitualReminderRoute:
