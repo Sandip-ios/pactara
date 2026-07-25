@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
           "Daily check-ins. Real accountability. With a group that's watching. Get Pactara on the App Store.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://pactara.app" },
+      { property: "og:url", content: "https://pactara.lovable.app" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
