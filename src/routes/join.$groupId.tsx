@@ -15,8 +15,8 @@ const TEXT_MUTED = "#6B6660";
 export const Route = createFileRoute("/join/$groupId")({
   component: JoinPage,
   head: ({ params }) => {
-    const ogImage = `https://pactara.app/api/public/og/invite/${params.groupId}`;
-    const url = `https://pactara.app/join/${params.groupId}`;
+    const ogImage = `https://pactara.lovable.app/api/public/og/invite/${params.groupId}`;
+    const url = `https://pactara.lovable.app/join/${params.groupId}`;
     return {
       meta: [
         { title: "Add me on Pactara 💜" },
