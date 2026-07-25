@@ -7,7 +7,7 @@ const config: CapacitorConfig = {
   // from behaving like a launcher for the public website when installed from Xcode.
   webDir: "dist",
   server: {
-    allowNavigation: ["pactara.app", "www.pactara.app"],
+    allowNavigation: ["pactara.lovable.app"],
     cleartext: false,
   },
   ios: {

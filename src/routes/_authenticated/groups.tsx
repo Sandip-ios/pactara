@@ -162,7 +162,7 @@ function GroupsPage() {
           <input
             value={joinUrl}
             onChange={(e) => setJoinUrl(e.target.value)}
-            placeholder="https://pactara.app/join/..."
+            placeholder="https://pactara.lovable.app/join/..."
             className="flex-1 rounded-2xl bg-white px-4 py-3 text-[15px] outline-none placeholder:text-neutral-400 border border-neutral-200 focus:border-purple-300"
           />
           <button
@@ -223,7 +223,7 @@ function GroupCard({
     group.frequency === "specific" || group.frequency === "weekly" ? "specific" : "daily";
   const daysPerWeek = group.daysPerWeek ?? 7;
 
-  const inviteLink = `https://pactara.app/join/${group.id}`;
+  const inviteLink = `https://pactara.lovable.app/join/${group.id}`;
   const shareText = `Accept your invite to my Pactara group!`;
   const shareTitle = `Accept your invite to my Pactara group!`;
 
