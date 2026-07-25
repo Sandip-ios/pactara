@@ -209,7 +209,7 @@ export function CheckInShareModal({
                 <div className="opacity-70">Show up. Every day.</div>
               </div>
               <div className="text-[11px] font-semibold tracking-widest opacity-70">
-                pactara.app
+                pactara.lovable.app
               </div>
             </div>
           </div>
