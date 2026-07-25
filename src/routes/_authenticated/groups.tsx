@@ -162,7 +162,7 @@ function GroupsPage() {
           <input
             value={joinUrl}
             onChange={(e) => setJoinUrl(e.target.value)}
-            placeholder="https://pactara.app/join/..."
+            placeholder="https://pactara.lovable.app/join/..."
             className="flex-1 rounded-2xl bg-white px-4 py-3 text-[15px] outline-none placeholder:text-neutral-400 border border-neutral-200 focus:border-purple-300"
           />
           <button
