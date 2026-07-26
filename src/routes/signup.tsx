@@ -1140,39 +1140,25 @@ const MAX_FRIENDS = 8;
 const AMBER = "#F59E0B";
 const AMBER_DEEP = "#B45309";
 
-async function pickContactName(): Promise<string | null> {
+async function pickContactNameNative(): Promise<string | null | "unavailable"> {
   try {
     const { Capacitor } = await import("@capacitor/core");
-    if (Capacitor.isNativePlatform()) {
-      const { Contacts } = await import("@capacitor-community/contacts");
-      const perm = await Contacts.requestPermissions();
-      if (perm.contacts !== "granted") return null;
-      const res = await Contacts.pickContact({ projection: { name: true } });
-      const c = res?.contact;
-      const n =
-        c?.name?.display ||
-        [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
-        null;
-      return n?.trim() || null;
-    }
+    if (!Capacitor.isNativePlatform()) return "unavailable";
+    const { Contacts } = await import("@capacitor-community/contacts");
+    const perm = await Contacts.requestPermissions();
+    if (perm.contacts !== "granted") return null;
+    const res = await Contacts.pickContact({ projection: { name: true } });
+    const c = res?.contact;
+    const n =
+      c?.name?.display ||
+      [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
+      null;
+    return n?.trim() || null;
   } catch {
-    // fall through to web
+    return "unavailable";
   }
-  const nav = navigator as unknown as {
-    contacts?: { select: (props: string[], opts?: { multiple?: boolean }) => Promise<Array<{ name?: string[] }>> };
-  };
-  if (nav.contacts?.select) {
-    try {
-      const picked = await nav.contacts.select(["name"], { multiple: false });
-      const n = picked?.[0]?.name?.[0];
-      if (n) return n.trim();
-    } catch {
-      // fall through to prompt
-    }
-  }
-  const name = typeof window !== "undefined" ? window.prompt("Friend's name") : null;
-  return name?.trim() || null;
 }
+
 
 export function InviteStep({
   firstName,
@@ -1184,18 +1170,34 @@ export function InviteStep({
   setFriends: (f: string[]) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [nameInput, setNameInput] = useState("");
   const canAddMore = friends.length < MAX_FRIENDS;
 
   const handleAdd = async () => {
     if (busy || !canAddMore) return;
     setBusy(true);
     try {
-      const name = await pickContactName();
-      if (name) setFriends([...friends, name]);
+      const result = await pickContactNameNative();
+      if (result === "unavailable") {
+        setNameInput("");
+        setSheetOpen(true);
+        return;
+      }
+      if (result) setFriends([...friends, result]);
     } finally {
       setBusy(false);
     }
   };
+
+  const submitSheet = () => {
+    const n = nameInput.trim();
+    if (!n || !canAddMore) return;
+    setFriends([...friends, n]);
+    setNameInput("");
+    setSheetOpen(false);
+  };
+
 
   const initial = (n: string) => n.trim().charAt(0).toUpperCase() || "?";
   const youInitial = (firstName || "Y").trim().charAt(0).toUpperCase();
@@ -1347,9 +1349,54 @@ export function InviteStep({
           })}
         </div>
       </div>
+
+      {sheetOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end" onClick={() => setSheetOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-full bg-white rounded-t-3xl pt-3 pb-8 px-6 animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
+            <div className="mt-5 text-[22px] font-bold tracking-tight">Add a friend</div>
+            <p className="mt-1 text-[14px]" style={{ color: TEXT_MUTED }}>
+              Type their name — they'll get an invite from you.
+            </p>
+            <input
+              autoFocus
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitSheet();
+              }}
+              placeholder="First name"
+              className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+              style={{ borderColor: PURPLE }}
+            />
+            <button
+              type="button"
+              onClick={submitSheet}
+              disabled={!nameInput.trim()}
+              className="mt-4 w-full rounded-full py-4 text-white text-[16px] font-semibold disabled:opacity-40"
+              style={{ background: PURPLE }}
+            >
+              Add friend
+            </button>
+            <button
+              type="button"
+              onClick={() => setSheetOpen(false)}
+              className="mt-2 w-full py-3 text-[15px] font-medium"
+              style={{ color: TEXT_MUTED }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 
