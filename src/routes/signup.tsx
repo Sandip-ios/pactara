@@ -1140,39 +1140,25 @@ const MAX_FRIENDS = 8;
 const AMBER = "#F59E0B";
 const AMBER_DEEP = "#B45309";
 
-async function pickContactName(): Promise<string | null> {
+async function pickContactNameNative(): Promise<string | null | "unavailable"> {
   try {
     const { Capacitor } = await import("@capacitor/core");
-    if (Capacitor.isNativePlatform()) {
-      const { Contacts } = await import("@capacitor-community/contacts");
-      const perm = await Contacts.requestPermissions();
-      if (perm.contacts !== "granted") return null;
-      const res = await Contacts.pickContact({ projection: { name: true } });
-      const c = res?.contact;
-      const n =
-        c?.name?.display ||
-        [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
-        null;
-      return n?.trim() || null;
-    }
+    if (!Capacitor.isNativePlatform()) return "unavailable";
+    const { Contacts } = await import("@capacitor-community/contacts");
+    const perm = await Contacts.requestPermissions();
+    if (perm.contacts !== "granted") return null;
+    const res = await Contacts.pickContact({ projection: { name: true } });
+    const c = res?.contact;
+    const n =
+      c?.name?.display ||
+      [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
+      null;
+    return n?.trim() || null;
   } catch {
-    // fall through to web
+    return "unavailable";
   }
-  const nav = navigator as unknown as {
-    contacts?: { select: (props: string[], opts?: { multiple?: boolean }) => Promise<Array<{ name?: string[] }>> };
-  };
-  if (nav.contacts?.select) {
-    try {
-      const picked = await nav.contacts.select(["name"], { multiple: false });
-      const n = picked?.[0]?.name?.[0];
-      if (n) return n.trim();
-    } catch {
-      // fall through to prompt
-    }
-  }
-  const name = typeof window !== "undefined" ? window.prompt("Friend's name") : null;
-  return name?.trim() || null;
 }
+
 
 export function InviteStep({
   firstName,
