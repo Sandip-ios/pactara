@@ -1170,18 +1170,34 @@ export function InviteStep({
   setFriends: (f: string[]) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [nameInput, setNameInput] = useState("");
   const canAddMore = friends.length < MAX_FRIENDS;
 
   const handleAdd = async () => {
     if (busy || !canAddMore) return;
     setBusy(true);
     try {
-      const name = await pickContactName();
-      if (name) setFriends([...friends, name]);
+      const result = await pickContactNameNative();
+      if (result === "unavailable") {
+        setNameInput("");
+        setSheetOpen(true);
+        return;
+      }
+      if (result) setFriends([...friends, result]);
     } finally {
       setBusy(false);
     }
   };
+
+  const submitSheet = () => {
+    const n = nameInput.trim();
+    if (!n || !canAddMore) return;
+    setFriends([...friends, n]);
+    setNameInput("");
+    setSheetOpen(false);
+  };
+
 
   const initial = (n: string) => n.trim().charAt(0).toUpperCase() || "?";
   const youInitial = (firstName || "Y").trim().charAt(0).toUpperCase();
