@@ -1349,9 +1349,54 @@ export function InviteStep({
           })}
         </div>
       </div>
+
+      {sheetOpen && (
+        <div className="fixed inset-0 z-[80] flex items-end" onClick={() => setSheetOpen(false)}>
+          <div className="absolute inset-0 bg-black/40" />
+          <div
+            className="relative w-full bg-white rounded-t-3xl pt-3 pb-8 px-6 animate-in slide-in-from-bottom duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
+            <div className="mt-5 text-[22px] font-bold tracking-tight">Add a friend</div>
+            <p className="mt-1 text-[14px]" style={{ color: TEXT_MUTED }}>
+              Type their name — they'll get an invite from you.
+            </p>
+            <input
+              autoFocus
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") submitSheet();
+              }}
+              placeholder="First name"
+              className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+              style={{ borderColor: PURPLE }}
+            />
+            <button
+              type="button"
+              onClick={submitSheet}
+              disabled={!nameInput.trim()}
+              className="mt-4 w-full rounded-full py-4 text-white text-[16px] font-semibold disabled:opacity-40"
+              style={{ background: PURPLE }}
+            >
+              Add friend
+            </button>
+            <button
+              type="button"
+              onClick={() => setSheetOpen(false)}
+              className="mt-2 w-full py-3 text-[15px] font-medium"
+              style={{ color: TEXT_MUTED }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 
 
