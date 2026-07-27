@@ -1166,26 +1166,23 @@ async function pickContactNameNative(): Promise<NativeContactPickResult> {
     const isNativeRuntime = Capacitor.isNativePlatform() || hasNativeBridge() || isNativeAppUrl();
     if (!isNativeRuntime) return { status: "web" };
 
-    const { CapacitorContacts } = await import("@capgo/capacitor-contacts");
-    if (!Capacitor.isPluginAvailable("CapacitorContacts")) {
+    const { PactaraContactPicker } = await import("@pactara/contact-picker");
+    if (!Capacitor.isPluginAvailable("PactaraContactPicker")) {
       const headers = ((window as Window & { Capacitor?: { PluginHeaders?: Array<{ name: string }> } }).Capacitor?.PluginHeaders ?? [])
         .map((header) => header.name)
         .join(", ");
-      const message = "Contacts picker is missing from the native iOS build. Run a fresh native sync/build after pulling this update.";
+      const message = "Pactara contact picker is missing from the native iOS build. Run a fresh native sync/build after pulling this update.";
       console.warn("[contacts]", message, { availableNativePlugins: headers || "none" });
       return { status: "unavailable", message };
     }
 
-    // iOS CNContactPickerViewController does not require broad contacts access;
-    // this plugin presents that native picker directly instead of first asking
-    // for full address-book permission.
-    const res = await CapacitorContacts.pickContact({
-      fields: ["givenName", "familyName", "fullName"],
-      multiple: false,
-    });
-    const c = res.contacts[0];
+    // iOS CNContactPickerViewController does not require broad contacts access.
+    // This app-local native plugin presents the picker directly without a
+    // contacts-permission preflight, which was causing the fallback sheet.
+    const c = await PactaraContactPicker.pickContact();
+    if (c.cancelled) return { status: "cancelled" };
     const n =
-      c?.fullName ||
+      c?.name ||
       [c?.givenName, c?.familyName].filter(Boolean).join(" ") ||
       null;
     const name = n?.trim();
