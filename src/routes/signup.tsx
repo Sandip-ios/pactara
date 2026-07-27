@@ -1146,16 +1146,32 @@ type NativeContactPickResult =
   | { status: "web" }
   | { status: "unavailable"; message: string };
 
+function hasNativeBridge(): boolean {
+  if (typeof window === "undefined") return false;
+  const win = window as Window & {
+    androidBridge?: unknown;
+    webkit?: { messageHandlers?: { bridge?: unknown } };
+  };
+  return Boolean(win.androidBridge || win.webkit?.messageHandlers?.bridge);
+}
+
+function isNativeAppUrl(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.location.protocol === "capacitor:";
+}
+
 async function pickContactNameNative(): Promise<NativeContactPickResult> {
   try {
     const { Capacitor } = await import("@capacitor/core");
-    if (!Capacitor.isNativePlatform()) return { status: "web" };
+    const isNativeRuntime = Capacitor.isNativePlatform() || hasNativeBridge() || isNativeAppUrl();
+    if (!isNativeRuntime) return { status: "web" };
+
+    const { CapacitorContacts } = await import("@capgo/capacitor-contacts");
     if (!Capacitor.isPluginAvailable("CapacitorContacts")) {
-      const message = "Native contacts picker is not registered in this build — run `npx cap sync ios`, clean build, and reinstall.";
+      const message = "Contacts picker is not included in this app build. Please sync the native project, clean build, and reinstall.";
       console.warn("[contacts]", message);
       return { status: "unavailable", message };
     }
-    const { CapacitorContacts } = await import("@capgo/capacitor-contacts");
 
     // iOS CNContactPickerViewController does not require broad contacts access;
     // this plugin presents that native picker directly instead of first asking
