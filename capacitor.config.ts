@@ -10,7 +10,7 @@ const config: CapacitorConfig = {
     "@capacitor/share",
     "@capacitor/splash-screen",
     "@capacitor/status-bar",
-    "@capgo/capacitor-contacts",
+    "@pactara/contact-picker",
     "@revenuecat/purchases-capacitor",
   ],
   // Bundle the web build inside the native app. This prevents the iOS shell
