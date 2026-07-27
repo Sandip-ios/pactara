@@ -1150,22 +1150,24 @@ async function pickContactNameNative(): Promise<NativeContactPickResult> {
   try {
     const { Capacitor } = await import("@capacitor/core");
     if (!Capacitor.isNativePlatform()) return { status: "web" };
-    if (!Capacitor.isPluginAvailable("Contacts")) {
-      const message = "Contacts plugin not registered natively — run `npx cap sync ios`, clean build, and reinstall.";
+    if (!Capacitor.isPluginAvailable("CapacitorContacts")) {
+      const message = "Native contacts picker is not registered in this build — run `npx cap sync ios`, clean build, and reinstall.";
       console.warn("[contacts]", message);
       return { status: "unavailable", message };
     }
-    const { Contacts } = await import("@capacitor-community/contacts");
+    const { CapacitorContacts } = await import("@capgo/capacitor-contacts");
 
-    // iOS CNContactPickerViewController runs out-of-process and does NOT require
-    // contacts authorization — it shows the system picker with a "Private Access
-    // to Contacts" banner. Do not gate on checkPermissions/requestPermissions:
-    // requesting and being denied prevents the picker from ever showing.
-    const res = await Contacts.pickContact({ projection: { name: true } });
-    const c = res?.contact;
+    // iOS CNContactPickerViewController does not require broad contacts access;
+    // this plugin presents that native picker directly instead of first asking
+    // for full address-book permission.
+    const res = await CapacitorContacts.pickContact({
+      fields: ["givenName", "familyName", "fullName"],
+      multiple: false,
+    });
+    const c = res.contacts[0];
     const n =
-      c?.name?.display ||
-      [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
+      c?.fullName ||
+      [c?.givenName, c?.familyName].filter(Boolean).join(" ") ||
       null;
     const name = n?.trim();
     return name ? { status: "picked", name } : { status: "cancelled" };
