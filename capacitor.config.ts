@@ -3,6 +3,16 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
+  includePlugins: [
+    "@capacitor-firebase/messaging",
+    "@capacitor/app",
+    "@capacitor/haptics",
+    "@capacitor/share",
+    "@capacitor/splash-screen",
+    "@capacitor/status-bar",
+    "@capgo/capacitor-contacts",
+    "@revenuecat/purchases-capacitor",
+  ],
   // Bundle the web build inside the native app. This prevents the iOS shell
   // from behaving like a launcher for the public website when installed from Xcode.
   webDir: "dist",

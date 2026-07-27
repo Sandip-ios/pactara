@@ -1168,8 +1168,11 @@ async function pickContactNameNative(): Promise<NativeContactPickResult> {
 
     const { CapacitorContacts } = await import("@capgo/capacitor-contacts");
     if (!Capacitor.isPluginAvailable("CapacitorContacts")) {
-      const message = "Contacts picker is not included in this app build. Please sync the native project, clean build, and reinstall.";
-      console.warn("[contacts]", message);
+      const headers = ((window as Window & { Capacitor?: { PluginHeaders?: Array<{ name: string }> } }).Capacitor?.PluginHeaders ?? [])
+        .map((header) => header.name)
+        .join(", ");
+      const message = "Contacts picker is missing from the native iOS build. Run a fresh native sync/build after pulling this update.";
+      console.warn("[contacts]", message, { availableNativePlugins: headers || "none" });
       return { status: "unavailable", message };
     }
 
