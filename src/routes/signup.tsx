@@ -1144,9 +1144,14 @@ async function pickContactNameNative(): Promise<string | null | "unavailable"> {
   try {
     const { Capacitor } = await import("@capacitor/core");
     if (!Capacitor.isNativePlatform()) return "unavailable";
+    if (!Capacitor.isPluginAvailable("Contacts")) {
+      console.warn("[contacts] Contacts plugin not registered natively — did you run `npx cap sync ios` and rebuild?");
+      return "unavailable";
+    }
     const { Contacts } = await import("@capacitor-community/contacts");
-    const perm = await Contacts.requestPermissions();
-    if (perm.contacts !== "granted") return null;
+    // iOS CNContactPickerViewController runs out-of-process and does NOT
+    // require the contacts permission. Skip requestPermissions so the
+    // native picker opens on first tap.
     const res = await Contacts.pickContact({ projection: { name: true } });
     const c = res?.contact;
     const n =
@@ -1154,7 +1159,8 @@ async function pickContactNameNative(): Promise<string | null | "unavailable"> {
       [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
       null;
     return n?.trim() || null;
-  } catch {
+  } catch (err) {
+    console.error("[contacts] pickContact failed", err);
     return "unavailable";
   }
 }
