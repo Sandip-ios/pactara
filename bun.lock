@@ -5,7 +5,6 @@
     "": {
       "name": "tanstack_start_ts",
       "dependencies": {
-        "@capacitor-community/contacts": "^7.2.0",
         "@capacitor-firebase/messaging": "^8.3.0",
         "@capacitor/app": "^8.1.0",
         "@capacitor/cli": "^8.4.1",
@@ -15,6 +14,7 @@
         "@capacitor/share": "^8.0.1",
         "@capacitor/splash-screen": "^8.0.1",
         "@capacitor/status-bar": "^8.0.2",
+        "@capgo/capacitor-contacts": "^8.0.19",
         "@hookform/resolvers": "^5.2.2",
         "@posthog/react": "^1.10.3",
         "@radix-ui/react-accordion": "^1.2.12",
@@ -142,8 +142,6 @@
 
     "@babel/types": ["@babel/types@7.29.0", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.28.5" } }, "sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A=="],
 
-    "@capacitor-community/contacts": ["@capacitor-community/contacts@7.2.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor-community/contacts/-/contacts-7.2.0.tgz", { "peerDependencies": { "@capacitor/core": ">=7.0.0" } }, "sha512-s/DVHuhMYbIbkSCuZyx6+ZDIho2wuUdtcb+cre4igo5Fz26lkBlayRSo+tBBfJsYxLlrQX21Jy8rMmUCdz2GTQ=="],
-
     "@capacitor-firebase/messaging": ["@capacitor-firebase/messaging@8.3.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor-firebase/messaging/-/messaging-8.3.0.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0", "firebase": "^12.6.0" }, "optionalPeers": ["firebase"] }, "sha512-gjlpPH8nFN2D4PGpg+Bi7Pk1Apy+nRh6DHTI8hr4o3QfCmZPnNCT0mhhT8Rcdpwf2D+E5NxkaVy4/2GYiXoF8Q=="],
 
     "@capacitor/app": ["@capacitor/app@8.1.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/app/-/app-8.1.0.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-MlmttTOWHDedr/G4SrhNRxsXMqY+R75S4MM4eIgzsgCzOYhb/MpCkA5Q3nuOCfL1oHm26xjUzqZ5aupbOwdfYg=="],
@@ -161,6 +159,8 @@
     "@capacitor/splash-screen": ["@capacitor/splash-screen@8.0.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/splash-screen/-/splash-screen-8.0.1.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-c/ew/Z3eA7z8l06WoRAtzVF16VwYYrExmHmfGq1Cg675pVzaC/yuucB8/1xG1vhEfnW4fZ1KhSf/kzR1RiVYgg=="],
 
     "@capacitor/status-bar": ["@capacitor/status-bar@8.0.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capacitor/status-bar/-/status-bar-8.0.2.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-WXs8YB8B9eEaPZz+bcdY6t2nForF1FLoj/JU0Dl9RRgQnddnS98FEEyDooQhaY7wivr000j4+SC1FyeJkrFO7A=="],
+
+    "@capgo/capacitor-contacts": ["@capgo/capacitor-contacts@8.0.19", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@capgo/capacitor-contacts/-/capacitor-contacts-8.0.19.tgz", { "peerDependencies": { "@capacitor/core": ">=8.0.0" } }, "sha512-LA2a+lQmuNh++ii91cWjugFfW9Emrf7S5Vq4vALZn3CdUBVahhXoGmBhH+CRdKC6S6fMlKVgXMaifYqDq+1/Wg=="],
 
     "@date-fns/tz": ["@date-fns/tz@1.4.1", "", {}, "sha512-P5LUNhtbj6YfI3iJjw5EL9eUAG6OitD0W3fWQcpQjDRc/QIsL0tRNuO1PcDvPccWL1fSTXXdE1ds+l95DV/OFA=="],
 
