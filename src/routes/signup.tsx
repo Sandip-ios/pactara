@@ -1140,28 +1140,43 @@ const MAX_FRIENDS = 8;
 const AMBER = "#F59E0B";
 const AMBER_DEEP = "#B45309";
 
-async function pickContactNameNative(): Promise<string | null | "unavailable"> {
+type NativeContactPickResult =
+  | { status: "picked"; name: string }
+  | { status: "cancelled" }
+  | { status: "web" }
+  | { status: "unavailable"; message: string };
+
+async function pickContactNameNative(): Promise<NativeContactPickResult> {
   try {
     const { Capacitor } = await import("@capacitor/core");
-    if (!Capacitor.isNativePlatform()) return "unavailable";
+    if (!Capacitor.isNativePlatform()) return { status: "web" };
     if (!Capacitor.isPluginAvailable("Contacts")) {
-      console.warn("[contacts] Contacts plugin not registered natively — did you run `npx cap sync ios` and rebuild?");
-      return "unavailable";
+      const message = "Contacts plugin not registered natively — run `npx cap sync ios`, clean build, and reinstall.";
+      console.warn("[contacts]", message);
+      return { status: "unavailable", message };
     }
     const { Contacts } = await import("@capacitor-community/contacts");
-    // iOS CNContactPickerViewController runs out-of-process and does NOT
-    // require the contacts permission. Skip requestPermissions so the
-    // native picker opens on first tap.
+
+    const currentPermission = await Contacts.checkPermissions();
+    if (currentPermission.contacts !== "granted" && currentPermission.contacts !== "limited") {
+      const requestedPermission = await Contacts.requestPermissions();
+      if (requestedPermission.contacts !== "granted" && requestedPermission.contacts !== "limited") {
+        return { status: "unavailable", message: "Contacts permission was not granted." };
+      }
+    }
+
     const res = await Contacts.pickContact({ projection: { name: true } });
     const c = res?.contact;
     const n =
       c?.name?.display ||
       [c?.name?.given, c?.name?.family].filter(Boolean).join(" ") ||
       null;
-    return n?.trim() || null;
+    const name = n?.trim();
+    return name ? { status: "picked", name } : { status: "cancelled" };
   } catch (err) {
     console.error("[contacts] pickContact failed", err);
-    return "unavailable";
+    const message = err instanceof Error ? err.message : "Contacts picker failed.";
+    return { status: "unavailable", message };
   }
 }
 
@@ -1178,19 +1193,27 @@ export function InviteStep({
   const [busy, setBusy] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [nameInput, setNameInput] = useState("");
+  const [contactError, setContactError] = useState<string | null>(null);
   const canAddMore = friends.length < MAX_FRIENDS;
 
   const handleAdd = async () => {
     if (busy || !canAddMore) return;
     setBusy(true);
+    setContactError(null);
     try {
       const result = await pickContactNameNative();
-      if (result === "unavailable") {
+      if (result.status === "picked") {
+        setFriends([...friends, result.name]);
+        return;
+      }
+      if (result.status === "web") {
         setNameInput("");
         setSheetOpen(true);
         return;
       }
-      if (result) setFriends([...friends, result]);
+      if (result.status === "unavailable") {
+        setContactError(result.message);
+      }
     } finally {
       setBusy(false);
     }
@@ -1263,6 +1286,11 @@ export function InviteStep({
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
         {friends.length} of {MAX_FRIENDS} added · add at least 2 — accountability works better with witnesses.
       </p>
+      {contactError && (
+        <p className="mt-3 text-[13px] leading-snug" style={{ color: AMBER_DEEP }}>
+          {contactError}
+        </p>
+      )}
 
       <div className="mt-6 flex-1 min-h-0 flex items-center justify-center">
         <div className="relative" style={{ width: 280, height: 280 }}>
