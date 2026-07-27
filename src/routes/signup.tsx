@@ -1157,14 +1157,10 @@ async function pickContactNameNative(): Promise<NativeContactPickResult> {
     }
     const { Contacts } = await import("@capacitor-community/contacts");
 
-    const currentPermission = await Contacts.checkPermissions();
-    if (currentPermission.contacts !== "granted" && currentPermission.contacts !== "limited") {
-      const requestedPermission = await Contacts.requestPermissions();
-      if (requestedPermission.contacts !== "granted" && requestedPermission.contacts !== "limited") {
-        return { status: "unavailable", message: "Contacts permission was not granted." };
-      }
-    }
-
+    // iOS CNContactPickerViewController runs out-of-process and does NOT require
+    // contacts authorization — it shows the system picker with a "Private Access
+    // to Contacts" banner. Do not gate on checkPermissions/requestPermissions:
+    // requesting and being denied prevents the picker from ever showing.
     const res = await Contacts.pickContact({ projection: { name: true } });
     const c = res?.contact;
     const n =
