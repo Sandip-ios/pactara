@@ -2,19 +2,22 @@
   "name": "@pactara/contact-picker",
   "version": "1.0.0",
   "description": "Pactara native contact picker for Capacitor",
-  "main": "dist/plugin.cjs.js",
-  "module": "dist/esm/index.js",
-  "types": "dist/esm/index.d.ts",
+  "main": "plugin.cjs.js",
+  "module": "index.js",
+  "types": "index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/esm/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/plugin.cjs.js"
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./plugin.cjs.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist/",
+    "definitions.d.ts",
+    "index.d.ts",
+    "index.js",
+    "plugin.cjs.js",
     "ios/Sources",
     "Package.swift",
     "PactaraContactPicker.podspec"
