@@ -40,6 +40,15 @@ export function SplashScreen() {
         opacity: visible ? 1 : 0,
         transition: `opacity ${FADE_MS}ms ease-out`,
         pointerEvents: visible ? "auto" : "none",
+        // Extend behind iOS safe areas so the black reaches the physical edges.
+        // The splash is the only screen that should bleed into notches/status bars.
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: "100vw",
+        height: "100dvh",
       }}
     >
       <div
