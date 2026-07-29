@@ -1143,11 +1143,8 @@ const AMBER_DEEP = "#B45309";
 const INVITE_MESSAGE =
   "Hey! I'm joining Pactara to build a daily habit with a small crew. Come do it with me — https://pactara.lovable.app";
 
-import {
-  loadContacts,
-  sendInvite,
-  type DeviceContact,
-} from "@/lib/contacts";
+
+
 
 export function InviteStep({
   firstName,
