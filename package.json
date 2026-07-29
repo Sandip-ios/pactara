@@ -12,6 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@capacitor-community/contacts": "^8.0.0",
     "@capacitor-firebase/messaging": "^8.3.0",
     "@capacitor/app": "^8.1.0",
     "@capacitor/cli": "^8.4.1",
@@ -22,7 +23,6 @@
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.2",
     "@hookform/resolvers": "^5.2.2",
-    "@pactara/contact-picker": "file:native-plugins/pactara-contact-picker",
     "@posthog/react": "^1.10.3",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
