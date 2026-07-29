@@ -73,9 +73,13 @@ export async function loadContacts(): Promise<ContactsResult> {
   } catch (e) {
     loadPromise = null;
     console.error("[contacts] load failed", e);
+    const raw = e instanceof Error ? e.message : "";
+    const notImplemented = /not implemented/i.test(raw);
     return {
       status: "error",
-      message: e instanceof Error ? e.message : "Contacts unavailable",
+      message: notImplemented
+        ? "Contacts aren't available yet — you can add friends manually below."
+        : raw || "Contacts unavailable",
     };
   }
 }
