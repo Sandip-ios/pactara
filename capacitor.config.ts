@@ -3,6 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
+  backgroundColor: "#000000",
   includePlugins: [
     "@capacitor-firebase/messaging",
     "@capacitor/app",
