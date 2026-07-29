@@ -153,8 +153,10 @@
     overscroll-behavior-y: none;
   }
 
+  html, body {
+    background-color: #000000;
+  }
   body {
-    background-color: #ffffff;
     color: var(--color-foreground);
   }
 
