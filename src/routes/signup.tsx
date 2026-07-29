@@ -1137,63 +1137,16 @@ function FreqCard({
 
 /* ------------ Step: Invite ------------ */
 const MAX_FRIENDS = 8;
-const AMBER = "#F59E0B";
 const AMBER_DEEP = "#B45309";
 
-type NativeContactPickResult =
-  | { status: "picked"; name: string }
-  | { status: "cancelled" }
-  | { status: "web" }
-  | { status: "unavailable"; message: string };
+const INVITE_MESSAGE =
+  "Hey! I'm joining Pactara to build a daily habit with a small crew. Come do it with me — https://pactara.lovable.app";
 
-function hasNativeBridge(): boolean {
-  if (typeof window === "undefined") return false;
-  const win = window as Window & {
-    androidBridge?: unknown;
-    webkit?: { messageHandlers?: { bridge?: unknown } };
-  };
-  return Boolean(win.androidBridge || win.webkit?.messageHandlers?.bridge);
-}
-
-function isNativeAppUrl(): boolean {
-  if (typeof window === "undefined") return false;
-  return window.location.protocol === "capacitor:";
-}
-
-async function pickContactNameNative(): Promise<NativeContactPickResult> {
-  try {
-    const { Capacitor } = await import("@capacitor/core");
-    const isNativeRuntime = Capacitor.isNativePlatform() || hasNativeBridge() || isNativeAppUrl();
-    if (!isNativeRuntime) return { status: "web" };
-
-    const { PactaraContactPicker } = await import("@pactara/contact-picker");
-    if (!Capacitor.isPluginAvailable("PactaraContactPicker")) {
-      const headers = ((window as Window & { Capacitor?: { PluginHeaders?: Array<{ name: string }> } }).Capacitor?.PluginHeaders ?? [])
-        .map((header) => header.name)
-        .join(", ");
-      const message = "Pactara contact picker is missing from the native iOS build. Run a fresh native sync/build after pulling this update.";
-      console.warn("[contacts]", message, { availableNativePlugins: headers || "none" });
-      return { status: "unavailable", message };
-    }
-
-    // iOS CNContactPickerViewController does not require broad contacts access.
-    // This app-local native plugin presents the picker directly without a
-    // contacts-permission preflight, which was causing the fallback sheet.
-    const c = await PactaraContactPicker.pickContact();
-    if (c.cancelled) return { status: "cancelled" };
-    const n =
-      c?.name ||
-      [c?.givenName, c?.familyName].filter(Boolean).join(" ") ||
-      null;
-    const name = n?.trim();
-    return name ? { status: "picked", name } : { status: "cancelled" };
-  } catch (err) {
-    console.error("[contacts] pickContact failed", err);
-    const message = err instanceof Error ? err.message : "Contacts picker failed.";
-    return { status: "unavailable", message };
-  }
-}
-
+import {
+  loadContacts,
+  sendInvite,
+  type DeviceContact,
+} from "@/lib/contacts";
 
 export function InviteStep({
   firstName,
@@ -1204,68 +1157,91 @@ export function InviteStep({
   friends: string[];
   setFriends: (f: string[]) => void;
 }) {
-  const [busy, setBusy] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [nameInput, setNameInput] = useState("");
+  const [contacts, setContacts] = useState<DeviceContact[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
   const [contactError, setContactError] = useState<string | null>(null);
+  const [inlineError, setInlineError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [manualName, setManualName] = useState("");
+  const [manualContact, setManualContact] = useState("");
   const canAddMore = friends.length < MAX_FRIENDS;
 
-  const handleAdd = async () => {
-    if (busy || !canAddMore) return;
-    setBusy(true);
+  const openSheet = async () => {
+    if (!canAddMore) return;
     setContactError(null);
-    try {
-      const result = await pickContactNameNative();
-      if (result.status === "picked") {
-        setFriends([...friends, result.name]);
-        return;
-      }
-      if (result.status === "web") {
-        setNameInput("");
-        setSheetOpen(true);
-        return;
-      }
-      if (result.status === "unavailable") {
-        setContactError(result.message);
-      }
-    } finally {
-      setBusy(false);
+    setInlineError(null);
+    setQuery("");
+    setManualName("");
+    setManualContact("");
+    setSheetOpen(true);
+    if (contacts || permissionDenied) return;
+    setLoading(true);
+    const res = await loadContacts();
+    setLoading(false);
+    if (res.status === "ok") setContacts(res.contacts);
+    else if (res.status === "denied") setPermissionDenied(true);
+    else if (res.status === "web") setPermissionDenied(true);
+    else if (res.status === "error") {
+      setContactError(res.message);
+      setPermissionDenied(true);
     }
   };
 
-  const submitSheet = () => {
-    const n = nameInput.trim();
-    if (!n || !canAddMore) return;
-    setFriends([...friends, n]);
-    setNameInput("");
+  const filtered = useMemo(() => {
+    if (!contacts) return [];
+    const q = query.trim().toLowerCase();
+    if (!q) return contacts.slice(0, 200);
+    return contacts.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 200);
+  }, [contacts, query]);
+
+  const handlePick = async (c: DeviceContact) => {
+    setInlineError(null);
+    const res = await sendInvite(c, INVITE_MESSAGE);
+    if (!res.ok) {
+      setInlineError(res.reason);
+      return;
+    }
+    setFriends([...friends, c.name]);
     setSheetOpen(false);
   };
 
+  const submitManual = async () => {
+    const name = manualName.trim();
+    const contactValue = manualContact.trim();
+    if (!name || !contactValue) return;
+    const isEmail = contactValue.includes("@");
+    const payload = isEmail
+      ? { name, email: contactValue }
+      : { name, phone: contactValue };
+    const res = await sendInvite(payload, INVITE_MESSAGE);
+    if (!res.ok) {
+      setInlineError(res.reason);
+      return;
+    }
+    setFriends([...friends, name]);
+    setSheetOpen(false);
+  };
 
   const initial = (n: string) => n.trim().charAt(0).toUpperCase() || "?";
   const youInitial = (firstName || "Y").trim().charAt(0).toUpperCase();
 
-  // 8 positions around a center, in a flower arrangement
-  const R = 100; // radius in px
+  const R = 100;
   const positions = Array.from({ length: MAX_FRIENDS }, (_, i) => {
     const angle = (-90 + i * (360 / MAX_FRIENDS)) * (Math.PI / 180);
     return { x: Math.cos(angle) * R, y: Math.sin(angle) * R };
   });
 
-  // Arrow pointing from the center "You" circle to the next active slot.
-  // The arrow is drawn as a filled pointer whose base follows the center circle
-  // so it blends cleanly into the "You" avatar rather than looking like a
-  // separate line sitting on top.
   const nextIndex = canAddMore ? friends.length : -1;
   const nextPosition = nextIndex >= 0 ? positions[nextIndex] : null;
   const arrowAngle = nextPosition ? Math.atan2(nextPosition.y, nextPosition.x) : 0;
 
-  const C = 140; // center of the flower container
-  const centerR = 42; // "You" circle radius (84px)
-  const targetR = 34; // friend slot radius (68px)
-  const arrowBaseHalf = 9; // half-width of the arrow base
-  const arrowTipRadius = 42 + (100 - targetR - 42) * 0.6; // 40% shorter than reaching the slot edge
-  const arrowBaseRadius = 42; // distance from center to outer edge of "You" circle
+  const C = 140;
+  const targetR = 34;
+  const arrowBaseHalf = 9;
+  const arrowTipRadius = 42 + (100 - targetR - 42) * 0.6;
+  const arrowBaseRadius = 42;
 
   const arrowPath = useMemo(() => {
     if (!nextPosition) return null;
@@ -1283,11 +1259,6 @@ export function InviteStep({
       x: C + arrowTipRadius * Math.cos(a),
       y: C + arrowTipRadius * Math.sin(a),
     };
-    const baseMid = {
-      x: C + arrowBaseRadius * Math.cos(a),
-      y: C + arrowBaseRadius * Math.sin(a),
-    };
-    // Determine the sweep flag so the arc bulges toward the tip.
     const sweep = arrowTipRadius > arrowBaseRadius ? 1 : 0;
     return `M ${baseLeft.x} ${baseLeft.y} A ${arrowBaseRadius} ${arrowBaseRadius} 0 0 ${sweep} ${baseRight.x} ${baseRight.y} L ${tip.x} ${tip.y} Z`;
   }, [arrowAngle, nextPosition]);
@@ -1308,7 +1279,6 @@ export function InviteStep({
 
       <div className="mt-6 flex-1 min-h-0 flex items-center justify-center">
         <div className="relative" style={{ width: 280, height: 280 }}>
-          {/* Center = you */}
           <div
             className="absolute rounded-full flex items-center justify-center font-bold text-[22px]"
             style={{
@@ -1325,7 +1295,6 @@ export function InviteStep({
             {youInitial}
           </div>
 
-          {/* Filled pointer from the center circle to the next active slot */}
           {canAddMore && arrowPath && (
             <svg
               className="absolute"
@@ -1368,8 +1337,7 @@ export function InviteStep({
                 <button
                   key={i}
                   type="button"
-                  onClick={handleAdd}
-                  disabled={busy}
+                  onClick={openSheet}
                   className="absolute rounded-full flex items-center justify-center active:scale-95 transition-transform"
                   style={{
                     ...style,
@@ -1403,37 +1371,111 @@ export function InviteStep({
           <div className="absolute inset-0 bg-black/40" />
           <div
             className="relative w-full bg-white rounded-t-3xl pt-3 pb-8 px-6 animate-in slide-in-from-bottom duration-200"
+            style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
-            <div className="mt-5 text-[22px] font-bold tracking-tight">Add a friend</div>
+            <div className="mt-5 text-[22px] font-bold tracking-tight">
+              {permissionDenied ? "Invite a friend" : "Choose a contact"}
+            </div>
             <p className="mt-1 text-[14px]" style={{ color: TEXT_MUTED }}>
-              Type their name — they'll get an invite from you.
+              {permissionDenied
+                ? "Enter their phone or email — we'll open your messages app to send the invite."
+                : "Search your contacts. Tapping one opens your messages app with the invite ready to send."}
             </p>
-            <input
-              autoFocus
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") submitSheet();
-              }}
-              placeholder="First name"
-              className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
-              style={{ borderColor: PURPLE }}
-            />
-            <button
-              type="button"
-              onClick={submitSheet}
-              disabled={!nameInput.trim()}
-              className="mt-4 w-full rounded-full py-4 text-white text-[16px] font-semibold disabled:opacity-40"
-              style={{ background: PURPLE }}
-            >
-              Add friend
-            </button>
+
+            {inlineError && (
+              <p className="mt-3 text-[13px] font-medium text-red-600">{inlineError}</p>
+            )}
+
+            {permissionDenied ? (
+              <div className="mt-5">
+                <input
+                  value={manualName}
+                  onChange={(e) => setManualName(e.target.value)}
+                  placeholder="Their name"
+                  className="w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+                  style={{ borderColor: "#E5E1DB" }}
+                />
+                <input
+                  value={manualContact}
+                  onChange={(e) => setManualContact(e.target.value)}
+                  placeholder="Phone number or email"
+                  inputMode="text"
+                  className="mt-3 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+                  style={{ borderColor: PURPLE }}
+                />
+                <button
+                  type="button"
+                  onClick={submitManual}
+                  disabled={!manualName.trim() || !manualContact.trim()}
+                  className="mt-4 w-full rounded-full py-4 text-white text-[16px] font-semibold disabled:opacity-40"
+                  style={{ background: PURPLE }}
+                >
+                  Send invite
+                </button>
+              </div>
+            ) : (
+              <>
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search by name"
+                  className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+                  style={{ borderColor: PURPLE }}
+                />
+                <div className="mt-3 flex-1 overflow-y-auto -mx-2 px-2">
+                  {loading && (
+                    <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
+                      Loading contacts…
+                    </div>
+                  )}
+                  {!loading && contacts && filtered.length === 0 && (
+                    <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
+                      No matches
+                    </div>
+                  )}
+                  {!loading &&
+                    filtered.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handlePick(c)}
+                        className="w-full flex items-center gap-3 py-3 border-b border-neutral-100 active:bg-neutral-50 text-left"
+                      >
+                        <div
+                          className="h-10 w-10 rounded-full flex items-center justify-center font-bold text-[15px] shrink-0"
+                          style={{ background: PURPLE_SOFT, color: PURPLE }}
+                        >
+                          {initial(c.name)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[15px] font-semibold truncate">{c.name}</div>
+                          <div
+                            className="text-[13px] truncate"
+                            style={{ color: TEXT_MUTED }}
+                          >
+                            {c.phone ?? c.email ?? "No contact info"}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPermissionDenied(true)}
+                  className="mt-2 w-full py-3 text-[14px] font-medium"
+                  style={{ color: PURPLE }}
+                >
+                  Enter manually instead
+                </button>
+              </>
+            )}
+
             <button
               type="button"
               onClick={() => setSheetOpen(false)}
-              className="mt-2 w-full py-3 text-[15px] font-medium"
+              className="mt-1 w-full py-3 text-[15px] font-medium"
               style={{ color: TEXT_MUTED }}
             >
               Cancel
@@ -1444,6 +1486,7 @@ export function InviteStep({
     </div>
   );
 }
+
 
 
 
