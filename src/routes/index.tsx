@@ -2,7 +2,6 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
-import { isNative } from "@/lib/native";
 
 
 export const Route = createFileRoute("/")({
@@ -10,7 +9,6 @@ export const Route = createFileRoute("/")({
   beforeLoad: async () => {
     const { data } = await supabase.auth.getUser();
     if (data.user) throw redirect({ to: "/check-in" });
-    if (isNative()) throw redirect({ to: "/login" });
   },
   head: () => ({
     meta: [
