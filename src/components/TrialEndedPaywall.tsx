@@ -401,7 +401,32 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
               {signingOut ? "Signing out…" : "Sign out"}
             </button>
           )}
+
+          <p className="mt-4 text-center text-[11px] leading-relaxed" style={{ color: MUTED }}>
+            Payment is charged to your Apple ID at confirmation of purchase. Subscriptions renew
+            automatically unless canceled at least 24 hours before the end of the current period.
+            Manage or cancel in your Apple ID settings.
+          </p>
+          <div className="mt-2 flex items-center justify-center gap-4 text-[12px] font-medium">
+            <a
+              href="https://pactara.lovable.app/terms"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: MUTED, textDecoration: "underline" }}
+            >
+              Terms of Use (EULA)
+            </a>
+            <a
+              href="https://pactara.lovable.app/privacy"
+              target="_blank"
+              rel="noreferrer"
+              style={{ color: MUTED, textDecoration: "underline" }}
+            >
+              Privacy Policy
+            </a>
+          </div>
         </div>
+
       </div>
     </div>
   );
