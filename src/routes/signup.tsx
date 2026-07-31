@@ -41,7 +41,7 @@ import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 import { setAvatarPath } from "@/lib/profile.functions";
-import { loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
+import { clearContactsCache, loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
