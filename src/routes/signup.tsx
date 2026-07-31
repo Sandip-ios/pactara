@@ -1417,6 +1417,14 @@ export function InviteStep({
                 >
                   Send invite
                 </button>
+                <button
+                  type="button"
+                  onClick={retryContacts}
+                  className="mt-2 w-full py-3 text-[14px] font-medium"
+                  style={{ color: PURPLE }}
+                >
+                  {loading ? "Checking contacts…" : "Search my contacts instead"}
+                </button>
               </div>
             ) : (
               <>
