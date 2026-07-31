@@ -43,20 +43,38 @@ function normalizeContact(c: {
 }
 
 export async function loadContacts(): Promise<ContactsResult> {
-  if (cache) return { status: "ok", contacts: cache };
+  if (cache && cache.length > 0) return { status: "ok", contacts: cache };
   if (!isNative()) return { status: "web" };
   if (loadPromise) {
     try {
       const contacts = await loadPromise;
-      return { status: "ok", contacts };
+      if (contacts.length > 0) return { status: "ok", contacts };
+      loadPromise = null;
+      cache = null;
+      return { status: "denied" };
     } catch (e) {
+      loadPromise = null;
       return { status: "error", message: e instanceof Error ? e.message : "Failed" };
     }
   }
   try {
     const { Contacts } = await import("@capacitor-community/contacts");
-    const perm = await Contacts.requestPermissions();
-    if (perm.contacts !== "granted") return { status: "denied" };
+    // iOS 18 introduces "limited" access: the OS contact picker returns only the
+    // contacts the user allowed. That is a perfectly usable state, so never gate
+    // on an exact "granted" string — just try to read and judge by the result.
+    let status = "prompt";
+    try {
+      const perm = await Contacts.checkPermissions();
+      status = String(perm.contacts ?? "prompt");
+      if (status === "prompt" || status === "prompt-with-rationale") {
+        const req = await Contacts.requestPermissions();
+        status = String(req.contacts ?? "denied");
+      }
+    } catch {
+      // permission API unavailable — fall through and attempt the read
+    }
+    if (status === "denied") return { status: "denied" };
+
     loadPromise = (async () => {
       const res = await Contacts.getContacts({
         projection: { name: true, phones: true, emails: true, image: false },
@@ -69,6 +87,11 @@ export async function loadContacts(): Promise<ContactsResult> {
       return list;
     })();
     const contacts = await loadPromise;
+    if (contacts.length === 0) {
+      loadPromise = null;
+      cache = null;
+      return { status: "denied" };
+    }
     return { status: "ok", contacts };
   } catch (e) {
     loadPromise = null;

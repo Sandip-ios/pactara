@@ -41,7 +41,7 @@ import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { supabase } from "@/integrations/supabase/client";
 import { createGroupForUser, setMyName } from "@/lib/groups.functions";
 import { setAvatarPath } from "@/lib/profile.functions";
-import { loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
+import { clearContactsCache, loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -1174,16 +1174,41 @@ export function InviteStep({
     setManualName("");
     setManualContact("");
     setSheetOpen(true);
-    if (contacts || permissionDenied) return;
+    // Always retry while we have no contacts — on iOS the user may have just
+    // granted limited access through the system picker, so a previous "denied"
+    // must not permanently lock us into the manual-entry fallback.
+    if (contacts && contacts.length > 0) return;
     setLoading(true);
     const res = await loadContacts();
     setLoading(false);
-    if (res.status === "ok") setContacts(res.contacts);
-    else if (res.status === "denied") setPermissionDenied(true);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+    } else if (res.status === "denied") setPermissionDenied(true);
     else if (res.status === "web") setPermissionDenied(true);
     else if (res.status === "error") {
       setContactError(res.message);
       setPermissionDenied(true);
+    }
+  };
+
+  const retryContacts = async () => {
+    setContactError(null);
+    setInlineError(null);
+    clearContactsCache();
+    setLoading(true);
+    const res = await loadContacts();
+    setLoading(false);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+      setQuery("");
+    } else if (res.status === "error") {
+      setContactError(res.message);
+    } else {
+      setContactError(
+        "We still can't read your contacts. Allow contact access for Pactara in iOS Settings, or add them manually here.",
+      );
     }
   };
 
@@ -1411,6 +1436,14 @@ export function InviteStep({
                   style={{ background: PURPLE }}
                 >
                   Send invite
+                </button>
+                <button
+                  type="button"
+                  onClick={retryContacts}
+                  className="mt-2 w-full py-3 text-[14px] font-medium"
+                  style={{ color: PURPLE }}
+                >
+                  {loading ? "Checking contacts…" : "Search my contacts instead"}
                 </button>
               </div>
             ) : (
