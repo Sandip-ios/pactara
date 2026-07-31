@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no"
+    />
+    <title>Pactara</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: #000000;
+        color: #ffffff;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+      }
+      .wrap {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        background: #000000;
+      }
+      .logo {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+      .msg {
+        font-size: 14px;
+        opacity: 0.6;
+      }
+    </style>
+  </head>
+  <body>
+    <!--
+      Offline / fallback shell for the native iOS app.
+      The live app is served from the Capacitor `server.url` configured in
+      capacitor.config.ts. This file exists because Capacitor requires the
+      web assets directory to contain an index.html, even when server.url is set.
+    -->
+    <div class="wrap">
+      <div class="logo">Pactara</div>
+      <div class="msg">Connecting…</div>
+    </div>
+  </body>
+</html>

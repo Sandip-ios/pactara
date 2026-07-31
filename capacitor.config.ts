@@ -14,10 +14,16 @@ const config: CapacitorConfig = {
     "@capacitor-community/contacts",
     "@revenuecat/purchases-capacitor",
   ],
-  // Bundle the web build inside the native app. This prevents the iOS shell
-  // from behaving like a launcher for the public website when installed from Xcode.
-  webDir: "dist",
+  // This app is a TanStack Start (SSR + server functions) app, so `vite build`
+  // intentionally produces a server bundle (dist/server) plus client assets
+  // (dist/client) and NO static index.html. There is no static export.
+  //
+  // `webDir` therefore points at a tiny committed shell that only exists to
+  // satisfy Capacitor's "web assets directory must contain an index.html"
+  // requirement; the real app is loaded from `server.url`.
+  webDir: "native-shell",
   server: {
+    url: "https://pactara.lovable.app",
     allowNavigation: ["pactara.lovable.app"],
     cleartext: false,
   },
