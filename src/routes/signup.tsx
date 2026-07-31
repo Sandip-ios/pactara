@@ -1174,12 +1174,17 @@ export function InviteStep({
     setManualName("");
     setManualContact("");
     setSheetOpen(true);
-    if (contacts || permissionDenied) return;
+    // Always retry while we have no contacts — on iOS the user may have just
+    // granted limited access through the system picker, so a previous "denied"
+    // must not permanently lock us into the manual-entry fallback.
+    if (contacts && contacts.length > 0) return;
     setLoading(true);
     const res = await loadContacts();
     setLoading(false);
-    if (res.status === "ok") setContacts(res.contacts);
-    else if (res.status === "denied") setPermissionDenied(true);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+    } else if (res.status === "denied") setPermissionDenied(true);
     else if (res.status === "web") setPermissionDenied(true);
     else if (res.status === "error") {
       setContactError(res.message);
