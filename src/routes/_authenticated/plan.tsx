@@ -387,6 +387,26 @@ function PlanPage() {
             hello@pactara.app
           </a>
         </p>
+
+        <div className="mt-4 flex items-center justify-center gap-4 text-[12px] font-medium">
+          <a
+            href="https://pactara.lovable.app/terms"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: MUTED, textDecoration: "underline" }}
+          >
+            Terms of Use (EULA)
+          </a>
+          <a
+            href="https://pactara.lovable.app/privacy"
+            target="_blank"
+            rel="noreferrer"
+            style={{ color: MUTED, textDecoration: "underline" }}
+          >
+            Privacy Policy
+          </a>
+        </div>
+
       </div>
 
       {/* Confirm plan sheet */}
