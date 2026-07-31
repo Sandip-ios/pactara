@@ -1192,6 +1192,26 @@ export function InviteStep({
     }
   };
 
+  const retryContacts = async () => {
+    setContactError(null);
+    setInlineError(null);
+    clearContactsCache();
+    setLoading(true);
+    const res = await loadContacts();
+    setLoading(false);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+      setQuery("");
+    } else if (res.status === "error") {
+      setContactError(res.message);
+    } else {
+      setContactError(
+        "We still can't read your contacts. Allow contact access for Pactara in iOS Settings, or add them manually here.",
+      );
+    }
+  };
+
   const filtered = useMemo(() => {
     if (!contacts) return [];
     const q = query.trim().toLowerCase();
