@@ -1174,10 +1174,10 @@ export function InviteStep({
     setManualName("");
     setManualContact("");
     setSheetOpen(true);
-    // Always retry while we have no contacts — on iOS the user may have just
-    // granted limited access through the system picker, so a previous "denied"
-    // must not permanently lock us into the manual-entry fallback.
-    if (contacts && contacts.length > 0) return;
+    // Always re-read contacts when the sheet opens. On iOS the user may have
+    // just granted (or widened) access through the system picker, so a stale
+    // cache or a previous "denied" must never lock us into manual entry.
+    clearContactsCache();
     setLoading(true);
     const res = await loadContacts();
     setLoading(false);
@@ -1212,12 +1212,31 @@ export function InviteStep({
     }
   };
 
+  const normalize = (s: string) =>
+    s
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+
   const filtered = useMemo(() => {
     if (!contacts) return [];
-    const q = query.trim().toLowerCase();
+    const q = normalize(query.trim());
     if (!q) return contacts.slice(0, 200);
-    return contacts.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 200);
+    const digits = q.replace(/\D/g, "");
+    return contacts
+      .filter((c) => {
+        const name = normalize(c.name);
+        if (name.includes(q)) return true;
+        // match any word start, e.g. "ber" -> "Anna Bertille"
+        if (name.split(/\s+/).some((part) => part.startsWith(q))) return true;
+        if (c.email && normalize(c.email).includes(q)) return true;
+        if (digits.length >= 3 && c.phone && c.phone.replace(/\D/g, "").includes(digits))
+          return true;
+        return false;
+      })
+      .slice(0, 200);
   }, [contacts, query]);
+
 
   const handlePick = async (c: DeviceContact) => {
     setInlineError(null);
@@ -1463,9 +1482,22 @@ export function InviteStep({
                   )}
                   {!loading && contacts && filtered.length === 0 && (
                     <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
-                      No matches
+                      <div>No matches</div>
+                      <button
+                        type="button"
+                        onClick={retryContacts}
+                        className="mt-3 text-[14px] font-medium"
+                        style={{ color: PURPLE }}
+                      >
+                        Refresh contacts
+                      </button>
+                      <div className="mt-2 px-4 text-[12px] leading-snug">
+                        If someone is missing, allow Pactara full access to Contacts in
+                        iOS Settings → Privacy → Contacts.
+                      </div>
                     </div>
                   )}
+
                   {!loading &&
                     filtered.map((c) => (
                       <button
@@ -1492,15 +1524,8 @@ export function InviteStep({
                       </button>
                     ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPermissionDenied(true)}
-                  className="mt-2 w-full py-3 text-[14px] font-medium"
-                  style={{ color: PURPLE }}
-                >
-                  Enter manually instead
-                </button>
               </>
+
             )}
 
             <button
