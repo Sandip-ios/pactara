@@ -1598,16 +1598,31 @@ export function InviteStep({
 
 /* ------------ Step: Notify ------------ */
 export function NotifyStep({ onAllow }: { onAllow: () => void }) {
+  const [requesting, setRequesting] = useState(false);
+
   const handleAllow = async () => {
+    if (requesting) return;
+    setRequesting(true);
     try {
-      if (typeof window !== "undefined" && "Notification" in window) {
+      const { isNative } = await import("@/lib/native");
+      if (isNative()) {
+        // Native iOS/Android: trigger the real system permission prompt.
+        const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
+        const perm = await FirebaseMessaging.checkPermissions();
+        if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
+          await FirebaseMessaging.requestPermissions();
+        }
+      } else if (typeof window !== "undefined" && "Notification" in window) {
         await Notification.requestPermission();
       }
     } catch {
       // ignore — proceed regardless of permission outcome
+    } finally {
+      setRequesting(false);
     }
     onAllow();
   };
+
 
   return (
     <div>
