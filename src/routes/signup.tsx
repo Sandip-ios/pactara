@@ -15,6 +15,38 @@ function useClientAutoFocus<T extends HTMLElement>() {
   }, []);
   return ref;
 }
+
+/** Returns the current on-screen keyboard height in pixels (iOS/Android). */
+function useKeyboardHeight(): number {
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    const update = () => {
+      if (!vv) {
+        // Fallback for older browsers: treat zero as no keyboard.
+        setHeight(0);
+        return;
+      }
+      // On iOS the keyboard pushes the visual viewport up, so the hidden
+      // portion is the difference between layout and visual viewport heights.
+      const hidden = Math.max(0, window.innerHeight - vv.height);
+      // Also account for the visual viewport offset when the keyboard is open.
+      setHeight(Math.max(0, hidden - vv.offsetTop));
+    };
+    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  return height;
+}
+
 import {
   ArrowRight,
   ChevronLeft,
