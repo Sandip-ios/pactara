@@ -3,11 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
-  // The root web view background is black so that the brief moment before
-  // the native splash screen appears, plus the splash itself, are both dark.
-  // Once the React app renders it paints the body white, so slides/login/etc.
-  // show on the intended light background.
-  backgroundColor: "#000000",
+  // The app background is white so the iOS safe-area insets (status bar,
+  // bottom home indicator area) blend with the light app UI. The native
+  // splash screen itself stays black via the SplashScreen plugin below.
+  backgroundColor: "#FFFFFF",
   includePlugins: [
     "@capacitor-firebase/messaging",
     "@capacitor/app",
@@ -33,7 +32,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "always",
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
   },
   plugins: {
     SplashScreen: {
