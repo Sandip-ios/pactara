@@ -1443,18 +1443,26 @@ export function InviteStep({
       </div>
 
       {sheetOpen && (
-        <div className="fixed inset-0 z-[80] flex items-end" onClick={() => setSheetOpen(false)}>
+        <div
+          className="fixed left-0 right-0 z-[80] flex items-end"
+          style={{
+            top: viewport.offsetTop,
+            height: viewport.height || undefined,
+          }}
+          onClick={() => setSheetOpen(false)}
+        >
           <div className="absolute inset-0 bg-black/40" />
           <div
-            className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200"
+            className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200 min-h-0"
             style={{
-              maxHeight: `calc(100vh - ${keyboardHeight}px - 24px)`,
-              paddingBottom: `${32 + keyboardHeight}px`,
+              maxHeight: "100%",
+              paddingBottom: 24,
               display: "flex",
               flexDirection: "column",
             }}
             onClick={(e) => e.stopPropagation()}
           >
+
 
 
             <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
