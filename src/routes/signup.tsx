@@ -1465,11 +1465,11 @@ export function InviteStep({
 
 
 
-            <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
-            <div className="mt-5 text-[22px] font-bold tracking-tight">
+            <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-neutral-300" />
+            <div className="mt-5 shrink-0 text-[22px] font-bold tracking-tight">
               {permissionDenied ? "Invite a friend" : "Choose a contact"}
             </div>
-            <p className="mt-1 text-[14px]" style={{ color: TEXT_MUTED }}>
+            <p className="mt-1 shrink-0 text-[14px]" style={{ color: TEXT_MUTED }}>
               {permissionDenied
                 ? "Enter their phone or email — we'll open your messages app to send the invite."
                 : "Search your contacts. Tapping one opens your messages app with the invite ready to send."}
@@ -1520,10 +1520,10 @@ export function InviteStep({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by name"
-                  className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+                  className="mt-5 w-full shrink-0 rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
                   style={{ borderColor: PURPLE }}
                 />
-                <div className="mt-3 flex-1 overflow-y-auto -mx-2 px-2">
+                <div className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-2 px-2">
                   {loading && (
                     <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
                       Loading contacts…
