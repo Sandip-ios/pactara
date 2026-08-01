@@ -1197,7 +1197,7 @@ export function InviteStep({
   const [manualName, setManualName] = useState("");
   const [manualContact, setManualContact] = useState("");
   const canAddMore = friends.length < MAX_FRIENDS;
-  const keyboardHeight = useKeyboardHeight();
+  const viewport = useVisualViewport();
 
 
   const openSheet = async () => {
