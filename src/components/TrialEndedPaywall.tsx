@@ -200,10 +200,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             <X size={18} />
           </button>
         )}
-        <div
-          className="px-6 text-center shrink-0"
-          style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top))" }}
-        >
+        <div className="px-6 pt-10 text-center shrink-0">
           <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
             {eyebrow}
           </div>
@@ -351,10 +348,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           </div>
         </div>
 
-        <div
-          className="px-6 pt-4 shrink-0 mt-auto"
-          style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
-        >
+        <div className="px-6 pb-6 pt-4 shrink-0 mt-auto">
           <div
             className="flex items-center justify-center gap-2 text-[14px] font-semibold"
             style={{ color: ORANGE }}
