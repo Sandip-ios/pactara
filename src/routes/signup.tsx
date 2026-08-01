@@ -1524,15 +1524,8 @@ export function InviteStep({
                       </button>
                     ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPermissionDenied(true)}
-                  className="mt-2 w-full py-3 text-[14px] font-medium"
-                  style={{ color: PURPLE }}
-                >
-                  Enter manually instead
-                </button>
               </>
+
             )}
 
             <button
