@@ -230,7 +230,17 @@ function SignupFlow() {
           session = signIn.data.session;
         }
       }
+      // The bearer token for server calls is read from the persisted session.
+      // On native WebViews that write can lag slightly behind sign-up, which
+      // makes the first server call arrive unauthenticated (a 500). Wait for it.
+      let token: string | null = session?.access_token ?? null;
+      for (let i = 0; i < 20 && !token; i++) {
+        await new Promise((r) => setTimeout(r, 150));
+        token = (await supabase.auth.getSession()).data.session?.access_token ?? null;
+      }
+      if (!token) throw new Error("Couldn't start your session. Please try again.");
       await setMyName({ data: { name: fullName } });
+
       if (photoFile && session?.user) {
         try {
           const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
