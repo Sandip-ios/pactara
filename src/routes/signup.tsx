@@ -1482,9 +1482,22 @@ export function InviteStep({
                   )}
                   {!loading && contacts && filtered.length === 0 && (
                     <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
-                      No matches
+                      <div>No matches</div>
+                      <button
+                        type="button"
+                        onClick={retryContacts}
+                        className="mt-3 text-[14px] font-medium"
+                        style={{ color: PURPLE }}
+                      >
+                        Refresh contacts
+                      </button>
+                      <div className="mt-2 px-4 text-[12px] leading-snug">
+                        If someone is missing, allow Pactara full access to Contacts in
+                        iOS Settings → Privacy → Contacts.
+                      </div>
                     </div>
                   )}
+
                   {!loading &&
                     filtered.map((c) => (
                       <button
