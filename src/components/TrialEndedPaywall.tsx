@@ -39,6 +39,10 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   useEffect(() => {
     let cancelled = false;
+    // Never let a slow/hanging offerings fetch keep the CTA disabled.
+    const safety = setTimeout(() => {
+      if (!cancelled) setLoadingOfferings(false);
+    }, 4000);
     (async () => {
       try {
         setLoadingOfferings(true);
@@ -52,6 +56,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     })();
     return () => {
       cancelled = true;
+      clearTimeout(safety);
     };
   }, []);
 
