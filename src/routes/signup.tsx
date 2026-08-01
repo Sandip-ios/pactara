@@ -233,7 +233,7 @@ function SignupFlow() {
       // The bearer token for server calls is read from the persisted session.
       // On native WebViews that write can lag slightly behind sign-up, which
       // makes the first server call arrive unauthenticated (a 500). Wait for it.
-      let token = session?.access_token ?? null;
+      let token: string | null = session?.access_token ?? null;
       for (let i = 0; i < 20 && !token; i++) {
         await new Promise((r) => setTimeout(r, 150));
         token = (await supabase.auth.getSession()).data.session?.access_token ?? null;
