@@ -16,23 +16,22 @@ function useClientAutoFocus<T extends HTMLElement>() {
   return ref;
 }
 
-/** Returns the current on-screen keyboard height in pixels (iOS/Android). */
-function useKeyboardHeight(): number {
-  const [height, setHeight] = useState(0);
+/**
+ * Tracks the visible (visual) viewport: its height and its offset from the top
+ * of the layout viewport. On iOS the keyboard shrinks the visual viewport, so
+ * these values are what a bottom sheet must be sized/positioned against —
+ * 100vh/100dvh stay at the full screen height and push the sheet off-screen.
+ */
+function useVisualViewport(): { height: number; offsetTop: number } {
+  const [state, setState] = useState({ height: 0, offsetTop: 0 });
   useEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
     const update = () => {
-      if (!vv) {
-        // Fallback for older browsers: treat zero as no keyboard.
-        setHeight(0);
-        return;
-      }
-      // On iOS the keyboard pushes the visual viewport up, so the hidden
-      // portion is the difference between layout and visual viewport heights.
-      const hidden = Math.max(0, window.innerHeight - vv.height);
-      // Also account for the visual viewport offset when the keyboard is open.
-      setHeight(Math.max(0, hidden - vv.offsetTop));
+      setState({
+        height: vv?.height ?? window.innerHeight,
+        offsetTop: vv?.offsetTop ?? 0,
+      });
     };
     update();
     vv?.addEventListener("resize", update);
@@ -44,8 +43,9 @@ function useKeyboardHeight(): number {
       window.removeEventListener("resize", update);
     };
   }, []);
-  return height;
+  return state;
 }
+
 
 import {
   ArrowRight,
@@ -1197,7 +1197,7 @@ export function InviteStep({
   const [manualName, setManualName] = useState("");
   const [manualContact, setManualContact] = useState("");
   const canAddMore = friends.length < MAX_FRIENDS;
-  const keyboardHeight = useKeyboardHeight();
+  const viewport = useVisualViewport();
 
 
   const openSheet = async () => {
@@ -1443,13 +1443,20 @@ export function InviteStep({
       </div>
 
       {sheetOpen && (
-        <div className="fixed inset-0 z-[80] flex items-end" onClick={() => setSheetOpen(false)}>
+        <div
+          className="fixed left-0 right-0 z-[80] flex items-end"
+          style={{
+            top: viewport.offsetTop,
+            height: viewport.height || undefined,
+          }}
+          onClick={() => setSheetOpen(false)}
+        >
           <div className="absolute inset-0 bg-black/40" />
           <div
-            className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200"
+            className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200 min-h-0"
             style={{
-              maxHeight: `calc(100vh - ${keyboardHeight}px - 24px)`,
-              paddingBottom: `${32 + keyboardHeight}px`,
+              maxHeight: "100%",
+              paddingBottom: 24,
               display: "flex",
               flexDirection: "column",
             }}
@@ -1457,11 +1464,12 @@ export function InviteStep({
           >
 
 
-            <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
-            <div className="mt-5 text-[22px] font-bold tracking-tight">
+
+            <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-neutral-300" />
+            <div className="mt-5 shrink-0 text-[22px] font-bold tracking-tight">
               {permissionDenied ? "Invite a friend" : "Choose a contact"}
             </div>
-            <p className="mt-1 text-[14px]" style={{ color: TEXT_MUTED }}>
+            <p className="mt-1 shrink-0 text-[14px]" style={{ color: TEXT_MUTED }}>
               {permissionDenied
                 ? "Enter their phone or email — we'll open your messages app to send the invite."
                 : "Search your contacts. Tapping one opens your messages app with the invite ready to send."}
@@ -1512,10 +1520,10 @@ export function InviteStep({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search by name"
-                  className="mt-5 w-full rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
+                  className="mt-5 w-full shrink-0 rounded-xl border-2 px-4 py-3 text-[16px] outline-none"
                   style={{ borderColor: PURPLE }}
                 />
-                <div className="mt-3 flex-1 overflow-y-auto -mx-2 px-2">
+                <div className="mt-3 flex-1 min-h-0 overflow-y-auto overscroll-contain -mx-2 px-2">
                   {loading && (
                     <div className="py-8 text-center text-[14px]" style={{ color: TEXT_MUTED }}>
                       Loading contacts…
