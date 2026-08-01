@@ -1446,10 +1446,16 @@ export function InviteStep({
         <div className="fixed inset-0 z-[80] flex items-end" onClick={() => setSheetOpen(false)}>
           <div className="absolute inset-0 bg-black/40" />
           <div
-            className="relative w-full bg-white rounded-t-3xl pt-3 pb-8 px-6 animate-in slide-in-from-bottom duration-200"
-            style={{ maxHeight: "80vh", display: "flex", flexDirection: "column" }}
+            className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200"
+            style={{
+              maxHeight: `calc(100vh - ${keyboardHeight}px - 24px)`,
+              paddingBottom: `${24 + keyboardHeight}px`,
+              display: "flex",
+              flexDirection: "column",
+            }}
             onClick={(e) => e.stopPropagation()}
           >
+
             <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
             <div className="mt-5 text-[22px] font-bold tracking-tight">
               {permissionDenied ? "Invite a friend" : "Choose a contact"}
