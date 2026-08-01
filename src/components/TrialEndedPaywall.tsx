@@ -200,7 +200,10 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             <X size={18} />
           </button>
         )}
-        <div className="px-6 pt-10 text-center shrink-0">
+        <div
+          className="px-6 text-center shrink-0"
+          style={{ paddingTop: "calc(2.5rem + env(safe-area-inset-top))" }}
+        >
           <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
             {eyebrow}
           </div>
@@ -348,7 +351,10 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           </div>
         </div>
 
-        <div className="px-6 pb-6 pt-4 shrink-0 mt-auto">
+        <div
+          className="px-6 pt-4 shrink-0 mt-auto"
+          style={{ paddingBottom: "calc(1.5rem + env(safe-area-inset-bottom))" }}
+        >
           <div
             className="flex items-center justify-center gap-2 text-[14px] font-semibold"
             style={{ color: ORANGE }}
@@ -366,7 +372,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           <button
             type="button"
             onClick={handleSubscribe}
-            disabled={purchasing || loadingOfferings}
+            disabled={purchasing}
             className="mt-3 w-full h-[54px] rounded-full text-white text-[15px] font-semibold px-4 disabled:opacity-60"
             style={{ background: PURPLE }}
           >
