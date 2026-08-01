@@ -3,7 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
-  backgroundColor: "#000000",
+  // The app background is white so the iOS safe-area insets blend with the
+  // light app. The native splash screen itself stays black via the
+  // SplashScreen plugin backgroundColor below.
+  backgroundColor: "#FFFFFF",
   includePlugins: [
     "@capacitor-firebase/messaging",
     "@capacitor/app",
@@ -29,7 +32,7 @@ const config: CapacitorConfig = {
   },
   ios: {
     contentInset: "always",
-    backgroundColor: "#000000",
+    backgroundColor: "#FFFFFF",
   },
   plugins: {
     SplashScreen: {
@@ -37,6 +40,10 @@ const config: CapacitorConfig = {
       launchShowDuration: 1200,
       backgroundColor: "#000000",
       showSpinner: false,
+    },
+    StatusBar: {
+      style: "DARK",
+      backgroundColor: "#FFFFFF",
     },
     FirebaseMessaging: {
       presentationOptions: ["badge", "sound", "alert"],
