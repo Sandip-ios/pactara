@@ -16,23 +16,22 @@ function useClientAutoFocus<T extends HTMLElement>() {
   return ref;
 }
 
-/** Returns the current on-screen keyboard height in pixels (iOS/Android). */
-function useKeyboardHeight(): number {
-  const [height, setHeight] = useState(0);
+/**
+ * Tracks the visible (visual) viewport: its height and its offset from the top
+ * of the layout viewport. On iOS the keyboard shrinks the visual viewport, so
+ * these values are what a bottom sheet must be sized/positioned against —
+ * 100vh/100dvh stay at the full screen height and push the sheet off-screen.
+ */
+function useVisualViewport(): { height: number; offsetTop: number } {
+  const [state, setState] = useState({ height: 0, offsetTop: 0 });
   useEffect(() => {
     if (typeof window === "undefined") return;
     const vv = window.visualViewport;
     const update = () => {
-      if (!vv) {
-        // Fallback for older browsers: treat zero as no keyboard.
-        setHeight(0);
-        return;
-      }
-      // On iOS the keyboard pushes the visual viewport up, so the hidden
-      // portion is the difference between layout and visual viewport heights.
-      const hidden = Math.max(0, window.innerHeight - vv.height);
-      // Also account for the visual viewport offset when the keyboard is open.
-      setHeight(Math.max(0, hidden - vv.offsetTop));
+      setState({
+        height: vv?.height ?? window.innerHeight,
+        offsetTop: vv?.offsetTop ?? 0,
+      });
     };
     update();
     vv?.addEventListener("resize", update);
@@ -44,8 +43,9 @@ function useKeyboardHeight(): number {
       window.removeEventListener("resize", update);
     };
   }, []);
-  return height;
+  return state;
 }
+
 
 import {
   ArrowRight,
