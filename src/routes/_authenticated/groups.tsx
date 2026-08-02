@@ -89,7 +89,7 @@ function GroupsPage() {
 
   return (
     <div
-      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[calc(env(safe-area-inset-bottom)+112px)]"
       style={{
         background: BG,
         fontFamily: "Inter, system-ui, sans-serif",

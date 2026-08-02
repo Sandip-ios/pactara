@@ -31,7 +31,7 @@ function ChatPage() {
 
   return (
     <div
-      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28 bg-white"
+      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[calc(env(safe-area-inset-bottom)+112px)] bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <header className="bg-white px-6 pt-5 pb-4 border-b border-neutral-100">
