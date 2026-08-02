@@ -42,7 +42,8 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
-      style: "DARK",
+      // LIGHT = black icons/text on the white background.
+      style: "LIGHT",
       backgroundColor: "#FFFFFF",
     },
     FirebaseMessaging: {
