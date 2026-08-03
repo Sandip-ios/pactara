@@ -366,6 +366,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
       .insert({
+        ...(data.id ? { id: data.id } : {}),
         name: data.name,
         emoji: data.emoji,
         goal: data.goal,
