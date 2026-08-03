@@ -453,7 +453,7 @@ function GroupCard({
               This can't be undone.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-6 space-y-3">
+          <div className="px-4 pb-8 space-y-3">
             {deleteErr && (
               <div className="rounded-xl px-3 py-2 text-[13px] bg-red-100 text-red-800">
                 {deleteErr}

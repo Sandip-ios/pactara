@@ -48,12 +48,12 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
       <button
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-black/50"
+        className="fixed inset-0 bg-black/50"
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] pb-6 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-200"
+        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] pb-8 max-h-[92vh] overflow-y-auto animate-in slide-in-from-bottom duration-200"
       >
         <div className="pt-2 flex justify-center sticky top-0 bg-white z-10">
           <div className="h-1.5 w-10 rounded-full bg-neutral-300" />
