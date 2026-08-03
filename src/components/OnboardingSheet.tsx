@@ -37,7 +37,7 @@ export function OnboardingSheet({ firstName: _firstName, onClose }: Props) {
           {step === 2 && <StepSupport />}
         </div>
 
-        <div className="shrink-0 px-5 pt-3 pb-[2px] bg-white border-t border-neutral-100">
+        <div className="shrink-0 px-5 pt-3 pb-8 bg-white border-t border-neutral-100">
           <div className="flex items-center justify-center gap-2 mb-4">
             {Array.from({ length: total }).map((_, i) => (
               <span
