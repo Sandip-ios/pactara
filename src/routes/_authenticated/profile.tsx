@@ -733,7 +733,7 @@ function StreakFreezeSheet({
             yesterday, and only if your streak is still alive today.
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto px-6 pb-6 pt-2">
+        <div className="flex-1 overflow-y-auto px-6 pb-8 pt-2">
           {isLoading ? (
             <div className="text-center text-[13px] text-neutral-400 py-8">Loading…</div>
           ) : eligibleDate ? (
@@ -767,7 +767,7 @@ function StreakFreezeSheet({
           )}
         </div>
 
-        <div className="p-4 border-t border-neutral-100">
+        <div className="pb-8 px-6 pt-4 border-t border-neutral-100">
           <button
             onClick={onClose}
             className="w-full py-3 rounded-full font-semibold text-white"

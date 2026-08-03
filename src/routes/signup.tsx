@@ -1508,7 +1508,7 @@ export function InviteStep({
             className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200 min-h-0"
             style={{
               maxHeight: "100%",
-              paddingBottom: 24,
+              paddingBottom: 32,
               display: "flex",
               flexDirection: "column",
             }}
