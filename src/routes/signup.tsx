@@ -1508,7 +1508,7 @@ export function InviteStep({
             className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200 min-h-0"
             style={{
               maxHeight: "100%",
-              paddingBottom: 24,
+              paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)",
               display: "flex",
               flexDirection: "column",
             }}
@@ -2076,7 +2076,7 @@ function PaywallStep({
           </div>
         </div>
 
-        <div className="px-6 pb-6 pt-4 shrink-0 mt-auto">
+        <div className="px-6 pb-sheet pt-4 shrink-0 mt-auto">
           <div
             className="flex items-center justify-center gap-2 text-[14px] font-semibold"
             style={{ color: ORANGE }}
@@ -2121,7 +2121,7 @@ function PaywallStep({
           <div className="flex justify-center pt-3 pb-1">
             <div className="h-1 w-10 rounded-full" style={{ background: "#E4E4EA" }} />
           </div>
-          <div className="px-6 pt-4 pb-6">
+          <div className="px-6 pt-4 pb-sheet">
             <h2
               className="text-[28px] leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Instrument Serif', 'Cormorant Garamond', Georgia, serif", color: INK }}
