@@ -155,16 +155,23 @@
 
   html, body {
     height: 100%;
-    min-height: 100dvh;
     background-color: #FFFFFF;
+  }
+  html {
+    min-height: 100dvh;
   }
   body {
     color: var(--color-foreground);
     /* The webview spans the full screen (ios contentInset: never), so normal
        page content is padded away from the status bar / home indicator here.
-       Fixed overlays and sheets intentionally ignore this and go edge to edge. */
+       Fixed overlays and sheets intentionally ignore this and go edge to edge.
+       The min-height subtracts the inset so the padding doesn't make the
+       document taller than the viewport (which caused rubber-band scrolling). */
     padding-top: env(safe-area-inset-top);
+    min-height: calc(100dvh - env(safe-area-inset-top));
+    overscroll-behavior-y: none;
   }
+
 
 
   /* Prevent iOS Safari from zooming the page when focusing an input
