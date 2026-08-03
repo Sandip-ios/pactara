@@ -211,3 +211,13 @@ html[data-sheet-open="true"] body {
 @utility pb-sheet {
   padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
 }
+
+/* Full-screen pages: the body is padded down by the iOS status-bar inset, so a
+   literal 100dvh child would overflow by exactly that inset and let the page
+   rubber-band. Subtract the inset globally instead of editing every page. */
+body [class*="h-[100dvh]"]:not([class*="min-h-[100dvh]"]) {
+  height: calc(100dvh - env(safe-area-inset-top));
+}
+body [class*="min-h-[100dvh]"] {
+  min-height: calc(100dvh - env(safe-area-inset-top));
+}
