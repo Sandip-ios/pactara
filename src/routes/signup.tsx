@@ -176,6 +176,11 @@ function SignupFlow() {
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
+  // Reserved up-front so invite links point at the group's join screen even
+  // though the group row is only created when signup finishes.
+  const [pendingGroupId] = useState(() =>
+    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined,
+  );
 
 
   const step = STEPS[stepIdx];
@@ -272,6 +277,7 @@ function SignupFlow() {
               : duration;
         await createGroupForUser({
           data: {
+            id: pendingGroupId,
             name: finalGroupName,
             emoji: goalEmoji,
             durationDays,
@@ -431,7 +437,7 @@ function SignupFlow() {
           />
         )}
 
-        {step === "invite" && <InviteStep firstName={firstName} friends={invitedFriends} setFriends={setInvitedFriends} />}
+        {step === "invite" && <InviteStep firstName={firstName} friends={invitedFriends} setFriends={setInvitedFriends} groupId={pendingGroupId} />}
         {step === "notify" && <NotifyStep onAllow={next} />}
         {step === "password" && (
           <PasswordStep
@@ -1182,8 +1188,8 @@ function FreqCard({
 const MAX_FRIENDS = 8;
 const AMBER_DEEP = "#B45309";
 
-const INVITE_MESSAGE =
-  "Hey! I'm joining Pactara to build a daily habit with a small crew. Come do it with me — https://pactara.lovable.app";
+const inviteMessageFor = (link: string) =>
+  `Hey! I'm joining Pactara to build a daily habit with a small crew. Come do it with me — ${link}`;
 
 
 
@@ -1192,11 +1198,17 @@ export function InviteStep({
   firstName,
   friends,
   setFriends,
+  groupId,
 }: {
   firstName: string;
   friends: string[];
   setFriends: (f: string[]) => void;
+  /** Invitees land on the group's join screen. */
+  groupId?: string;
 }) {
+  const INVITE_MESSAGE = inviteMessageFor(
+    groupId ? `https://pactara.lovable.app/join/${groupId}` : "https://pactara.lovable.app",
+  );
   const [sheetOpen, setSheetOpen] = useState(false);
   const [contacts, setContacts] = useState<DeviceContact[] | null>(null);
   const [loading, setLoading] = useState(false);
