@@ -89,6 +89,10 @@ function NewPactaraFlow() {
   const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
   const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
+  // Reserved up-front so invite links point at the group's join screen.
+  const [pendingGroupId] = useState(() =>
+    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined,
+  );
 
   const [skipNotify, setSkipNotify] = useState<boolean>(() => skipNotifySync());
   useEffect(() => {
@@ -149,6 +153,7 @@ function NewPactaraFlow() {
             : duration;
       await createGroupForUser({
         data: {
+          id: pendingGroupId,
           name: finalGroupName,
           emoji: goalEmoji,
           goal: goalLabel,
@@ -285,6 +290,7 @@ function NewPactaraFlow() {
             firstName={firstName}
             friends={invitedFriends}
             setFriends={setInvitedFriends}
+            groupId={pendingGroupId}
           />
         )}
         {step === "notify" && <NotifyStep onAllow={next} />}
