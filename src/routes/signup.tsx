@@ -144,12 +144,13 @@ const STEPS: StepKey[] = [
   "commitment",
   "group",
   "company",
+  "password",
   "invite",
   "notify",
-  "password",
   "greeting",
   "paywall",
 ];
+
 
 
 
