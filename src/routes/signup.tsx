@@ -202,6 +202,10 @@ function SignupFlow() {
 
   const next = () => {
     if (step === "goal") ensureGroupName();
+    if (step === "password") {
+      void provision();
+      return;
+    }
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
   };
 
@@ -212,9 +216,16 @@ function SignupFlow() {
 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [provisioned, setProvisioned] = useState(false);
 
-  const finish = async () => {
+  // Creates the account and the group up-front (right after the password step)
+  // so invite links handed out on the next screen point at a live group.
+  const provision = async () => {
     if (finishing) return;
+    if (provisioned) {
+      setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
+      return;
+    }
     setFinishError(null);
     setFinishing(true);
     try {
@@ -287,15 +298,21 @@ function SignupFlow() {
           },
         });
       }
-      if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
-      setStepIdx(STEPS.indexOf("paywall"));
+      setProvisioned(true);
       setFinishing(false);
+      setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setFinishError(msg);
       setFinishing(false);
     }
   };
+
+  const finish = () => {
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
+    setStepIdx(STEPS.indexOf("paywall"));
+  };
+
 
   const canContinue = (() => {
     switch (step) {
