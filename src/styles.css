@@ -209,7 +209,9 @@ html[data-sheet-open="true"] body {
 
 /* Bottom sheets: 24px padding plus the iOS home-indicator inset. */
 @utility pb-sheet {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+  /* 24px padding, plus at most 8px of the home-indicator inset so sheets
+     don't get a huge white gap underneath the primary button. */
+  padding-bottom: calc(min(env(safe-area-inset-bottom), 8px) + 1.5rem);
 }
 
 /* Full-screen pages: the body is padded down by the iOS status-bar inset, so a
