@@ -322,6 +322,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
     (input: {
+      id?: string;
       name: string;
       emoji: string;
       goal?: string;
@@ -334,6 +335,11 @@ export const createGroupForUser = createServerFn({ method: "POST" })
       }
       const name = input.name.trim().slice(0, 80);
       if (!name) throw new Error("Group name required");
+      const id =
+        typeof input.id === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input.id)
+          ? input.id
+          : null;
       const goal =
         typeof input.goal === "string" && input.goal.trim().length > 0
           ? input.goal.trim().slice(0, 80)
@@ -348,9 +354,10 @@ export const createGroupForUser = createServerFn({ method: "POST" })
         typeof input.daysPerWeek === "number" && input.daysPerWeek >= 1 && input.daysPerWeek <= 7
           ? Math.floor(input.daysPerWeek)
           : 7;
-      return { name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek };
+      return { id, name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek };
     },
   )
+
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
