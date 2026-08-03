@@ -122,7 +122,7 @@ export function GettingStarted({ iCheckedIn }: { iCheckedIn: boolean }) {
         >
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
           <div
-            className="relative w-full rounded-t-3xl bg-[#FFF7E6] pt-3 pb-8 max-h-[85dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
+            className="relative w-full rounded-t-3xl bg-[#FFF7E6] pt-3 pb-6 max-h-[85dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
           >
             <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
 
