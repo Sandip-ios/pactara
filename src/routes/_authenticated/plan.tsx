@@ -656,7 +656,7 @@ function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose
     <div className="fixed inset-0 z-[80] flex items-end justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
       <div
-        className="relative w-full max-w-[480px] rounded-t-[24px] bg-white p-6 pb-6"
+        className="relative w-full max-w-[480px] rounded-t-[24px] bg-white p-6 pb-sheet"
         style={{ animation: "sheetUp 0.22s ease-out" }}
       >
         <button

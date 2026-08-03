@@ -767,7 +767,7 @@ function StreakFreezeSheet({
           )}
         </div>
 
-        <div className="pb-6 px-6 pt-4 border-t border-neutral-100">
+        <div className="pb-sheet px-6 pt-4 border-t border-neutral-100">
           <button
             onClick={onClose}
             className="w-full py-3 rounded-full font-semibold text-white"

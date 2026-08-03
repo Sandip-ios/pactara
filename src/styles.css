@@ -160,7 +160,12 @@
   }
   body {
     color: var(--color-foreground);
+    /* The webview spans the full screen (ios contentInset: never), so normal
+       page content is padded away from the status bar / home indicator here.
+       Fixed overlays and sheets intentionally ignore this and go edge to edge. */
+    padding-top: env(safe-area-inset-top);
   }
+
 
   /* Prevent iOS Safari from zooming the page when focusing an input
      with a font-size smaller than 16px. */
@@ -194,3 +199,8 @@ html[data-sheet-open="true"] body {
   background-color: transparent !important;
 }
 
+
+/* Bottom sheets: 24px padding plus the iOS home-indicator inset. */
+@utility pb-sheet {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+}

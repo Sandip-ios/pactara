@@ -453,7 +453,7 @@ function GroupCard({
               This can't be undone.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-6 space-y-3">
+          <div className="px-4 pb-sheet space-y-3">
             {deleteErr && (
               <div className="rounded-xl px-3 py-2 text-[13px] bg-red-100 text-red-800">
                 {deleteErr}
@@ -533,7 +533,7 @@ function RenameGroupDrawer({
         if (v) setName(currentName);
       }}
     >
-      <DrawerContent className="px-6 pb-6 pt-2">
+      <DrawerContent className="px-6 pb-sheet pt-2">
         <DrawerHeader className="px-0 pt-2">
           <DrawerTitle className="text-[22px] font-black tracking-tight">
             Rename group
@@ -614,7 +614,7 @@ function EditCommitmentDrawer({
         }
       }}
     >
-      <DrawerContent className="px-6 pb-6 pt-2">
+      <DrawerContent className="px-6 pb-sheet pt-2">
         <div className="relative">
           <DrawerHeader className="px-0 pt-2 pr-12">
             <DrawerTitle className="text-[26px] font-black tracking-tight">
@@ -871,7 +871,7 @@ function ShareInviteDrawer({
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="px-6 pb-6 pt-2">
+      <DrawerContent className="px-6 pb-sheet pt-2">
         <DrawerHeader className="px-0 pt-2">
           <DrawerTitle className="text-[22px] font-black tracking-tight">
             Invite people

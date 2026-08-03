@@ -31,7 +31,10 @@ const config: CapacitorConfig = {
     cleartext: false,
   },
   ios: {
-    contentInset: "always",
+    // "never" lets the webview span the full screen (status bar + home
+    // indicator included) so full-screen overlays/sheets really are edge to
+    // edge. Safe areas are handled in CSS via env(safe-area-inset-*).
+    contentInset: "never",
     backgroundColor: "#FFFFFF",
   },
   plugins: {
