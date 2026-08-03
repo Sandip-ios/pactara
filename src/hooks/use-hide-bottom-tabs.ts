@@ -16,10 +16,13 @@ function publishHiddenState() {
   const hidden = count > 0;
   document.body.classList.toggle("modal-open", hidden);
   document.body.dataset.bottomTabsHidden = hidden ? "true" : "false";
+  // Darken the page canvas so the dim overlay reaches the iOS safe areas too.
+  document.documentElement.dataset.sheetOpen = hidden ? "true" : "false";
   window.dispatchEvent(
     new CustomEvent(CHANGE_EVENT, { detail: { hidden } }),
   );
 }
+
 
 export function areBottomTabsHidden() {
   return count > 0;
