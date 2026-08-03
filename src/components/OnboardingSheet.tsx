@@ -18,9 +18,9 @@ export function OnboardingSheet({ firstName: _firstName, onClose }: Props) {
 
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full bg-white rounded-t-3xl pt-3 max-h-[92dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
+    <div className="fixed inset-0 z-[80]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+      <div className="absolute inset-x-0 bottom-0 w-full bg-white rounded-t-3xl pt-3 max-h-[92dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
         <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300 shrink-0" />
 
         <button
