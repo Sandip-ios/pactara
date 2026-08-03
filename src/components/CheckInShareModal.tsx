@@ -125,7 +125,7 @@ export function CheckInShareModal({
       onClick={close}
     >
       <div
-        className="relative w-full max-w-[420px] mx-auto px-4 pb-8 pt-3"
+        className="relative w-full max-w-[420px] mx-auto px-4 pb-6 pt-3"
         onClick={(e) => e.stopPropagation()}
         style={{ fontFamily: "Inter, system-ui, sans-serif" }}
       >

@@ -18,7 +18,7 @@ export function WelcomeSheet({ firstName, onClose }: Props) {
   return (
     <div className="fixed inset-0 z-[70]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="fixed inset-0 bg-black/40" onClick={onClose} />
-      <div className="absolute inset-x-0 bottom-0 w-full bg-[#F5F2EE] rounded-t-3xl pt-3 pb-8 px-6 max-h-[92dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
+      <div className="absolute inset-x-0 bottom-0 w-full bg-[#F5F2EE] rounded-t-3xl pt-3 pb-6 px-6 max-h-[92dvh] overflow-y-auto animate-in slide-in-from-bottom duration-300">
         <div className="mx-auto h-1.5 w-10 rounded-full bg-neutral-300" />
 
         <div className="flex items-center justify-between mt-4">

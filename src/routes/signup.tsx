@@ -1508,7 +1508,7 @@ export function InviteStep({
             className="relative w-full bg-white rounded-t-3xl pt-3 px-6 animate-in slide-in-from-bottom duration-200 min-h-0"
             style={{
               maxHeight: "100%",
-              paddingBottom: 32,
+              paddingBottom: 24,
               display: "flex",
               flexDirection: "column",
             }}
@@ -2121,7 +2121,7 @@ function PaywallStep({
           <div className="flex justify-center pt-3 pb-1">
             <div className="h-1 w-10 rounded-full" style={{ background: "#E4E4EA" }} />
           </div>
-          <div className="px-6 pt-4 pb-8">
+          <div className="px-6 pt-4 pb-6">
             <h2
               className="text-[28px] leading-[1.05] tracking-tight"
               style={{ fontFamily: "'Instrument Serif', 'Cormorant Garamond', Georgia, serif", color: INK }}
