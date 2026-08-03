@@ -199,3 +199,8 @@ html[data-sheet-open="true"] body {
   background-color: transparent !important;
 }
 
+
+/* Bottom sheets: 24px padding plus the iOS home-indicator inset. */
+@utility pb-sheet {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem);
+}
