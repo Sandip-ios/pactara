@@ -184,3 +184,13 @@ body.modal-open [data-bottom-tabs],
 body[data-bottom-tabs-hidden="true"] [data-bottom-tabs] {
   display: none !important;
 }
+
+/* While a sheet is open, darken the page canvas (including the iOS safe-area
+   insets outside the webview viewport) so the dim overlay looks edge-to-edge. */
+html[data-sheet-open="true"] {
+  background-color: #000 !important;
+}
+html[data-sheet-open="true"] body {
+  background-color: transparent !important;
+}
+
