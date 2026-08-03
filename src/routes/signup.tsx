@@ -481,10 +481,22 @@ function SignupFlow() {
             </button>
           </>
         ) : step === "notify" ? null : (
-          <PrimaryButton disabled={!canContinue} onClick={next} label="Continue" withArrow />
+          <PrimaryButton
+            disabled={!canContinue || (step === "password" && finishing)}
+            onClick={next}
+            label={step === "password" && finishing ? "Creating your account…" : "Continue"}
+            withArrow
+          />
         )}
       </div>
+
+      {finishError && step === "password" && (
+        <div className="fixed bottom-6 inset-x-6 z-50 rounded-xl bg-red-600 text-white px-4 py-3 text-[14px]" role="alert">
+          {finishError}
+        </div>
+      )}
     </div>
+
   );
 }
 
