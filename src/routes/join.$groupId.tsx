@@ -6,6 +6,8 @@ import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, 
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative } from "@/lib/native";
+import { setPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
