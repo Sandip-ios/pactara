@@ -119,6 +119,28 @@ export function NativeBootstrap() {
         console.warn("[push] Firebase Messaging listeners failed", err);
       }
 
+      try {
+        // Universal links (e.g. group invites at /join/:groupId) opened while
+        // the app is installed should land on that page inside the app.
+        const { App } = await import("@capacitor/app");
+        listenerHandles.push(
+          App.addListener("appUrlOpen", (event) => {
+            try {
+              const url = new URL(event.url);
+              const path = `${url.pathname}${url.search}`;
+              if (path && path !== "/" && typeof window !== "undefined") {
+                window.location.assign(path);
+              }
+            } catch {
+              // ignore malformed urls
+            }
+          }),
+        );
+      } catch (err) {
+        console.warn("[deeplink] appUrlOpen listener failed", err);
+      }
+
+
       await registerForPush();
     })();
 
