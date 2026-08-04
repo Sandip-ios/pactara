@@ -74,15 +74,13 @@ function LoginPage() {
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.removeItem("show-welcome");
     }
-    const pendingInvite =
-      typeof sessionStorage !== "undefined"
-        ? sessionStorage.getItem("pending-invite-group")
-        : null;
+    const pendingInvite = getPendingInvite();
     if (pendingInvite) {
       navigate({ to: "/join/$groupId", params: { groupId: pendingInvite } });
     } else {
       navigate({ to: "/home" });
     }
+
   };
 
   return (
