@@ -235,7 +235,20 @@ export const postThought = createServerFn({ method: "POST" })
       .eq("group_id", groupId)
       .eq("local_date", today);
 
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} shared a thought`,
+        body: data.text ? data.text.slice(0, 120) : "Tap to see it 💭",
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[thought] push failed", err);
+    }
+
     return { ok: true };
+
   });
 
 export const recordCheckIn = createServerFn({ method: "POST" })
