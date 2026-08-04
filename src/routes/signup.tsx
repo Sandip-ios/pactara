@@ -1518,7 +1518,7 @@ export function InviteStep({
 
 
             <div className="mx-auto h-1.5 w-10 shrink-0 rounded-full bg-neutral-300" />
-            <div className="mt-5 shrink-0 text-[22px] font-bold tracking-tight">
+            <div className="mt-5 shrink-0 pt-6 text-[22px] font-bold tracking-tight">
               {permissionDenied ? "Invite a friend" : "Choose a contact"}
             </div>
             <p className="mt-1 shrink-0 text-[14px]" style={{ color: TEXT_MUTED }}>
