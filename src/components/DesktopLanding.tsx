@@ -6,8 +6,7 @@ import featureCheckin from "@/assets/feature-checkin.png";
 import streakCard from "@/assets/streak-user.png.asset.json";
 
 
-// Replace with the real App Store URL once the app is live.
-const APP_STORE_URL = "https://apps.apple.com/app/pactara";
+const APP_STORE_URL = "https://apps.apple.com/us/app/pactara/id6779681656";
 
 export function DesktopLanding() {
   return (
