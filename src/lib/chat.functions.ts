@@ -128,5 +128,19 @@ export const sendGroupMessage = createServerFn({ method: "POST" })
       image_url: data.imageUrl,
     });
     if (error) throw new Error(error.message);
+
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(data.groupId, userId, {
+        title: name,
+        body: data.body || "Sent a photo 📷",
+        url: "/chat",
+      });
+    } catch (err) {
+      console.warn("[chat] push failed", err);
+    }
+
     return { ok: true };
   });
+
