@@ -717,7 +717,9 @@ export const setPostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
     if (error) throw new Error(error.message);
+    await notifyReaction(data.postId, userId, data.emoji);
     return { active: true };
+
   });
 
 export const addPostComment = createServerFn({ method: "POST" })
