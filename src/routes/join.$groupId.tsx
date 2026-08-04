@@ -99,8 +99,18 @@ function JoinPage() {
   }, []);
 
   const handleJoin = async () => {
-    if (!data || joining) return;
+  const isMobileWeb = surface === "ios" || surface === "android";
+
+  const handleJoin = async () => {
+    if (joining) return;
     setError(null);
+    // Mobile browser: the invite belongs in the app. Tapping the link again
+    // after install opens the app directly via the universal link.
+    if (isMobileWeb) {
+      window.location.href = APP_STORE_URL;
+      return;
+    }
+    if (!data) return;
     if (!isSignedIn) {
       if (typeof sessionStorage !== "undefined") {
         sessionStorage.setItem("pending-invite-group", groupId);
