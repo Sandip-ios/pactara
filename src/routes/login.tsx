@@ -2,6 +2,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getPendingInvite } from "@/lib/pending-invite";
+
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -74,15 +76,13 @@ function LoginPage() {
     if (typeof sessionStorage !== "undefined") {
       sessionStorage.removeItem("show-welcome");
     }
-    const pendingInvite =
-      typeof sessionStorage !== "undefined"
-        ? sessionStorage.getItem("pending-invite-group")
-        : null;
+    const pendingInvite = getPendingInvite();
     if (pendingInvite) {
       navigate({ to: "/join/$groupId", params: { groupId: pendingInvite } });
     } else {
       navigate({ to: "/home" });
     }
+
   };
 
   return (

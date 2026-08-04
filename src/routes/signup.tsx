@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { getPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+
 
 /**
  * Focuses an input on mount, but only on the client AFTER React has hydrated.
@@ -270,15 +272,13 @@ function SignupFlow() {
           console.error("Avatar upload during signup failed", err);
         }
       }
-      const pendingInvite =
-        typeof sessionStorage !== "undefined"
-          ? sessionStorage.getItem("pending-invite-group")
-          : null;
+      const pendingInvite = getPendingInvite();
       if (pendingInvite) {
         const { joinGroupById } = await import("@/lib/groups.functions");
         await joinGroupById({ data: { groupId: pendingInvite } });
-        sessionStorage.removeItem("pending-invite-group");
+        clearPendingInvite();
         if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", pendingInvite);
+
       } else {
         const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
         const durationDays =
