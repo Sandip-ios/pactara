@@ -166,3 +166,28 @@ export async function displayName(userId: string): Promise<string> {
     return "Someone";
   }
 }
+
+/**
+ * Notify the author of a daily post about a reaction or comment on it.
+ * No-op when the actor is the author. Never throws.
+ */
+export async function notifyPostAuthor(
+  postId: string,
+  actorUserId: string,
+  build: (actorName: string) => PushPayload,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: post } = await supabaseAdmin
+      .from("daily_posts")
+      .select("user_id")
+      .eq("id", postId)
+      .maybeSingle();
+    const authorId = post?.user_id as string | undefined;
+    if (!authorId || authorId === actorUserId) return;
+    const name = await displayName(actorUserId);
+    await notifyUsers([authorId], build(name), "group_activity_enabled");
+  } catch (err) {
+    console.warn("[notify] post author push failed", err);
+  }
+}
