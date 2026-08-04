@@ -281,8 +281,9 @@ function JoinPage() {
             <div className="mt-1">
               Already have an account?{" "}
               <button onClick={() => {
-                if (typeof sessionStorage !== "undefined") sessionStorage.setItem("pending-invite-group", groupId);
+                setPendingInvite(groupId);
                 navigate({ to: "/login" });
+
               }} className="font-semibold inline-flex items-center gap-0.5" style={{ color: PURPLE }}>
                 Sign in <ChevronRight size={14} />
               </button>
