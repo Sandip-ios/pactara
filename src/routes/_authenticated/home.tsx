@@ -280,7 +280,10 @@ function HomePage() {
 
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
-      <header className="bg-white pl-6 pr-6 pt-5 pb-4 flex items-center justify-between">
+      <header
+        className="bg-white pl-6 pr-6 pb-4 flex items-center justify-between"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)" }}
+      >
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span><span>actara</span>
         </div>

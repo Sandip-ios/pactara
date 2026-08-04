@@ -35,8 +35,8 @@ export function BottomTabs() {
   return (
     <nav
       data-bottom-tabs
-      className="fixed bottom-0 left-0 right-0 z-[60] w-full bg-white border-t border-neutral-200 px-2 pt-2 pb-0 grid grid-cols-5 items-end"
-      style={{ transform: "translateZ(0)" }}
+      className="fixed bottom-0 left-0 right-0 z-[60] w-full bg-white border-t border-neutral-200 px-2 pt-2 grid grid-cols-5 items-end"
+      style={{ transform: "translateZ(0)", paddingBottom: "1.5rem" }}
     >
 
       <TabItem
