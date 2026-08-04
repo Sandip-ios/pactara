@@ -255,7 +255,16 @@ function JoinPage() {
           />
         </div>
 
-        {!isSignedIn && authReady && (
+        {isMobileWeb && (
+          <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
+            Free to join · No credit card required
+            <div className="mt-1">
+              Already have the app? Tap this invite link again to open it.
+            </div>
+          </div>
+        )}
+
+        {!isMobileWeb && !isSignedIn && authReady && (
           <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
             Free to join · No credit card required
             <div className="mt-1">
@@ -279,7 +288,7 @@ function JoinPage() {
       <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-6 bg-white border-t border-neutral-100">
         <button
           onClick={handleJoin}
-          disabled={isLoading || joining || !authReady}
+          disabled={joining || (!isMobileWeb && (isLoading || !authReady))}
           className="w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
           style={{
             background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
@@ -287,9 +296,14 @@ function JoinPage() {
           }}
         >
           <CheckCircle2 size={18} />
-          {joining ? "Joining…" : `Join ${emoji} ${groupName}`}
+          {isMobileWeb
+            ? "Get Pactara to join"
+            : joining
+              ? "Joining…"
+              : `Join ${emoji} ${groupName}`}
         </button>
       </div>
+
     </div>
   );
 }
