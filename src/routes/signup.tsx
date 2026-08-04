@@ -1,5 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { getPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+
 
 /**
  * Focuses an input on mount, but only on the client AFTER React has hydrated.
