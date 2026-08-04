@@ -270,15 +270,13 @@ function SignupFlow() {
           console.error("Avatar upload during signup failed", err);
         }
       }
-      const pendingInvite =
-        typeof sessionStorage !== "undefined"
-          ? sessionStorage.getItem("pending-invite-group")
-          : null;
+      const pendingInvite = getPendingInvite();
       if (pendingInvite) {
         const { joinGroupById } = await import("@/lib/groups.functions");
         await joinGroupById({ data: { groupId: pendingInvite } });
-        sessionStorage.removeItem("pending-invite-group");
+        clearPendingInvite();
         if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", pendingInvite);
+
       } else {
         const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
         const durationDays =
