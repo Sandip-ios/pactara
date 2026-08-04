@@ -171,7 +171,7 @@ function GroupSwitcher({
   if (!active || groups.length < 2) {
     if (!active) return null;
     return (
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-safe-6">
         <div className="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-700">
           {active.name}
         </div>
@@ -179,7 +179,7 @@ function GroupSwitcher({
     );
   }
   return (
-    <div className="px-6 pt-6 relative">
+    <div className="px-6 pt-safe-6 relative">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
