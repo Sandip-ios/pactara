@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, Flame } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { isNative } from "@/lib/native";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
@@ -52,6 +53,8 @@ export const Route = createFileRoute("/join/$groupId")({
   ),
 });
 
+const APP_STORE_URL = "https://apps.apple.com/us/app/pactara/id6779681656";
+
 function JoinPage() {
   const { groupId } = Route.useParams();
   const navigate = useNavigate();
@@ -60,6 +63,20 @@ function JoinPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "native" = inside the Pactara app, "ios"/"android" = mobile browser
+  // (the app may or may not be installed), "web" = desktop browser.
+  const [surface, setSurface] = useState<"native" | "ios" | "android" | "web">("web");
+
+  useEffect(() => {
+    if (isNative()) {
+      setSurface("native");
+      return;
+    }
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    if (/iPhone|iPad|iPod/i.test(ua)) setSurface("ios");
+    else if (/Android/i.test(ua)) setSurface("android");
+    else setSurface("web");
+  }, []);
 
   const join = useServerFn(joinGroupById);
   const fetchPreview = useServerFn(getGroupPreview);
@@ -81,9 +98,18 @@ function JoinPage() {
     };
   }, []);
 
+  const isMobileWeb = surface === "ios" || surface === "android";
+
   const handleJoin = async () => {
-    if (!data || joining) return;
+    if (joining) return;
     setError(null);
+    // Mobile browser: the invite belongs in the app. Tapping the link again
+    // after install opens the app directly via the universal link.
+    if (isMobileWeb) {
+      window.location.href = APP_STORE_URL;
+      return;
+    }
+    if (!data) return;
     if (!isSignedIn) {
       if (typeof sessionStorage !== "undefined") {
         sessionStorage.setItem("pending-invite-group", groupId);
@@ -229,7 +255,16 @@ function JoinPage() {
           />
         </div>
 
-        {!isSignedIn && authReady && (
+        {isMobileWeb && (
+          <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
+            Free to join · No credit card required
+            <div className="mt-1">
+              Already have the app? Tap this invite link again to open it.
+            </div>
+          </div>
+        )}
+
+        {!isMobileWeb && !isSignedIn && authReady && (
           <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
             Free to join · No credit card required
             <div className="mt-1">
@@ -253,7 +288,7 @@ function JoinPage() {
       <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-6 bg-white border-t border-neutral-100">
         <button
           onClick={handleJoin}
-          disabled={isLoading || joining || !authReady}
+          disabled={joining || (!isMobileWeb && (isLoading || !authReady))}
           className="w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
           style={{
             background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
@@ -261,9 +296,14 @@ function JoinPage() {
           }}
         >
           <CheckCircle2 size={18} />
-          {joining ? "Joining…" : `Join ${emoji} ${groupName}`}
+          {isMobileWeb
+            ? "Get Pactara to join"
+            : joining
+              ? "Joining…"
+              : `Join ${emoji} ${groupName}`}
         </button>
       </div>
+
     </div>
   );
 }
