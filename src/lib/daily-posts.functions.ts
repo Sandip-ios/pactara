@@ -167,7 +167,21 @@ export const postMorningRitual = createServerFn({ method: "POST" })
       { onConflict: "user_id,group_id,local_date" },
     );
     if (error) throw new Error(error.message);
+
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} posted their morning ritual ☀️`,
+        body: data.text.slice(0, 120),
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[ritual] push failed", err);
+    }
+
     return { ok: true };
+
   });
 
 export const getTodayRitualStatus = createServerFn({ method: "GET" })
