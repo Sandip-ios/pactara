@@ -96,7 +96,7 @@ function GroupsPage() {
         color: "#0A0A0A",
       }}
     >
-      <header className="bg-white px-6 pt-5 pb-4">
+      <header className="bg-white px-6 pt-safe-5 pb-4">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
           <span>actara</span>

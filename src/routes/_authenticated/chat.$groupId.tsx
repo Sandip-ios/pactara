@@ -137,7 +137,7 @@ function GroupChatPage() {
       className="fixed inset-0 flex flex-col bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <header className="bg-white px-6 pt-5 pb-4 border-b border-neutral-100 shrink-0">
+      <header className="bg-white px-6 pt-safe-5 pb-4 border-b border-neutral-100 shrink-0">
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span>
           <span>actara</span>

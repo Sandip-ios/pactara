@@ -300,7 +300,7 @@ function MorningRitual({
     >
       {switcher}
 
-      <div className="px-6 pt-4">
+      <div className="px-6 pt-safe-4">
         <div className="text-[13px] font-bold" style={{ color: PURPLE }}>
           It's time for your morning ritual
         </div>
@@ -417,7 +417,7 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       {switcher}
-      <div className="px-6 pt-6">
+      <div className="px-6 pt-safe-6">
         <h1 className="text-[34px] font-black leading-tight tracking-tight">Let's check you in</h1>
         <p className="text-neutral-500 text-[15px] mt-1">How did today go?</p>
       </div>
