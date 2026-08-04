@@ -103,20 +103,27 @@ function JoinPage() {
   const handleJoin = async () => {
     if (joining) return;
     setError(null);
-    // Mobile browser: the invite belongs in the app. Tapping the link again
-    // after install opens the app directly via the universal link.
+    // Mobile browser: the invite belongs in the app. Remember the invite (and
+    // drop it on the clipboard) so a fresh install can pick it up, then send
+    // them to the App Store. If the app is already installed, the universal
+    // link opens it directly and we never get here.
     if (isMobileWeb) {
+      setPendingInvite(groupId);
+      try {
+        await navigator.clipboard?.writeText(`https://pactara.lovable.app/join/${groupId}`);
+      } catch {
+        // clipboard unavailable — the user can tap the link again after install
+      }
       window.location.href = APP_STORE_URL;
       return;
     }
     if (!data) return;
     if (!isSignedIn) {
-      if (typeof sessionStorage !== "undefined") {
-        sessionStorage.setItem("pending-invite-group", groupId);
-      }
+      setPendingInvite(groupId);
       navigate({ to: "/signup" });
       return;
     }
+
     try {
       setJoining(true);
       await join({ data: { groupId } });
