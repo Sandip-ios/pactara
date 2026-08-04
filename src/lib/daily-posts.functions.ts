@@ -697,7 +697,18 @@ export const togglePostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
     if (error) throw new Error(error.message);
-    await notifyReaction(data.postId, userId, data.emoji);
+    await (async () => {
+      try {
+        const { notifyPostAuthor } = await import("@/lib/notify.server");
+        await notifyPostAuthor(data.postId, userId, (name) => ({
+          title: `${name} reacted ${data.emoji}`,
+          body: "Someone reacted to your post",
+          url: "/home",
+        }));
+      } catch (err) {
+        console.warn("[reaction] push failed", err);
+      }
+    })();
     return { active: true };
 
   });
@@ -717,7 +728,18 @@ export const setPostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
     if (error) throw new Error(error.message);
-    await notifyReaction(data.postId, userId, data.emoji);
+    await (async () => {
+      try {
+        const { notifyPostAuthor } = await import("@/lib/notify.server");
+        await notifyPostAuthor(data.postId, userId, (name) => ({
+          title: `${name} reacted ${data.emoji}`,
+          body: "Someone reacted to your post",
+          url: "/home",
+        }));
+      } catch (err) {
+        console.warn("[reaction] push failed", err);
+      }
+    })();
     return { active: true };
 
   });
@@ -734,6 +756,16 @@ export const addPostComment = createServerFn({ method: "POST" })
       .from("post_comments")
       .insert({ post_id: data.postId, user_id: userId, body });
     if (error) throw new Error(error.message);
+    try {
+      const { notifyPostAuthor } = await import("@/lib/notify.server");
+      await notifyPostAuthor(data.postId, userId, (name) => ({
+        title: `${name} commented`,
+        body: body.slice(0, 120),
+        url: "/home",
+      }));
+    } catch (err) {
+      console.warn("[comment] push failed", err);
+    }
     return { ok: true };
   });
 
