@@ -98,7 +98,6 @@ function JoinPage() {
     };
   }, []);
 
-  const handleJoin = async () => {
   const isMobileWeb = surface === "ios" || surface === "android";
 
   const handleJoin = async () => {
