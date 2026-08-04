@@ -52,6 +52,8 @@ export const Route = createFileRoute("/join/$groupId")({
   ),
 });
 
+const APP_STORE_URL = "https://apps.apple.com/us/app/pactara/id6779681656";
+
 function JoinPage() {
   const { groupId } = Route.useParams();
   const navigate = useNavigate();
@@ -60,6 +62,20 @@ function JoinPage() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // "native" = inside the Pactara app, "ios"/"android" = mobile browser
+  // (the app may or may not be installed), "web" = desktop browser.
+  const [surface, setSurface] = useState<"native" | "ios" | "android" | "web">("web");
+
+  useEffect(() => {
+    if (isNative()) {
+      setSurface("native");
+      return;
+    }
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    if (/iPhone|iPad|iPod/i.test(ua)) setSurface("ios");
+    else if (/Android/i.test(ua)) setSurface("android");
+    else setSurface("web");
+  }, []);
 
   const join = useServerFn(joinGroupById);
   const fetchPreview = useServerFn(getGroupPreview);
