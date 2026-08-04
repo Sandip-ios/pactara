@@ -129,9 +129,11 @@ function JoinPage() {
     try {
       setJoining(true);
       await join({ data: { groupId } });
+      clearPendingInvite();
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("active-group-id", groupId);
       }
+
       router.invalidate();
       navigate({ to: "/home" });
     } catch (e) {
