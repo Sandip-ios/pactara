@@ -111,7 +111,7 @@ function StepProof() {
         Check in with proof
       </h2>
       <p className="mt-3 text-center text-[15px] text-neutral-500 leading-relaxed px-2">
-        Snap a photo when you follow through. A real check-in beats a checkbox — your pod sees the actual work, not just a claim.
+        Record a quick video when you follow through. A real check-in beats a checkbox — your pod sees the actual work, not just a claim.
       </p>
     </div>
   );
