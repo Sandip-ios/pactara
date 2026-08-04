@@ -314,7 +314,20 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       console.error("badge award failed", err);
     }
 
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} checked in 🔥`,
+        body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[check-in] push failed", err);
+    }
+
     return { ok: true, newBadges };
+
   });
 
 export type TimelineNode =
