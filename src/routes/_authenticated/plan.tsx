@@ -220,7 +220,7 @@ function PlanPage() {
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <div className="px-6 pt-6 max-w-[480px] mx-auto">
+      <div className="px-6 pt-safe-6 max-w-[480px] mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <button

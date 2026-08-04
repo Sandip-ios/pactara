@@ -348,7 +348,7 @@ function VideoRecordScreen() {
       )}
 
       {/* Top controls */}
-      <div className="absolute top-0 inset-x-0 pt-6 px-4 flex items-center justify-between">
+      <div className="absolute top-0 inset-x-0 pt-safe-6 px-4 flex items-center justify-between">
         <button
           onClick={cancel}
           className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"

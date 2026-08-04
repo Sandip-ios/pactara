@@ -223,3 +223,15 @@ body [class*="h-[100dvh]"]:not([class*="min-h-[100dvh]"]) {
 body [class*="min-h-[100dvh]"] {
   min-height: calc(100dvh - env(safe-area-inset-top));
 }
+
+/* Page headers inside `fixed inset-0` screens ignore the body's safe-area
+   padding, so they need to clear the iOS status bar themselves. */
+@utility pt-safe-4 {
+  padding-top: calc(env(safe-area-inset-top) + 1rem);
+}
+@utility pt-safe-5 {
+  padding-top: calc(env(safe-area-inset-top) + 1.25rem);
+}
+@utility pt-safe-6 {
+  padding-top: calc(env(safe-area-inset-top) + 1.5rem);
+}

@@ -48,7 +48,7 @@ function AccountSettingsHub() {
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <header className="bg-white px-4 pt-5 pb-4 flex items-center gap-2">
+      <header className="bg-white px-4 pt-safe-5 pb-4 flex items-center gap-2">
         <button
           onClick={() => navigate({ to: "/profile" })}
           aria-label="Back"
