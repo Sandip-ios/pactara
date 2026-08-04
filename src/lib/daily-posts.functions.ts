@@ -167,7 +167,21 @@ export const postMorningRitual = createServerFn({ method: "POST" })
       { onConflict: "user_id,group_id,local_date" },
     );
     if (error) throw new Error(error.message);
+
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} posted their morning ritual ☀️`,
+        body: data.text.slice(0, 120),
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[ritual] push failed", err);
+    }
+
     return { ok: true };
+
   });
 
 export const getTodayRitualStatus = createServerFn({ method: "GET" })
@@ -235,7 +249,20 @@ export const postThought = createServerFn({ method: "POST" })
       .eq("group_id", groupId)
       .eq("local_date", today);
 
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} shared a thought`,
+        body: data.text ? data.text.slice(0, 120) : "Tap to see it 💭",
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[thought] push failed", err);
+    }
+
     return { ok: true };
+
   });
 
 export const recordCheckIn = createServerFn({ method: "POST" })
@@ -301,7 +328,20 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       console.error("badge award failed", err);
     }
 
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const name = await displayName(userId);
+      await notifyGroupActivity(groupId, userId, {
+        title: `${name} checked in 🔥`,
+        body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
+        url: "/home",
+      });
+    } catch (err) {
+      console.warn("[check-in] push failed", err);
+    }
+
     return { ok: true, newBadges };
+
   });
 
 export type TimelineNode =
@@ -671,7 +711,20 @@ export const togglePostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
     if (error) throw new Error(error.message);
+    await (async () => {
+      try {
+        const { notifyPostAuthor } = await import("@/lib/notify.server");
+        await notifyPostAuthor(data.postId, userId, (name) => ({
+          title: `${name} reacted ${data.emoji}`,
+          body: "Someone reacted to your post",
+          url: "/home",
+        }));
+      } catch (err) {
+        console.warn("[reaction] push failed", err);
+      }
+    })();
     return { active: true };
+
   });
 
 export const setPostReaction = createServerFn({ method: "POST" })
@@ -689,7 +742,20 @@ export const setPostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
     if (error) throw new Error(error.message);
+    await (async () => {
+      try {
+        const { notifyPostAuthor } = await import("@/lib/notify.server");
+        await notifyPostAuthor(data.postId, userId, (name) => ({
+          title: `${name} reacted ${data.emoji}`,
+          body: "Someone reacted to your post",
+          url: "/home",
+        }));
+      } catch (err) {
+        console.warn("[reaction] push failed", err);
+      }
+    })();
     return { active: true };
+
   });
 
 export const addPostComment = createServerFn({ method: "POST" })
@@ -704,6 +770,16 @@ export const addPostComment = createServerFn({ method: "POST" })
       .from("post_comments")
       .insert({ post_id: data.postId, user_id: userId, body });
     if (error) throw new Error(error.message);
+    try {
+      const { notifyPostAuthor } = await import("@/lib/notify.server");
+      await notifyPostAuthor(data.postId, userId, (name) => ({
+        title: `${name} commented`,
+        body: body.slice(0, 120),
+        url: "/home",
+      }));
+    } catch (err) {
+      console.warn("[comment] push failed", err);
+    }
     return { ok: true };
   });
 
