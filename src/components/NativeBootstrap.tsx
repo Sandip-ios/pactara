@@ -4,7 +4,7 @@ import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
-import { getPendingInvite, parseInviteUrl } from "@/lib/pending-invite";
+import { getPendingInvite, parseInviteUrl, markInviteConsumed, wasInviteConsumed } from "@/lib/pending-invite";
 
 
 /**
