@@ -142,24 +142,29 @@ export function NativeBootstrap() {
         console.warn("[deeplink] appUrlOpen listener failed", err);
       }
 
-      // Deferred deep link: the user tapped an invite in mobile Safari, went to
-      // the App Store, and is now opening the app for the first time. The
-      // invite id was stashed before the redirect; on a fresh install we also
-      // check the clipboard once (the invite URL was copied there).
+      // Deferred deep link: the user tapped an invite in mobile Safari and got
+      // sent to the App Store (whether or not the app was already installed).
+      // On every cold launch we look for a stashed invite id, and otherwise
+      // peek at the clipboard (the invite URL was copied before the redirect).
+      // Invites we've already opened are remembered so we never loop.
       try {
         const path = typeof window !== "undefined" ? window.location.pathname : "";
         if (!path.startsWith("/join/")) {
           let pending = getPendingInvite();
-          if (!pending && !localStorage.getItem("invite-clipboard-checked")) {
-            localStorage.setItem("invite-clipboard-checked", "1");
+          if (pending && wasInviteConsumed(pending)) pending = null;
+          if (!pending) {
             try {
               const text = await navigator.clipboard?.readText();
-              pending = text ? parseInviteUrl(text) : null;
+              const fromClipboard = text ? parseInviteUrl(text) : null;
+              if (fromClipboard && !wasInviteConsumed(fromClipboard)) {
+                pending = fromClipboard;
+              }
             } catch {
               // clipboard denied
             }
           }
           if (pending && !cancelled) {
+            markInviteConsumed(pending);
             window.location.assign(`/join/${pending}`);
             return;
           }
@@ -167,6 +172,7 @@ export function NativeBootstrap() {
       } catch {
         // ignore
       }
+
 
       await registerForPush();
 
