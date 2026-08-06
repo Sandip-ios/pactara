@@ -38,3 +38,23 @@ export function parseInviteUrl(value: string): string | null {
   const match = value.match(/pactara[^\s]*\/join\/([0-9a-fA-F-]{36})/);
   return match ? match[1] : null;
 }
+
+const CONSUMED_KEY = "consumed-invite-group";
+
+/** Remembers an invite we already deep-linked to, so we don't loop on it. */
+export function markInviteConsumed(groupId: string) {
+  try {
+    localStorage.setItem(CONSUMED_KEY, groupId);
+  } catch {
+    // ignore
+  }
+}
+
+export function wasInviteConsumed(groupId: string): boolean {
+  try {
+    return localStorage.getItem(CONSUMED_KEY) === groupId;
+  } catch {
+    return false;
+  }
+}
+

@@ -102,13 +102,20 @@ function JoinPage() {
 
   const isMobileWeb = surface === "ios" || surface === "android";
 
+  const openInApp = () => {
+    setPendingInvite(groupId);
+    // Custom scheme wakes the installed app even when universal links aren't
+    // honoured (e.g. the user previously chose "open in browser").
+    window.location.href = `pactara://join/${groupId}`;
+  };
+
   const handleJoin = async () => {
     if (joining) return;
     setError(null);
-    // Mobile browser: the invite belongs in the app. Remember the invite (and
-    // drop it on the clipboard) so a fresh install can pick it up, then send
-    // them to the App Store. If the app is already installed, the universal
-    // link opens it directly and we never get here.
+    // Mobile browser: the invite belongs in the app. Try to hand off to the
+    // installed app first; if nothing takes over, remember the invite (and
+    // drop it on the clipboard) and send them to the App Store so a fresh
+    // install can pick it up.
     if (isMobileWeb) {
       setPendingInvite(groupId);
       try {
@@ -116,9 +123,18 @@ function JoinPage() {
       } catch {
         // clipboard unavailable — the user can tap the link again after install
       }
-      window.location.href = APP_STORE_URL;
+      const start = Date.now();
+      const goToStore = () => {
+        // If the app opened, the page was backgrounded and the timer fires late
+        // (or the document is hidden) — don't yank them to the App Store.
+        if (document.hidden || Date.now() - start > 2500) return;
+        window.location.href = APP_STORE_URL;
+      };
+      window.setTimeout(goToStore, 1400);
+      window.location.href = `pactara://join/${groupId}`;
       return;
     }
+
     if (!data) return;
     if (!isSignedIn) {
       setPendingInvite(groupId);
@@ -270,8 +286,12 @@ function JoinPage() {
           <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
             Free to join · No credit card required
             <div className="mt-1">
-              Already have the app? Tap this invite link again to open it.
+              Already have the app?{" "}
+              <button onClick={openInApp} className="font-semibold" style={{ color: PURPLE }}>
+                Open it here
+              </button>
             </div>
+
           </div>
         )}
 
