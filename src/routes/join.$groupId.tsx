@@ -286,8 +286,12 @@ function JoinPage() {
           <div className="text-center mt-5 text-[13px]" style={{ color: TEXT_MUTED }}>
             Free to join · No credit card required
             <div className="mt-1">
-              Already have the app? Tap this invite link again to open it.
+              Already have the app?{" "}
+              <button onClick={openInApp} className="font-semibold" style={{ color: PURPLE }}>
+                Open it here
+              </button>
             </div>
+
           </div>
         )}
 
