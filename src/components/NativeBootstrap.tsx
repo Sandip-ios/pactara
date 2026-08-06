@@ -129,10 +129,18 @@ export function NativeBootstrap() {
           App.addListener("appUrlOpen", (event) => {
             try {
               const url = new URL(event.url);
-              const path = `${url.pathname}${url.search}`;
+              // Universal link (https://…/join/:id) → pathname holds the route.
+              // Custom scheme (pactara://join/:id) → host holds the first segment.
+              const path = url.protocol.startsWith("http")
+                ? `${url.pathname}${url.search}`
+                : `/${url.host}${url.pathname}${url.search}`.replace(/\/+$/, "");
               if (path && path !== "/" && typeof window !== "undefined") {
+                if (path.startsWith("/join/")) {
+                  markInviteConsumed(path.slice("/join/".length));
+                }
                 window.location.assign(path);
               }
+
             } catch {
               // ignore malformed urls
             }
