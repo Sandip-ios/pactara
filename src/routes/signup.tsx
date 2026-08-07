@@ -136,7 +136,7 @@ type StepKey =
   | "greeting"
   | "paywall";
 
-const STEPS: StepKey[] = [
+const ALL_STEPS: StepKey[] = [
   "name",
   "email",
   "photo",
@@ -152,6 +152,11 @@ const STEPS: StepKey[] = [
   "greeting",
   "paywall",
 ];
+
+// People arriving from an invite link are joining an existing group, so they
+// skip the group-creation and invite-friends steps entirely.
+const INVITED_SKIP: StepKey[] = ["commitment", "group", "invite"];
+
 
 
 
@@ -185,9 +190,16 @@ function SignupFlow() {
     typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined,
   );
 
+  // Locked in at mount so the flow doesn't change shape mid-signup.
+  const [isInvited] = useState(() => Boolean(getPendingInvite()));
+  const STEPS = useMemo(
+    () => (isInvited ? ALL_STEPS.filter((s) => !INVITED_SKIP.includes(s)) : ALL_STEPS),
+    [isInvited],
+  );
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
+
 
   const goalLabel = useMemo(() => {
     if (goal === "custom") return customGoalLabel.trim() || "your goal";
