@@ -82,18 +82,27 @@ export const getGroupChat = createServerFn({ method: "GET" })
     if (mErr) throw new Error(mErr.message);
 
     const userIds = Array.from(new Set((messages ?? []).map((m) => m.user_id)));
-    let profiles: Record<string, { name: string; avatarColor: string }> = {};
+    let profiles: Record<string, { name: string; avatarColor: string; avatarUrl: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profs } = await supabase
         .from("profiles")
-        .select("id, name, avatar_color")
+        .select("id, name, avatar_color, avatar_url")
         .in("id", userIds);
-      profiles = Object.fromEntries(
-        (profs ?? []).map((p: { id: string; name: string; avatar_color: string }) => [
-          p.id,
-          { name: p.name, avatarColor: p.avatar_color },
-        ]),
+      const entries = await Promise.all(
+        (profs ?? []).map(
+          async (p: { id: string; name: string; avatar_color: string; avatar_url?: string | null }) => {
+            let avatarUrl: string | null = null;
+            if (p.avatar_url) {
+              const { data: signed } = await supabase.storage
+                .from("avatars")
+                .createSignedUrl(p.avatar_url, 60 * 60);
+              avatarUrl = signed?.signedUrl ?? null;
+            }
+            return [p.id, { name: p.name, avatarColor: p.avatar_color, avatarUrl }] as const;
+          },
+        ),
       );
+      profiles = Object.fromEntries(entries);
     }
 
     return {
@@ -107,8 +116,10 @@ export const getGroupChat = createServerFn({ method: "GET" })
         createdAt: m.created_at,
         authorName: profiles[m.user_id]?.name ?? "User",
         authorColor: profiles[m.user_id]?.avatarColor ?? "#7C3AED",
+        authorAvatarUrl: profiles[m.user_id]?.avatarUrl ?? null,
       })),
     };
+
   });
 
 export const sendGroupMessage = createServerFn({ method: "POST" })
