@@ -10,6 +10,7 @@ export const REVENUECAT_ENTITLEMENT_ID = "premium";
 const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 
 let configured = false;
+let configurePromise: Promise<void> | null = null;
 
 async function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
@@ -17,31 +18,49 @@ async function loadPurchases() {
   return Purchases;
 }
 
+async function ensureRevenueCatConfigured(userId?: string | null) {
+  if (!isNative()) throw new Error("Subscriptions are only available in the iOS app");
+  if (configured) return;
+  if (!PUBLIC_KEY) throw new Error("The App Store connection is not configured");
+
+  if (!configurePromise) {
+    configurePromise = (async () => {
+      const Purchases = await loadPurchases();
+      const status = await Purchases.isConfigured();
+      if (!status.isConfigured) {
+        await Purchases.configure({
+          apiKey: PUBLIC_KEY,
+          appUserID: userId ?? undefined,
+        });
+      }
+      configured = true;
+    })().catch((error) => {
+      configurePromise = null;
+      throw error;
+    });
+  }
+
+  await configurePromise;
+}
+
 /** Initialize RevenueCat and identify the user with their Supabase ID. */
 export async function configureRevenueCat(userId?: string | null) {
   if (!isNative()) return;
-  if (!PUBLIC_KEY) {
-    console.warn("[revenuecat] VITE_REVENUECAT_PUBLIC_KEY is not set");
-    return;
-  }
 
   try {
-    const Purchases = await loadPurchases();
-    await Purchases.configure({
-      apiKey: PUBLIC_KEY,
-      appUserID: userId,
-    });
-    configured = true;
+    await ensureRevenueCatConfigured(userId);
     console.info("[revenuecat] configured for user", userId);
   } catch (err) {
     console.error("[revenuecat] configure failed", err);
+    throw err;
   }
 }
 
 /** Identify a signed-in user after the SDK has already been configured. */
 export async function logInRevenueCat(userId: string) {
-  if (!isNative() || !configured) return;
+  if (!isNative()) return;
   try {
+    await ensureRevenueCatConfigured();
     const Purchases = await loadPurchases();
     await Purchases.logIn({ appUserID: userId });
     console.info("[revenuecat] logged in", userId);
@@ -71,29 +90,28 @@ export type PactaraOfferings = {
 /** Fetch the current offering and the monthly/annual packages. */
 export async function getOfferings(): Promise<PactaraOfferings | null> {
   if (!isNative()) return null;
-  try {
-    const Purchases = await loadPurchases();
-    const offerings = await Purchases.getOfferings();
-    const offering = offerings.current;
-    if (!offering) {
-      console.warn("[revenuecat] no current offering");
-      return null;
-    }
-    return {
-      offering,
-      monthly: offering.monthly ?? null,
-      annual: offering.annual ?? null,
-    };
-  } catch (err) {
-    console.error("[revenuecat] getOfferings failed", err);
+  await ensureRevenueCatConfigured();
+  const Purchases = await loadPurchases();
+  const offerings = await Purchases.getOfferings();
+  const offering = offerings.current;
+  if (!offering) {
+    console.error("[revenuecat] no current offering", {
+      availableOfferingIds: Object.keys(offerings.all),
+    });
     return null;
   }
+  return {
+    offering,
+    monthly: offering.monthly ?? null,
+    annual: offering.annual ?? null,
+  };
 }
 
 /** Trigger the native purchase flow for a package. */
 export async function purchasePackage(aPackage: PurchasesPackage): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
+    await ensureRevenueCatConfigured();
     const Purchases = await loadPurchases();
     const { customerInfo } = await Purchases.purchasePackage({ aPackage });
     return customerInfo;
@@ -112,6 +130,7 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
 export async function restorePurchases(): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
+    await ensureRevenueCatConfigured();
     const Purchases = await loadPurchases();
     const { customerInfo } = await Purchases.restorePurchases();
     return customerInfo;
@@ -125,6 +144,7 @@ export async function restorePurchases(): Promise<CustomerInfo | null> {
 export async function getCustomerInfo(): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
+    await ensureRevenueCatConfigured();
     const Purchases = await loadPurchases();
     const { customerInfo } = await Purchases.getCustomerInfo();
     return customerInfo;

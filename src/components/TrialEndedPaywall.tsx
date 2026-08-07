@@ -50,6 +50,13 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
         if (!cancelled) setOfferings(result);
       } catch (err) {
         console.error("[paywall] failed to load offerings", err);
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Could not connect to the App Store. Please try again.",
+          );
+        }
       } finally {
         if (!cancelled) setLoadingOfferings(false);
       }
@@ -100,7 +107,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     if (purchasing) return;
     const pkg = plan === "yearly" ? annualPkg : monthlyPkg;
     if (!pkg) {
-      setError("Subscription options aren't available right now. Please try again later.");
+      setError(
+        "The App Store did not return this subscription. Close and reopen the app, then try again.",
+      );
       return;
     }
     setPurchasing(true);
