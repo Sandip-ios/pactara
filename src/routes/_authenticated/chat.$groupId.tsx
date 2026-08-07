@@ -68,12 +68,38 @@ function GroupChatPage() {
   // Mark group as read whenever new messages arrive while viewing it
   useEffect(() => {
     if (!data) return;
+    // Optimistically clear the badge for this group right away
+    queryClient.setQueryData(
+      ["unread-chat-counts"],
+      (prev: { counts: Record<string, number>; total: number } | undefined) => {
+        if (!prev) return prev;
+        const n = prev.counts[groupId] ?? 0;
+        if (n === 0) return prev;
+        return {
+          counts: { ...prev.counts, [groupId]: 0 },
+          total: Math.max(0, prev.total - n),
+        };
+      },
+    );
     markGroupRead({ data: { groupId } })
       .then(() => {
         queryClient.invalidateQueries({ queryKey: ["unread-chat-counts"] });
       })
       .catch(() => {});
   }, [groupId, data?.messages.length, queryClient, data]);
+
+  // Mark read again on leaving the conversation
+  useEffect(() => {
+    return () => {
+      markGroupRead({ data: { groupId } })
+        .then(() => {
+          queryClient.invalidateQueries({ queryKey: ["unread-chat-counts"] });
+          queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+        })
+        .catch(() => {});
+    };
+  }, [groupId, queryClient]);
+
 
   useEffect(() => {
     if (scrollRef.current) {
