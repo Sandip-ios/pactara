@@ -239,7 +239,7 @@ function StepPhoto() {
             <Video size={20} style={{ color: PURPLE }} />
             <div>
               <div className="text-[13px] font-bold" style={{ color: PURPLE }}>💪 Workout · Day 14</div>
-              <div className="text-[12px] text-neutral-600">15s post-workout video</div>
+              <div className="text-[12px] text-neutral-600">15s workout video</div>
             </div>
           </div>
 
