@@ -1,0 +1,1 @@
+CREATE POLICY "Users can update their own membership" ON public.group_members FOR UPDATE TO authenticated USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
