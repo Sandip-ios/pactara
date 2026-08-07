@@ -70,6 +70,11 @@ function PlanPage() {
           setOfferings(offers);
         } catch (err) {
           console.error("[plan] failed to load RevenueCat data", err);
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Could not connect to the App Store. Please try again.",
+          );
         } finally {
           setCheckingStatus(false);
         }
@@ -121,7 +126,9 @@ function PlanPage() {
     const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
     if (isNative()) {
       if (!pkg) {
-        setError("Subscription options aren't available right now. Please try again later.");
+        setError(
+          "The App Store did not return this subscription. Close and reopen the app, then try again.",
+        );
         setPendingPlan(null);
         return;
       }
