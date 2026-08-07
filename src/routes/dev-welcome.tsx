@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
 
-export const Route = createFileRoute("/__dev-welcome")({
+export const Route = createFileRoute("/dev-welcome")({
   component: DevWelcome,
 });
 
