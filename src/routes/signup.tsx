@@ -136,7 +136,7 @@ type StepKey =
   | "greeting"
   | "paywall";
 
-const STEPS: StepKey[] = [
+const ALL_STEPS: StepKey[] = [
   "name",
   "email",
   "photo",
@@ -152,6 +152,11 @@ const STEPS: StepKey[] = [
   "greeting",
   "paywall",
 ];
+
+// People arriving from an invite link are joining an existing group, so they
+// skip the group-creation and invite-friends steps entirely.
+const INVITED_SKIP: StepKey[] = ["commitment", "group", "invite"];
+
 
 
 
