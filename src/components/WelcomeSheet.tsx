@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, Sun, CheckCircle2, Camera, X, ChevronRight, Check } from "lucide-react";
+import { Flame, Sun, CheckCircle2, Camera, Video, X, ChevronRight, Check } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const PURPLE = "#7C3AED";
