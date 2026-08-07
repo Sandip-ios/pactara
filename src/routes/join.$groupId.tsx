@@ -102,11 +102,44 @@ function JoinPage() {
 
   const isMobileWeb = surface === "ios" || surface === "android";
 
-  const openInApp = () => {
+  const handOffToApp = (fallbackToStore: boolean) => {
     setPendingInvite(groupId);
-    // Custom scheme wakes the installed app even when universal links aren't
-    // honoured (e.g. the user previously chose "open in browser").
-    window.location.href = `pactara://join/${groupId}`;
+
+    // Loading an unregistered custom scheme as the top-level Safari URL shows
+    // an "address is invalid" alert. A hidden iframe still opens Pactara when
+    // installed, but fails silently when it is not.
+    const frame = document.createElement("iframe");
+    frame.setAttribute("aria-hidden", "true");
+    frame.style.display = "none";
+    frame.src = `pactara://join/${groupId}`;
+    document.body.appendChild(frame);
+
+    let fallbackTimer: number | undefined;
+    const cleanup = () => {
+      if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
+      window.removeEventListener("pagehide", cleanup);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.setTimeout(() => frame.remove(), 0);
+    };
+    const onVisibilityChange = () => {
+      if (document.hidden) cleanup();
+    };
+
+    window.addEventListener("pagehide", cleanup, { once: true });
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    if (fallbackToStore) {
+      fallbackTimer = window.setTimeout(() => {
+        cleanup();
+        window.location.assign(APP_STORE_URL);
+      }, 1600);
+    } else {
+      window.setTimeout(cleanup, 2000);
+    }
+  };
+
+  const openInApp = () => {
+    handOffToApp(true);
   };
 
   const handleJoin = async () => {
@@ -123,15 +156,7 @@ function JoinPage() {
       } catch {
         // clipboard unavailable — the user can tap the link again after install
       }
-      const start = Date.now();
-      const goToStore = () => {
-        // If the app opened, the page was backgrounded and the timer fires late
-        // (or the document is hidden) — don't yank them to the App Store.
-        if (document.hidden || Date.now() - start > 2500) return;
-        window.location.href = APP_STORE_URL;
-      };
-      window.setTimeout(goToStore, 1400);
-      window.location.href = `pactara://join/${groupId}`;
+      handOffToApp(true);
       return;
     }
 
