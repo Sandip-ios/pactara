@@ -155,7 +155,7 @@ const ALL_STEPS: StepKey[] = [
 
 // People arriving from an invite link are joining an existing group, so they
 // skip the group-creation and invite-friends steps entirely.
-const INVITED_SKIP: StepKey[] = ["goal", "consistency", "commitment", "group", "invite"];
+const INVITED_SKIP: StepKey[] = ["goal", "commitment", "group", "invite"];
 
 
 
