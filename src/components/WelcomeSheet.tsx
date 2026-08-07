@@ -236,12 +236,13 @@ function StepPhoto() {
             <div className="text-[13px] text-amber-900">"Hit the gym before 8am today"</div>
           </div>
           <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-3 flex items-center gap-3">
-            <Camera size={20} style={{ color: PURPLE }} />
+            <Video size={20} style={{ color: PURPLE }} />
             <div>
               <div className="text-[13px] font-bold" style={{ color: PURPLE }}>💪 Workout · Day 14</div>
-              <div className="text-[12px] text-neutral-600">Post-workout selfie</div>
+              <div className="text-[12px] text-neutral-600">15s post-workout video</div>
             </div>
           </div>
+
         </div>
         <div className="mt-3 flex items-center gap-2">
           <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-600 text-[13px] font-bold">🔥 7</span>
