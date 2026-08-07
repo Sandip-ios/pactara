@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
+import { useNavigate } from "@tanstack/react-router";
 import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
-import { getPendingInvite, parseInviteUrl, markInviteConsumed, wasInviteConsumed } from "@/lib/pending-invite";
+import { getPendingInvite, parseInviteUrl, setPendingInvite, markInviteConsumed, wasInviteConsumed } from "@/lib/pending-invite";
 
 
 /**
@@ -12,6 +13,8 @@ import { getPendingInvite, parseInviteUrl, markInviteConsumed, wasInviteConsumed
  * device for push notifications after the user is signed in. Safe no-op on web.
  */
 export function NativeBootstrap() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!isNative()) return;
     let cancelled = false;
@@ -19,6 +22,25 @@ export function NativeBootstrap() {
     const listenerHandles: Array<Promise<PluginListenerHandle>> = [];
 
     const platform = nativePlatform() === "android" ? "android" : "ios";
+
+    const openIncomingUrl = (value: string): boolean => {
+      try {
+        const url = new URL(value);
+        const path = url.protocol.startsWith("http")
+          ? url.pathname
+          : `/${url.host}${url.pathname}`.replace(/\/+$/, "");
+        const match = path.match(/^\/join\/([0-9a-fA-F-]{36})\/?$/);
+        const groupId = match?.[1];
+        if (!groupId || cancelled) return false;
+
+        setPendingInvite(groupId);
+        markInviteConsumed(groupId);
+        void navigate({ to: "/join/$groupId", params: { groupId }, replace: true });
+        return true;
+      } catch {
+        return false;
+      }
+    };
 
     const saveToken = async (token: string) => {
       if (!token || cancelled) return;
@@ -67,6 +89,22 @@ export function NativeBootstrap() {
     };
 
     (async () => {
+      // Register deep-link handling before any slower native setup. appUrlOpen
+      // covers links received while the app is running; getLaunchUrl recovers
+      // the link that launched a fully closed app before React was ready.
+      try {
+        const { App } = await import("@capacitor/app");
+        listenerHandles.push(
+          App.addListener("appUrlOpen", (event) => {
+            openIncomingUrl(event.url);
+          }),
+        );
+        const launch = await App.getLaunchUrl();
+        if (launch?.url) openIncomingUrl(launch.url);
+      } catch (err) {
+        console.warn("[deeplink] native URL handling failed", err);
+      }
+
       try {
         await configureRevenueCat();
       } catch (err) {
@@ -119,35 +157,6 @@ export function NativeBootstrap() {
         );
       } catch (err) {
         console.warn("[push] Firebase Messaging listeners failed", err);
-      }
-
-      try {
-        // Universal links (e.g. group invites at /join/:groupId) opened while
-        // the app is installed should land on that page inside the app.
-        const { App } = await import("@capacitor/app");
-        listenerHandles.push(
-          App.addListener("appUrlOpen", (event) => {
-            try {
-              const url = new URL(event.url);
-              // Universal link (https://…/join/:id) → pathname holds the route.
-              // Custom scheme (pactara://join/:id) → host holds the first segment.
-              const path = url.protocol.startsWith("http")
-                ? `${url.pathname}${url.search}`
-                : `/${url.host}${url.pathname}${url.search}`.replace(/\/+$/, "");
-              if (path && path !== "/" && typeof window !== "undefined") {
-                if (path.startsWith("/join/")) {
-                  markInviteConsumed(path.slice("/join/".length));
-                }
-                window.location.assign(path);
-              }
-
-            } catch {
-              // ignore malformed urls
-            }
-          }),
-        );
-      } catch (err) {
-        console.warn("[deeplink] appUrlOpen listener failed", err);
       }
 
       // Deferred deep link: the user tapped an invite in mobile Safari and got
@@ -207,7 +216,7 @@ export function NativeBootstrap() {
         void handle.then((listener) => listener.remove()).catch(() => undefined);
       });
     };
-  }, []);
+  }, [navigate]);
 
   return null;
 }
