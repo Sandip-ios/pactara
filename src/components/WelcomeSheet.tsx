@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Flame, Sun, CheckCircle2, Camera, X, ChevronRight, Check } from "lucide-react";
+import { Flame, Sun, CheckCircle2, Camera, Video, X, ChevronRight, Check } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
 const PURPLE = "#7C3AED";
@@ -209,17 +209,18 @@ function StepPhoto() {
   return (
     <div className="mt-6">
       <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-white" style={{ background: PURPLE }}>
-        <Camera size={28} />
+        <Video size={28} />
       </div>
       <div className="mt-3 inline-block px-3 py-1 rounded-full bg-purple-100 text-[11px] font-bold tracking-wider" style={{ color: PURPLE }}>
-        PHOTO POSTS
+        VIDEO CHECK-INS
       </div>
       <h2 className="mt-3 text-[28px] font-black leading-tight tracking-tight">
         Share proof. Celebrate wins.
       </h2>
       <p className="mt-3 text-[15px] text-neutral-600 leading-relaxed">
-        Snap a photo of your workout, your meal, or your progress and post it to the group feed. Seeing is believing — for you and your crew.
+        Record a quick 5–15 second video of your workout, your meal, or your progress and post it to the group feed. Seeing is believing — for you and your crew.
       </p>
+
 
       <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -235,12 +236,13 @@ function StepPhoto() {
             <div className="text-[13px] text-amber-900">"Hit the gym before 8am today"</div>
           </div>
           <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-3 flex items-center gap-3">
-            <Camera size={20} style={{ color: PURPLE }} />
+            <Video size={20} style={{ color: PURPLE }} />
             <div>
               <div className="text-[13px] font-bold" style={{ color: PURPLE }}>💪 Workout · Day 14</div>
-              <div className="text-[12px] text-neutral-600">Post-workout selfie</div>
+              <div className="text-[12px] text-neutral-600">15s post-workout video</div>
             </div>
           </div>
+
         </div>
         <div className="mt-3 flex items-center gap-2">
           <span className="px-3 py-1 rounded-full bg-orange-100 text-orange-600 text-[13px] font-bold">🔥 7</span>
