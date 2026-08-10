@@ -17,7 +17,6 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as DevRitualRouteImport } from './routes/dev-ritual'
 import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -81,11 +80,6 @@ const LoginRoute = LoginRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DevRitualRoute = DevRitualRouteImport.update({
-  id: '/dev-ritual',
-  path: '/dev-ritual',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BadgePreviewRoute = BadgePreviewRouteImport.update({
@@ -224,7 +218,6 @@ const ApiPublicOgInviteGroupIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/badge-preview': typeof BadgePreviewRoute
-  '/dev-ritual': typeof DevRitualRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -258,7 +251,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/badge-preview': typeof BadgePreviewRoute
-  '/dev-ritual': typeof DevRitualRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -294,7 +286,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
-  '/dev-ritual': typeof DevRitualRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -330,7 +321,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/badge-preview'
-    | '/dev-ritual'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -364,7 +354,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/badge-preview'
-    | '/dev-ritual'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -399,7 +388,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/badge-preview'
-    | '/dev-ritual'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -435,7 +423,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   BadgePreviewRoute: typeof BadgePreviewRoute
-  DevRitualRoute: typeof DevRitualRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaywallPreviewRoute: typeof PaywallPreviewRoute
@@ -508,13 +495,6 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dev-ritual': {
-      id: '/dev-ritual'
-      path: '/dev-ritual'
-      fullPath: '/dev-ritual'
-      preLoaderRoute: typeof DevRitualRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/badge-preview': {
@@ -735,7 +715,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   BadgePreviewRoute: BadgePreviewRoute,
-  DevRitualRoute: DevRitualRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaywallPreviewRoute: PaywallPreviewRoute,
