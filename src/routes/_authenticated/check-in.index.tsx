@@ -254,7 +254,7 @@ function CheckInRouter() {
 }
 
 
-export function MorningRitual({
+function MorningRitual({
   groupId,
   switcher,
   onPosted,
