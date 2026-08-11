@@ -37,6 +37,7 @@ import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './rout
 import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
+import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
 import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
@@ -191,6 +192,12 @@ const AuthenticatedAccountSettingsEmailRoute =
     path: '/account-settings/email',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHooksRevenuecatRoute =
+  ApiPublicHooksRevenuecatRouteImport.update({
+    id: '/api/public/hooks/revenuecat',
+    path: '/api/public/hooks/revenuecat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksMorningRitualReminderRoute =
   ApiPublicHooksMorningRitualReminderRouteImport.update({
     id: '/api/public/hooks/morning-ritual-reminder',
@@ -246,6 +253,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesByTo {
@@ -279,6 +287,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesById {
@@ -314,6 +323,7 @@ export interface FileRoutesById {
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
+  '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRouteTypes {
@@ -349,6 +359,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/hooks/revenuecat'
     | '/api/public/og/invite/$groupId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -382,6 +393,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/hooks/revenuecat'
     | '/api/public/og/invite/$groupId'
   id:
     | '__root__'
@@ -416,6 +428,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
+    | '/api/public/hooks/revenuecat'
     | '/api/public/og/invite/$groupId'
   fileRoutesById: FileRoutesById
 }
@@ -436,6 +449,7 @@ export interface RootRouteChildren {
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksDailyReminderRoute: typeof ApiPublicHooksDailyReminderRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
+  ApiPublicHooksRevenuecatRoute: typeof ApiPublicHooksRevenuecatRoute
   ApiPublicOgInviteGroupIdRoute: typeof ApiPublicOgInviteGroupIdRoute
 }
 
@@ -637,6 +651,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountSettingsEmailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/hooks/revenuecat': {
+      id: '/api/public/hooks/revenuecat'
+      path: '/api/public/hooks/revenuecat'
+      fullPath: '/api/public/hooks/revenuecat'
+      preLoaderRoute: typeof ApiPublicHooksRevenuecatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/morning-ritual-reminder': {
       id: '/api/public/hooks/morning-ritual-reminder'
       path: '/api/public/hooks/morning-ritual-reminder'
@@ -730,18 +751,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksDailyReminderRoute: ApiPublicHooksDailyReminderRoute,
   ApiPublicHooksMorningRitualReminderRoute:
     ApiPublicHooksMorningRitualReminderRoute,
+  ApiPublicHooksRevenuecatRoute: ApiPublicHooksRevenuecatRoute,
   ApiPublicOgInviteGroupIdRoute: ApiPublicOgInviteGroupIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
