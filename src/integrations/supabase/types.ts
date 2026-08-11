@@ -510,6 +510,48 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          entitlement: string | null
+          expires_at: string | null
+          is_active: boolean
+          last_event_at: string | null
+          last_event_type: string | null
+          period_type: string | null
+          product_id: string | null
+          store: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entitlement?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          last_event_at?: string | null
+          last_event_type?: string | null
+          period_type?: string | null
+          product_id?: string | null
+          store?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entitlement?: string | null
+          expires_at?: string | null
+          is_active?: boolean
+          last_event_at?: string | null
+          last_event_type?: string | null
+          period_type?: string | null
+          product_id?: string | null
+          store?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
