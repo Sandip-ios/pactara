@@ -102,24 +102,18 @@ function JoinPage() {
 
   const isMobileWeb = surface === "ios" || surface === "android";
 
-  const handOffToApp = (fallbackToStore: boolean) => {
+  const handOffToApp = (fallbackToStore: boolean, viaGesture = false) => {
     setPendingInvite(groupId);
-
-    // Loading an unregistered custom scheme as the top-level Safari URL shows
-    // an "address is invalid" alert. A hidden iframe still opens Pactara when
-    // installed, but fails silently when it is not.
-    const frame = document.createElement("iframe");
-    frame.setAttribute("aria-hidden", "true");
-    frame.style.display = "none";
-    frame.src = `pactara://join/${groupId}`;
-    document.body.appendChild(frame);
+    const scheme = `pactara://join/${groupId}`;
 
     let fallbackTimer: number | undefined;
+    let frame: HTMLIFrameElement | undefined;
+
     const cleanup = () => {
       if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
       window.removeEventListener("pagehide", cleanup);
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      window.setTimeout(() => frame.remove(), 0);
+      if (frame) window.setTimeout(() => frame?.remove(), 0);
     };
     const onVisibilityChange = () => {
       if (document.hidden) cleanup();
@@ -127,6 +121,23 @@ function JoinPage() {
 
     window.addEventListener("pagehide", cleanup, { once: true });
     document.addEventListener("visibilitychange", onVisibilityChange);
+
+    if (viaGesture) {
+      // Inside a user gesture, a top-level navigation to the custom scheme is
+      // the most reliable way to reach the installed app (iframes are blocked
+      // in several in-app browsers). If the app isn't installed, iOS shows
+      // nothing and the timer below sends them to the App Store.
+      window.location.href = scheme;
+    } else {
+      // Loading an unregistered custom scheme as the top-level Safari URL shows
+      // an "address is invalid" alert. A hidden iframe still opens Pactara when
+      // installed, but fails silently when it is not.
+      frame = document.createElement("iframe");
+      frame.setAttribute("aria-hidden", "true");
+      frame.style.display = "none";
+      frame.src = scheme;
+      document.body.appendChild(frame);
+    }
 
     if (fallbackToStore) {
       fallbackTimer = window.setTimeout(() => {
@@ -139,7 +150,7 @@ function JoinPage() {
   };
 
   const openInApp = () => {
-    handOffToApp(true);
+    handOffToApp(true, true);
   };
 
   // Universal Links can silently fail (link opened from an in-app browser, a
