@@ -179,7 +179,7 @@ function JoinPage() {
       } catch {
         // clipboard unavailable — the user can tap the link again after install
       }
-      handOffToApp(true);
+      handOffToApp(true, true);
       return;
     }
 
