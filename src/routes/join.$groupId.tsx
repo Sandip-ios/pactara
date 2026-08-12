@@ -142,6 +142,18 @@ function JoinPage() {
     handOffToApp(true);
   };
 
+  // Universal Links can silently fail (link opened from an in-app browser, a
+  // wrapped/redirected URL, or Safari already sitting on this domain). When we
+  // land in a mobile browser, immediately try to hand the invite to the
+  // installed app. No App Store fallback here — that stays on the button so we
+  // never yank someone off the page who doesn't have the app.
+  useEffect(() => {
+    if (surface !== "ios" && surface !== "android") return;
+    const t = window.setTimeout(() => handOffToApp(false), 250);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [surface, groupId]);
+
   const handleJoin = async () => {
     if (joining) return;
     setError(null);
