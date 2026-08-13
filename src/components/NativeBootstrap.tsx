@@ -101,13 +101,10 @@ export function NativeBootstrap() {
         console.warn("[deeplink] native URL handling failed", err);
       }
 
-      // Hide the splash and set the status bar FIRST — these must never be
-      // blocked by slower/optional setup like billing.
       try {
-        const { SplashScreen } = await import("@capacitor/splash-screen");
-        await SplashScreen.hide();
+        await configureRevenueCat();
       } catch (err) {
-        console.warn("[native] SplashScreen.hide failed", err);
+        console.warn("[revenuecat] initial configure failed", err);
       }
 
       try {
@@ -117,14 +114,16 @@ export function NativeBootstrap() {
         if (nativePlatform() === "android") {
           await StatusBar.setBackgroundColor({ color: "#FFFFFF" });
         }
-      } catch (err) {
-        console.warn("[native] StatusBar setup failed", err);
+      } catch {
+        // ignore
       }
 
-      // Billing runs in the background; a failure here must not stall startup.
-      void configureRevenueCat().catch((err) => {
-        console.warn("[revenuecat] initial configure failed", err);
-      });
+      try {
+        const { SplashScreen } = await import("@capacitor/splash-screen");
+        await SplashScreen.hide();
+      } catch {
+        // ignore
+      }
 
       try {
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");

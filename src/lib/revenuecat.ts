@@ -21,12 +21,7 @@ async function loadPurchases() {
 async function ensureRevenueCatConfigured(userId?: string | null) {
   if (!isNative()) throw new Error("Subscriptions are only available in the iOS app");
   if (configured) return;
-  if (!PUBLIC_KEY) {
-    console.error("[revenuecat] missing VITE_REVENUECAT_PUBLIC_KEY in this build");
-    throw new Error("The App Store connection is not configured");
-  }
-  console.info("[revenuecat] configuring", { keyPrefix: String(PUBLIC_KEY).slice(0, 4) });
-
+  if (!PUBLIC_KEY) throw new Error("The App Store connection is not configured");
 
   if (!configurePromise) {
     configurePromise = (async () => {
