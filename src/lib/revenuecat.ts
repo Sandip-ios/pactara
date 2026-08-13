@@ -22,13 +22,24 @@ export function describeError(error: unknown): string {
 
 async function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
-  const mod = await import("@revenuecat/purchases-capacitor");
-  const Purchases = mod?.Purchases;
-  if (!Purchases) {
-    throw new Error("RevenueCat plugin module loaded but exported no Purchases object");
+  try {
+    const mod = await import("@revenuecat/purchases-capacitor");
+    const Purchases = mod?.Purchases;
+    if (Purchases) return Purchases;
+    console.warn("[revenuecat] module loaded without Purchases export; using bridge fallback");
+  } catch (err) {
+    console.warn("[revenuecat] module import failed; using bridge fallback:", describeError(err));
   }
-  return Purchases;
+
+  // Fallback: talk to the native plugin straight through the Capacitor bridge.
+  // The plugin is registered natively (Package.swift build), so this works even
+  // when the npm wrapper chunk fails to load in the web layer.
+  const { registerPlugin } = await import("@capacitor/core");
+  const Purchases = registerPlugin<any>("Purchases");
+  if (!Purchases) throw new Error("RevenueCat native plugin is not available in this build");
+  return Purchases as typeof import("@revenuecat/purchases-capacitor").Purchases;
 }
+
 
 
 /** Rejects instead of hanging forever when a native bridge call never answers. */
