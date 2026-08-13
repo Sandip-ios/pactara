@@ -13,18 +13,17 @@ export const Route = createFileRoute("/")({
     // Resolve the launch URL here so the normal signed-in redirect cannot send
     // an invite recipient to Check In before the deep link is processed.
     if (isNative()) {
+      let launchGroupId: string | null = null;
       try {
         const { App } = await import("@capacitor/app");
         const launch = await App.getLaunchUrl();
-        const groupId = launch?.url ? parseInviteUrl(launch.url) : null;
-        if (groupId) {
-          setPendingInvite(groupId);
-          throw redirect({ to: "/join/$groupId", params: { groupId } });
-        }
+        launchGroupId = launch?.url ? parseInviteUrl(launch.url) : null;
       } catch (error) {
-        // TanStack redirects are thrown responses and must not be swallowed.
-        if (error instanceof Response) throw error;
         console.warn("[deeplink] cold-start URL check failed", error);
+      }
+      if (launchGroupId) {
+        setPendingInvite(launchGroupId);
+        throw redirect({ to: "/join/$groupId", params: { groupId: launchGroupId } });
       }
     }
     const { data } = await supabase.auth.getUser();
