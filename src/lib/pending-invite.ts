@@ -26,6 +26,8 @@ export function getPendingInvite(): string | null {
 
 export function clearPendingInvite() {
   try {
+    const groupId = localStorage.getItem(KEY) ?? sessionStorage.getItem(KEY);
+    if (groupId) localStorage.setItem(CONSUMED_KEY, groupId);
     localStorage.removeItem(KEY);
     sessionStorage.removeItem(KEY);
   } catch {
@@ -35,8 +37,17 @@ export function clearPendingInvite() {
 
 /** Extracts a group id from a Pactara invite URL, if the string is one. */
 export function parseInviteUrl(value: string): string | null {
-  const match = value.match(/pactara[^\s]*\/join\/([0-9a-fA-F-]{36})/);
-  return match ? match[1] : null;
+  try {
+    const url = new URL(value);
+    const path = url.protocol.startsWith("http")
+      ? url.pathname
+      : `/${url.host}${url.pathname}`.replace(/\/+$/, "");
+    const match = path.match(/^\/join\/([0-9a-fA-F-]{36})\/?$/);
+    return match?.[1] ?? null;
+  } catch {
+    const match = value.match(/pactara[^\s]*\/join\/([0-9a-fA-F-]{36})/);
+    return match?.[1] ?? null;
+  }
 }
 
 const CONSUMED_KEY = "consumed-invite-group";

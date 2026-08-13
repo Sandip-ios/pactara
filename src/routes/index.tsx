@@ -2,11 +2,24 @@ import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
+import { isNative } from "@/lib/native";
+import { setPendingInvite } from "@/lib/pending-invite";
+import { getLaunchInviteGroupId } from "@/lib/native-launch";
 
 
 export const Route = createFileRoute("/")({
   ssr: false,
   beforeLoad: async () => {
+    // On a cold native launch this guard runs before NativeBootstrap mounts.
+    // Resolve the launch URL here so the normal signed-in redirect cannot send
+    // an invite recipient to Check In before the deep link is processed.
+    if (isNative()) {
+      const launchGroupId = await getLaunchInviteGroupId();
+      if (launchGroupId) {
+        setPendingInvite(launchGroupId);
+        throw redirect({ to: "/join/$groupId", params: { groupId: launchGroupId } });
+      }
+    }
     const { data } = await supabase.auth.getUser();
     if (data.user) throw redirect({ to: "/check-in" });
   },
