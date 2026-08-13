@@ -87,25 +87,57 @@ export type PactaraOfferings = {
   annual: PurchasesPackage | null;
 };
 
+function pick(
+  offering: PurchasesOffering,
+  kind: "MONTHLY" | "ANNUAL",
+): PurchasesPackage | null {
+  const direct = kind === "MONTHLY" ? offering.monthly : offering.annual;
+  if (direct) return direct;
+  const all = offering.availablePackages ?? [];
+  const byType = all.find((p) => (p.packageType as string) === kind);
+  if (byType) return byType;
+  const needle = kind === "MONTHLY" ? "month" : ("annual" as string);
+  const alt = kind === "MONTHLY" ? "monthly" : "year";
+  return (
+    all.find((p) => {
+      const hay = `${p.identifier} ${p.product?.identifier ?? ""}`.toLowerCase();
+      return hay.includes(needle) || hay.includes(alt);
+    }) ?? null
+  );
+}
+
 /** Fetch the current offering and the monthly/annual packages. */
 export async function getOfferings(): Promise<PactaraOfferings | null> {
   if (!isNative()) return null;
   await ensureRevenueCatConfigured();
   const Purchases = await loadPurchases();
   const offerings = await Purchases.getOfferings();
-  const offering = offerings.current;
+  // Fall back to any offering that actually has packages if none is marked "current".
+  const offering =
+    offerings.current ??
+    Object.values(offerings.all).find((o) => (o.availablePackages ?? []).length > 0) ??
+    null;
   if (!offering) {
-    console.error("[revenuecat] no current offering", {
+    console.error("[revenuecat] no offering with packages", {
       availableOfferingIds: Object.keys(offerings.all),
     });
     return null;
   }
-  return {
-    offering,
-    monthly: offering.monthly ?? null,
-    annual: offering.annual ?? null,
-  };
+  const monthly = pick(offering, "MONTHLY");
+  const annual = pick(offering, "ANNUAL");
+  console.info("[revenuecat] offerings loaded", {
+    offeringId: offering.identifier,
+    packages: (offering.availablePackages ?? []).map((p) => ({
+      id: p.identifier,
+      type: p.packageType,
+      product: p.product?.identifier,
+    })),
+    monthly: monthly?.identifier ?? null,
+    annual: annual?.identifier ?? null,
+  });
+  return { offering, monthly, annual };
 }
+
 
 /** Trigger the native purchase flow for a package. */
 export async function purchasePackage(aPackage: PurchasesPackage): Promise<CustomerInfo | null> {
