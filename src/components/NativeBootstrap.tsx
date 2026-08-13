@@ -5,7 +5,7 @@ import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
-import { getPendingInvite, parseInviteUrl, setPendingInvite, markInviteConsumed, wasInviteConsumed } from "@/lib/pending-invite";
+import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 
 
 /**
@@ -24,22 +24,14 @@ export function NativeBootstrap() {
     const platform = nativePlatform() === "android" ? "android" : "ios";
 
     const openIncomingUrl = (value: string): boolean => {
-      try {
-        const url = new URL(value);
-        const path = url.protocol.startsWith("http")
-          ? url.pathname
-          : `/${url.host}${url.pathname}`.replace(/\/+$/, "");
-        const match = path.match(/^\/join\/([0-9a-fA-F-]{36})\/?$/);
-        const groupId = match?.[1];
-        if (!groupId || cancelled) return false;
+      const groupId = parseInviteUrl(value);
+      if (!groupId || cancelled) return false;
 
-        setPendingInvite(groupId);
-        markInviteConsumed(groupId);
-        void navigate({ to: "/join/$groupId", params: { groupId }, replace: true });
-        return true;
-      } catch {
-        return false;
-      }
+      // Keep the invite pending until the user actually joins. Marking it as
+      // consumed here made a failed cold-start navigation impossible to retry.
+      setPendingInvite(groupId);
+      void navigate({ to: "/join/$groupId", params: { groupId }, replace: true });
+      return true;
     };
 
     const saveToken = async (token: string) => {
@@ -168,7 +160,6 @@ export function NativeBootstrap() {
         const path = typeof window !== "undefined" ? window.location.pathname : "";
         if (!path.startsWith("/join/")) {
           let pending = getPendingInvite();
-          if (pending && wasInviteConsumed(pending)) pending = null;
           if (!pending) {
             try {
               const text = await navigator.clipboard?.readText();
@@ -181,8 +172,7 @@ export function NativeBootstrap() {
             }
           }
           if (pending && !cancelled) {
-            markInviteConsumed(pending);
-            window.location.assign(`/join/${pending}`);
+            void navigate({ to: "/join/$groupId", params: { groupId: pending }, replace: true });
             return;
           }
         }
