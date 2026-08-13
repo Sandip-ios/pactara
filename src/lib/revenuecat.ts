@@ -12,54 +12,10 @@ const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 let configured = false;
 let configurePromise: Promise<void> | null = null;
 
-/** Errors log as `{}` in the Xcode console unless we flatten them by hand. */
-export function describeError(error: unknown): string {
-  if (!error) return "unknown error";
-  if (typeof error === "string") return error;
-  const e = error as { message?: string; code?: string; name?: string };
-  return [e.name, e.code, e.message].filter(Boolean).join(" | ") || String(error);
-}
-
 async function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
-  try {
-    const mod = await import("@revenuecat/purchases-capacitor");
-    const Purchases = mod?.Purchases;
-    if (Purchases) return Purchases;
-    console.warn("[revenuecat] module loaded without Purchases export; using bridge fallback");
-  } catch (err) {
-    console.warn("[revenuecat] module import failed; using bridge fallback:", describeError(err));
-  }
-
-  // Fallback: talk to the native plugin straight through the Capacitor bridge.
-  // The plugin is registered natively (Package.swift build), so this works even
-  // when the npm wrapper chunk fails to load in the web layer.
-  const { registerPlugin } = await import("@capacitor/core");
-  const Purchases = registerPlugin<any>("Purchases");
-  if (!Purchases) throw new Error("RevenueCat native plugin is not available in this build");
-  return Purchases as typeof import("@revenuecat/purchases-capacitor").Purchases;
-}
-
-
-
-/** Rejects instead of hanging forever when a native bridge call never answers. */
-function withTimeout<T>(promise: Promise<T>, ms: number, stage: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`[revenuecat] ${stage} timed out after ${ms}ms`)),
-      ms,
-    );
-    promise.then(
-      (value) => {
-        clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
+  const { Purchases } = await import("@revenuecat/purchases-capacitor");
+  return Purchases;
 }
 
 async function ensureRevenueCatConfigured(userId?: string | null) {
@@ -69,40 +25,28 @@ async function ensureRevenueCatConfigured(userId?: string | null) {
     console.error("[revenuecat] missing VITE_REVENUECAT_PUBLIC_KEY in this build");
     throw new Error("The App Store connection is not configured");
   }
+  console.info("[revenuecat] configuring", { keyPrefix: String(PUBLIC_KEY).slice(0, 4) });
+
 
   if (!configurePromise) {
     configurePromise = (async () => {
-      console.info("[revenuecat] step 1: loading plugin", {
-        keyPrefix: String(PUBLIC_KEY).slice(0, 4),
-      });
-      const Purchases = await withTimeout(loadPurchases(), 10000, "plugin import");
-
-      console.info("[revenuecat] step 2: isConfigured");
-      const status = await withTimeout(Purchases.isConfigured(), 10000, "isConfigured");
-
+      const Purchases = await loadPurchases();
+      const status = await Purchases.isConfigured();
       if (!status.isConfigured) {
-        console.info("[revenuecat] step 3: configure");
-        await withTimeout(
-          Purchases.configure({
-            apiKey: PUBLIC_KEY,
-            appUserID: userId ?? undefined,
-          }),
-          10000,
-          "configure",
-        );
+        await Purchases.configure({
+          apiKey: PUBLIC_KEY,
+          appUserID: userId ?? undefined,
+        });
       }
       configured = true;
-      console.info("[revenuecat] step 4: ready");
     })().catch((error) => {
       configurePromise = null;
-      console.error("[revenuecat] configuration failed:", describeError(error));
       throw error;
     });
   }
 
   await configurePromise;
 }
-
 
 /** Initialize RevenueCat and identify the user with their Supabase ID. */
 export async function configureRevenueCat(userId?: string | null) {
@@ -112,7 +56,7 @@ export async function configureRevenueCat(userId?: string | null) {
     await ensureRevenueCatConfigured(userId);
     console.info("[revenuecat] configured for user", userId);
   } catch (err) {
-    console.error("[revenuecat] configure failed:", describeError(err));
+    console.error("[revenuecat] configure failed", err);
     throw err;
   }
 }
@@ -126,7 +70,7 @@ export async function logInRevenueCat(userId: string) {
     await Purchases.logIn({ appUserID: userId });
     console.info("[revenuecat] logged in", userId);
   } catch (err) {
-    console.error("[revenuecat] logIn failed:", describeError(err));
+    console.error("[revenuecat] logIn failed", err);
   }
 }
 
@@ -138,7 +82,7 @@ export async function logOutRevenueCat() {
     await Purchases.logOut();
     console.info("[revenuecat] logged out");
   } catch (err) {
-    console.error("[revenuecat] logOut failed:", describeError(err));
+    console.error("[revenuecat] logOut failed", err);
   }
 }
 
@@ -214,7 +158,7 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
-    console.error("[revenuecat] purchasePackage failed:", describeError(err));
+    console.error("[revenuecat] purchasePackage failed", err);
     throw err;
   }
 }
@@ -228,7 +172,7 @@ export async function restorePurchases(): Promise<CustomerInfo | null> {
     const { customerInfo } = await Purchases.restorePurchases();
     return customerInfo;
   } catch (err) {
-    console.error("[revenuecat] restorePurchases failed:", describeError(err));
+    console.error("[revenuecat] restorePurchases failed", err);
     throw err;
   }
 }
@@ -242,7 +186,7 @@ export async function getCustomerInfo(): Promise<CustomerInfo | null> {
     const { customerInfo } = await Purchases.getCustomerInfo();
     return customerInfo;
   } catch (err) {
-    console.error("[revenuecat] getCustomerInfo failed:", describeError(err));
+    console.error("[revenuecat] getCustomerInfo failed", err);
     return null;
   }
 }

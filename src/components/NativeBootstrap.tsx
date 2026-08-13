@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
-import { configureRevenueCat, describeError, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
+import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 
@@ -123,7 +123,7 @@ export function NativeBootstrap() {
 
       // Billing runs in the background; a failure here must not stall startup.
       void configureRevenueCat().catch((err) => {
-        console.warn("[revenuecat] initial configure failed:", describeError(err));
+        console.warn("[revenuecat] initial configure failed", err);
       });
 
       try {
