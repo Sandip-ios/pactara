@@ -12,11 +12,24 @@ const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 let configured = false;
 let configurePromise: Promise<void> | null = null;
 
+/** Errors log as `{}` in the Xcode console unless we flatten them by hand. */
+export function describeError(error: unknown): string {
+  if (!error) return "unknown error";
+  if (typeof error === "string") return error;
+  const e = error as { message?: string; code?: string; name?: string };
+  return [e.name, e.code, e.message].filter(Boolean).join(" | ") || String(error);
+}
+
 async function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
-  const { Purchases } = await import("@revenuecat/purchases-capacitor");
+  const mod = await import("@revenuecat/purchases-capacitor");
+  const Purchases = mod?.Purchases;
+  if (!Purchases) {
+    throw new Error("RevenueCat plugin module loaded but exported no Purchases object");
+  }
   return Purchases;
 }
+
 
 /** Rejects instead of hanging forever when a native bridge call never answers. */
 function withTimeout<T>(promise: Promise<T>, ms: number, stage: string): Promise<T> {
