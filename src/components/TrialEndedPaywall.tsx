@@ -7,7 +7,9 @@ import {
   getOfferings,
   purchasePackage,
   restorePurchases,
-  type PactaraOfferings,, describeError } from "@/lib/revenuecat";
+  describeError,
+  type PactaraOfferings,
+} from "@/lib/revenuecat";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EC";
