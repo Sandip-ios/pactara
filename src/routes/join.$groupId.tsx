@@ -107,13 +107,11 @@ function JoinPage() {
     const scheme = `pactara://join/${groupId}`;
 
     let fallbackTimer: number | undefined;
-    let frame: HTMLIFrameElement | undefined;
 
     const cleanup = () => {
       if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
       window.removeEventListener("pagehide", cleanup);
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (frame) window.setTimeout(() => frame?.remove(), 0);
     };
     const onVisibilityChange = () => {
       if (document.hidden) cleanup();
@@ -129,15 +127,13 @@ function JoinPage() {
       // nothing and the timer below sends them to the App Store.
       window.location.href = scheme;
     } else {
-      // Loading an unregistered custom scheme as the top-level Safari URL shows
-      // an "address is invalid" alert. A hidden iframe still opens Pactara when
-      // installed, but fails silently when it is not.
-      frame = document.createElement("iframe");
-      frame.setAttribute("aria-hidden", "true");
-      frame.style.display = "none";
-      frame.src = scheme;
-      document.body.appendChild(frame);
+      // On load, Safari (iOS 14+) ignores custom-scheme navigations made from a
+      // hidden iframe, so the only handoff that actually fires is a top-level
+      // one. The `pactara` URL scheme is registered in the shipped app, so this
+      // opens the app when installed and is a silent no-op otherwise.
+      window.location.href = scheme;
     }
+
 
     if (fallbackToStore) {
       fallbackTimer = window.setTimeout(() => {
