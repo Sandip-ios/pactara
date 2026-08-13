@@ -107,13 +107,11 @@ function JoinPage() {
     const scheme = `pactara://join/${groupId}`;
 
     let fallbackTimer: number | undefined;
-    let frame: HTMLIFrameElement | undefined;
 
     const cleanup = () => {
       if (fallbackTimer !== undefined) window.clearTimeout(fallbackTimer);
       window.removeEventListener("pagehide", cleanup);
       document.removeEventListener("visibilitychange", onVisibilityChange);
-      if (frame) window.setTimeout(() => frame?.remove(), 0);
     };
     const onVisibilityChange = () => {
       if (document.hidden) cleanup();
