@@ -7,8 +7,7 @@ import {
   getOfferings,
   purchasePackage,
   restorePurchases,
-  type PactaraOfferings,
-} from "@/lib/revenuecat";
+  type PactaraOfferings,, describeError } from "@/lib/revenuecat";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EC";
@@ -49,7 +48,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
         const result = await getOfferings();
         if (!cancelled) setOfferings(result);
       } catch (err) {
-        console.error("[paywall] failed to load offerings", err);
+        console.error("[paywall] failed to load offerings:", describeError(err));
         if (!cancelled) {
           setError(
             err instanceof Error
