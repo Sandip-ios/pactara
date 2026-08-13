@@ -18,6 +18,26 @@ async function loadPurchases() {
   return Purchases;
 }
 
+/** Rejects instead of hanging forever when a native bridge call never answers. */
+function withTimeout<T>(promise: Promise<T>, ms: number, stage: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`[revenuecat] ${stage} timed out after ${ms}ms`)),
+      ms,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 async function ensureRevenueCatConfigured(userId?: string | null) {
   if (!isNative()) throw new Error("Subscriptions are only available in the iOS app");
   if (configured) return;
@@ -25,28 +45,40 @@ async function ensureRevenueCatConfigured(userId?: string | null) {
     console.error("[revenuecat] missing VITE_REVENUECAT_PUBLIC_KEY in this build");
     throw new Error("The App Store connection is not configured");
   }
-  console.info("[revenuecat] configuring", { keyPrefix: String(PUBLIC_KEY).slice(0, 4) });
-
 
   if (!configurePromise) {
     configurePromise = (async () => {
-      const Purchases = await loadPurchases();
-      const status = await Purchases.isConfigured();
+      console.info("[revenuecat] step 1: loading plugin", {
+        keyPrefix: String(PUBLIC_KEY).slice(0, 4),
+      });
+      const Purchases = await withTimeout(loadPurchases(), 10000, "plugin import");
+
+      console.info("[revenuecat] step 2: isConfigured");
+      const status = await withTimeout(Purchases.isConfigured(), 10000, "isConfigured");
+
       if (!status.isConfigured) {
-        await Purchases.configure({
-          apiKey: PUBLIC_KEY,
-          appUserID: userId ?? undefined,
-        });
+        console.info("[revenuecat] step 3: configure");
+        await withTimeout(
+          Purchases.configure({
+            apiKey: PUBLIC_KEY,
+            appUserID: userId ?? undefined,
+          }),
+          10000,
+          "configure",
+        );
       }
       configured = true;
+      console.info("[revenuecat] step 4: ready");
     })().catch((error) => {
       configurePromise = null;
+      console.error("[revenuecat] configuration failed", error);
       throw error;
     });
   }
 
   await configurePromise;
 }
+
 
 /** Initialize RevenueCat and identify the user with their Supabase ID. */
 export async function configureRevenueCat(userId?: string | null) {
