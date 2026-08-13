@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
+import { getLaunchInviteGroupId } from "@/lib/native-launch";
 
 
 /**
@@ -91,8 +92,11 @@ export function NativeBootstrap() {
             openIncomingUrl(event.url);
           }),
         );
-        const launch = await App.getLaunchUrl();
-        if (launch?.url) openIncomingUrl(launch.url);
+        const launchGroupId = await getLaunchInviteGroupId();
+        if (launchGroupId) {
+          setPendingInvite(launchGroupId);
+          void navigate({ to: "/join/$groupId", params: { groupId: launchGroupId }, replace: true });
+        }
       } catch (err) {
         console.warn("[deeplink] native URL handling failed", err);
       }

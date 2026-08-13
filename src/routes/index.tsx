@@ -3,7 +3,8 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
 import { isNative } from "@/lib/native";
-import { parseInviteUrl, setPendingInvite } from "@/lib/pending-invite";
+import { setPendingInvite } from "@/lib/pending-invite";
+import { getLaunchInviteGroupId } from "@/lib/native-launch";
 
 
 export const Route = createFileRoute("/")({
@@ -13,14 +14,7 @@ export const Route = createFileRoute("/")({
     // Resolve the launch URL here so the normal signed-in redirect cannot send
     // an invite recipient to Check In before the deep link is processed.
     if (isNative()) {
-      let launchGroupId: string | null = null;
-      try {
-        const { App } = await import("@capacitor/app");
-        const launch = await App.getLaunchUrl();
-        launchGroupId = launch?.url ? parseInviteUrl(launch.url) : null;
-      } catch (error) {
-        console.warn("[deeplink] cold-start URL check failed", error);
-      }
+      const launchGroupId = await getLaunchInviteGroupId();
       if (launchGroupId) {
         setPendingInvite(launchGroupId);
         throw redirect({ to: "/join/$groupId", params: { groupId: launchGroupId } });
