@@ -84,7 +84,7 @@ async function ensureRevenueCatConfigured(userId?: string | null) {
       console.info("[revenuecat] step 4: ready");
     })().catch((error) => {
       configurePromise = null;
-      console.error("[revenuecat] configuration failed", error);
+      console.error("[revenuecat] configuration failed:", describeError(error));
       throw error;
     });
   }
@@ -101,7 +101,7 @@ export async function configureRevenueCat(userId?: string | null) {
     await ensureRevenueCatConfigured(userId);
     console.info("[revenuecat] configured for user", userId);
   } catch (err) {
-    console.error("[revenuecat] configure failed", err);
+    console.error("[revenuecat] configure failed:", describeError(err));
     throw err;
   }
 }
@@ -115,7 +115,7 @@ export async function logInRevenueCat(userId: string) {
     await Purchases.logIn({ appUserID: userId });
     console.info("[revenuecat] logged in", userId);
   } catch (err) {
-    console.error("[revenuecat] logIn failed", err);
+    console.error("[revenuecat] logIn failed:", describeError(err));
   }
 }
 
@@ -127,7 +127,7 @@ export async function logOutRevenueCat() {
     await Purchases.logOut();
     console.info("[revenuecat] logged out");
   } catch (err) {
-    console.error("[revenuecat] logOut failed", err);
+    console.error("[revenuecat] logOut failed:", describeError(err));
   }
 }
 
@@ -203,7 +203,7 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
-    console.error("[revenuecat] purchasePackage failed", err);
+    console.error("[revenuecat] purchasePackage failed:", describeError(err));
     throw err;
   }
 }
@@ -217,7 +217,7 @@ export async function restorePurchases(): Promise<CustomerInfo | null> {
     const { customerInfo } = await Purchases.restorePurchases();
     return customerInfo;
   } catch (err) {
-    console.error("[revenuecat] restorePurchases failed", err);
+    console.error("[revenuecat] restorePurchases failed:", describeError(err));
     throw err;
   }
 }
@@ -231,7 +231,7 @@ export async function getCustomerInfo(): Promise<CustomerInfo | null> {
     const { customerInfo } = await Purchases.getCustomerInfo();
     return customerInfo;
   } catch (err) {
-    console.error("[revenuecat] getCustomerInfo failed", err);
+    console.error("[revenuecat] getCustomerInfo failed:", describeError(err));
     return null;
   }
 }
