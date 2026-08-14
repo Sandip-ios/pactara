@@ -210,7 +210,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
           </button>
         )}
         <div className="px-6 pt-10 text-center shrink-0">
-          <div className="text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
+          <div className="mt-8 text-[11px] font-bold tracking-[0.18em]" style={{ color: PURPLE }}>
             {eyebrow}
           </div>
           <h1
