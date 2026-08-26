@@ -156,6 +156,10 @@ function JoinPage() {
   // never yank someone off the page who doesn't have the app.
   useEffect(() => {
     if (surface !== "ios" && surface !== "android") return;
+    // Record the invite server-side against this device's network fingerprint
+    // so a fresh install can open the join screen without tapping the link
+    // again (deferred deep link).
+    void recordDeferredInvite(groupId);
     const t = window.setTimeout(() => handOffToApp(false), 250);
     return () => window.clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -165,11 +169,12 @@ function JoinPage() {
     if (joining) return;
     setError(null);
     // Mobile browser: the invite belongs in the app. Try to hand off to the
-    // installed app first; if nothing takes over, remember the invite (and
-    // drop it on the clipboard) and send them to the App Store so a fresh
-    // install can pick it up.
+    // installed app first; if nothing takes over, remember the invite (server
+    // side + clipboard) and send them to the App Store so a fresh install can
+    // pick it up automatically.
     if (isMobileWeb) {
       setPendingInvite(groupId);
+      void recordDeferredInvite(groupId);
       try {
         await navigator.clipboard?.writeText(`https://pactara.lovable.app/join/${groupId}`);
       } catch {
@@ -178,6 +183,7 @@ function JoinPage() {
       handOffToApp(true, true);
       return;
     }
+
 
     if (!data) return;
     if (!isSignedIn) {
