@@ -127,7 +127,7 @@ function StepMorning({ plan, setPlan }: { plan: string; setPlan: (s: string) => 
         <Sun size={28} />
       </div>
       <div className="mt-3 inline-block px-3 py-1 rounded-full bg-amber-100 text-[11px] font-bold tracking-wider text-amber-600">
-        MORNING RITUAL
+        TODAY'S COMMITMENT
       </div>
       <h2 className="mt-3 text-[28px] font-black leading-tight tracking-tight">
         Start every morning with your plan

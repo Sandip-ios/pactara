@@ -309,7 +309,7 @@ function JoinPage() {
           <HowRow
             icon={<Sunrise size={20} className="text-[#D97706]" />}
             bg="#FEE9C9"
-            title="Morning ritual"
+            title="Today's commitment"
             text="Every morning, tell your group what you're doing today. Your crew sees it — and now they're watching."
           />
           <HowRow
