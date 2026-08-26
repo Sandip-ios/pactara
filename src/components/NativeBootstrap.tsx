@@ -165,6 +165,20 @@ export function NativeBootstrap() {
         if (!path.startsWith("/join/")) {
           let pending = getPendingInvite();
           if (!pending) {
+            // Deferred deep link: the invite was opened in mobile Safari on
+            // this same network before the install, so the server can hand it
+            // back without the user tapping the link again.
+            try {
+              const claimed = await claimDeferredInvite();
+              if (claimed && !wasInviteConsumed(claimed)) {
+                pending = claimed;
+                setPendingInvite(claimed);
+              }
+            } catch {
+              // network unavailable
+            }
+          }
+          if (!pending) {
             try {
               const text = await navigator.clipboard?.readText();
               const fromClipboard = text ? parseInviteUrl(text) : null;
@@ -175,6 +189,7 @@ export function NativeBootstrap() {
               // clipboard denied
             }
           }
+
           if (pending && !cancelled) {
             void navigate({ to: "/join/$groupId", params: { groupId: pending }, replace: true });
             return;
