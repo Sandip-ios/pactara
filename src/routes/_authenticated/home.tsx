@@ -104,7 +104,7 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
     }
   }
 
-  // Ensure any card that contains a morning ritual also shows a check-in state.
+  // Ensure any card that contains a today's commitment also shows a check-in state.
   // If grouping by the 4 AM timeline-day boundary leaves a ritual card without a
   // check_in / check_in_missed / pending node, append a pending placeholder.
   for (const card of grouped.values()) {

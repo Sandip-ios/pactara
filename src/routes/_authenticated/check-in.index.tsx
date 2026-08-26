@@ -302,7 +302,7 @@ function MorningRitual({
 
       <div className="px-6 pt-safe-4">
         <div className="text-[13px] font-bold" style={{ color: PURPLE }}>
-          It's time for your morning ritual
+          It's time for today's commitment
         </div>
         <h1 className="mt-2 text-[34px] font-black leading-tight tracking-tight">
           What are you committing to today?
