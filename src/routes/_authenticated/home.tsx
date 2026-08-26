@@ -12,7 +12,8 @@ import {
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
-import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
@@ -188,6 +189,11 @@ function HomePage() {
     queryKey: ["group-member-streaks", selectedGroupId],
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
+  });
+  const { data: ritualStatus } = useQuery({
+    queryKey: ["today-ritual-status", selectedGroupId],
+    queryFn: () => getTodayRitualStatus({ data: { groupId: selectedGroupId } }),
+    refetchOnWindowFocus: true,
   });
 
 
@@ -365,9 +371,43 @@ function HomePage() {
           </div>
         );
       })()}
+      {(() => {
+        const me = (streaksData?.members ?? []).find((m) => m.isYou);
+        const myId = me?.userId;
+        const ritualDone = ritualStatus?.posted ?? false;
+        const beforeNoon = ritualStatus?.beforeNoon ?? true;
+        const checkedIn = pendingData?.iCheckedIn ?? false;
 
+        const state: SnapshotState = checkedIn
+          ? "done"
+          : !ritualDone && beforeNoon
+            ? "ritual"
+            : "check-in";
 
+        // Days checked in over the last 7 local days (from the feed).
+        const lastSeven = new Set<string>();
+        for (let i = 0; i < 7; i++) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          lastSeven.add(formatLocalDate(d));
+        }
+        const myDays = new Set<string>();
+        for (const item of feedData?.items ?? []) {
+          if (myId && item.userId !== myId) continue;
+          if (!myId && !item.isMe) continue;
+          if (!lastSeven.has(item.localDate)) continue;
+          if (item.nodes.some((n) => n.kind === "check_in")) myDays.add(item.localDate);
+        }
 
+        return (
+          <TodaySnapshot
+            state={state}
+            streak={me?.streak ?? 0}
+            weekDone={myDays.size}
+            weekTotal={7}
+          />
+        );
+      })()}
 
 
       {!composerOpen ? (
