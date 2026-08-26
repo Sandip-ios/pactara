@@ -51,18 +51,12 @@ export function BottomTabs() {
         active={isActive("/groups")}
         onClick={() => navigate({ to: "/groups" })}
       />
-      <button
+      <TabItem
+        icon={<Zap size={22} />}
+        label="Check In"
+        active={isActive("/check-in")}
         onClick={() => navigate({ to: "/check-in" })}
-        className="flex flex-col items-center gap-1 -mt-6"
-      >
-        <span
-          className="h-14 w-14 rounded-full flex items-center justify-center text-white"
-          style={{ background: PURPLE }}
-        >
-          <Zap size={24} />
-        </span>
-        <span className="text-[11px] font-medium" style={{ color: isActive("/check-in") ? PURPLE : "#A3A3A3" }}>Check In</span>
-      </button>
+      />
       <TabItem
         icon={
           <span className="relative inline-flex">
