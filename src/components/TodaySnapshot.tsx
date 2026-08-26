@@ -106,43 +106,21 @@ export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
 
         {/* Slide 2 — Weekly snapshot */}
         <div className="w-full shrink-0">
-          <div className="px-4 pt-4 flex items-center justify-between">
-            <span className="text-[15px] font-bold text-neutral-900">This week</span>
-            <span className="text-[13px] font-semibold text-neutral-400">
-              {completedCount}/7 days
-            </span>
+          <div className="px-4 pt-4">
+            <span className="text-[15px] font-bold text-neutral-900">Weekly snapshot</span>
           </div>
           <div className="px-4 py-4">
-            <div className="flex items-end gap-2">
-              <div className="flex flex-col items-center justify-center">
-                <span className="text-[32px] font-black leading-none text-neutral-900">
-                  {streak}
-                </span>
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mt-1">
-                  {streak === 1 ? "day streak" : "day streak"}
-                </span>
-              </div>
-              <div className="flex-1 flex items-center justify-end gap-1.5">
-                {week.map((d, i) => (
-                  <div key={i} className="flex flex-col items-center gap-1">
-                    <span className="text-[10px] font-semibold text-neutral-400">
-                      {DOW_LABELS[i]}
-                    </span>
-                    <div
-                      className="h-7 w-7 rounded-full flex items-center justify-center"
-                      style={{
-                        background: d.done ? PURPLE : "#F3F3F4",
-                      }}
-                    >
-                      {d.done && (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 6 9 17l-5-5" />
-                        </svg>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="flex items-center justify-between">
+              {stats.map((s, i) => (
+                <div key={i} className="flex flex-col items-center text-center" style={{ flex: 1 }}>
+                  <span className="text-[26px] font-black leading-none text-neutral-900">
+                    {s.value}
+                  </span>
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-400 mt-1.5">
+                    {s.label}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
