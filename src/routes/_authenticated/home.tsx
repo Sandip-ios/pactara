@@ -190,6 +190,11 @@ function HomePage() {
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
+  const { data: ritualStatus } = useQuery({
+    queryKey: ["today-ritual-status", selectedGroupId],
+    queryFn: () => getTodayRitualStatus({ data: { groupId: selectedGroupId } }),
+    refetchOnWindowFocus: true,
+  });
 
 
 
