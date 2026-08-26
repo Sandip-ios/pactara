@@ -38,7 +38,7 @@ type Stat = { label: string; value: string };
 
 
 
-export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
+export function TodaySnapshot({ state, week, streak, longestStreak }: Props) {
   const navigate = useNavigate();
   const copy = COPY[state];
 
