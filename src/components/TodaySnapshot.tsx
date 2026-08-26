@@ -75,6 +75,12 @@ export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
 
   const completedCount = week.filter((d) => d.done).length;
 
+  const stats: Stat[] = [
+    { label: "Day streak", value: String(streak) },
+    { label: "This week", value: `${completedCount}/7` },
+    { label: "Check-ins", value: String(totalCheckIns) },
+  ];
+
   return (
     <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
       <div
