@@ -153,6 +153,33 @@ export type Database = {
           },
         ]
       }
+      deferred_invites: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          group_id: string
+          id: string
+          ip_hash: string
+          platform: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          ip_hash: string
+          platform: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          ip_hash?: string
+          platform?: string
+        }
+        Relationships: []
+      }
       earned_badges: {
         Row: {
           earned_at: string
