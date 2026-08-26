@@ -13,7 +13,7 @@ const COPY: Record<
   { title: string; message: string; cta: string | null }
 > = {
   ritual: {
-    title: "Morning commitment",
+    title: "Today's commitment",
     message: "Set your commitment for today so your group knows the plan.",
     cta: "Commit now",
   },
