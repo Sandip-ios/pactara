@@ -94,7 +94,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
   const keepFeatures = [
     { Icon: Flame, label: "Your streak & check-in history" },
     { Icon: Users, label: "Your pods and all your members" },
-    { Icon: TrendingUp, label: "Every photo, ritual, and note" },
+    { Icon: TrendingUp, label: "Every photo, commitment, and note" },
   ];
 
   async function handleSignOut() {
