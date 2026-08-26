@@ -127,7 +127,7 @@ function StepMorning({ plan, setPlan }: { plan: string; setPlan: (s: string) => 
         <Sun size={28} />
       </div>
       <div className="mt-3 inline-block px-3 py-1 rounded-full bg-amber-100 text-[11px] font-bold tracking-wider text-amber-600">
-        MORNING RITUAL
+        TODAY'S COMMITMENT
       </div>
       <h2 className="mt-3 text-[28px] font-black leading-tight tracking-tight">
         Start every morning with your plan
@@ -140,7 +140,7 @@ function StepMorning({ plan, setPlan }: { plan: string; setPlan: (s: string) => 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-amber-500" />
-            <span className="font-bold text-[14px] text-amber-600">🌅 Morning Ritual</span>
+            <span className="font-bold text-[14px] text-amber-600">🌅 Today's Commitment</span>
           </div>
           <span className="text-[12px] text-neutral-400">Before noon</span>
         </div>
@@ -232,7 +232,7 @@ function StepPhoto() {
         </div>
         <div className="mt-3 pl-2 border-l-2 border-amber-300 space-y-2">
           <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-3">
-            <div className="text-[13px] font-bold text-amber-700">🌅 Morning Ritual</div>
+            <div className="text-[13px] font-bold text-amber-700">🌅 Today's Commitment</div>
             <div className="text-[13px] text-amber-900">"Hit the gym before 8am today"</div>
           </div>
           <div className="rounded-xl border-2 border-dashed border-purple-300 bg-purple-50 p-3 flex items-center gap-3">

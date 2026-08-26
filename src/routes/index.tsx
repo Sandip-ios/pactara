@@ -596,7 +596,7 @@ function useSlides(): Slide[] {
       visual: <CheckinCard />,
     },
     {
-      eyebrow: "MORNING RITUAL",
+      eyebrow: "TODAY'S COMMITMENT",
       title: (
         <>
           Start every morning

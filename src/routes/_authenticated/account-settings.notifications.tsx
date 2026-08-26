@@ -120,7 +120,7 @@ function NotificationsPage() {
       setPrefs((p) => (p ? { ...p, morning_ritual_reminder_enabled: next } : p));
     },
     onSuccess: (next) => {
-      flash("ok", next ? "Morning ritual reminder on" : "Reminder turned off");
+      flash("ok", next ? "Commitment reminder on" : "Reminder turned off");
       queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
     },
     onError: (e: Error) => {
@@ -151,10 +151,10 @@ function NotificationsPage() {
         />
       </Card>
 
-      <SectionLabel>MORNING RITUAL</SectionLabel>
+      <SectionLabel>TODAY'S COMMITMENT</SectionLabel>
       <Card>
         <ToggleRow
-          title="Morning ritual reminder"
+          title="Commitment reminder"
           subtitle="A push at 10am in your local timezone"
           value={prefs.morning_ritual_reminder_enabled}
           disabled={morningToggle.isPending}

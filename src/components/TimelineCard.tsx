@@ -190,7 +190,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
     case "ritual":
       return {
         emoji: "🌅",
-        label: "Morning Ritual",
+        label: "Today's Commitment",
         labelColor: PURPLE,
         bg: "#F4EEFF",
         border: "#E5D9FE",
@@ -201,7 +201,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
     case "ritual_missed":
       return {
         emoji: "😴",
-        label: "Missed Morning Ritual",
+        label: "Missed Today's Commitment",
         labelColor: "#B45309",
         bg: "#FEF6E4",
         border: "#FBE4B6",
