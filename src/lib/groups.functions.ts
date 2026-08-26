@@ -617,6 +617,7 @@ export type GroupMemberStreak = {
   avatarColor: string;
   isYou: boolean;
   streak: number;
+  longestStreak: number;
 };
 
 /**
@@ -709,6 +710,26 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
       return streak;
     };
 
+    // Longest run of consecutive days (descending from each day).
+    const computeLongestStreak = (days: Set<string>): number => {
+      if (days.size === 0) return 0;
+      let longest = 0;
+      for (const startIso of days) {
+        const [y, mo, d] = startIso.split("-").map(Number);
+        const cursor = new Date(Date.UTC(y, mo - 1, d));
+        let run = 0;
+        while (true) {
+          const iso = cursor.toISOString().slice(0, 10);
+          if (days.has(iso)) {
+            run += 1;
+            cursor.setUTCDate(cursor.getUTCDate() - 1);
+          } else break;
+        }
+        if (run > longest) longest = run;
+      }
+      return longest;
+    };
+
     const profileById = new Map<string, { name: string; avatarColor: string; avatarPath: string | null }>();
     for (const p of profRes.data ?? []) {
       profileById.set(p.id as string, {
@@ -728,6 +749,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
           avatarColor: prof?.avatarColor ?? "#7C3AED",
           isYou: id === userId,
           streak: computeStreak(daysByUser.get(id) ?? new Set()),
+          longestStreak: computeLongestStreak(daysByUser.get(id) ?? new Set()),
         };
       }),
     );

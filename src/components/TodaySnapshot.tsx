@@ -9,7 +9,7 @@ type Props = {
   state: SnapshotState;
   week: { label: string; done: boolean }[];
   streak: number;
-  totalCheckIns: number;
+  longestStreak: number;
 };
 
 const COPY: Record<
@@ -38,7 +38,7 @@ type Stat = { label: string; value: string };
 
 
 
-export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
+export function TodaySnapshot({ state, week, streak, longestStreak }: Props) {
   const navigate = useNavigate();
   const copy = COPY[state];
 
@@ -79,7 +79,7 @@ export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
   const stats: Stat[] = [
     { label: "Day streak", value: String(streak) },
     { label: "This week", value: `${completedCount}/7` },
-    { label: "Check-ins", value: String(totalCheckIns) },
+    { label: "Longest streak", value: String(longestStreak) },
   ];
 
   return (
