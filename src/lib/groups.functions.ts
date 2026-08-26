@@ -617,6 +617,7 @@ export type GroupMemberStreak = {
   avatarColor: string;
   isYou: boolean;
   streak: number;
+  longestStreak: number;
 };
 
 /**
