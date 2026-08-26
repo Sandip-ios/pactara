@@ -3,7 +3,7 @@ import { localDateFor, localHourFor } from "@/lib/daily-posts.functions";
 
 /**
  * Hourly job: for every user with a group, in their own timezone, mark:
- *   - missed morning ritual if local time >= 12:00 and today's daily_post has no ritual
+ *   - missed today's commitment if local time >= 12:00 and today's daily_post has no ritual
  *   - missed check-in for yesterday if local time has crossed midnight and yesterday's post has no check-in
  *
  * Authenticated with the Supabase anon `apikey` header (Lovable's cron pattern).
@@ -57,7 +57,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
 
-          // ── Missed morning ritual: past noon, no ritual posted today.
+          // ── Missed today's commitment: past noon, no ritual posted today.
           if (hour >= 12 && today >= joinedLocalDate) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")

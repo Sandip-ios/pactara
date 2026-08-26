@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { localHourFor } from "@/lib/daily-posts.functions";
 
 /**
- * Hourly cron: for every user with the morning ritual reminder enabled,
+ * Hourly cron: for every user with the today's commitment reminder enabled,
  * if it's 10:00 in their local timezone, send a web push notification
  * to all their registered devices.
  */
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // Pull users with the morning ritual reminder enabled.
+        // Pull users with the today's commitment reminder enabled.
         const { data: prefs, error: pErr } = await supabaseAdmin
           .from("notification_preferences")
           .select("user_id, push_enabled, morning_ritual_reminder_enabled")
@@ -62,8 +62,8 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
         if (sErr) return Response.json({ error: sErr.message }, { status: 500 });
 
         const payload = JSON.stringify({
-          title: "Morning ritual",
-          body: "Take a moment for today's morning ritual ☀️",
+          title: "Today's commitment",
+          body: "Take a moment for today's commitment ☀️",
           url: "/home",
         });
 
@@ -107,8 +107,8 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
             try {
               const { sendFcm } = await import("@/lib/fcm.server");
               const result = await sendFcm(tokens, {
-                title: "Morning ritual",
-                body: "Take a moment for today's morning ritual ☀️",
+                title: "Today's commitment",
+                body: "Take a moment for today's commitment ☀️",
                 url: "/home",
               });
               fcmSent = result.sent;

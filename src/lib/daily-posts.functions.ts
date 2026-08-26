@@ -172,7 +172,7 @@ export const postMorningRitual = createServerFn({ method: "POST" })
       const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
       const name = await displayName(userId);
       await notifyGroupActivity(groupId, userId, {
-        title: `${name} posted their morning ritual ☀️`,
+        title: `${name} posted their commitment ☀️`,
         body: data.text.slice(0, 120),
         url: "/home",
       });
