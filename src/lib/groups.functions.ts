@@ -749,6 +749,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
           avatarColor: prof?.avatarColor ?? "#7C3AED",
           isYou: id === userId,
           streak: computeStreak(daysByUser.get(id) ?? new Set()),
+          longestStreak: computeLongestStreak(daysByUser.get(id) ?? new Set()),
         };
       }),
     );
