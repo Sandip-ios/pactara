@@ -79,7 +79,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak }: Props) {
   const stats: Stat[] = [
     { label: "Day streak", value: String(streak) },
     { label: "This week", value: `${completedCount}/7` },
-    { label: "Check-ins", value: String(totalCheckIns) },
+    { label: "Longest streak", value: String(longestStreak) },
   ];
 
   return (
