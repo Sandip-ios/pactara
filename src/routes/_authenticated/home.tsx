@@ -397,18 +397,15 @@ function HomePage() {
 
         const myStreak =
           streaksData?.members?.find((m) => m.isYou)?.streak ?? 0;
-
-        const totalCheckIns = (feedData?.items ?? []).reduce((sum, item) => {
-          if (!item.isMe) return sum;
-          return sum + item.nodes.filter((n) => n.kind === "check_in").length;
-        }, 0);
+        const myLongest =
+          streaksData?.members?.find((m) => m.isYou)?.longestStreak ?? 0;
 
         return (
           <TodaySnapshot
             state={state}
             week={week}
             streak={myStreak}
-            totalCheckIns={totalCheckIns}
+            longestStreak={myLongest}
           />
         );
       })()}
