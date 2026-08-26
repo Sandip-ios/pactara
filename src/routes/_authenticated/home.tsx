@@ -475,24 +475,36 @@ function HomePage() {
 
 
 
-      {(feedData?.items.length ?? 0) > 0 ? (
-        <div className="pb-2">
-          {splitFeedIntoTimelineCards(feedData!.items).map((item) => (
-            <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
-          ))}
-        </div>
-
-      ) : (
-        <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
-          <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-            <MessageSquare size={24} style={{ color: PURPLE }} />
+      {(() => {
+        const cards = splitFeedIntoTimelineCards(feedData?.items ?? []);
+        // Hide cards that only contain a "check-in pending" placeholder — e.g. a
+        // brand-new group where nobody has posted a ritual, thought, or check-in
+        // yet. Showing those as empty cards is noise; surface the empty state
+        // instead so members aren't greeted by pending placeholders.
+        const visibleCards = cards.filter((c) =>
+          c.nodes.some((n) => n.kind !== "pending"),
+        );
+        if (visibleCards.length === 0) {
+          return (
+            <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
+              <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
+                <MessageSquare size={24} style={{ color: PURPLE }} />
+              </div>
+              <div className="text-[16px] font-bold">Your feed is empty</div>
+              <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
+                Share what's on your mind or check in to start your streak.
+              </div>
+            </div>
+          );
+        }
+        return (
+          <div className="pb-2">
+            {visibleCards.map((item) => (
+              <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
+            ))}
           </div>
-          <div className="text-[16px] font-bold">Your feed is empty</div>
-          <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
-            Share what's on your mind or check in to start your streak.
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Getting started checklist hidden for now */}
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
