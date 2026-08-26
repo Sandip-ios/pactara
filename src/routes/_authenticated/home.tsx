@@ -12,7 +12,8 @@ import {
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
-import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
