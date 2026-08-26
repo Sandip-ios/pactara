@@ -35,7 +35,8 @@ const COPY: Record<
 
 type Stat = { label: string; value: string };
 
-const DOW_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
+
 
 export function TodaySnapshot({ state, week, streak, totalCheckIns }: Props) {
   const navigate = useNavigate();
