@@ -9,7 +9,7 @@ type Props = {
   state: SnapshotState;
   week: { label: string; done: boolean }[];
   streak: number;
-  totalCheckIns: number;
+  longestStreak: number;
 };
 
 const COPY: Record<
