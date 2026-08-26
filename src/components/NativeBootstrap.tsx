@@ -7,6 +7,8 @@ import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
+import { claimDeferredInvite } from "@/lib/deferred-invite";
+
 
 
 /**
