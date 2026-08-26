@@ -7,6 +7,8 @@ import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative } from "@/lib/native";
 import { setPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+import { recordDeferredInvite } from "@/lib/deferred-invite";
+
 
 
 const PURPLE = "#7C3AED";
