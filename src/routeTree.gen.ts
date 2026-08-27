@@ -30,7 +30,6 @@ import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './route
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
-import { Route as ApiPublicTestPushRouteImport } from './routes/api/public/test-push'
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
@@ -153,11 +152,6 @@ const AuthenticatedAccountSettingsIndexRoute =
     path: '/account-settings/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicTestPushRoute = ApiPublicTestPushRouteImport.update({
-  id: '/api/public/test-push',
-  path: '/api/public/test-push',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedCheckInNotesRoute =
   AuthenticatedCheckInNotesRouteImport.update({
     id: '/check-in/notes',
@@ -265,7 +259,6 @@ export interface FileRoutesByFullPath {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
-  '/api/public/test-push': typeof ApiPublicTestPushRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -302,7 +295,6 @@ export interface FileRoutesByTo {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
-  '/api/public/test-push': typeof ApiPublicTestPushRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
@@ -341,7 +333,6 @@ export interface FileRoutesById {
   '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
-  '/api/public/test-push': typeof ApiPublicTestPushRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -380,7 +371,6 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
-    | '/api/public/test-push'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
@@ -417,7 +407,6 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
-    | '/api/public/test-push'
     | '/account-settings'
     | '/chat'
     | '/check-in'
@@ -455,7 +444,6 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
-    | '/api/public/test-push'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
@@ -482,7 +470,6 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
-  ApiPublicTestPushRoute: typeof ApiPublicTestPushRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksDailyReminderRoute: typeof ApiPublicHooksDailyReminderRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
@@ -640,13 +627,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/account-settings/'
       preLoaderRoute: typeof AuthenticatedAccountSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/api/public/test-push': {
-      id: '/api/public/test-push'
-      path: '/api/public/test-push'
-      fullPath: '/api/public/test-push'
-      preLoaderRoute: typeof ApiPublicTestPushRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/check-in/notes': {
       id: '/_authenticated/check-in/notes'
@@ -807,7 +787,6 @@ const rootRouteChildren: RootRouteChildren = {
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
-  ApiPublicTestPushRoute: ApiPublicTestPushRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksDailyReminderRoute: ApiPublicHooksDailyReminderRoute,
   ApiPublicHooksMorningRitualReminderRoute:
