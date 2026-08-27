@@ -414,7 +414,10 @@ function PlanPage() {
           </a>
         </div>
 
+        <StoreDiagnostics />
+
       </div>
+
 
       {/* Confirm plan sheet */}
       {pendingPlan && (
