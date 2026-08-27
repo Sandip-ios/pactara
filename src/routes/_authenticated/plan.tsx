@@ -696,9 +696,15 @@ function StoreDiagnostics() {
   const run = async () => {
     setOpen(true);
     setLoading(true);
+    setData("Running diagnostics… this can take up to a minute.");
     try {
       const { getStoreDiagnostics } = await import("@/lib/revenuecat");
-      const result = await getStoreDiagnostics();
+      const result = await Promise.race([
+        getStoreDiagnostics(),
+        new Promise<Record<string, unknown>>((_, reject) =>
+          setTimeout(() => reject(new Error("Diagnostics timed out after 90s")), 90000),
+        ),
+      ]);
       setData(JSON.stringify(result, null, 2));
     } catch (err: any) {
       setData(`Diagnostics failed: ${err?.message ?? String(err)}`);
@@ -706,6 +712,7 @@ function StoreDiagnostics() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="mt-8 rounded-2xl border border-dashed p-4" style={{ borderColor: "#D8D2C8" }}>
