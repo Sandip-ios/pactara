@@ -7,6 +7,7 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import {
   getCustomerInfo,
   getOfferings,
+  getStoreDiagnostics,
   isSubscriptionActive,
   purchasePackage,
   purchaseProduct,
@@ -692,23 +693,40 @@ function StoreDiagnostics() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<string | null>(null);
+  const runIdRef = useRef(0);
+
+  useEffect(() => {
+    return () => {
+      runIdRef.current += 1;
+    };
+  }, []);
 
   const run = async () => {
+    const runId = runIdRef.current + 1;
+    runIdRef.current = runId;
     setOpen(true);
     setLoading(true);
-    setData("Running diagnostics… this can take up to a minute.");
+    setData("Starting diagnostics…");
+
+    const watchdog = window.setTimeout(() => {
+      if (runIdRef.current !== runId) return;
+      runIdRef.current += 1;
+      setData(
+        "Diagnostics timed out after 45 seconds. The native RevenueCat plugin did not respond. Rebuild the iOS app in Xcode so the installed native plugin matches the current app bundle, then run this check again.",
+      );
+      setLoading(false);
+    }, 45000);
+
     try {
-      const { getStoreDiagnostics } = await import("@/lib/revenuecat");
-      const result = await Promise.race([
-        getStoreDiagnostics(),
-        new Promise<Record<string, unknown>>((_, reject) =>
-          setTimeout(() => reject(new Error("Diagnostics timed out after 90s")), 90000),
-        ),
-      ]);
+      const result = await getStoreDiagnostics();
+      if (runIdRef.current !== runId) return;
       setData(JSON.stringify(result, null, 2));
     } catch (err: any) {
+      if (runIdRef.current !== runId) return;
       setData(`Diagnostics failed: ${err?.message ?? String(err)}`);
     } finally {
+      window.clearTimeout(watchdog);
+      if (runIdRef.current !== runId) return;
       setLoading(false);
     }
   };
@@ -727,6 +745,7 @@ function StoreDiagnostics() {
         </div>
         <button
           onClick={run}
+          disabled={loading}
           className="shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold text-white active:opacity-80"
           style={{ background: PURPLE }}
         >
