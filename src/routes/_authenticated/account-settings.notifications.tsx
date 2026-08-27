@@ -18,6 +18,7 @@ import {
   previewBlocked,
 } from "@/lib/push-client";
 import { SubPage, Flash, useFlash } from "@/components/account/SettingsKit";
+import { isNative } from "@/lib/native";
 
 const PURPLE = "#7C3AED";
 const LABEL = "#8A8580";
