@@ -9,6 +9,7 @@ import {
   getOfferings,
   isSubscriptionActive,
   purchasePackage,
+  purchaseProduct,
   restorePurchases,
   type CustomerInfo,
   type PactaraOfferings,
@@ -124,10 +125,11 @@ function PlanPage() {
   const confirmPlan = async () => {
     if (!pendingPlan) return;
     const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
+    const product = pendingPlan === "annual" ? offerings?.annualProduct : offerings?.monthlyProduct;
     if (isNative()) {
-      if (!pkg) {
+      if (!pkg && !product) {
         setError(
-          "The App Store did not return this subscription. Close and reopen the app, then try again.",
+          "Apple did not return this subscription. Tap Store diagnostics below and send the copied result to support.",
         );
         setPendingPlan(null);
         return;
@@ -135,7 +137,7 @@ function PlanPage() {
       setPurchasing(true);
       setError(null);
       try {
-        const result = await purchasePackage(pkg);
+        const result = pkg ? await purchasePackage(pkg) : await purchaseProduct(product);
         if (result) {
           setSelectedPlan(pendingPlan);
           setCustomerInfo(result);
@@ -212,10 +214,12 @@ function PlanPage() {
         ? `${daysLeft} of ${TRIAL_DAYS} days left · then $12.99/mo`
         : "Choose a plan below to keep your progress.";
 
-  const monthlyPrice = offerings?.monthly?.product?.priceString ?? "$12.99";
-  const annualPrice = offerings?.annual?.product?.priceString ?? "$79.99";
+  const monthlyPrice =
+    offerings?.monthly?.product?.priceString ?? offerings?.monthlyProduct?.priceString ?? "$12.99";
+  const annualPrice =
+    offerings?.annual?.product?.priceString ?? offerings?.annualProduct?.priceString ?? "$79.99";
   const annualMonthlyPrice = (() => {
-    const annualPriceValue = offerings?.annual?.product?.price;
+    const annualPriceValue = offerings?.annual?.product?.price ?? offerings?.annualProduct?.price;
     if (typeof annualPriceValue === "number" && annualPriceValue > 0) {
       return `$${(annualPriceValue / 12).toFixed(2)}`;
     }
@@ -415,9 +419,7 @@ function PlanPage() {
         </div>
 
         <StoreDiagnostics />
-
       </div>
-
 
       {/* Confirm plan sheet */}
       {pendingPlan && (
@@ -729,7 +731,12 @@ function StoreDiagnostics() {
         <>
           <pre
             className="mt-3 max-h-72 overflow-auto rounded-xl p-3 text-[11px] leading-[1.4]"
-            style={{ background: "#F1EEE8", color: INK, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+            style={{
+              background: "#F1EEE8",
+              color: INK,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
           >
             {data}
           </pre>

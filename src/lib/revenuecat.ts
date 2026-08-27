@@ -3,9 +3,15 @@ import type {
   CustomerInfo,
   PurchasesOffering,
   PurchasesPackage,
+  PurchasesStoreProduct,
 } from "@revenuecat/purchases-capacitor";
 
 export const REVENUECAT_ENTITLEMENT_ID = "premium";
+
+export const REVENUECAT_PRODUCT_IDS = {
+  monthly: "pactara_monthly",
+  annual: "pactara_annual",
+} as const;
 
 const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 
@@ -85,12 +91,11 @@ export type PactaraOfferings = {
   offering: PurchasesOffering;
   monthly: PurchasesPackage | null;
   annual: PurchasesPackage | null;
+  monthlyProduct: PurchasesStoreProduct | null;
+  annualProduct: PurchasesStoreProduct | null;
 };
 
-function pick(
-  offering: PurchasesOffering,
-  kind: "MONTHLY" | "ANNUAL",
-): PurchasesPackage | null {
+function pick(offering: PurchasesOffering, kind: "MONTHLY" | "ANNUAL"): PurchasesPackage | null {
   const direct = kind === "MONTHLY" ? offering.monthly : offering.annual;
   if (direct) return direct;
   const all = offering.availablePackages ?? [];
@@ -125,6 +130,21 @@ export async function getOfferings(): Promise<PactaraOfferings | null> {
   }
   const monthly = pick(offering, "MONTHLY");
   const annual = pick(offering, "ANNUAL");
+  let monthlyProduct = monthly?.product ?? null;
+  let annualProduct = annual?.product ?? null;
+
+  // An offering can be returned before StoreKit has attached its products.
+  // Query the exact App Store identifiers as a second path so a valid product
+  // remains purchasable even if the RevenueCat package mapping is unavailable.
+  if (!monthlyProduct || !annualProduct) {
+    const { products } = await Purchases.getProducts({
+      productIdentifiers: [REVENUECAT_PRODUCT_IDS.monthly, REVENUECAT_PRODUCT_IDS.annual],
+    });
+    monthlyProduct ??=
+      products.find((product) => product.identifier === REVENUECAT_PRODUCT_IDS.monthly) ?? null;
+    annualProduct ??=
+      products.find((product) => product.identifier === REVENUECAT_PRODUCT_IDS.annual) ?? null;
+  }
   console.info("[revenuecat] offerings loaded", {
     offeringId: offering.identifier,
     packages: (offering.availablePackages ?? []).map((p) => ({
@@ -135,9 +155,8 @@ export async function getOfferings(): Promise<PactaraOfferings | null> {
     monthly: monthly?.identifier ?? null,
     annual: annual?.identifier ?? null,
   });
-  return { offering, monthly, annual };
+  return { offering, monthly, annual, monthlyProduct, annualProduct };
 }
-
 
 /** Trigger the native purchase flow for a package. */
 export async function purchasePackage(aPackage: PurchasesPackage): Promise<CustomerInfo | null> {
@@ -154,6 +173,26 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
       return null;
     }
     console.error("[revenuecat] purchasePackage failed", err);
+    throw err;
+  }
+}
+
+/** Trigger the native purchase flow for a product fetched directly from StoreKit. */
+export async function purchaseProduct(
+  product: PurchasesStoreProduct | null | undefined,
+): Promise<CustomerInfo | null> {
+  if (!isNative() || !product) return null;
+  try {
+    await ensureRevenueCatConfigured();
+    const Purchases = await loadPurchases();
+    const { customerInfo } = await Purchases.purchaseStoreProduct({ product });
+    return customerInfo;
+  } catch (err: any) {
+    if (err?.userCancelled) {
+      console.info("[revenuecat] purchase cancelled by user");
+      return null;
+    }
+    console.error("[revenuecat] purchaseStoreProduct failed", err);
     throw err;
   }
 }
@@ -193,7 +232,12 @@ export function isSubscriptionActive(customerInfo: CustomerInfo | null): boolean
   return entitlement?.isActive === true;
 }
 
-export { type CustomerInfo, type PurchasesPackage, type PurchasesOffering };
+export {
+  type CustomerInfo,
+  type PurchasesPackage,
+  type PurchasesOffering,
+  type PurchasesStoreProduct,
+};
 
 /**
  * TEMPORARY: raw StoreKit / RevenueCat diagnostics for debugging why an
@@ -239,6 +283,24 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
         price: p.product?.priceString ?? null,
       })),
     }));
+
+    try {
+      const { products } = await Purchases.getProducts({
+        productIdentifiers: [REVENUECAT_PRODUCT_IDS.monthly, REVENUECAT_PRODUCT_IDS.annual],
+      });
+      out["requestedProductIds"] = Object.values(REVENUECAT_PRODUCT_IDS);
+      out["directStoreProducts"] = products.map((product) => ({
+        id: product.identifier,
+        title: product.title,
+        price: product.priceString,
+      }));
+      out["storeReturnedAllProducts"] = Object.values(REVENUECAT_PRODUCT_IDS).every((id) =>
+        products.some((product) => product.identifier === id),
+      );
+    } catch (productError: any) {
+      out["directProductError"] = productError?.message ?? String(productError);
+      out["directProductErrorCode"] = productError?.code ?? null;
+    }
 
     const { customerInfo } = await Purchases.getCustomerInfo();
     out["activeEntitlements"] = Object.keys(customerInfo.entitlements.active ?? {});
