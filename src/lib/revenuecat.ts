@@ -179,9 +179,9 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
 
 /** Trigger the native purchase flow for a product fetched directly from StoreKit. */
 export async function purchaseProduct(
-  product: PurchasesStoreProduct,
+  product: PurchasesStoreProduct | null | undefined,
 ): Promise<CustomerInfo | null> {
-  if (!isNative()) return null;
+  if (!isNative() || !product) return null;
   try {
     await ensureRevenueCatConfigured();
     const Purchases = await loadPurchases();
