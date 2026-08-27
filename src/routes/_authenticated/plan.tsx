@@ -125,8 +125,7 @@ function PlanPage() {
   const confirmPlan = async () => {
     if (!pendingPlan) return;
     const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
-    const product =
-      pendingPlan === "annual" ? offerings?.annualProduct : offerings?.monthlyProduct;
+    const product = pendingPlan === "annual" ? offerings?.annualProduct : offerings?.monthlyProduct;
     if (isNative()) {
       if (!pkg && !product) {
         setError(
@@ -420,9 +419,7 @@ function PlanPage() {
         </div>
 
         <StoreDiagnostics />
-
       </div>
-
 
       {/* Confirm plan sheet */}
       {pendingPlan && (
@@ -734,7 +731,12 @@ function StoreDiagnostics() {
         <>
           <pre
             className="mt-3 max-h-72 overflow-auto rounded-xl p-3 text-[11px] leading-[1.4]"
-            style={{ background: "#F1EEE8", color: INK, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+            style={{
+              background: "#F1EEE8",
+              color: INK,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
           >
             {data}
           </pre>

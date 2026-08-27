@@ -444,7 +444,6 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </a>
           </div>
         </div>
-
       </div>
     </div>
   );

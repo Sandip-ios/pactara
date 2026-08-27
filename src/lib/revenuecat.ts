@@ -95,10 +95,7 @@ export type PactaraOfferings = {
   annualProduct: PurchasesStoreProduct | null;
 };
 
-function pick(
-  offering: PurchasesOffering,
-  kind: "MONTHLY" | "ANNUAL",
-): PurchasesPackage | null {
+function pick(offering: PurchasesOffering, kind: "MONTHLY" | "ANNUAL"): PurchasesPackage | null {
   const direct = kind === "MONTHLY" ? offering.monthly : offering.annual;
   if (direct) return direct;
   const all = offering.availablePackages ?? [];
@@ -161,7 +158,6 @@ export async function getOfferings(): Promise<PactaraOfferings | null> {
   return { offering, monthly, annual, monthlyProduct, annualProduct };
 }
 
-
 /** Trigger the native purchase flow for a package. */
 export async function purchasePackage(aPackage: PurchasesPackage): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
@@ -182,7 +178,9 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
 }
 
 /** Trigger the native purchase flow for a product fetched directly from StoreKit. */
-export async function purchaseProduct(product: PurchasesStoreProduct): Promise<CustomerInfo | null> {
+export async function purchaseProduct(
+  product: PurchasesStoreProduct,
+): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
     await ensureRevenueCatConfigured();
