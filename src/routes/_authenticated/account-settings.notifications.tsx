@@ -71,6 +71,16 @@ function NotificationsPage() {
 
   const morningToggle = useMutation({
     mutationFn: async (next: boolean) => {
+      // In the native app pushes are delivered through Firebase, not Web Push.
+      // The WKWebView has no PushManager, so skip the web-push path entirely.
+      if (isNative()) {
+        await updateFn({
+          data: next
+            ? { morning_ritual_reminder_enabled: true, push_enabled: true }
+            : { morning_ritual_reminder_enabled: false },
+        });
+        return next;
+      }
       if (next) {
         if (!pushSupported()) {
           throw new Error("Your browser doesn't support push notifications");
