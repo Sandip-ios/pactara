@@ -6,6 +6,7 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import {
   getOfferings,
   purchasePackage,
+  purchaseProduct,
   restorePurchases,
   type PactaraOfferings,
 } from "@/lib/revenuecat";
@@ -106,16 +107,17 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
   async function handleSubscribe() {
     if (purchasing) return;
     const pkg = plan === "yearly" ? annualPkg : monthlyPkg;
-    if (!pkg) {
+    const product = plan === "yearly" ? annualProduct : monthlyProduct;
+    if (!pkg && !product) {
       setError(
-        "The App Store did not return this subscription. Close and reopen the app, then try again.",
+        "Apple did not return this subscription. Open Plan in your profile and run Store diagnostics.",
       );
       return;
     }
     setPurchasing(true);
     setError(null);
     try {
-      const customerInfo = await purchasePackage(pkg);
+      const customerInfo = pkg ? await purchasePackage(pkg) : await purchaseProduct(product);
       if (customerInfo) {
         if (isIntro && onDismiss) {
           onDismiss();
@@ -173,11 +175,13 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   const monthlyPkg = offerings?.monthly;
   const annualPkg = offerings?.annual;
+  const monthlyProduct = offerings?.monthlyProduct;
+  const annualProduct = offerings?.annualProduct;
 
-  const priceMonthly = monthlyPkg?.product?.priceString ?? "$12.99";
-  const priceYearly = annualPkg?.product?.priceString ?? "$79.99";
+  const priceMonthly = monthlyPkg?.product?.priceString ?? monthlyProduct?.priceString ?? "$12.99";
+  const priceYearly = annualPkg?.product?.priceString ?? annualProduct?.priceString ?? "$79.99";
   const yearlyMonthly = (() => {
-    const annualPrice = annualPkg?.product?.price;
+    const annualPrice = annualPkg?.product?.price ?? annualProduct?.price;
     if (typeof annualPrice === "number" && annualPrice > 0) {
       return `$${(annualPrice / 12).toFixed(2)}`;
     }
