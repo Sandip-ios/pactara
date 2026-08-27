@@ -244,6 +244,14 @@ export {
  * offering comes back without packages. Safe to delete once IAP is stable.
  */
 export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
+  const withTimeout = async <T>(label: string, ms: number, p: Promise<T>): Promise<T> =>
+    await Promise.race([
+      p,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms),
+      ),
+    ]);
+
   const out: Record<string, unknown> = {
     native: isNative(),
     platform: typeof navigator !== "undefined" ? navigator.userAgent : null,
@@ -257,7 +265,7 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
   }
 
   try {
-    await ensureRevenueCatConfigured();
+    await withTimeout("configure", 15000, ensureRevenueCatConfigured());
     out["configured"] = true;
   } catch (err: any) {
     out["configured"] = false;
@@ -265,12 +273,23 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
     return out;
   }
 
+  let Purchases: Awaited<ReturnType<typeof loadPurchases>>;
   try {
-    const Purchases = await loadPurchases();
-    const { appUserID } = await Purchases.getAppUserID();
-    out["appUserId"] = appUserID;
+    Purchases = await withTimeout("loadPlugin", 10000, loadPurchases());
+  } catch (err: any) {
+    out["pluginError"] = err?.message ?? String(err);
+    return out;
+  }
 
-    const offerings = await Purchases.getOfferings();
+  try {
+    const { appUserID } = await withTimeout("getAppUserID", 10000, Purchases.getAppUserID());
+    out["appUserId"] = appUserID;
+  } catch (err: any) {
+    out["appUserIdError"] = err?.message ?? String(err);
+  }
+
+  try {
+    const offerings = await withTimeout("getOfferings", 20000, Purchases.getOfferings());
     out["currentOfferingId"] = offerings.current?.identifier ?? null;
     out["allOfferingIds"] = Object.keys(offerings.all ?? {});
     out["offerings"] = Object.values(offerings.all ?? {}).map((o) => ({
@@ -283,31 +302,44 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
         price: p.product?.priceString ?? null,
       })),
     }));
+  } catch (err: any) {
+    out["offeringsError"] = err?.message ?? String(err);
+    out["offeringsErrorCode"] = err?.code ?? null;
+  }
 
-    try {
-      const { products } = await Purchases.getProducts({
+  try {
+    const { products } = await withTimeout(
+      "getProducts",
+      20000,
+      Purchases.getProducts({
         productIdentifiers: [REVENUECAT_PRODUCT_IDS.monthly, REVENUECAT_PRODUCT_IDS.annual],
-      });
-      out["requestedProductIds"] = Object.values(REVENUECAT_PRODUCT_IDS);
-      out["directStoreProducts"] = products.map((product) => ({
-        id: product.identifier,
-        title: product.title,
-        price: product.priceString,
-      }));
-      out["storeReturnedAllProducts"] = Object.values(REVENUECAT_PRODUCT_IDS).every((id) =>
-        products.some((product) => product.identifier === id),
-      );
-    } catch (productError: any) {
-      out["directProductError"] = productError?.message ?? String(productError);
-      out["directProductErrorCode"] = productError?.code ?? null;
-    }
+      }),
+    );
+    out["requestedProductIds"] = Object.values(REVENUECAT_PRODUCT_IDS);
+    out["directStoreProducts"] = products.map((product) => ({
+      id: product.identifier,
+      title: product.title,
+      price: product.priceString,
+    }));
+    out["storeReturnedAllProducts"] = Object.values(REVENUECAT_PRODUCT_IDS).every((id) =>
+      products.some((product) => product.identifier === id),
+    );
+  } catch (productError: any) {
+    out["directProductError"] = productError?.message ?? String(productError);
+    out["directProductErrorCode"] = productError?.code ?? null;
+  }
 
-    const { customerInfo } = await Purchases.getCustomerInfo();
+  try {
+    const { customerInfo } = await withTimeout(
+      "getCustomerInfo",
+      15000,
+      Purchases.getCustomerInfo(),
+    );
     out["activeEntitlements"] = Object.keys(customerInfo.entitlements.active ?? {});
   } catch (err: any) {
-    out["error"] = err?.message ?? String(err);
-    out["errorCode"] = err?.code ?? err?.underlyingErrorMessage ?? null;
+    out["customerInfoError"] = err?.message ?? String(err);
   }
 
   return out;
 }
+
