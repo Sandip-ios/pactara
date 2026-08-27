@@ -109,7 +109,7 @@ export async function pushToUsers(
         }
       }
     } catch (err) {
-      console.warn("[notify] fcm send failed", err);
+      console.error("[notify] fcm send failed", (err as Error)?.message ?? err);
     }
   }
 
