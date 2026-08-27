@@ -414,7 +414,10 @@ function PlanPage() {
           </a>
         </div>
 
+        <StoreDiagnostics />
+
       </div>
+
 
       {/* Confirm plan sheet */}
       {pendingPlan && (
@@ -678,6 +681,72 @@ function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose
         {children}
       </div>
       <style>{`@keyframes sheetUp { from { transform: translateY(100%);} to { transform: translateY(0);} }`}</style>
+    </div>
+  );
+}
+
+/** TEMPORARY diagnostics panel — shows the raw offerings the device receives. */
+function StoreDiagnostics() {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<string | null>(null);
+
+  const run = async () => {
+    setOpen(true);
+    setLoading(true);
+    try {
+      const { getStoreDiagnostics } = await import("@/lib/revenuecat");
+      const result = await getStoreDiagnostics();
+      setData(JSON.stringify(result, null, 2));
+    } catch (err: any) {
+      setData(`Diagnostics failed: ${err?.message ?? String(err)}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-8 rounded-2xl border border-dashed p-4" style={{ borderColor: "#D8D2C8" }}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[14px] font-semibold" style={{ color: INK }}>
+            Store diagnostics
+          </div>
+          <div className="text-[12px]" style={{ color: MUTED }}>
+            Temporary — shows what the App Store returns on this device.
+          </div>
+        </div>
+        <button
+          onClick={run}
+          className="shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold text-white active:opacity-80"
+          style={{ background: PURPLE }}
+        >
+          {loading ? "Running…" : "Run"}
+        </button>
+      </div>
+
+      {open && data && (
+        <>
+          <pre
+            className="mt-3 max-h-72 overflow-auto rounded-xl p-3 text-[11px] leading-[1.4]"
+            style={{ background: "#F1EEE8", color: INK, whiteSpace: "pre-wrap", wordBreak: "break-word" }}
+          >
+            {data}
+          </pre>
+          <button
+            onClick={() => {
+              try {
+                navigator.clipboard?.writeText(data);
+                toast.success("Diagnostics copied");
+              } catch {}
+            }}
+            className="mt-2 text-[12px] font-semibold underline"
+            style={{ color: PURPLE }}
+          >
+            Copy
+          </button>
+        </>
+      )}
     </div>
   );
 }

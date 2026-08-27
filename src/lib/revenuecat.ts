@@ -194,3 +194,58 @@ export function isSubscriptionActive(customerInfo: CustomerInfo | null): boolean
 }
 
 export { type CustomerInfo, type PurchasesPackage, type PurchasesOffering };
+
+/**
+ * TEMPORARY: raw StoreKit / RevenueCat diagnostics for debugging why an
+ * offering comes back without packages. Safe to delete once IAP is stable.
+ */
+export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
+  const out: Record<string, unknown> = {
+    native: isNative(),
+    platform: typeof navigator !== "undefined" ? navigator.userAgent : null,
+    publicKeyPrefix: PUBLIC_KEY ? `${String(PUBLIC_KEY).slice(0, 8)}…` : null,
+    publicKeyLength: PUBLIC_KEY ? String(PUBLIC_KEY).length : 0,
+  };
+
+  if (!isNative()) {
+    out["note"] = "Not running in the native app — StoreKit is unavailable here.";
+    return out;
+  }
+
+  try {
+    await ensureRevenueCatConfigured();
+    out["configured"] = true;
+  } catch (err: any) {
+    out["configured"] = false;
+    out["configureError"] = err?.message ?? String(err);
+    return out;
+  }
+
+  try {
+    const Purchases = await loadPurchases();
+    const { appUserID } = await Purchases.getAppUserID();
+    out["appUserId"] = appUserID;
+
+    const offerings = await Purchases.getOfferings();
+    out["currentOfferingId"] = offerings.current?.identifier ?? null;
+    out["allOfferingIds"] = Object.keys(offerings.all ?? {});
+    out["offerings"] = Object.values(offerings.all ?? {}).map((o) => ({
+      id: o.identifier,
+      packageCount: (o.availablePackages ?? []).length,
+      packages: (o.availablePackages ?? []).map((p) => ({
+        id: p.identifier,
+        type: p.packageType,
+        productId: p.product?.identifier ?? null,
+        price: p.product?.priceString ?? null,
+      })),
+    }));
+
+    const { customerInfo } = await Purchases.getCustomerInfo();
+    out["activeEntitlements"] = Object.keys(customerInfo.entitlements.active ?? {});
+  } catch (err: any) {
+    out["error"] = err?.message ?? String(err);
+    out["errorCode"] = err?.code ?? err?.underlyingErrorMessage ?? null;
+  }
+
+  return out;
+}
