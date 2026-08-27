@@ -32,13 +32,16 @@ async function ensureRevenueCatConfigured(userId?: string | null) {
   if (!configurePromise) {
     configurePromise = (async () => {
       const Purchases = await loadPurchases();
-      const status = await Purchases.isConfigured();
-      if (!status.isConfigured) {
-        await Purchases.configure({
-          apiKey: PUBLIC_KEY,
-          appUserID: userId ?? undefined,
-        });
-      }
+      // Do not call Purchases.isConfigured() here. The web bundle is served
+      // remotely and can be newer than the native shell installed from the
+      // App Store. Older RevenueCat Capacitor bridges do not expose that
+      // method and leave its promise pending forever. `configure` has existed
+      // across the supported plugin versions and is synchronous on iOS; the
+      // module-level promise prevents duplicate calls during this web session.
+      await Purchases.configure({
+        apiKey: PUBLIC_KEY,
+        appUserID: userId ?? undefined,
+      });
       configured = true;
     })().catch((error) => {
       configurePromise = null;
