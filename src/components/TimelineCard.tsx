@@ -201,7 +201,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
     case "ritual_missed":
       return {
         emoji: "😴",
-        label: "Missed Today's Commitment",
+        label: "Missed commitment",
         labelColor: "#B45309",
         bg: "#FEF6E4",
         border: "#FBE4B6",
