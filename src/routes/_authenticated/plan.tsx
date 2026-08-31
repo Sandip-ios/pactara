@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "lucide-react";
+import { ChevronLeft, Check, Sparkles, X, Smartphone, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
