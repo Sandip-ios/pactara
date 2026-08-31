@@ -272,7 +272,7 @@ function JoinPage() {
             <div className="flex flex-col items-center gap-1">
               <div className="flex items-center gap-1.5">
                 <CalendarDays size={16} style={{ color: PURPLE }} />
-                <span className="font-bold text-[16px]">30d</span>
+                <span className="font-bold text-[16px]">{data?.durationDays ?? 30}d</span>
               </div>
               <div className="text-[12px]" style={{ color: TEXT_MUTED }}>challenge</div>
             </div>
