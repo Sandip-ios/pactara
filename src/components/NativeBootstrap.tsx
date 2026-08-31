@@ -180,7 +180,17 @@ export function NativeBootstrap() {
               // network unavailable
             }
           }
-          if (!pending) {
+          // Only peek at the clipboard once, on the very first launch after a
+          // fresh install — otherwise iOS shows a "Paste" prompt every launch.
+          const CLIPBOARD_PEEK_KEY = "pactara.invite.clipboardPeeked";
+          const alreadyPeeked =
+            typeof localStorage !== "undefined" && localStorage.getItem(CLIPBOARD_PEEK_KEY) === "1";
+          if (!pending && !alreadyPeeked) {
+            try {
+              localStorage.setItem(CLIPBOARD_PEEK_KEY, "1");
+            } catch {
+              // storage unavailable
+            }
             try {
               const text = await navigator.clipboard?.readText();
               const fromClipboard = text ? parseInviteUrl(text) : null;
