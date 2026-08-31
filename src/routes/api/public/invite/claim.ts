@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/invite/claim")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { clientIp, fingerprint, windowStartIso } = await import(
+        const { clientIp, fingerprint, ipPrefix, windowStartIso } = await import(
           "@/lib/deferred-invite.server"
         );
 
@@ -29,17 +29,44 @@ export const Route = createFileRoute("/api/public/invite/claim")({
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const base = () =>
+            supabaseAdmin
+              .from("deferred_invites")
+              .select("id, group_id")
+              .eq("platform", platform)
+              .is("claimed_at", null)
+              .order("created_at", { ascending: false })
+              .limit(1);
+
           const ipHash = await fingerprint(ip);
-          const { data } = await supabaseAdmin
-            .from("deferred_invites")
-            .select("id, group_id")
+          const prefixHash = await fingerprint(ipPrefix(ip));
+
+          // 1. Exact IP match. 2. Same network prefix (carrier NAT reassigns
+          // addresses between the Safari visit and the fresh install).
+          // 3. Last resort: a single very recent invite for this platform.
+          let { data } = await base()
             .eq("ip_hash", ipHash)
-            .eq("platform", platform)
-            .is("claimed_at", null)
             .gte("created_at", windowStartIso())
-            .order("created_at", { ascending: false })
-            .limit(1)
             .maybeSingle();
+
+          if (!data) {
+            ({ data } = await base()
+              .eq("ip_prefix_hash", prefixHash)
+              .gte("created_at", windowStartIso())
+              .maybeSingle());
+          }
+
+          if (!data) {
+            const recent = await supabaseAdmin
+              .from("deferred_invites")
+              .select("id, group_id")
+              .eq("platform", platform)
+              .is("claimed_at", null)
+              .gte("created_at", windowStartIso(60))
+              .order("created_at", { ascending: false })
+              .limit(2);
+            if (recent.data?.length === 1) data = recent.data[0];
+          }
 
           if (!data) return Response.json({ groupId: null });
 
@@ -54,6 +81,7 @@ export const Route = createFileRoute("/api/public/invite/claim")({
           return Response.json({ groupId: null });
         }
       },
+
     },
   },
 });

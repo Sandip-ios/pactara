@@ -1,0 +1,2 @@
+ALTER TABLE public.deferred_invites ADD COLUMN IF NOT EXISTS ip_prefix_hash text;
+CREATE INDEX IF NOT EXISTS deferred_invites_prefix_idx ON public.deferred_invites (ip_prefix_hash, platform, created_at DESC);

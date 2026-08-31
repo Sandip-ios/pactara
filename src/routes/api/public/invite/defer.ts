@@ -13,6 +13,7 @@ export const Route = createFileRoute("/api/public/invite/defer")({
           clientIp,
           platformFromUserAgent,
           fingerprint,
+          ipPrefix,
           isUuid,
         } = await import("@/lib/deferred-invite.server");
 
@@ -37,8 +38,10 @@ export const Route = createFileRoute("/api/public/invite/defer")({
           await supabaseAdmin.from("deferred_invites").insert({
             group_id: groupId,
             ip_hash: await fingerprint(ip),
+            ip_prefix_hash: await fingerprint(ipPrefix(ip)),
             platform,
           });
+
         } catch (err) {
           console.warn("[deferred-invite] store failed", err);
           return Response.json({ ok: false }, { status: 200 });

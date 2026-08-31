@@ -3,8 +3,9 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
 import { isNative } from "@/lib/native";
-import { setPendingInvite } from "@/lib/pending-invite";
+import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
+import { claimDeferredInvite } from "@/lib/deferred-invite";
 
 
 export const Route = createFileRoute("/")({
@@ -19,10 +20,24 @@ export const Route = createFileRoute("/")({
         setPendingInvite(launchGroupId);
         throw redirect({ to: "/join/$groupId", params: { groupId: launchGroupId } });
       }
+
+      // Installed from the App Store after tapping an invite in Safari: the
+      // launch URL is empty, so ask the server for the deferred invite before
+      // the onboarding slides render.
+      const pending = getPendingInvite();
+      if (pending && !wasInviteConsumed(pending)) {
+        throw redirect({ to: "/join/$groupId", params: { groupId: pending } });
+      }
+      const claimed = await claimDeferredInvite();
+      if (claimed && !wasInviteConsumed(claimed)) {
+        setPendingInvite(claimed);
+        throw redirect({ to: "/join/$groupId", params: { groupId: claimed } });
+      }
     }
     const { data } = await supabase.auth.getUser();
     if (data.user) throw redirect({ to: "/check-in" });
   },
+
   head: () => ({
     meta: [
       {
