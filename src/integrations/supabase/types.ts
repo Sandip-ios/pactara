@@ -160,6 +160,7 @@ export type Database = {
           group_id: string
           id: string
           ip_hash: string
+          ip_prefix_hash: string | null
           platform: string
         }
         Insert: {
@@ -168,6 +169,7 @@ export type Database = {
           group_id: string
           id?: string
           ip_hash: string
+          ip_prefix_hash?: string | null
           platform: string
         }
         Update: {
@@ -176,6 +178,7 @@ export type Database = {
           group_id?: string
           id?: string
           ip_hash?: string
+          ip_prefix_hash?: string | null
           platform?: string
         }
         Relationships: []
