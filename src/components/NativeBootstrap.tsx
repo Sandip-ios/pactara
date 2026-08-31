@@ -160,8 +160,10 @@ export function NativeBootstrap() {
       // Deferred deep link: the user tapped an invite in mobile Safari and got
       // sent to the App Store (whether or not the app was already installed).
       // On every cold launch we look for a stashed invite id, and otherwise
-      // peek at the clipboard (the invite URL was copied before the redirect).
-      // Invites we've already opened are remembered so we never loop.
+      // ask the server for an invite opened recently from this device's
+      // network. Invites we've already opened are remembered so we never loop.
+      // We intentionally do NOT read the clipboard here — iOS shows a "Paste"
+      // permission banner when an app accesses UIPasteboard.
       try {
         const path = typeof window !== "undefined" ? window.location.pathname : "";
         if (!path.startsWith("/join/")) {
@@ -178,27 +180,6 @@ export function NativeBootstrap() {
               }
             } catch {
               // network unavailable
-            }
-          }
-          // Only peek at the clipboard once, on the very first launch after a
-          // fresh install — otherwise iOS shows a "Paste" prompt every launch.
-          const CLIPBOARD_PEEK_KEY = "pactara.invite.clipboardPeeked";
-          const alreadyPeeked =
-            typeof localStorage !== "undefined" && localStorage.getItem(CLIPBOARD_PEEK_KEY) === "1";
-          if (!pending && !alreadyPeeked) {
-            try {
-              localStorage.setItem(CLIPBOARD_PEEK_KEY, "1");
-            } catch {
-              // storage unavailable
-            }
-            try {
-              const text = await navigator.clipboard?.readText();
-              const fromClipboard = text ? parseInviteUrl(text) : null;
-              if (fromClipboard && !wasInviteConsumed(fromClipboard)) {
-                pending = fromClipboard;
-              }
-            } catch {
-              // clipboard denied
             }
           }
 
