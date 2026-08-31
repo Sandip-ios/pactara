@@ -22,21 +22,33 @@ export async function recordDeferredInvite(groupId: string): Promise<void> {
 
 /**
  * Native side: on a cold launch, ask the server whether an invite was opened
- * from this device's network shortly before install.
+ * from this device's network shortly before install. Only ever asked once per
+ * app session, and time-boxed so it can gate the first render safely.
  */
-export async function claimDeferredInvite(): Promise<string | null> {
-  if (!isNative()) return null;
-  const platform = nativePlatform() === "android" ? "android" : "ios";
-  try {
-    const res = await fetch(`${ORIGIN}/api/public/invite/claim`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ platform }),
-    });
-    if (!res.ok) return null;
-    const json = (await res.json()) as { groupId?: string | null };
-    return json.groupId ?? null;
-  } catch {
-    return null;
-  }
+let claimPromise: Promise<string | null> | null = null;
+
+export function claimDeferredInvite(): Promise<string | null> {
+  if (claimPromise) return claimPromise;
+  claimPromise = (async () => {
+    if (!isNative()) return null;
+    const platform = nativePlatform() === "android" ? "android" : "ios";
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      const res = await fetch(`${ORIGIN}/api/public/invite/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ platform }),
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      if (!res.ok) return null;
+      const json = (await res.json()) as { groupId?: string | null };
+      return json.groupId ?? null;
+    } catch {
+      return null;
+    }
+  })();
+  return claimPromise;
 }
+
