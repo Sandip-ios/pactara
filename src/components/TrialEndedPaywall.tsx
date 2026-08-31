@@ -409,16 +409,35 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
               Maybe later
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={signingOut || purchasing}
-              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
-              style={{ color: MUTED }}
-            >
-              {signingOut ? "Signing out…" : "Sign out"}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem("pactara-skip-paywall", "1");
+                  } catch {
+                    /* ignore */
+                  }
+                  window.location.reload();
+                }}
+                disabled={purchasing}
+                className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
+                style={{ color: MUTED }}
+              >
+                Skip for now
+              </button>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut || purchasing}
+                className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
+                style={{ color: MUTED }}
+              >
+                {signingOut ? "Signing out…" : "Sign out"}
+              </button>
+            </>
           )}
+
 
           <p className="mt-4 text-center text-[11px] leading-relaxed" style={{ color: MUTED }}>
             Payment is charged to your Apple ID at confirmation of purchase. Subscriptions renew
