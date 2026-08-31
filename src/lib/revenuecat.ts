@@ -20,6 +20,25 @@ const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 let configured = false;
 let configurePromise: Promise<void> | null = null;
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function errorCode(error: unknown): unknown {
+  return typeof error === "object" && error !== null && "code" in error
+    ? (error as { code?: unknown }).code
+    : null;
+}
+
+function wasPurchaseCancelled(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "userCancelled" in error &&
+    (error as { userCancelled?: unknown }).userCancelled === true
+  );
+}
+
 function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
   if (!Capacitor.isPluginAvailable("Purchases")) {
@@ -173,9 +192,9 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
     const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.purchasePackage({ aPackage });
     return customerInfo;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // User cancelling the purchase is expected; don't throw.
-    if (err?.userCancelled) {
+    if (wasPurchaseCancelled(err)) {
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
@@ -194,8 +213,8 @@ export async function purchaseProduct(
     const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.purchaseStoreProduct({ product });
     return customerInfo;
-  } catch (err: any) {
-    if (err?.userCancelled) {
+  } catch (err: unknown) {
+    if (wasPurchaseCancelled(err)) {
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
@@ -283,25 +302,25 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
   try {
     await withTimeout("configure", 15000, ensureRevenueCatConfigured());
     out["configured"] = true;
-  } catch (err: any) {
+  } catch (err: unknown) {
     out["configured"] = false;
-    out["configureError"] = err?.message ?? String(err);
+    out["configureError"] = errorMessage(err);
     return out;
   }
 
   let purchases: ReturnType<typeof loadPurchases>;
   try {
     purchases = loadPurchases();
-  } catch (err: any) {
-    out["pluginError"] = err?.message ?? String(err);
+  } catch (err: unknown) {
+    out["pluginError"] = errorMessage(err);
     return out;
   }
 
   try {
     const { appUserID } = await withTimeout("getAppUserID", 10000, purchases.getAppUserID());
     out["appUserId"] = appUserID;
-  } catch (err: any) {
-    out["appUserIdError"] = err?.message ?? String(err);
+  } catch (err: unknown) {
+    out["appUserIdError"] = errorMessage(err);
   }
 
   try {
@@ -318,9 +337,9 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
         price: p.product?.priceString ?? null,
       })),
     }));
-  } catch (err: any) {
-    out["offeringsError"] = err?.message ?? String(err);
-    out["offeringsErrorCode"] = err?.code ?? null;
+  } catch (err: unknown) {
+    out["offeringsError"] = errorMessage(err);
+    out["offeringsErrorCode"] = errorCode(err);
   }
 
   try {
@@ -340,9 +359,9 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
     out["storeReturnedAllProducts"] = Object.values(REVENUECAT_PRODUCT_IDS).every((id) =>
       products.some((product) => product.identifier === id),
     );
-  } catch (productError: any) {
-    out["directProductError"] = productError?.message ?? String(productError);
-    out["directProductErrorCode"] = productError?.code ?? null;
+  } catch (productError: unknown) {
+    out["directProductError"] = errorMessage(productError);
+    out["directProductErrorCode"] = errorCode(productError);
   }
 
   try {
@@ -352,8 +371,8 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
       purchases.getCustomerInfo(),
     );
     out["activeEntitlements"] = Object.keys(customerInfo.entitlements.active ?? {});
-  } catch (err: any) {
-    out["customerInfoError"] = err?.message ?? String(err);
+  } catch (err: unknown) {
+    out["customerInfoError"] = errorMessage(err);
   }
 
   return out;
