@@ -7,7 +7,6 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import {
   getCustomerInfo,
   getOfferings,
-  getStoreDiagnostics,
   isSubscriptionActive,
   purchasePackage,
   purchaseProduct,
@@ -130,7 +129,7 @@ function PlanPage() {
     if (isNative()) {
       if (!pkg && !product) {
         setError(
-          "Apple did not return this subscription. Tap Store diagnostics below and send the copied result to support.",
+          "Apple did not return this subscription. Please try again later or contact support at hello@pactara.app.",
         );
         setPendingPlan(null);
         return;
@@ -419,7 +418,6 @@ function PlanPage() {
           </a>
         </div>
 
-        <StoreDiagnostics />
       </div>
 
       {/* Confirm plan sheet */}
