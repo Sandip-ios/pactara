@@ -110,7 +110,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     const product = plan === "yearly" ? annualProduct : monthlyProduct;
     if (!pkg && !product) {
       setError(
-        "Apple did not return this subscription. Open Plan in your profile and run Store diagnostics.",
+        "Apple did not return this subscription. Please try again later or contact support at hello@pactara.app.",
       );
       return;
     }
@@ -409,33 +409,15 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
               Maybe later
             </button>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    sessionStorage.setItem("pactara-skip-paywall", "1");
-                  } catch {
-                    /* ignore */
-                  }
-                  window.location.reload();
-                }}
-                disabled={purchasing}
-                className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
-                style={{ color: MUTED }}
-              >
-                Skip for now
-              </button>
-              <button
-                type="button"
-                onClick={handleSignOut}
-                disabled={signingOut || purchasing}
-                className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
-                style={{ color: MUTED }}
-              >
-                {signingOut ? "Signing out…" : "Sign out"}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut || purchasing}
+              className="mt-3 w-full text-[14px] font-medium disabled:opacity-60"
+              style={{ color: MUTED }}
+            >
+              {signingOut ? "Signing out…" : "Sign out"}
+            </button>
           )}
 
 
