@@ -223,7 +223,7 @@ export async function getCustomerInfo(): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.getCustomerInfo();
     return customerInfo;
   } catch (err) {
