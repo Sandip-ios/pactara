@@ -1,5 +1,7 @@
 import { isNative } from "@/lib/native";
-import type {
+import { Capacitor } from "@capacitor/core";
+import {
+  Purchases,
   CustomerInfo,
   PurchasesOffering,
   PurchasesPackage,
@@ -18,9 +20,30 @@ const PUBLIC_KEY = import.meta.env.VITE_REVENUECAT_PUBLIC_KEY;
 let configured = false;
 let configurePromise: Promise<void> | null = null;
 
-async function loadPurchases() {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function errorCode(error: unknown): unknown {
+  return typeof error === "object" && error !== null && "code" in error
+    ? (error as { code?: unknown }).code
+    : null;
+}
+
+function wasPurchaseCancelled(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "userCancelled" in error &&
+    (error as { userCancelled?: unknown }).userCancelled === true
+  );
+}
+
+function loadPurchases() {
   if (!isNative()) throw new Error("RevenueCat is only available in the native app");
-  const { Purchases } = await import("@revenuecat/purchases-capacitor");
+  if (!Capacitor.isPluginAvailable("Purchases")) {
+    throw new Error("The Purchases native plugin is not registered in this iOS build");
+  }
   return Purchases;
 }
 
@@ -31,7 +54,7 @@ async function ensureRevenueCatConfigured(userId?: string | null) {
 
   if (!configurePromise) {
     configurePromise = (async () => {
-      const Purchases = await loadPurchases();
+      const Purchases = loadPurchases();
       // Do not call Purchases.isConfigured() here. The web bundle is served
       // remotely and can be newer than the native shell installed from the
       // App Store. Older RevenueCat Capacitor bridges do not expose that
@@ -70,7 +93,7 @@ export async function logInRevenueCat(userId: string) {
   if (!isNative()) return;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     await Purchases.logIn({ appUserID: userId });
     console.info("[revenuecat] logged in", userId);
   } catch (err) {
@@ -82,7 +105,7 @@ export async function logInRevenueCat(userId: string) {
 export async function logOutRevenueCat() {
   if (!isNative() || !configured) return;
   try {
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     await Purchases.logOut();
     console.info("[revenuecat] logged out");
   } catch (err) {
@@ -118,7 +141,7 @@ function pick(offering: PurchasesOffering, kind: "MONTHLY" | "ANNUAL"): Purchase
 export async function getOfferings(): Promise<PactaraOfferings | null> {
   if (!isNative()) return null;
   await ensureRevenueCatConfigured();
-  const Purchases = await loadPurchases();
+  const Purchases = loadPurchases();
   const offerings = await Purchases.getOfferings();
   // Fall back to any offering that actually has packages if none is marked "current".
   const offering =
@@ -166,12 +189,12 @@ export async function purchasePackage(aPackage: PurchasesPackage): Promise<Custo
   if (!isNative()) return null;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.purchasePackage({ aPackage });
     return customerInfo;
-  } catch (err: any) {
+  } catch (err: unknown) {
     // User cancelling the purchase is expected; don't throw.
-    if (err?.userCancelled) {
+    if (wasPurchaseCancelled(err)) {
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
@@ -187,11 +210,11 @@ export async function purchaseProduct(
   if (!isNative() || !product) return null;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.purchaseStoreProduct({ product });
     return customerInfo;
-  } catch (err: any) {
-    if (err?.userCancelled) {
+  } catch (err: unknown) {
+    if (wasPurchaseCancelled(err)) {
       console.info("[revenuecat] purchase cancelled by user");
       return null;
     }
@@ -205,7 +228,7 @@ export async function restorePurchases(): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.restorePurchases();
     return customerInfo;
   } catch (err) {
@@ -219,7 +242,7 @@ export async function getCustomerInfo(): Promise<CustomerInfo | null> {
   if (!isNative()) return null;
   try {
     await ensureRevenueCatConfigured();
-    const Purchases = await loadPurchases();
+    const Purchases = loadPurchases();
     const { customerInfo } = await Purchases.getCustomerInfo();
     return customerInfo;
   } catch (err) {
@@ -257,6 +280,8 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
 
   const out: Record<string, unknown> = {
     native: isNative(),
+    nativePlatform: Capacitor.getPlatform(),
+    purchasesPluginAvailable: Capacitor.isPluginAvailable("Purchases"),
     platform: typeof navigator !== "undefined" ? navigator.userAgent : null,
     publicKeyPrefix: PUBLIC_KEY ? `${String(PUBLIC_KEY).slice(0, 8)}…` : null,
     publicKeyLength: PUBLIC_KEY ? String(PUBLIC_KEY).length : 0,
@@ -267,32 +292,39 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
     return out;
   }
 
+  if (!Capacitor.isPluginAvailable("Purchases")) {
+    out["configured"] = false;
+    out["pluginError"] =
+      "Capacitor reports that the Purchases native plugin is not registered in this iOS build.";
+    return out;
+  }
+
   try {
     await withTimeout("configure", 15000, ensureRevenueCatConfigured());
     out["configured"] = true;
-  } catch (err: any) {
+  } catch (err: unknown) {
     out["configured"] = false;
-    out["configureError"] = err?.message ?? String(err);
+    out["configureError"] = errorMessage(err);
     return out;
   }
 
-  let Purchases: Awaited<ReturnType<typeof loadPurchases>>;
+  let purchases: ReturnType<typeof loadPurchases>;
   try {
-    Purchases = await withTimeout("loadPlugin", 10000, loadPurchases());
-  } catch (err: any) {
-    out["pluginError"] = err?.message ?? String(err);
+    purchases = loadPurchases();
+  } catch (err: unknown) {
+    out["pluginError"] = errorMessage(err);
     return out;
   }
 
   try {
-    const { appUserID } = await withTimeout("getAppUserID", 10000, Purchases.getAppUserID());
+    const { appUserID } = await withTimeout("getAppUserID", 10000, purchases.getAppUserID());
     out["appUserId"] = appUserID;
-  } catch (err: any) {
-    out["appUserIdError"] = err?.message ?? String(err);
+  } catch (err: unknown) {
+    out["appUserIdError"] = errorMessage(err);
   }
 
   try {
-    const offerings = await withTimeout("getOfferings", 20000, Purchases.getOfferings());
+    const offerings = await withTimeout("getOfferings", 20000, purchases.getOfferings());
     out["currentOfferingId"] = offerings.current?.identifier ?? null;
     out["allOfferingIds"] = Object.keys(offerings.all ?? {});
     out["offerings"] = Object.values(offerings.all ?? {}).map((o) => ({
@@ -305,16 +337,16 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
         price: p.product?.priceString ?? null,
       })),
     }));
-  } catch (err: any) {
-    out["offeringsError"] = err?.message ?? String(err);
-    out["offeringsErrorCode"] = err?.code ?? null;
+  } catch (err: unknown) {
+    out["offeringsError"] = errorMessage(err);
+    out["offeringsErrorCode"] = errorCode(err);
   }
 
   try {
     const { products } = await withTimeout(
       "getProducts",
       20000,
-      Purchases.getProducts({
+      purchases.getProducts({
         productIdentifiers: [REVENUECAT_PRODUCT_IDS.monthly, REVENUECAT_PRODUCT_IDS.annual],
       }),
     );
@@ -327,22 +359,21 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
     out["storeReturnedAllProducts"] = Object.values(REVENUECAT_PRODUCT_IDS).every((id) =>
       products.some((product) => product.identifier === id),
     );
-  } catch (productError: any) {
-    out["directProductError"] = productError?.message ?? String(productError);
-    out["directProductErrorCode"] = productError?.code ?? null;
+  } catch (productError: unknown) {
+    out["directProductError"] = errorMessage(productError);
+    out["directProductErrorCode"] = errorCode(productError);
   }
 
   try {
     const { customerInfo } = await withTimeout(
       "getCustomerInfo",
       15000,
-      Purchases.getCustomerInfo(),
+      purchases.getCustomerInfo(),
     );
     out["activeEntitlements"] = Object.keys(customerInfo.entitlements.active ?? {});
-  } catch (err: any) {
-    out["customerInfoError"] = err?.message ?? String(err);
+  } catch (err: unknown) {
+    out["customerInfoError"] = errorMessage(err);
   }
 
   return out;
 }
-
