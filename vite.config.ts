@@ -16,7 +16,11 @@ export default defineConfig({
     ssr: {
       // Capacitor plugin ships extensionless ESM imports that Node cannot resolve.
       // Bundle it through Vite instead of leaving it external during SSR.
-      noExternal: ["@revenuecat/purchases-capacitor"],
+      noExternal: [
+        "@revenuecat/purchases-capacitor",
+        "@revenuecat/purchases-typescript-internal-esm",
+      ],
+
     },
   },
 });
