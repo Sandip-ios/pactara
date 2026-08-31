@@ -1,4 +1,5 @@
 import { isNative } from "@/lib/native";
+import { Capacitor } from "@capacitor/core";
 import type {
   CustomerInfo,
   PurchasesOffering,
@@ -257,6 +258,8 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
 
   const out: Record<string, unknown> = {
     native: isNative(),
+    nativePlatform: Capacitor.getPlatform(),
+    purchasesPluginAvailable: Capacitor.isPluginAvailable("Purchases"),
     platform: typeof navigator !== "undefined" ? navigator.userAgent : null,
     publicKeyPrefix: PUBLIC_KEY ? `${String(PUBLIC_KEY).slice(0, 8)}…` : null,
     publicKeyLength: PUBLIC_KEY ? String(PUBLIC_KEY).length : 0,
@@ -264,6 +267,13 @@ export async function getStoreDiagnostics(): Promise<Record<string, unknown>> {
 
   if (!isNative()) {
     out["note"] = "Not running in the native app — StoreKit is unavailable here.";
+    return out;
+  }
+
+  if (!Capacitor.isPluginAvailable("Purchases")) {
+    out["configured"] = false;
+    out["pluginError"] =
+      "Capacitor reports that the Purchases native plugin is not registered in this iOS build.";
     return out;
   }
 
