@@ -73,7 +73,9 @@ import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 
 
 import { supabase } from "@/integrations/supabase/client";
-import { createGroupForUser, setMyName } from "@/lib/groups.functions";
+import { createGroupForUser, setMyName, getGroupPreview } from "@/lib/groups.functions";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { setAvatarPath } from "@/lib/profile.functions";
 import { clearContactsCache, loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
 
@@ -200,12 +202,24 @@ function SignupFlow() {
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
+  // Invited users join an existing group, so the summary screen must reflect
+  // that group's real goal/duration rather than the creation-flow defaults.
+  const fetchPreview = useServerFn(getGroupPreview);
+  const invitedGroupId = isInvited ? getPendingInvite() : null;
+  const { data: invitedGroup } = useQuery({
+    queryKey: ["invited-group-preview", invitedGroupId],
+    queryFn: () => fetchPreview({ data: { groupId: invitedGroupId! } }),
+    enabled: Boolean(invitedGroupId),
+    staleTime: 60_000,
+  });
+
 
   const goalLabel = useMemo(() => {
+    if (invitedGroup?.goal) return invitedGroup.goal;
     if (goal === "custom") return customGoalLabel.trim() || "your goal";
     return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
-  }, [goal, customGoalLabel]);
-  const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
+  }, [goal, customGoalLabel, invitedGroup?.goal]);
+  const goalEmoji = invitedGroup?.emoji ?? (goal ? ICON_FOR_GOAL[goal] : "🎯");
 
   const ensureGroupName = () => {
     if (!groupName && goal) {
@@ -362,12 +376,19 @@ function SignupFlow() {
 
   if (step === "greeting") {
     const days =
-      goal === "75-hard"
+      invitedGroup?.durationDays ??
+      (goal === "75-hard"
         ? 75
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
-          : duration;
-    const frequencyLabel = frequency === "daily" ? "Every day" : `${daysPerWeek}× per week`;
+          : duration);
+    const frequencyLabel = invitedGroup
+      ? invitedGroup.frequency === "daily"
+        ? "Every day"
+        : `${invitedGroup.daysPerWeek}× per week`
+      : frequency === "daily"
+        ? "Every day"
+        : `${daysPerWeek}× per week`;
     return (
       <>
         <GreetingStep

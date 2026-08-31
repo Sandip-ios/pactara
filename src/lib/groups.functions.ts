@@ -34,7 +34,7 @@ export const getGroupPreview = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, goal, duration_days, owner_id, created_at")
+      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, created_at")
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -82,6 +82,8 @@ export const getGroupPreview = createServerFn({ method: "GET" })
       emoji: (group.emoji as string) ?? "🔥",
       goal: ((group as { goal?: string | null }).goal ?? null) as string | null,
       durationDays: ((group as { duration_days?: number | null }).duration_days ?? 30) as number,
+      frequency: ((group as { frequency?: string | null }).frequency ?? "daily") as string,
+      daysPerWeek: ((group as { days_per_week?: number | null }).days_per_week ?? 7) as number,
       memberCount: signed.length,
       members: signed,
       inviter,
