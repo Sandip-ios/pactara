@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    ssr: {
+      // Capacitor plugin ships extensionless ESM imports that Node cannot resolve.
+      // Bundle it through Vite instead of leaving it external during SSR.
+      noExternal: ["@revenuecat/purchases-capacitor"],
+    },
+  },
 });
+
