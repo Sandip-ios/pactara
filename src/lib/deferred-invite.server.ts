@@ -34,9 +34,22 @@ export async function fingerprint(ip: string): Promise<string> {
     .join("");
 }
 
-export function windowStartIso(): string {
-  return new Date(Date.now() - WINDOW_MINUTES * 60 * 1000).toISOString();
+/**
+ * Carrier NAT hands out different addresses to Safari and to the freshly
+ * installed app, so an exact IP match is too strict. Hashing the network
+ * prefix (IPv4 /24, IPv6 /48) still matches the same network without
+ * storing the raw address.
+ */
+export function ipPrefix(ip: string): string {
+  if (ip.includes(":")) return ip.split(":").slice(0, 3).join(":");
+  const parts = ip.split(".");
+  return parts.length === 4 ? parts.slice(0, 3).join(".") : ip;
 }
+
+export function windowStartIso(minutes: number = WINDOW_MINUTES): string {
+  return new Date(Date.now() - minutes * 60 * 1000).toISOString();
+}
+
 
 export function isUuid(value: unknown): value is string {
   return (
