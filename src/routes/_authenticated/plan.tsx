@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Check, Sparkles, X, Apple, Smartphone, HelpCircle } from "lucide-react";
+import { ChevronLeft, Check, Sparkles, X, Smartphone, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import {
   getCustomerInfo,
   getOfferings,
-  getStoreDiagnostics,
   isSubscriptionActive,
   purchasePackage,
   purchaseProduct,
@@ -130,7 +129,7 @@ function PlanPage() {
     if (isNative()) {
       if (!pkg && !product) {
         setError(
-          "Apple did not return this subscription. Tap Store diagnostics below and send the copied result to support.",
+          "Apple did not return this subscription. Please try again later or contact support at hello@pactara.app.",
         );
         setPendingPlan(null);
         return;
@@ -419,7 +418,6 @@ function PlanPage() {
           </a>
         </div>
 
-        <StoreDiagnostics />
       </div>
 
       {/* Confirm plan sheet */}
@@ -688,98 +686,3 @@ function BottomSheet({ children, onClose }: { children: React.ReactNode; onClose
   );
 }
 
-/** TEMPORARY diagnostics panel — shows the raw offerings the device receives. */
-function StoreDiagnostics() {
-  const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<string | null>(null);
-  const runIdRef = useRef(0);
-
-  useEffect(() => {
-    return () => {
-      runIdRef.current += 1;
-    };
-  }, []);
-
-  const run = async () => {
-    const runId = runIdRef.current + 1;
-    runIdRef.current = runId;
-    setOpen(true);
-    setLoading(true);
-    setData("Starting diagnostics…");
-
-    const watchdog = window.setTimeout(() => {
-      if (runIdRef.current !== runId) return;
-      runIdRef.current += 1;
-      setData(
-        "Diagnostics timed out after 45 seconds. The native RevenueCat plugin did not respond. Rebuild the iOS app in Xcode so the installed native plugin matches the current app bundle, then run this check again.",
-      );
-      setLoading(false);
-    }, 45000);
-
-    try {
-      const result = await getStoreDiagnostics();
-      if (runIdRef.current !== runId) return;
-      setData(JSON.stringify(result, null, 2));
-    } catch (err: any) {
-      if (runIdRef.current !== runId) return;
-      setData(`Diagnostics failed: ${err?.message ?? String(err)}`);
-    } finally {
-      window.clearTimeout(watchdog);
-      if (runIdRef.current !== runId) return;
-      setLoading(false);
-    }
-  };
-
-
-  return (
-    <div className="mt-8 rounded-2xl border border-dashed p-4" style={{ borderColor: "#D8D2C8" }}>
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <div className="text-[14px] font-semibold" style={{ color: INK }}>
-            Store diagnostics
-          </div>
-          <div className="text-[12px]" style={{ color: MUTED }}>
-            Temporary — shows what the App Store returns on this device.
-          </div>
-        </div>
-        <button
-          onClick={run}
-          disabled={loading}
-          className="shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold text-white active:opacity-80"
-          style={{ background: PURPLE }}
-        >
-          {loading ? "Running…" : "Run"}
-        </button>
-      </div>
-
-      {open && data && (
-        <>
-          <pre
-            className="mt-3 max-h-72 overflow-auto rounded-xl p-3 text-[11px] leading-[1.4]"
-            style={{
-              background: "#F1EEE8",
-              color: INK,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-            }}
-          >
-            {data}
-          </pre>
-          <button
-            onClick={() => {
-              try {
-                navigator.clipboard?.writeText(data);
-                toast.success("Diagnostics copied");
-              } catch {}
-            }}
-            className="mt-2 text-[12px] font-semibold underline"
-            style={{ color: PURPLE }}
-          >
-            Copy
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
