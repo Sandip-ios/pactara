@@ -3,8 +3,9 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
 import { isNative } from "@/lib/native";
-import { setPendingInvite } from "@/lib/pending-invite";
+import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
+import { claimDeferredInvite } from "@/lib/deferred-invite";
 
 
 export const Route = createFileRoute("/")({
