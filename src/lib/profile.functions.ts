@@ -282,7 +282,7 @@ const DEFAULT_PREFS: NotificationPrefs = {
   daily_reminder_enabled: true,
   daily_reminder_time: "09:00",
   group_activity_enabled: true,
-  morning_ritual_reminder_enabled: false,
+  morning_ritual_reminder_enabled: true,
 };
 
 export const getNotificationPrefs = createServerFn({ method: "GET" })
