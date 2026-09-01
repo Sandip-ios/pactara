@@ -41,6 +41,7 @@ import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/in
 import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
 import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
 import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
+import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicOgInviteGroupIdRouteImport } from './routes/api/public/og/invite/$groupId'
@@ -216,6 +217,12 @@ const ApiPublicHooksMorningRitualReminderRoute =
     path: '/api/public/hooks/morning-ritual-reminder',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksEveningReminderRoute =
+  ApiPublicHooksEveningReminderRouteImport.update({
+    id: '/api/public/hooks/evening-reminder',
+    path: '/api/public/hooks/evening-reminder',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDailyReminderRoute =
   ApiPublicHooksDailyReminderRouteImport.update({
     id: '/api/public/hooks/daily-reminder',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
+  '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
@@ -300,6 +308,7 @@ export interface FileRoutesByTo {
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
+  '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
@@ -338,6 +347,7 @@ export interface FileRoutesById {
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
+  '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/check-in/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
+    | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/invite/claim'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/check-in'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
+    | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/invite/claim'
@@ -449,6 +461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check-in/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
+    | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/invite/claim'
@@ -472,6 +485,7 @@ export interface RootRouteChildren {
   JoinGroupIdRoute: typeof JoinGroupIdRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksDailyReminderRoute: typeof ApiPublicHooksDailyReminderRoute
+  ApiPublicHooksEveningReminderRoute: typeof ApiPublicHooksEveningReminderRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
   ApiPublicHooksRevenuecatRoute: typeof ApiPublicHooksRevenuecatRoute
   ApiPublicInviteClaimRoute: typeof ApiPublicInviteClaimRoute
@@ -705,6 +719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksMorningRitualReminderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/evening-reminder': {
+      id: '/api/public/hooks/evening-reminder'
+      path: '/api/public/hooks/evening-reminder'
+      fullPath: '/api/public/hooks/evening-reminder'
+      preLoaderRoute: typeof ApiPublicHooksEveningReminderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/daily-reminder': {
       id: '/api/public/hooks/daily-reminder'
       path: '/api/public/hooks/daily-reminder'
@@ -789,6 +810,7 @@ const rootRouteChildren: RootRouteChildren = {
   JoinGroupIdRoute: JoinGroupIdRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksDailyReminderRoute: ApiPublicHooksDailyReminderRoute,
+  ApiPublicHooksEveningReminderRoute: ApiPublicHooksEveningReminderRoute,
   ApiPublicHooksMorningRitualReminderRoute:
     ApiPublicHooksMorningRitualReminderRoute,
   ApiPublicHooksRevenuecatRoute: ApiPublicHooksRevenuecatRoute,
