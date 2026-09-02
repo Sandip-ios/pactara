@@ -34,15 +34,24 @@ export function MediaLightbox({
       aria-modal="true"
     >
       <button
-        onClick={onClose}
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
+        onTouchEnd={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onClose();
+        }}
         aria-label="Close"
-        className="absolute h-12 w-12 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white z-20"
+        className="absolute h-14 w-14 rounded-full bg-black/50 backdrop-blur flex items-center justify-center text-white z-[100]"
         style={{
-          top: "calc(env(safe-area-inset-top) + 16px)",
+          top: "calc(max(env(safe-area-inset-top), 20px) + 44px)",
           right: "calc(env(safe-area-inset-right) + 12px)",
         }}
       >
-        <X size={26} />
+        <X size={28} />
       </button>
       <div
         className="w-full h-full flex items-center justify-center"
