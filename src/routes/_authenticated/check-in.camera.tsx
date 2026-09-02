@@ -122,18 +122,24 @@ function VideoRecordScreen() {
       return null;
     }
     try {
-      // Request a portrait HD stream at the device's natural aspect. Asking
-      // for explicit dimensions + 9:16 aspect prevents the browser from
-      // handing back a low-res/landscape stream that then gets stretched by
-      // object-cover — which is what makes faces look wide/distorted.
+      // iOS Safari crops the front-camera stream when asked for a 9:16
+      // portrait resolution, so the preview looks zoomed-in compared with
+      // the native Camera app. Requesting a landscape HD stream lets the
+      // browser use the full sensor width; CSS object-cover then crops it
+      // to the portrait screen, giving a field of view that matches what
+      // users expect from the standard iPhone camera. Rear camera keeps the
+      // portrait constraint so arm's-length check-ins compose naturally.
+      const videoConstraints: MediaTrackConstraints = {
+        facingMode: { ideal: mode },
+        width: { ideal: mode === "user" ? 1920 : 1080 },
+        height: { ideal: mode === "user" ? 1080 : 1920 },
+        frameRate: { ideal: 30 },
+      };
+      if (mode !== "user") {
+        videoConstraints.aspectRatio = { ideal: 9 / 16 };
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: mode },
-          width: { ideal: 1080 },
-          height: { ideal: 1920 },
-          aspectRatio: { ideal: 9 / 16 },
-          frameRate: { ideal: 30 },
-        },
+        video: videoConstraints,
         audio: false,
       });
       return stream;
