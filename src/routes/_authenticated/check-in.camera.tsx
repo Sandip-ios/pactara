@@ -122,20 +122,24 @@ function VideoRecordScreen() {
       return null;
     }
     try {
-      // iOS Safari crops the front-camera stream when asked for a 9:16
-      // portrait resolution, so the preview looks zoomed-in compared with
-      // the native Camera app. Requesting a landscape HD stream lets the
-      // browser use the full sensor width; CSS object-cover then crops it
-      // to the portrait screen, giving a field of view that matches what
-      // users expect from the standard iPhone camera. Rear camera keeps the
-      // portrait constraint so arm's-length check-ins compose naturally.
+      // iOS Safari digitally crops/zooms the front-camera stream when forced
+      // into a tall 9:16 portrait mode. The native iPhone Camera app uses a
+      // 3:4 portrait photo mode for the front sensor, which keeps the full
+      // sensor field of view. We request 3:4 portrait for the front camera
+      // and let CSS object-cover crop it to the 9:16 screen, so the preview
+      // stays portrait but looks much wider/less zoomed. Rear camera keeps
+      // the 9:16 portrait constraint so arm's-length check-ins compose naturally.
       const videoConstraints: MediaTrackConstraints = {
         facingMode: { ideal: mode },
-        width: { ideal: mode === "user" ? 1920 : 1080 },
-        height: { ideal: mode === "user" ? 1080 : 1920 },
         frameRate: { ideal: 30 },
       };
-      if (mode !== "user") {
+      if (mode === "user") {
+        videoConstraints.width = { ideal: 1080 };
+        videoConstraints.height = { ideal: 1440 };
+        videoConstraints.aspectRatio = { ideal: 3 / 4 };
+      } else {
+        videoConstraints.width = { ideal: 1080 };
+        videoConstraints.height = { ideal: 1920 };
         videoConstraints.aspectRatio = { ideal: 9 / 16 };
       }
       const stream = await navigator.mediaDevices.getUserMedia({
