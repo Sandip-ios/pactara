@@ -396,6 +396,7 @@ export type FeedItem = {
   nodes: TimelineNode[];
   reactions: ReactionSummary[];
   commentCount: number;
+  lastCommentAt: string | null;
 };
 
 export type PostComment = {
@@ -532,7 +533,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .in("post_id", posts.map((p) => p.id)),
       (supabase as any)
         .from("post_comments")
-        .select("post_id")
+        .select("post_id, created_at")
         .in("post_id", posts.map((p) => p.id)),
     ]);
 
@@ -550,8 +551,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     }
 
     const commentCountByPost = new Map<string, number>();
-    for (const c of ((commentsResult as any).data ?? []) as { post_id: string }[]) {
+    const lastCommentAtByPost = new Map<string, string>();
+    for (const c of ((commentsResult as any).data ?? []) as { post_id: string; created_at: string }[]) {
       commentCountByPost.set(c.post_id, (commentCountByPost.get(c.post_id) ?? 0) + 1);
+      const prev = lastCommentAtByPost.get(c.post_id);
+      if (!prev || prev < c.created_at) lastCommentAtByPost.set(c.post_id, c.created_at);
     }
 
 
@@ -664,6 +668,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         nodes,
         reactions: reactionsByPost.get(p.id) ?? [],
         commentCount: commentCountByPost.get(p.id) ?? 0,
+        lastCommentAt: lastCommentAtByPost.get(p.id) ?? null,
       };
     });
 
@@ -771,8 +776,8 @@ export const addPostComment = createServerFn({ method: "POST" })
       .insert({ post_id: data.postId, user_id: userId, body });
     if (error) throw new Error(error.message);
     try {
-      const { notifyPostAuthor } = await import("@/lib/notify.server");
-      await notifyPostAuthor(data.postId, userId, (name) => ({
+      const { notifyPostComment } = await import("@/lib/notify.server");
+      await notifyPostComment(data.postId, userId, (name) => ({
         title: `${name} commented`,
         body: body.slice(0, 120),
         url: "/home",

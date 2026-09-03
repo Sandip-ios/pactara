@@ -254,15 +254,31 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
   }
 }
 
+const seenKey = (postId: string) => `post-comments-seen:${postId}`;
+
+export function getSeenCommentCount(postId: string): number {
+  if (typeof localStorage === "undefined") return 0;
+  const raw = localStorage.getItem(seenKey(postId));
+  const n = raw ? Number(raw) : 0;
+  return Number.isFinite(n) ? n : 0;
+}
+
+export function markCommentsSeen(postId: string, count: number) {
+  if (typeof localStorage === "undefined") return;
+  localStorage.setItem(seenKey(postId), String(count));
+}
+
 function ReactionBar({
   item,
   onToggleComments,
   onPrefetchComments,
+  unreadComments = 0,
 }: {
   item: FeedItem;
   onToggleComments: () => void;
   onPrefetchComments: () => void;
   commentsOpen?: boolean;
+  unreadComments?: number;
 }) {
   const queryClient = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -437,10 +453,19 @@ function ReactionBar({
           onClick={onToggleComments}
           onPointerDown={onPrefetchComments}
           onMouseEnter={onPrefetchComments}
-          className="flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
+          className="relative flex items-center gap-1.5 text-neutral-700 text-[15px] font-semibold active:scale-95 transition"
         >
           <MessageCircle size={20} strokeWidth={2} />
           {item.commentCount > 0 && <span>{item.commentCount}</span>}
+          {unreadComments > 0 && (
+            <span
+              className="absolute -top-1.5 -left-2 min-w-[18px] h-[18px] px-1 rounded-full text-white text-[11px] font-bold flex items-center justify-center"
+              style={{ background: PURPLE }}
+              aria-label={`${unreadComments} new comments`}
+            >
+              {unreadComments > 9 ? "9+" : unreadComments}
+            </span>
+          )}
         </button>
       </div>
 
@@ -621,6 +646,22 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
 
 export function TimelineCard({ item }: { item: FeedItem }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
+  const [seenCount, setSeenCount] = useState(0);
+  useEffect(() => {
+    setSeenCount(getSeenCommentCount(item.id));
+  }, [item.id]);
+  const unreadComments = Math.max(0, item.commentCount - seenCount);
+  const openComments = () => {
+    markCommentsSeen(item.id, item.commentCount);
+    setSeenCount(item.commentCount);
+    setCommentsOpen(true);
+  };
+  useEffect(() => {
+    if (commentsOpen) {
+      markCommentsSeen(item.id, item.commentCount);
+      setSeenCount(item.commentCount);
+    }
+  }, [commentsOpen, item.id, item.commentCount]);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
@@ -755,7 +796,7 @@ export function TimelineCard({ item }: { item: FeedItem }) {
         )}
       </div>
 
-      <ReactionBar item={item} onToggleComments={() => { prefetchComments(); setCommentsOpen(true); }} onPrefetchComments={prefetchComments} commentsOpen={commentsOpen} />
+      <ReactionBar item={item} unreadComments={unreadComments} onToggleComments={() => { prefetchComments(); openComments(); }} onPrefetchComments={prefetchComments} commentsOpen={commentsOpen} />
       <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} repositionInputs={false}>
         <DrawerContent className="h-[85vh] flex flex-col p-0">
           <DrawerHeader className="border-b border-neutral-100 py-3">
