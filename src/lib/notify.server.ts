@@ -191,3 +191,32 @@ export async function notifyPostAuthor(
     console.warn("[notify] post author push failed", err);
   }
 }
+
+/**
+ * Notify everyone involved in a post's comment thread (post author + prior
+ * commenters), excluding the actor. Never throws.
+ */
+export async function notifyPostComment(
+  postId: string,
+  actorUserId: string,
+  build: (actorName: string) => PushPayload,
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: post }, { data: commenters }] = await Promise.all([
+      supabaseAdmin.from("daily_posts").select("user_id").eq("id", postId).maybeSingle(),
+      supabaseAdmin.from("post_comments").select("user_id").eq("post_id", postId),
+    ]);
+    const ids = new Set<string>();
+    const authorId = post?.user_id as string | undefined;
+    if (authorId) ids.add(authorId);
+    for (const c of (commenters ?? []) as Array<{ user_id: string }>) ids.add(c.user_id);
+    ids.delete(actorUserId);
+    const recipients = Array.from(ids);
+    if (recipients.length === 0) return;
+    const name = await displayName(actorUserId);
+    await notifyUsers(recipients, build(name), "group_activity_enabled");
+  } catch (err) {
+    console.warn("[notify] post comment push failed", err);
+  }
+}
