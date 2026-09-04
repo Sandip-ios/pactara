@@ -20,6 +20,7 @@ import {
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import { hapticLight } from "@/lib/native";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Hourglass,
   Flame,
@@ -28,6 +29,7 @@ import {
   MoreHorizontal,
   Send,
   Loader2,
+  ImagePlus,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import {
@@ -914,7 +916,7 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
           <DrawerHeader className="border-b border-neutral-100 py-3">
             <DrawerTitle className="text-center text-[17px] font-bold">Comments</DrawerTitle>
           </DrawerHeader>
-          <CommentSection postId={item.id} />
+          <CommentSection postId={item.id} groupId={item.groupId} />
         </DrawerContent>
       </Drawer>
       {lightbox && (
