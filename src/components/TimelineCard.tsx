@@ -492,25 +492,87 @@ const commentsQueryOptions = (postId: string) => ({
   gcTime: 5 * 60_000,
 });
 
-function CommentSection({ postId }: { postId: string }) {
+function CommentSection({ postId, groupId }: { postId: string; groupId: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
-    mutationFn: (body: string) => addPostComment({ data: { postId, body } }),
+    mutationFn: (vars: { body: string; mediaUrl?: string | null; mediaType?: string | null }) =>
+      addPostComment({ data: { postId, ...vars } }),
     onSuccess: () => {
       setText("");
+      clearPending();
       queryClient.invalidateQueries({ queryKey: ["post-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     },
   });
 
-  const submit = (e: FormEvent) => {
+  const clearPending = () => {
+    setPendingFile(null);
+    setPendingPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+    if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const pickFile = (file: File | undefined) => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+      setUploadError("File is too large (max 50MB)");
+      return;
+    }
+    setUploadError(null);
+    setPendingFile(file);
+    setPendingPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return URL.createObjectURL(file);
+    });
+  };
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const body = text.trim();
-    if (!body || add.isPending) return;
-    add.mutate(body);
+    if (add.isPending || uploading) return;
+    if (!body && !pendingFile) return;
+
+    let mediaUrl: string | null = null;
+    let mediaType: string | null = null;
+    if (pendingFile) {
+      setUploading(true);
+      setUploadError(null);
+      try {
+        const { data: userData } = await supabase.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) throw new Error("Not signed in");
+        const mime = pendingFile.type || "image/jpeg";
+        const ext = (pendingFile.name.split(".").pop() || (mime.startsWith("video/") ? "mp4" : "jpg")).toLowerCase();
+        const path = `${groupId}/${userId}-comment-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("chat-photos")
+          .upload(path, pendingFile, { contentType: mime, upsert: false });
+        if (upErr) throw upErr;
+        mediaUrl = path;
+        mediaType = mime;
+      } catch (err) {
+        setUploadError((err as Error).message || "Upload failed");
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
+
+    add.mutate({ body, mediaUrl, mediaType });
   };
+
+  const busy = add.isPending || uploading;
+  const canSend = (!!text.trim() || !!pendingFile) && !busy;
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -540,7 +602,22 @@ function CommentSection({ postId }: { postId: string }) {
                       </span>
                       <span className="text-[12px] text-neutral-400">{timeAgo(c.createdAt)}</span>
                     </div>
-                    <div className="text-[15px] text-neutral-800 whitespace-pre-wrap break-words mt-0.5">{c.body}</div>
+                    {c.body && (
+                      <div className="text-[15px] text-neutral-800 whitespace-pre-wrap break-words mt-0.5">{c.body}</div>
+                    )}
+                    {c.mediaUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ src: c.mediaUrl!, kind: c.mediaKind === "video" ? "video" : "image" })}
+                        className="mt-2 block rounded-xl overflow-hidden bg-neutral-100 max-w-[220px]"
+                      >
+                        {c.mediaKind === "video" ? (
+                          <video src={c.mediaUrl} className="w-full max-h-64 object-cover" muted playsInline preload="metadata" />
+                        ) : (
+                          <img src={c.mediaUrl} alt="" className="w-full max-h-64 object-cover" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </li>
               );
@@ -551,7 +628,36 @@ function CommentSection({ postId }: { postId: string }) {
           </ul>
         )}
       </div>
+      {pendingPreview && (
+        <div className="px-4 pt-3 flex items-center gap-3">
+          <div className="relative h-16 w-16 rounded-xl overflow-hidden bg-neutral-100">
+            {pendingFile?.type.startsWith("video/") ? (
+              <video src={pendingPreview} className="h-full w-full object-cover" muted playsInline />
+            ) : (
+              <img src={pendingPreview} alt="" className="h-full w-full object-cover" />
+            )}
+          </div>
+          <button type="button" onClick={clearPending} className="text-[13px] text-neutral-500 underline">
+            Remove
+          </button>
+        </div>
+      )}
       <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*,video/*"
+          className="hidden"
+          onChange={(e) => pickFile(e.target.files?.[0])}
+        />
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          aria-label="Add photo or video"
+          className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center shrink-0"
+        >
+          <ImagePlus size={18} className="text-neutral-500" />
+        </button>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -561,19 +667,22 @@ function CommentSection({ postId }: { postId: string }) {
         />
         <button
           type="submit"
-          disabled={!text.trim() || add.isPending}
+          disabled={!canSend}
           aria-label="Post comment"
-          className="h-10 w-10 rounded-full flex items-center justify-center disabled:opacity-50"
-          style={{ background: text.trim() ? PURPLE : "#E5E5E5" }}
+          className="h-10 w-10 rounded-full flex items-center justify-center disabled:opacity-50 shrink-0"
+          style={{ background: canSend ? PURPLE : "#E5E5E5" }}
         >
-          {add.isPending ? (
+          {busy ? (
             <Loader2 size={16} className="text-white animate-spin" />
           ) : (
-            <Send size={16} className={text.trim() ? "text-white" : "text-neutral-400"} />
+            <Send size={16} className={canSend ? "text-white" : "text-neutral-400"} />
           )}
         </button>
       </form>
-      {add.isError && <div className="text-[12px] text-red-500 px-4 pb-2">{(add.error as Error).message}</div>}
+      {(add.isError || uploadError) && (
+        <div className="text-[12px] text-red-500 px-4 pb-2">{uploadError ?? (add.error as Error)?.message}</div>
+      )}
+      {lightbox && <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />}
     </div>
   );
 }
