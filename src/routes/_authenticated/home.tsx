@@ -145,6 +145,14 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
+  // Deep link from a comment push: /home?post=<id>&comments=1
+  const [search, setSearch] = useState<{ post?: string; comments?: boolean }>({});
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const post = params.get("post") ?? undefined;
+    const comments = params.get("comments") === "1";
+    if (post && comments) setSearch({ post, comments });
+  }, []);
   const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
@@ -541,7 +549,11 @@ function HomePage() {
         return (
           <div className="pb-2">
             {visibleCards.map((item) => (
-              <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
+              <TimelineCard
+                key={`${item.id}-${item.localDate}`}
+                item={item}
+                autoOpenComments={Boolean(search.comments) && search.post === item.id}
+              />
             ))}
           </div>
         );

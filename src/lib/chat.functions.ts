@@ -146,7 +146,7 @@ export const sendGroupMessage = createServerFn({ method: "POST" })
       await notifyGroupActivity(data.groupId, userId, {
         title: name,
         body: data.body || "Sent a photo 📷",
-        url: "/chat",
+        url: `/chat/${data.groupId}`,
       });
     } catch (err) {
       console.warn("[chat] push failed", err);

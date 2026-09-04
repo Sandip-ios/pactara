@@ -644,12 +644,15 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
   );
 }
 
-export function TimelineCard({ item }: { item: FeedItem }) {
+export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoOpenComments?: boolean }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [seenCount, setSeenCount] = useState(0);
   useEffect(() => {
     setSeenCount(getSeenCommentCount(item.id));
   }, [item.id]);
+  useEffect(() => {
+    if (autoOpenComments) setCommentsOpen(true);
+  }, [autoOpenComments]);
   const unreadComments = Math.max(0, item.commentCount - seenCount);
   const openComments = () => {
     markCommentsSeen(item.id, item.commentCount);
