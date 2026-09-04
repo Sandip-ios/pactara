@@ -149,6 +149,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
