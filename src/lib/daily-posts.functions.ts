@@ -769,21 +769,30 @@ export const setPostReaction = createServerFn({ method: "POST" })
 
 export const addPostComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { postId: string; body: string }) => data)
+  .inputValidator(
+    (data: { postId: string; body: string; mediaUrl?: string | null; mediaType?: string | null }) => data,
+  )
   .handler(async ({ data, context }) => {
     const body = data.body.trim();
-    if (!body) throw new Error("Comment cannot be empty");
+    const mediaUrl = data.mediaUrl?.trim() || null;
+    const mediaType = mediaUrl ? data.mediaType?.trim() || null : null;
+    if (!body && !mediaUrl) throw new Error("Comment cannot be empty");
     if (body.length > 1000) throw new Error("Comment is too long");
     const { supabase, userId } = context;
     const { error } = await (supabase as any)
       .from("post_comments")
-      .insert({ post_id: data.postId, user_id: userId, body });
+      .insert({ post_id: data.postId, user_id: userId, body, media_url: mediaUrl, media_type: mediaType });
     if (error) throw new Error(error.message);
     try {
       const { notifyPostComment } = await import("@/lib/notify.server");
+      const preview = body
+        ? body.slice(0, 120)
+        : mediaType?.startsWith("video/")
+          ? "Sent a video"
+          : "Sent a photo";
       await notifyPostComment(data.postId, userId, (name) => ({
         title: `${name} commented`,
-        body: body.slice(0, 120),
+        body: preview,
         url: `/home?post=${data.postId}&comments=1`,
       }));
     } catch (err) {
