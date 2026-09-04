@@ -15,6 +15,13 @@
       "when": 1788210452662,
       "tag": "0001_deferred_invites_ip_prefix",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788558273641,
+      "tag": "0002_comment_media",
+      "breakpoints": true
     }
   ]
 }
