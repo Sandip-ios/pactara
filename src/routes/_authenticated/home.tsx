@@ -140,6 +140,10 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
 }
 
 export const Route = createFileRoute("/_authenticated/home")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    post: typeof search.post === "string" ? search.post : undefined,
+    comments: search.comments === "1" || search.comments === true ? true : undefined,
+  }),
   component: HomePage,
 });
 
