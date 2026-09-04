@@ -386,6 +386,7 @@ export type ReactionSummary = { emoji: string; count: number; mine: boolean };
 
 export type FeedItem = {
   id: string;
+  groupId: string;
   userId: string;
   isMe: boolean;
   name: string;
@@ -407,6 +408,8 @@ export type PostComment = {
   authorColor: string;
   authorAvatarUrl: string | null;
   body: string;
+  mediaUrl: string | null;
+  mediaKind: "image" | "video" | null;
   createdAt: string;
   isMine: boolean;
 };
@@ -658,6 +661,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
       return {
         id: p.id,
+        groupId: groupId as string,
         userId: p.user_id,
         isMe: p.user_id === userId,
         name: prof?.name ?? "Member",
@@ -765,21 +769,30 @@ export const setPostReaction = createServerFn({ method: "POST" })
 
 export const addPostComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { postId: string; body: string }) => data)
+  .inputValidator(
+    (data: { postId: string; body: string; mediaUrl?: string | null; mediaType?: string | null }) => data,
+  )
   .handler(async ({ data, context }) => {
     const body = data.body.trim();
-    if (!body) throw new Error("Comment cannot be empty");
+    const mediaUrl = data.mediaUrl?.trim() || null;
+    const mediaType = mediaUrl ? data.mediaType?.trim() || null : null;
+    if (!body && !mediaUrl) throw new Error("Comment cannot be empty");
     if (body.length > 1000) throw new Error("Comment is too long");
     const { supabase, userId } = context;
     const { error } = await (supabase as any)
       .from("post_comments")
-      .insert({ post_id: data.postId, user_id: userId, body });
+      .insert({ post_id: data.postId, user_id: userId, body, media_url: mediaUrl, media_type: mediaType });
     if (error) throw new Error(error.message);
     try {
       const { notifyPostComment } = await import("@/lib/notify.server");
+      const preview = body
+        ? body.slice(0, 120)
+        : mediaType?.startsWith("video/")
+          ? "Sent a video"
+          : "Sent a photo";
       await notifyPostComment(data.postId, userId, (name) => ({
         title: `${name} commented`,
-        body: body.slice(0, 120),
+        body: preview,
         url: `/home?post=${data.postId}&comments=1`,
       }));
     } catch (err) {
@@ -795,7 +808,7 @@ export const getPostComments = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: rows, error } = await (supabase as any)
       .from("post_comments")
-      .select("id, post_id, user_id, body, created_at")
+      .select("id, post_id, user_id, body, media_url, media_type, created_at")
       .eq("post_id", data.postId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
@@ -818,6 +831,22 @@ export const getPostComments = createServerFn({ method: "GET" })
         if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
       });
     }
+    const mediaSigned = new Map<string, string>();
+    const mediaPaths = Array.from(
+      new Set(
+        (rows ?? [])
+          .map((r: any) => r.media_url)
+          .filter((p: string | null): p is string => !!p && !p.startsWith("http")),
+      ),
+    ) as string[];
+    if (mediaPaths.length) {
+      const { data: signed } = await supabase.storage
+        .from("chat-photos")
+        .createSignedUrls(mediaPaths, 60 * 60);
+      (signed ?? []).forEach((s: any) => {
+        if (s?.path && s?.signedUrl) mediaSigned.set(s.path, s.signedUrl);
+      });
+    }
     const profMap = new Map(
       (profs ?? []).map((p: any) => [
         p.id,
@@ -830,6 +859,12 @@ export const getPostComments = createServerFn({ method: "GET" })
     );
     const comments: PostComment[] = (rows ?? []).map((r: any) => {
       const pr = profMap.get(r.user_id);
+      const rawMedia: string | null = r.media_url ?? null;
+      const mediaUrl = rawMedia
+        ? rawMedia.startsWith("http")
+          ? rawMedia
+          : mediaSigned.get(rawMedia) ?? null
+        : null;
       return {
         id: r.id,
         postId: r.post_id,
@@ -838,6 +873,8 @@ export const getPostComments = createServerFn({ method: "GET" })
         authorColor: pr?.color ?? "#22C55E",
         authorAvatarUrl: pr?.avatarUrl ?? null,
         body: r.body,
+        mediaUrl,
+        mediaKind: rawMedia ? (String(r.media_type ?? "").startsWith("video/") ? "video" : "image") : null,
         createdAt: r.created_at,
         isMine: r.user_id === userId,
       };
