@@ -808,7 +808,7 @@ export const getPostComments = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: rows, error } = await (supabase as any)
       .from("post_comments")
-      .select("id, post_id, user_id, body, created_at")
+      .select("id, post_id, user_id, body, media_url, media_type, created_at")
       .eq("post_id", data.postId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
@@ -831,6 +831,22 @@ export const getPostComments = createServerFn({ method: "GET" })
         if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
       });
     }
+    const mediaSigned = new Map<string, string>();
+    const mediaPaths = Array.from(
+      new Set(
+        (rows ?? [])
+          .map((r: any) => r.media_url)
+          .filter((p: string | null): p is string => !!p && !p.startsWith("http")),
+      ),
+    ) as string[];
+    if (mediaPaths.length) {
+      const { data: signed } = await supabase.storage
+        .from("chat-photos")
+        .createSignedUrls(mediaPaths, 60 * 60);
+      (signed ?? []).forEach((s: any) => {
+        if (s?.path && s?.signedUrl) mediaSigned.set(s.path, s.signedUrl);
+      });
+    }
     const profMap = new Map(
       (profs ?? []).map((p: any) => [
         p.id,
@@ -843,6 +859,12 @@ export const getPostComments = createServerFn({ method: "GET" })
     );
     const comments: PostComment[] = (rows ?? []).map((r: any) => {
       const pr = profMap.get(r.user_id);
+      const rawMedia: string | null = r.media_url ?? null;
+      const mediaUrl = rawMedia
+        ? rawMedia.startsWith("http")
+          ? rawMedia
+          : mediaSigned.get(rawMedia) ?? null
+        : null;
       return {
         id: r.id,
         postId: r.post_id,
@@ -851,6 +873,8 @@ export const getPostComments = createServerFn({ method: "GET" })
         authorColor: pr?.color ?? "#22C55E",
         authorAvatarUrl: pr?.avatarUrl ?? null,
         body: r.body,
+        mediaUrl,
+        mediaKind: rawMedia ? (String(r.media_type ?? "").startsWith("video/") ? "video" : "image") : null,
         createdAt: r.created_at,
         isMine: r.user_id === userId,
       };
