@@ -545,7 +545,11 @@ function HomePage() {
         return (
           <div className="pb-2">
             {visibleCards.map((item) => (
-              <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
+              <TimelineCard
+                key={`${item.id}-${item.localDate}`}
+                item={item}
+                autoOpenComments={Boolean(search.comments) && search.post === item.id}
+              />
             ))}
           </div>
         );
