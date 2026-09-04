@@ -386,6 +386,7 @@ export type ReactionSummary = { emoji: string; count: number; mine: boolean };
 
 export type FeedItem = {
   id: string;
+  groupId: string;
   userId: string;
   isMe: boolean;
   name: string;
@@ -407,6 +408,8 @@ export type PostComment = {
   authorColor: string;
   authorAvatarUrl: string | null;
   body: string;
+  mediaUrl: string | null;
+  mediaKind: "image" | "video" | null;
   createdAt: string;
   isMine: boolean;
 };
