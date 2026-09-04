@@ -780,7 +780,7 @@ export const addPostComment = createServerFn({ method: "POST" })
       await notifyPostComment(data.postId, userId, (name) => ({
         title: `${name} commented`,
         body: body.slice(0, 120),
-        url: "/home",
+        url: `/home?post=${data.postId}&comments=1`,
       }));
     } catch (err) {
       console.warn("[comment] push failed", err);
