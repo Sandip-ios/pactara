@@ -140,16 +140,19 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
 }
 
 export const Route = createFileRoute("/_authenticated/home")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    post: typeof search.post === "string" ? search.post : undefined,
-    comments: search.comments === "1" || search.comments === true ? true : undefined,
-  }),
   component: HomePage,
 });
 
 function HomePage() {
   const navigate = useNavigate();
-  const search = Route.useSearch();
+  // Deep link from a comment push: /home?post=<id>&comments=1
+  const [search, setSearch] = useState<{ post?: string; comments?: boolean }>({});
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const post = params.get("post") ?? undefined;
+    const comments = params.get("comments") === "1";
+    if (post && comments) setSearch({ post, comments });
+  }, []);
   const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
