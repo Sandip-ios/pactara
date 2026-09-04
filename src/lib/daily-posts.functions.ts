@@ -661,6 +661,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
       return {
         id: p.id,
+        groupId: groupId as string,
         userId: p.user_id,
         isMe: p.user_id === userId,
         name: prof?.name ?? "Member",
