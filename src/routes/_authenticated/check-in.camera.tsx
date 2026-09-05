@@ -108,6 +108,7 @@ function VideoRecordScreen() {
 
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
+    setFrameReady(false);
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
