@@ -46,6 +46,7 @@ function VideoRecordScreen() {
   const recordingRef = useRef(false);
 
   const [ready, setReady] = useState(false);
+  const [frameReady, setFrameReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
