@@ -324,7 +324,7 @@ function VideoRecordScreen() {
         autoPlay
         playsInline
         muted
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-contain"
         style={{
           // Mirror the front camera preview like Snapchat / Instagram so
           // the user sees themselves the way they see themselves in a
