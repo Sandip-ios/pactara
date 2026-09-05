@@ -167,9 +167,6 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
                     }}
                   />
                 </div>
-                <p className="mt-1.5 text-[12px] text-neutral-500">
-                  {pace.dayNumber} of {pace.durationDays} days done
-                </p>
               </div>
             )}
           </div>
