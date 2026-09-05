@@ -159,6 +159,7 @@ function HomePage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
     if (typeof localStorage === "undefined") return null;
