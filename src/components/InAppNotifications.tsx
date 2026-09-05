@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -14,7 +14,9 @@ const AUTO_DISMISS_MS = 4000;
  */
 export function InAppNotifications() {
   const navigate = useNavigate();
-  const routerState = useRouterState({ select: (s) => s.location.pathname });
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pathRef = useRef(pathname);
+  pathRef.current = pathname;
 
   useEffect(() => {
     if (!isNative()) return;
@@ -33,7 +35,7 @@ export function InAppNotifications() {
           const url = (n.data as { url?: string } | undefined)?.url;
 
           // Don't interrupt when the user is already looking at that screen.
-          if (url && routerState && url.split("?")[0] === routerState) return;
+          if (url && url.split("?")[0] === pathRef.current) return;
 
           toast.custom(
             (id) => (
@@ -43,6 +45,7 @@ export function InAppNotifications() {
                   toast.dismiss(id);
                   if (url) void navigate({ to: url });
                 }}
+                style={{ marginTop: "env(safe-area-inset-top)" }}
                 className="flex w-full items-start gap-3 rounded-2xl border border-border bg-background/95 px-4 py-3 text-left shadow-lg backdrop-blur"
               >
                 <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -68,7 +71,7 @@ export function InAppNotifications() {
       cancelled = true;
       void handle?.then((h) => h.remove()).catch(() => {});
     };
-  }, [navigate, routerState]);
+  }, [navigate]);
 
   return null;
 }
