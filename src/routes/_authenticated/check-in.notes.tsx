@@ -115,6 +115,7 @@ function NotesPage() {
   });
 
   const finalizeAndExit = () => {
+    sessionStorage.setItem("checkin-celebrate", "1");
     sessionStorage.removeItem("checkin-mood");
     clearCheckInPhoto();
     queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
