@@ -43,6 +43,13 @@
       "when": 1788615038375,
       "tag": "0005_schedule_streak_risk_reminder",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788637467748,
+      "tag": "0006_user_badge_counts",
+      "breakpoints": true
     }
   ]
 }
