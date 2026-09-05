@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { MoodId } from "./check-in.index";
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
+import { listMyGroups } from "@/lib/groups.functions";
+import { AllGroupsToggle } from "./check-in.index";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -87,6 +89,13 @@ function NotesPage() {
   const [mood, setMood] = useState<MoodId | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [allGroups, setAllGroups] = useState(false);
+  const { data: groupsData } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+    staleTime: 60_000,
+  });
+  const myGroups = groupsData?.groups ?? [];
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -115,7 +124,7 @@ function NotesPage() {
 
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string; groupId?: string | null }) =>
+    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string; groupId?: string | null; groupIds?: string[] | null }) =>
       recordCheckInFn({ data: vars }),
   });
 
@@ -137,6 +146,7 @@ function NotesPage() {
         activity: activity || undefined,
         photoUrl,
         groupId: activeGroupId,
+        groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
       });
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
 
@@ -290,6 +300,14 @@ function NotesPage() {
             </div>
           </div>
         </div>
+        <div className="px-6 pt-6">
+          <AllGroupsToggle
+            count={myGroups.length}
+            value={allGroups}
+            onChange={setAllGroups}
+            label="Share to all my groups"
+          />
+        </div>
       </div>
 
       {/* Share button */}
@@ -308,7 +326,7 @@ function NotesPage() {
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE }}
         >
-          {isBusy ? "Sharing…" : "Share"}
+          {isBusy ? "Sharing…" : allGroups && myGroups.length > 1 ? "Share to all groups" : "Share"}
         </button>
       </div>
 
