@@ -340,7 +340,7 @@ function VideoRecordScreen() {
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
 
-      {!ready && !error && (
+      {(!ready || !frameReady) && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 opacity-70">
             <div className="h-14 w-14 rounded-2xl border border-white/30 flex items-center justify-center">
