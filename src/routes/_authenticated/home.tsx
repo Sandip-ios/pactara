@@ -3,12 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
@@ -164,6 +159,7 @@ function HomePage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
     if (typeof localStorage === "undefined") return null;
@@ -363,27 +359,23 @@ function HomePage() {
         return (
           <div className="px-6 pt-4 pb-3 border-b border-neutral-200 flex items-center justify-between text-[15px]">
             {hasMultiple ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70">
-                    {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
-                    <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
-                    <ChevronDown size={16} className="text-neutral-500" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[220px]">
-                  {myGroups.map((g) => (
-                    <DropdownMenuItem
-                      key={g.id}
-                      onSelect={() => setSelectedGroupId(g.id)}
-                      className="flex items-center gap-2"
-                    >
-                      {g.emoji && <span>{g.emoji}</span>}
-                      <span className="truncate">{g.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <button
+                  onClick={() => setSwitcherOpen(true)}
+                  className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
+                >
+                  {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
+                  <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
+                  <ChevronDown size={16} className="text-neutral-500" />
+                </button>
+                <GroupSwitcherSheet
+                  open={switcherOpen}
+                  onClose={() => setSwitcherOpen(false)}
+                  groups={myGroups as never}
+                  selectedGroupId={selectedGroupId}
+                  onSelect={(id) => setSelectedGroupId(id)}
+                />
+              </>
             ) : (
               <div className="flex items-center gap-1.5 font-bold text-neutral-900">
                 {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
