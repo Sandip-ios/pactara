@@ -760,3 +760,72 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
     out.sort((a, b) => (b.streak - a.streak) || a.name.localeCompare(b.name));
     return { members: out };
   });
+
+/**
+ * Consistency / pace for the current user in a group's commitment period.
+ * Returns how many days they've checked in vs. how many were expected by
+ * today, given the group's frequency (daily or N days per week).
+ */
+export const getMyCommitmentPace = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId?: string | null }) => ({
+    groupId: input?.groupId ? String(input.groupId) : null,
+  }))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+
+    let groupId = data.groupId;
+    if (!groupId) {
+      const { data: m } = await supabase
+        .from("group_members")
+        .select("group_id, joined_at")
+        .eq("user_id", userId)
+        .order("joined_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      groupId = (m?.group_id as string | undefined) ?? null;
+    }
+    if (!groupId) return null;
+
+    const { data: group } = await supabase
+      .from("groups")
+      .select("start_date, created_at, duration_days, frequency, days_per_week")
+      .eq("id", groupId)
+      .maybeSingle();
+    if (!group) return null;
+
+    const tz = await getUserTimezone(supabase, userId);
+    const today = localDateFor(tz);
+    const startDate =
+      (group.start_date as string | null) ??
+      String(group.created_at ?? today).slice(0, 10);
+    const durationDays = (group.duration_days as number | null) ?? 30;
+    const perWeek =
+      (group.frequency as string | null) === "daily"
+        ? 7
+        : Math.max(1, Math.min(7, (group.days_per_week as number | null) ?? 7));
+
+    const toUTC = (s: string) => {
+      const [y, mo, d] = s.split("-").map(Number);
+      return Date.UTC(y, mo - 1, d);
+    };
+    const elapsed =
+      Math.floor((toUTC(today) - toUTC(startDate)) / 86400000) + 1;
+    const dayNumber = Math.min(durationDays, Math.max(1, elapsed));
+
+    const { data: rows } = await supabase
+      .from("check_ins")
+      .select("checkin_date")
+      .eq("group_id", groupId)
+      .eq("user_id", userId)
+      .gte("checkin_date", startDate)
+      .lte("checkin_date", today)
+      .limit(2000);
+
+    const days = new Set((rows ?? []).map((r) => r.checkin_date as string));
+    const checkIns = days.size;
+    const expected = Math.max(1, Math.round((dayNumber * perWeek) / 7));
+    const pacePct = Math.min(999, Math.round((checkIns / expected) * 100));
+
+    return { dayNumber, durationDays, checkIns, expected, pacePct, perWeek };
+  });
