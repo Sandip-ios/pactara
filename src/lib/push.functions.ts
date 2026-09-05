@@ -109,19 +109,35 @@ export const deleteFcmToken = createServerFn({ method: "POST" })
 // -- App icon badge ----------------------------------------------------------
 
 /**
- * Resets the app-icon badge for the signed-in user. Called whenever the app is
- * opened or returns to the foreground. A silent push carries badge 0 to the
- * device, since iOS only lets APNs set the icon badge here.
+ * Lowers the app-icon badge for the signed-in user when they actually open the
+ * item that caused it (a chat thread, a post's comments, ...). Pass `by` to
+ * subtract that many items; omit it to clear the badge entirely. A silent push
+ * carries the new value, since iOS only lets APNs set the icon badge.
  */
 export const clearBadgeCount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input?: { by?: number }) => {
+    const by = typeof input?.by === "number" && input.by > 0 ? Math.floor(input.by) : null;
+    return { by };
+  })
+  .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    let next = 0;
+    if (data.by !== null) {
+      const { data: row } = await supabaseAdmin
+        .from("user_badge_counts" as never)
+        .select("count")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const current = ((row ?? null) as { count?: number } | null)?.count ?? 0;
+      next = Math.max(0, current - data.by);
+    }
+
     await supabaseAdmin
       .from("user_badge_counts" as never)
-      .upsert({ user_id: userId, count: 0, updated_at: new Date().toISOString() } as never, {
+      .upsert({ user_id: userId, count: next, updated_at: new Date().toISOString() } as never, {
         onConflict: "user_id",
       });
 
@@ -134,7 +150,7 @@ export const clearBadgeCount = createServerFn({ method: "POST" })
         const tokens = ((rows ?? []) as Array<{ token: string }>).map((r) => r.token);
         if (tokens.length > 0) {
           const { sendBadgeUpdate } = await import("@/lib/fcm.server");
-          await sendBadgeUpdate(tokens, 0);
+          await sendBadgeUpdate(tokens, next);
         }
       } catch (err) {
         console.warn("[push] clearBadgeCount failed", err);
