@@ -29,6 +29,13 @@
       "when": 1788575932146,
       "tag": "0003_create_comment_likes",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788579215547,
+      "tag": "0004_comment_replies",
+      "breakpoints": true
     }
   ]
 }
