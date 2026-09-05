@@ -825,7 +825,8 @@ export const getMyCommitmentPace = createServerFn({ method: "GET" })
     const days = new Set((rows ?? []).map((r) => r.checkin_date as string));
     const checkIns = days.size;
     const expected = Math.max(1, Math.round((dayNumber * perWeek) / 7));
+    const totalSessions = Math.max(1, Math.round((durationDays * perWeek) / 7));
     const pacePct = Math.min(999, Math.round((checkIns / expected) * 100));
 
-    return { dayNumber, durationDays, checkIns, expected, pacePct, perWeek };
+    return { dayNumber, durationDays, checkIns, expected, totalSessions, pacePct, perWeek };
   });
