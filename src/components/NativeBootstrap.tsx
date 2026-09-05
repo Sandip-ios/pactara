@@ -72,15 +72,16 @@ export function NativeBootstrap() {
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
         console.info("[push] checking Firebase Messaging permission");
         const perm = await FirebaseMessaging.checkPermissions();
-        let granted = perm.receive === "granted";
+        let permissionState = perm.receive;
         if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
           console.info("[push] requesting Firebase Messaging permission");
           const req = await FirebaseMessaging.requestPermissions();
-          granted = req.receive === "granted";
+          permissionState = req.receive;
         }
+        const granted = permissionState === "granted";
         if (!granted || cancelled) {
-          console.info("[push] notification permission not granted", { receive: perm.receive });
-          if (!cancelled && perm.receive === "denied") {
+          console.info("[push] notification permission not granted", { receive: permissionState });
+          if (!cancelled && permissionState === "denied") {
             setShowNotificationSettingsPrompt(true);
           }
           return;
