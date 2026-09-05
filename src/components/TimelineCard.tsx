@@ -796,9 +796,10 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
           <ImagePlus size={18} className="text-neutral-500" />
         </button>
         <input
+          ref={inputRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Add a comment…"
+          placeholder={replyTo ? `Reply to ${replyTo.name}…` : "Add a comment…"}
           maxLength={1000}
           className="flex-1 h-10 rounded-full bg-neutral-100 border border-transparent px-4 text-[16px] outline-none focus:border-[#7C3AED] focus:bg-white"
         />
