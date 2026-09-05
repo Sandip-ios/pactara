@@ -21,6 +21,7 @@ import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
+import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
@@ -222,6 +223,15 @@ function HomePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [pendingBadges, setPendingBadges] = useState<number[] | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    if (typeof sessionStorage === "undefined") return;
+    if (sessionStorage.getItem("checkin-celebrate") === "1") {
+      sessionStorage.removeItem("checkin-celebrate");
+      setShowConfetti(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof sessionStorage === "undefined") return;
@@ -576,6 +586,7 @@ function HomePage() {
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
       )}
+      {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
     </div>
   );
 }
