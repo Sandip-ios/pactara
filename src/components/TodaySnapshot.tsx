@@ -93,7 +93,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
     <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
       <div
         ref={trackRef}
-        className="flex transition-transform duration-300 ease-out"
+        className="flex items-start transition-transform duration-300 ease-out"
         style={{ transform: `translateX(-${index * 100}%)` }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
