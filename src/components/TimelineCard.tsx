@@ -902,6 +902,9 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
   }, [autoOpenComments]);
   const unreadComments = Math.max(0, item.commentCount - seenCount);
   const openComments = () => {
+    if (unreadComments > 0) {
+      void clearBadgeCount({ data: { by: unreadComments } }).catch(() => {});
+    }
     markCommentsSeen(item.id, item.commentCount);
     setSeenCount(item.commentCount);
     setCommentsOpen(true);
