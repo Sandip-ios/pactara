@@ -46,14 +46,40 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
           .in("id", userIds);
 
         const now = new Date();
+        const tzById = new Map<string, string>();
         const dueUserIds: string[] = [];
         for (const prof of profiles ?? []) {
           const tz = prof.timezone || "UTC";
+          tzById.set(prof.id, tz);
           if (localHourFor(tz, now) === 10) dueUserIds.push(prof.id);
         }
         if (dueUserIds.length === 0) {
           return Response.json({ ok: true, sent: 0, scanned: userIds.length });
         }
+
+        // Skip anyone who already posted their commitment on their local date.
+        const { data: posted } = await supabaseAdmin
+          .from("daily_posts")
+          .select("user_id, local_date, morning_ritual_posted_at")
+          .in("user_id", dueUserIds)
+          .not("morning_ritual_posted_at", "is", null)
+          .gte("local_date", new Date(now.getTime() - 36 * 3600 * 1000).toISOString().slice(0, 10));
+        const alreadyPosted = new Set(
+          (posted ?? [])
+            .filter((p) => {
+              const tz = tzById.get(p.user_id as string) ?? "UTC";
+              const localToday = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
+              return p.local_date === localToday;
+            })
+            .map((p) => p.user_id as string),
+        );
+        const remaining = dueUserIds.filter((id) => !alreadyPosted.has(id));
+        if (remaining.length === 0) {
+          return Response.json({ ok: true, sent: 0, due: dueUserIds.length });
+        }
+        dueUserIds.length = 0;
+        dueUserIds.push(...remaining);
+
 
         const { data: subs, error: sErr } = await supabaseAdmin
           .from("push_subscriptions" as never)
