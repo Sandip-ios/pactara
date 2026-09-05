@@ -115,6 +115,37 @@ async function getMyGroupAndTz(
   };
 }
 
+/**
+ * Resolves the set of groups a post should land in.
+ * - `groupIds` (multi-post): filtered down to real memberships.
+ * - otherwise: the single preferred/most-recent group.
+ */
+async function getMyTargetGroupsAndTz(
+  supabase: SupabaseClient,
+  userId: string,
+  preferredGroupId?: string | null,
+  groupIds?: string[] | null,
+) {
+  if (groupIds && groupIds.length > 0) {
+    const { data: members } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId)
+      .in("group_id", groupIds);
+    const allowed = (members ?? []).map((m) => m.group_id as string);
+    if (allowed.length > 0) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("timezone")
+        .eq("id", userId)
+        .maybeSingle();
+      return { groupIds: allowed, timezone: profile?.timezone ?? "UTC" };
+    }
+  }
+  const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, preferredGroupId);
+  return { groupIds: groupId ? [groupId] : [], timezone };
+}
+
 export const saveMyTimezone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { timezone: string }) => ({
@@ -142,28 +173,34 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
 
 export const postMorningRitual = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text: string; groupId?: string | null }) => ({
+  .inputValidator((input: { text: string; groupId?: string | null; groupIds?: string[] | null }) => ({
     text: String(input?.text ?? "").slice(0, 280).trim(),
     groupId: input?.groupId ?? null,
+    groupIds: Array.isArray(input?.groupIds) ? input.groupIds.map(String).slice(0, 20) : null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text) throw new Error("Empty ritual");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
-    if (!groupId) throw new Error("You're not in a group yet");
+    const { groupIds, timezone } = await getMyTargetGroupsAndTz(
+      supabase,
+      userId,
+      data.groupId,
+      data.groupIds,
+    );
+    if (groupIds.length === 0) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
 
     const { error } = await supabase.from("daily_posts").upsert(
-      {
+      groupIds.map((groupId) => ({
         user_id: userId,
         group_id: groupId,
         local_date: today,
         morning_ritual_text: data.text,
         morning_ritual_posted_at: new Date().toISOString(),
         morning_missed: false,
-      },
+      })),
       { onConflict: "user_id,group_id,local_date" },
     );
     if (error) throw new Error(error.message);
@@ -171,16 +208,18 @@ export const postMorningRitual = createServerFn({ method: "POST" })
     try {
       const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
       const name = await displayName(userId);
-      await notifyGroupActivity(groupId, userId, {
-        title: `${name} posted their commitment ☀️`,
-        body: data.text.slice(0, 120),
-        url: "/home",
-      });
+      for (const groupId of groupIds) {
+        await notifyGroupActivity(groupId, userId, {
+          title: `${name} posted their commitment ☀️`,
+          body: data.text.slice(0, 120),
+          url: "/home",
+        });
+      }
     } catch (err) {
       console.warn("[ritual] push failed", err);
     }
 
-    return { ok: true };
+    return { ok: true, groupCount: groupIds.length };
 
   });
 
@@ -268,79 +307,95 @@ export const postThought = createServerFn({ method: "POST" })
 export const recordCheckIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { note?: string; photoUrl?: string; mood?: string; activity?: string; groupId?: string | null }) => ({
+    (input: {
+      note?: string;
+      photoUrl?: string;
+      mood?: string;
+      activity?: string;
+      groupId?: string | null;
+      groupIds?: string[] | null;
+    }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
       mood: input?.mood?.slice(0, 40) ?? null,
       activity: input?.activity?.slice(0, 40) ?? null,
       groupId: input?.groupId ?? null,
+      groupIds: Array.isArray(input?.groupIds) ? input.groupIds.map(String).slice(0, 20) : null,
     }),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
-    if (!groupId) throw new Error("You're not in a group yet");
+    const { groupIds, timezone } = await getMyTargetGroupsAndTz(
+      supabase,
+      userId,
+      data.groupId,
+      data.groupIds,
+    );
+    if (groupIds.length === 0) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
+    const newBadgeSet = new Set<number>();
 
-    const { data: checkIn, error: ciErr } = await supabase
-      .from("check_ins")
-      .insert({
-        user_id: userId,
-        group_id: groupId,
-        checkin_date: today,
-        note: data.note,
-        photo_url: data.photoUrl,
-        mood: data.mood,
-        activity: data.activity,
-      })
-      .select("id")
-      .single();
-    if (ciErr) throw new Error(ciErr.message);
+    for (const groupId of groupIds) {
+      const { data: checkIn, error: ciErr } = await supabase
+        .from("check_ins")
+        .insert({
+          user_id: userId,
+          group_id: groupId,
+          checkin_date: today,
+          note: data.note,
+          photo_url: data.photoUrl,
+          mood: data.mood,
+          activity: data.activity,
+        })
+        .select("id")
+        .single();
+      if (ciErr) throw new Error(ciErr.message);
 
-    // Upsert the daily post; link the FIRST check-in for backwards-compat and clear "missed".
-    // Additional check-ins are surfaced via the per-day check_ins query in getGroupFeed.
-    const { data: existing } = await supabase
-      .from("daily_posts")
-      .select("check_in_id")
-      .eq("user_id", userId)
-      .eq("group_id", groupId)
-      .eq("local_date", today)
-      .maybeSingle();
+      // Upsert the daily post; link the FIRST check-in for backwards-compat and clear "missed".
+      // Additional check-ins are surfaced via the per-day check_ins query in getGroupFeed.
+      const { data: existing } = await supabase
+        .from("daily_posts")
+        .select("check_in_id")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .eq("local_date", today)
+        .maybeSingle();
 
-    const { error: dpErr } = await supabase.from("daily_posts").upsert(
-      {
-        user_id: userId,
-        group_id: groupId,
-        local_date: today,
-        check_in_id: existing?.check_in_id ?? checkIn.id,
-        check_in_missed: false,
-      },
-      { onConflict: "user_id,group_id,local_date" },
-    );
-    if (dpErr) throw new Error(dpErr.message);
+      const { error: dpErr } = await supabase.from("daily_posts").upsert(
+        {
+          user_id: userId,
+          group_id: groupId,
+          local_date: today,
+          check_in_id: existing?.check_in_id ?? checkIn.id,
+          check_in_missed: false,
+        },
+        { onConflict: "user_id,group_id,local_date" },
+      );
+      if (dpErr) throw new Error(dpErr.message);
 
-    let newBadges: number[] = [];
-    try {
-      const { awardBadgesForUser } = await import("./badges.functions");
-      newBadges = await awardBadgesForUser(supabase, userId, groupId);
-    } catch (err) {
-      console.error("badge award failed", err);
+      try {
+        const { awardBadgesForUser } = await import("./badges.functions");
+        const earned = await awardBadgesForUser(supabase, userId, groupId);
+        for (const b of earned) newBadgeSet.add(b);
+      } catch (err) {
+        console.error("badge award failed", err);
+      }
+
+      try {
+        const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+        const name = await displayName(userId);
+        await notifyGroupActivity(groupId, userId, {
+          title: `${name} checked in 🔥`,
+          body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
+          url: "/home",
+        });
+      } catch (err) {
+        console.warn("[check-in] push failed", err);
+      }
     }
 
-    try {
-      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
-      const name = await displayName(userId);
-      await notifyGroupActivity(groupId, userId, {
-        title: `${name} checked in 🔥`,
-        body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
-        url: "/home",
-      });
-    } catch (err) {
-      console.warn("[check-in] push failed", err);
-    }
-
-    return { ok: true, newBadges };
+    return { ok: true, newBadges: Array.from(newBadgeSet), groupCount: groupIds.length };
 
   });
 

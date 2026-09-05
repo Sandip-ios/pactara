@@ -245,6 +245,7 @@ function CheckInRouter() {
   return showRitual ? (
     <MorningRitual
       groupId={selectedGroupId}
+      groups={groups}
       switcher={switcher}
       onPosted={() => setLocalPosted(selectedGroupId)}
     />
@@ -253,19 +254,59 @@ function CheckInRouter() {
   );
 }
 
+export function AllGroupsToggle({
+  count,
+  value,
+  onChange,
+  label,
+}: {
+  count: number;
+  value: boolean;
+  onChange: (v: boolean) => void;
+  label: string;
+}) {
+  if (count < 2) return null;
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!value)}
+      className="w-full flex items-center justify-between gap-3 rounded-2xl bg-white ring-1 ring-neutral-200 px-4 py-3 text-left"
+    >
+      <span className="text-[14px] font-medium text-neutral-800">
+        {label}
+        <span className="block text-[12px] font-normal text-neutral-500">
+          Shares with all {count} of your groups
+        </span>
+      </span>
+      <span
+        className="relative h-6 w-11 shrink-0 rounded-full transition-colors"
+        style={{ background: value ? PURPLE : "#D9D6D1" }}
+      >
+        <span
+          className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all"
+          style={{ left: value ? "1.375rem" : "0.125rem" }}
+        />
+      </span>
+    </button>
+  );
+}
+
 
 function MorningRitual({
   groupId,
+  groups,
   switcher,
   onPosted,
 }: {
   groupId: string | null;
+  groups: { id: string; name: string }[];
   switcher: React.ReactNode;
   onPosted: () => void;
 }) {
   const queryClient = useQueryClient();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [count, setCount] = useState(0);
+  const [allGroups, setAllGroups] = useState(false);
   const MAX = 280;
 
   const postRitualFn = useServerFn(postMorningRitual);
@@ -288,7 +329,13 @@ function MorningRitual({
   const onPost = () => {
     const text = textareaRef.current?.value.trim();
     if (!text) return;
-    mutation.mutate({ data: { text, groupId } });
+    mutation.mutate({
+      data: {
+        text,
+        groupId,
+        groupIds: allGroups && groups.length > 1 ? groups.map((g) => g.id) : null,
+      },
+    });
   };
 
   const canPost = count > 0 && count <= MAX && !mutation.isPending;
@@ -339,6 +386,14 @@ function MorningRitual({
         <div className="mt-2 pr-1 text-right text-[13px] text-neutral-400">
           {count}/{MAX}
         </div>
+        <div className="mt-3">
+          <AllGroupsToggle
+            count={groups.length}
+            value={allGroups}
+            onChange={setAllGroups}
+            label="Post to all my groups"
+          />
+        </div>
       </div>
 
 
@@ -352,7 +407,9 @@ function MorningRitual({
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
           style={{ background: canPost ? PURPLE : "#D9D6D1" }}
         >
-          {mutation.isPending ? "Posting…" : (<>Post to group <ArrowRight size={18} /></>)}
+          {mutation.isPending
+            ? "Posting…"
+            : (<>{allGroups && groups.length > 1 ? "Post to all groups" : "Post to group"} <ArrowRight size={18} /></>)}
         </button>
       </div>
     </div>
