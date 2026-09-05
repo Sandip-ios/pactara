@@ -321,8 +321,12 @@ function VideoRecordScreen() {
         autoPlay
         playsInline
         muted
+        onLoadedMetadata={() => setFrameReady(true)}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
+          // Keep the preview hidden until the stream's frame size is known
+          // so the user never sees the initial resize/settling animation.
+          opacity: ready && frameReady ? 1 : 0,
           // Mirror the front camera preview like Snapchat / Instagram so
           // the user sees themselves the way they see themselves in a
           // mirror. Rear camera is never mirrored. When the platform
@@ -332,7 +336,6 @@ function VideoRecordScreen() {
             !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
           }`.trim() || "none",
           transformOrigin: "center center",
-          transition: "transform 180ms ease-out",
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
