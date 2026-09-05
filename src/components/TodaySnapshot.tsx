@@ -15,6 +15,7 @@ type Props = {
     durationDays: number;
     checkIns: number;
     expected: number;
+    totalSessions: number;
     pacePct: number;
   } | null;
 };
