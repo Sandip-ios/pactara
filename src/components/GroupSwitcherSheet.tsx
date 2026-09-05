@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
@@ -54,9 +55,9 @@ export default function GroupSwitcherSheet({
     return () => clearTimeout(t);
   }, [open]);
 
-  if (!mounted) return null;
+  if (!mounted || typeof document === "undefined") return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true">
       <button
         aria-label="Close"
@@ -119,6 +120,7 @@ export default function GroupSwitcherSheet({
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
