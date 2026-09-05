@@ -537,6 +537,9 @@ function CommentLikeButton({ comment, postId }: { comment: { id: string; likeCou
 function CommentSection({ postId, groupId }: { postId: string; groupId: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
+  const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const inputRef = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
