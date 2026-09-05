@@ -363,27 +363,23 @@ function HomePage() {
         return (
           <div className="px-6 pt-4 pb-3 border-b border-neutral-200 flex items-center justify-between text-[15px]">
             {hasMultiple ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70">
-                    {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
-                    <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
-                    <ChevronDown size={16} className="text-neutral-500" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="min-w-[220px]">
-                  {myGroups.map((g) => (
-                    <DropdownMenuItem
-                      key={g.id}
-                      onSelect={() => setSelectedGroupId(g.id)}
-                      className="flex items-center gap-2"
-                    >
-                      {g.emoji && <span>{g.emoji}</span>}
-                      <span className="truncate">{g.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <button
+                  onClick={() => setSwitcherOpen(true)}
+                  className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
+                >
+                  {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
+                  <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
+                  <ChevronDown size={16} className="text-neutral-500" />
+                </button>
+                <GroupSwitcherSheet
+                  open={switcherOpen}
+                  onClose={() => setSwitcherOpen(false)}
+                  groups={myGroups as never}
+                  selectedGroupId={selectedGroupId}
+                  onSelect={(id) => setSelectedGroupId(id)}
+                />
+              </>
             ) : (
               <div className="flex items-center gap-1.5 font-bold text-neutral-900">
                 {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
