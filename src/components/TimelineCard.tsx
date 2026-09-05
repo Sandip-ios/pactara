@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
+import { clearBadgeCount } from "@/lib/push.functions";
 import {
   togglePostReaction,
   setPostReaction,
@@ -902,6 +903,9 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
   }, [autoOpenComments]);
   const unreadComments = Math.max(0, item.commentCount - seenCount);
   const openComments = () => {
+    if (unreadComments > 0) {
+      void clearBadgeCount({ data: { by: unreadComments } }).catch(() => {});
+    }
     markCommentsSeen(item.id, item.commentCount);
     setSeenCount(item.commentCount);
     setCommentsOpen(true);
