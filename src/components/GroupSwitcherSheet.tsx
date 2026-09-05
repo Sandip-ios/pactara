@@ -120,6 +120,7 @@ export default function GroupSwitcherSheet({
           })}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
