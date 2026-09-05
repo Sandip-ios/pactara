@@ -198,6 +198,11 @@ function HomePage() {
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
+  const { data: paceData } = useQuery({
+    queryKey: ["my-commitment-pace", selectedGroupId],
+    queryFn: () => getMyCommitmentPace({ data: { groupId: selectedGroupId } }),
+    staleTime: 60_000,
+  });
   const { data: ritualStatus } = useQuery({
     queryKey: ["today-ritual-status", selectedGroupId],
     queryFn: () => getTodayRitualStatus({ data: { groupId: selectedGroupId } }),
@@ -414,6 +419,7 @@ function HomePage() {
             week={week}
             streak={myStreak}
             longestStreak={myLongest}
+            pace={paceData ?? null}
           />
         );
       })()}
