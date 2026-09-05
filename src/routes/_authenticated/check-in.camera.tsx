@@ -46,6 +46,7 @@ function VideoRecordScreen() {
   const recordingRef = useRef(false);
 
   const [ready, setReady] = useState(false);
+  const [frameReady, setFrameReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -107,6 +108,7 @@ function VideoRecordScreen() {
 
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
+    setFrameReady(false);
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
@@ -319,8 +321,12 @@ function VideoRecordScreen() {
         autoPlay
         playsInline
         muted
+        onLoadedMetadata={() => setFrameReady(true)}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
+          // Keep the preview hidden until the stream's frame size is known
+          // so the user never sees the initial resize/settling animation.
+          opacity: ready && frameReady ? 1 : 0,
           // Mirror the front camera preview like Snapchat / Instagram so
           // the user sees themselves the way they see themselves in a
           // mirror. Rear camera is never mirrored. When the platform
@@ -330,12 +336,11 @@ function VideoRecordScreen() {
             !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
           }`.trim() || "none",
           transformOrigin: "center center",
-          transition: "transform 180ms ease-out",
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
 
-      {!ready && !error && (
+      {(!ready || !frameReady) && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 opacity-70">
             <div className="h-14 w-14 rounded-2xl border border-white/30 flex items-center justify-center">
