@@ -123,7 +123,11 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         </div>
 
         {/* Slide 2 — Weekly snapshot */}
-        <div className="w-full shrink-0">
+        <div
+          className="w-full shrink-0 overflow-hidden"
+          style={{ maxHeight: index === 1 ? 400 : 0 }}
+          aria-hidden={index !== 1}
+        >
           <div className="px-4 pt-4">
             <span className="text-[15px] font-bold text-neutral-900">Weekly snapshot</span>
           </div>
