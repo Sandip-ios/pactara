@@ -860,7 +860,7 @@ export const getPostComments = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: rows, error } = await (supabase as any)
       .from("post_comments")
-      .select("id, post_id, user_id, body, media_url, media_type, created_at")
+      .select("id, post_id, user_id, body, media_url, media_type, created_at, parent_comment_id")
       .eq("post_id", data.postId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
@@ -944,6 +944,7 @@ export const getPostComments = createServerFn({ method: "GET" })
         isMine: r.user_id === userId,
         likeCount: likeCounts.get(r.id) ?? 0,
         likedByMe: likedByMe.has(r.id),
+        parentCommentId: r.parent_comment_id ?? null,
       };
     });
     return { comments };
