@@ -3,12 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
