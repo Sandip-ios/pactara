@@ -644,7 +644,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
           </button>
         </div>
       )}
-      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white">
+      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white mb-4">
         <input
           ref={fileRef}
           type="file"
