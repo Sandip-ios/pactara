@@ -414,6 +414,7 @@ export type PostComment = {
   isMine: boolean;
   likeCount: number;
   likedByMe: boolean;
+  parentCommentId: string | null;
 };
 
 export const getGroupFeed = createServerFn({ method: "GET" })
