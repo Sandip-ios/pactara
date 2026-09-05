@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { toast } from "sonner";
-import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
 import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
@@ -196,6 +196,11 @@ function HomePage() {
   const { data: streaksData } = useQuery({
     queryKey: ["group-member-streaks", selectedGroupId],
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
+    staleTime: 60_000,
+  });
+  const { data: paceData } = useQuery({
+    queryKey: ["my-commitment-pace", selectedGroupId],
+    queryFn: () => getMyCommitmentPace({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
   const { data: ritualStatus } = useQuery({
@@ -414,6 +419,7 @@ function HomePage() {
             week={week}
             streak={myStreak}
             longestStreak={myLongest}
+            pace={paceData ?? null}
           />
         );
       })()}

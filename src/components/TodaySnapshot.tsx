@@ -10,6 +10,13 @@ type Props = {
   week: { label: string; done: boolean }[];
   streak: number;
   longestStreak: number;
+  pace?: {
+    dayNumber: number;
+    durationDays: number;
+    checkIns: number;
+    expected: number;
+    pacePct: number;
+  } | null;
 };
 
 const COPY: Record<
@@ -38,7 +45,7 @@ type Stat = { label: string; value: string };
 
 
 
-export function TodaySnapshot({ state, week, streak, longestStreak }: Props) {
+export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Props) {
   const navigate = useNavigate();
   const copy = COPY[state];
 
@@ -129,6 +136,33 @@ export function TodaySnapshot({ state, week, streak, longestStreak }: Props) {
                 </div>
               ))}
             </div>
+            {pace && (
+              <div className="mt-3.5 border-t border-neutral-100 pt-3">
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="font-semibold text-neutral-700">
+                    Day {pace.dayNumber} of {pace.durationDays}
+                  </span>
+                  <span
+                    className="font-bold"
+                    style={{ color: pace.pacePct >= 100 ? "#16A34A" : pace.pacePct >= 80 ? PURPLE : "#EA580C" }}
+                  >
+                    {pace.pacePct}% on pace
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, pace.pacePct)}%`,
+                      background: pace.pacePct >= 100 ? "#16A34A" : pace.pacePct >= 80 ? PURPLE : "#EA580C",
+                    }}
+                  />
+                </div>
+                <p className="mt-1.5 text-[12px] text-neutral-500">
+                  {pace.checkIns} of {pace.expected} check-ins expected by today
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
