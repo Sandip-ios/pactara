@@ -122,26 +122,21 @@ function VideoRecordScreen() {
       return null;
     }
     try {
-      // iOS Safari digitally crops/zooms the front-camera stream when forced
-      // into a tall 9:16 portrait mode. The native iPhone Camera app uses a
-      // 3:4 portrait photo mode for the front sensor, which keeps the full
-      // sensor field of view. We request 3:4 portrait for the front camera
-      // and let CSS object-cover crop it to the 9:16 screen, so the preview
-      // stays portrait but looks much wider/less zoomed. Rear camera keeps
-      // the 9:16 portrait constraint so arm's-length check-ins compose naturally.
+      // Phone camera sensors are natively 4:3 (landscape orientation of the
+      // sensor). Asking for a tall 9:16 or 3:4 portrait stream makes iOS
+      // digitally crop into the sensor, which is what made our preview look
+      // much more zoomed-in than Snapchat's. Snapchat requests the full
+      // sensor frame and letterboxes/crops it in the UI. So we request the
+      // widest full-sensor frame available and let CSS object-cover fit it
+      // to the portrait screen — same framing, far less zoom.
       const videoConstraints: MediaTrackConstraints = {
         facingMode: { ideal: mode },
         frameRate: { ideal: 30 },
+        width: { ideal: 1920 },
+        height: { ideal: 1440 },
+        aspectRatio: { ideal: 4 / 3 },
       };
-      if (mode === "user") {
-        videoConstraints.width = { ideal: 1080 };
-        videoConstraints.height = { ideal: 1440 };
-        videoConstraints.aspectRatio = { ideal: 3 / 4 };
-      } else {
-        videoConstraints.width = { ideal: 1080 };
-        videoConstraints.height = { ideal: 1920 };
-        videoConstraints.aspectRatio = { ideal: 9 / 16 };
-      }
+
       const stream = await navigator.mediaDevices.getUserMedia({
         video: videoConstraints,
         audio: false,
