@@ -773,7 +773,13 @@ export const setPostReaction = createServerFn({ method: "POST" })
 export const addPostComment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (data: { postId: string; body: string; mediaUrl?: string | null; mediaType?: string | null }) => data,
+    (data: {
+      postId: string;
+      body: string;
+      mediaUrl?: string | null;
+      mediaType?: string | null;
+      parentCommentId?: string | null;
+    }) => data,
   )
   .handler(async ({ data, context }) => {
     const body = data.body.trim();
@@ -782,9 +788,29 @@ export const addPostComment = createServerFn({ method: "POST" })
     if (!body && !mediaUrl) throw new Error("Comment cannot be empty");
     if (body.length > 1000) throw new Error("Comment is too long");
     const { supabase, userId } = context;
-    const { error } = await (supabase as any)
-      .from("post_comments")
-      .insert({ post_id: data.postId, user_id: userId, body, media_url: mediaUrl, media_type: mediaType });
+
+    // Instagram/Facebook style: one level of nesting. Replying to a reply
+    // attaches to the same top-level thread.
+    let parentId: string | null = null;
+    if (data.parentCommentId) {
+      const { data: parent } = await (supabase as any)
+        .from("post_comments")
+        .select("id, parent_comment_id, post_id")
+        .eq("id", data.parentCommentId)
+        .maybeSingle();
+      if (parent?.id && parent.post_id === data.postId) {
+        parentId = parent.parent_comment_id ?? parent.id;
+      }
+    }
+
+    const { error } = await (supabase as any).from("post_comments").insert({
+      post_id: data.postId,
+      user_id: userId,
+      body,
+      media_url: mediaUrl,
+      media_type: mediaType,
+      parent_comment_id: parentId,
+    });
     if (error) throw new Error(error.message);
     try {
       const { notifyPostComment } = await import("@/lib/notify.server");
