@@ -22,6 +22,13 @@
       "when": 1788558273641,
       "tag": "0002_comment_media",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788575932146,
+      "tag": "0003_create_comment_likes",
+      "breakpoints": true
     }
   ]
 }

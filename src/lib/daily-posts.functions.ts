@@ -412,6 +412,8 @@ export type PostComment = {
   mediaKind: "image" | "video" | null;
   createdAt: string;
   isMine: boolean;
+  likeCount: number;
+  likedByMe: boolean;
 };
 
 export const getGroupFeed = createServerFn({ method: "GET" })
@@ -801,6 +803,29 @@ export const addPostComment = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const toggleCommentLike = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: { commentId: string }) => data)
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: existing } = await (supabase as any)
+      .from("comment_likes")
+      .select("id")
+      .eq("comment_id", data.commentId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (existing?.id) {
+      const { error } = await (supabase as any).from("comment_likes").delete().eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      return { liked: false };
+    }
+    const { error } = await (supabase as any)
+      .from("comment_likes")
+      .insert({ comment_id: data.commentId, user_id: userId });
+    if (error) throw new Error(error.message);
+    return { liked: true };
+  });
+
 export const getPostComments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { postId: string }) => data)
@@ -847,6 +872,19 @@ export const getPostComments = createServerFn({ method: "GET" })
         if (s?.path && s?.signedUrl) mediaSigned.set(s.path, s.signedUrl);
       });
     }
+    const commentIds = (rows ?? []).map((r: any) => r.id) as string[];
+    const likeCounts = new Map<string, number>();
+    const likedByMe = new Set<string>();
+    if (commentIds.length) {
+      const { data: likeRows } = await (supabase as any)
+        .from("comment_likes")
+        .select("comment_id, user_id")
+        .in("comment_id", commentIds);
+      (likeRows ?? []).forEach((l: any) => {
+        likeCounts.set(l.comment_id, (likeCounts.get(l.comment_id) ?? 0) + 1);
+        if (l.user_id === userId) likedByMe.add(l.comment_id);
+      });
+    }
     const profMap = new Map(
       (profs ?? []).map((p: any) => [
         p.id,
@@ -877,6 +915,8 @@ export const getPostComments = createServerFn({ method: "GET" })
         mediaKind: rawMedia ? (String(r.media_type ?? "").startsWith("video/") ? "video" : "image") : null,
         createdAt: r.created_at,
         isMine: r.user_id === userId,
+        likeCount: likeCounts.get(r.id) ?? 0,
+        likedByMe: likedByMe.has(r.id),
       };
     });
     return { comments };
