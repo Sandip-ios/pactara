@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate } from "@tanstack/react-router";
 import { isNative, nativePlatform } from "@/lib/native";
@@ -8,6 +8,16 @@ import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/re
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 
 
@@ -17,6 +27,7 @@ import { claimDeferredInvite } from "@/lib/deferred-invite";
  */
 export function NativeBootstrap() {
   const navigate = useNavigate();
+  const [showNotificationSettingsPrompt, setShowNotificationSettingsPrompt] = useState(false);
 
   useEffect(() => {
     if (!isNative()) return;
@@ -61,17 +72,22 @@ export function NativeBootstrap() {
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
         console.info("[push] checking Firebase Messaging permission");
         const perm = await FirebaseMessaging.checkPermissions();
-        let granted = perm.receive === "granted";
+        let permissionState = perm.receive;
         if (perm.receive === "prompt" || perm.receive === "prompt-with-rationale") {
           console.info("[push] requesting Firebase Messaging permission");
           const req = await FirebaseMessaging.requestPermissions();
-          granted = req.receive === "granted";
+          permissionState = req.receive;
         }
+        const granted = permissionState === "granted";
         if (!granted || cancelled) {
-          console.info("[push] notification permission not granted", { receive: perm.receive });
+          console.info("[push] notification permission not granted", { receive: permissionState });
+          if (!cancelled && permissionState === "denied") {
+            setShowNotificationSettingsPrompt(true);
+          }
           return;
         }
 
+        setShowNotificationSettingsPrompt(false);
         console.info("[push] requesting FCM registration token");
         const { token } = await FirebaseMessaging.getToken();
         console.info("[push] received FCM token", { tokenLength: token?.length ?? 0 });
@@ -92,6 +108,11 @@ export function NativeBootstrap() {
         listenerHandles.push(
           App.addListener("appUrlOpen", (event) => {
             openIncomingUrl(event.url);
+          }),
+        );
+        listenerHandles.push(
+          App.addListener("appStateChange", ({ isActive }) => {
+            if (isActive) void registerForPush();
           }),
         );
         const launchGroupId = await getLaunchInviteGroupId();
@@ -220,5 +241,30 @@ export function NativeBootstrap() {
     };
   }, [navigate]);
 
-  return null;
+  const openNotificationSettings = () => {
+    setShowNotificationSettingsPrompt(false);
+    if (nativePlatform() === "ios" && typeof window !== "undefined") {
+      window.location.href = "app-settings:";
+    }
+  };
+
+  return (
+    <AlertDialog
+      open={showNotificationSettingsPrompt}
+      onOpenChange={setShowNotificationSettingsPrompt}
+    >
+      <AlertDialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-lg">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Turn on notifications</AlertDialogTitle>
+          <AlertDialogDescription>
+            Enable notifications in Settings so Pactara can remind you to check in and keep your streak.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Not now</AlertDialogCancel>
+          <AlertDialogAction onClick={openNotificationSettings}>Open Settings</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
 }
