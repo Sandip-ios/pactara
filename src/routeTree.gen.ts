@@ -39,6 +39,7 @@ import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/invite/defer'
 import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
+import { Route as ApiPublicHooksStreakRiskRouteImport } from './routes/api/public/hooks/streak-risk'
 import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
 import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
 import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
@@ -205,6 +206,12 @@ const ApiPublicInviteClaimRoute = ApiPublicInviteClaimRouteImport.update({
   path: '/api/public/invite/claim',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksStreakRiskRoute =
+  ApiPublicHooksStreakRiskRouteImport.update({
+    id: '/api/public/hooks/streak-risk',
+    path: '/api/public/hooks/streak-risk',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRevenuecatRoute =
   ApiPublicHooksRevenuecatRouteImport.update({
     id: '/api/public/hooks/revenuecat',
@@ -274,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
+  '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
@@ -311,6 +319,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
+  '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
@@ -350,6 +359,7 @@ export interface FileRoutesById {
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
+  '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
@@ -389,6 +399,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
+    | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/og/invite/$groupId'
@@ -426,6 +437,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
+    | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/og/invite/$groupId'
@@ -464,6 +476,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/evening-reminder'
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
+    | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/og/invite/$groupId'
@@ -488,6 +501,7 @@ export interface RootRouteChildren {
   ApiPublicHooksEveningReminderRoute: typeof ApiPublicHooksEveningReminderRoute
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
   ApiPublicHooksRevenuecatRoute: typeof ApiPublicHooksRevenuecatRoute
+  ApiPublicHooksStreakRiskRoute: typeof ApiPublicHooksStreakRiskRoute
   ApiPublicInviteClaimRoute: typeof ApiPublicInviteClaimRoute
   ApiPublicInviteDeferRoute: typeof ApiPublicInviteDeferRoute
   ApiPublicOgInviteGroupIdRoute: typeof ApiPublicOgInviteGroupIdRoute
@@ -705,6 +719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInviteClaimRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/streak-risk': {
+      id: '/api/public/hooks/streak-risk'
+      path: '/api/public/hooks/streak-risk'
+      fullPath: '/api/public/hooks/streak-risk'
+      preLoaderRoute: typeof ApiPublicHooksStreakRiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/revenuecat': {
       id: '/api/public/hooks/revenuecat'
       path: '/api/public/hooks/revenuecat'
@@ -814,6 +835,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksMorningRitualReminderRoute:
     ApiPublicHooksMorningRitualReminderRoute,
   ApiPublicHooksRevenuecatRoute: ApiPublicHooksRevenuecatRoute,
+  ApiPublicHooksStreakRiskRoute: ApiPublicHooksStreakRiskRoute,
   ApiPublicInviteClaimRoute: ApiPublicInviteClaimRoute,
   ApiPublicInviteDeferRoute: ApiPublicInviteDeferRoute,
   ApiPublicOgInviteGroupIdRoute: ApiPublicOgInviteGroupIdRoute,
