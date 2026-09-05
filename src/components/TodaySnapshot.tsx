@@ -100,7 +100,11 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         onTouchEnd={onTouchEnd}
       >
         {/* Slide 1 — Today's commitment */}
-        <div className="w-full shrink-0">
+        <div
+          className="w-full shrink-0 overflow-hidden"
+          style={{ maxHeight: index === 0 ? 400 : 0 }}
+          aria-hidden={index !== 0}
+        >
           <div className="px-4 pt-4">
             <span className="text-[15px] font-bold text-neutral-900">{copy.title}</span>
           </div>
