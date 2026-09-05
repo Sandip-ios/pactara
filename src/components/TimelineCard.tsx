@@ -625,6 +625,83 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
   const busy = add.isPending || uploading;
   const canSend = (!!text.trim() || !!pendingFile) && !busy;
 
+  const allComments = data?.comments ?? [];
+  const topLevel = allComments.filter((c) => !c.parentCommentId);
+  const repliesByParent = new Map<string, typeof allComments>();
+  allComments.forEach((c) => {
+    if (!c.parentCommentId) return;
+    const list = repliesByParent.get(c.parentCommentId) ?? [];
+    list.push(c);
+    repliesByParent.set(c.parentCommentId, list);
+  });
+
+  const startReply = (id: string, name: string, isMine: boolean) => {
+    hapticLight();
+    setReplyTo({ id, name });
+    if (!isMine) {
+      const handle = `@${name.split(" ")[0]} `;
+      setText((prev) => (prev.startsWith("@") ? prev : handle + prev));
+    }
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+
+  const renderComment = (c: (typeof allComments)[number], isReply: boolean) => {
+    const initial = (c.authorName || "U").slice(0, 1).toUpperCase();
+    const size = isReply ? "h-7 w-7 text-[11px]" : "h-9 w-9 text-[13px]";
+    return (
+      <div className="flex gap-3 items-start">
+        {c.authorAvatarUrl ? (
+          <img src={c.authorAvatarUrl} alt="" className={`${size} rounded-full object-cover shrink-0`} />
+        ) : (
+          <div
+            className={`${size} rounded-full flex items-center justify-center text-white font-bold shrink-0`}
+            style={{ background: c.authorColor }}
+          >
+            {initial}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-baseline gap-2">
+            <span className={`${isReply ? "text-[13px]" : "text-[14px]"} font-bold text-neutral-900`}>
+              {c.isMine ? "You" : c.authorName}
+            </span>
+            <span className="text-[12px] text-neutral-400">{timeAgo(c.createdAt)}</span>
+          </div>
+          {c.body && (
+            <div
+              className={`${isReply ? "text-[14px]" : "text-[15px]"} text-neutral-800 whitespace-pre-wrap break-words mt-0.5`}
+            >
+              {c.body}
+            </div>
+          )}
+          {c.mediaUrl && (
+            <button
+              type="button"
+              onClick={() => setLightbox({ src: c.mediaUrl!, kind: c.mediaKind === "video" ? "video" : "image" })}
+              className="mt-2 block rounded-xl overflow-hidden bg-neutral-100 max-w-[220px]"
+            >
+              {c.mediaKind === "video" ? (
+                <video src={c.mediaUrl} className="w-full max-h-64 object-cover" muted playsInline preload="metadata" />
+              ) : (
+                <img src={c.mediaUrl} alt="" className="w-full max-h-64 object-cover" />
+              )}
+            </button>
+          )}
+          <div className="flex items-center gap-4">
+            <CommentLikeButton comment={c} postId={postId} />
+            <button
+              type="button"
+              onClick={() => startReply(c.parentCommentId ?? c.id, c.authorName, c.isMine)}
+              className="mt-1.5 text-[13px] font-semibold text-neutral-400 active:opacity-60"
+            >
+              Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto px-4 py-3">
@@ -632,54 +709,62 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
           <div className="text-[13px] text-neutral-400">Loading…</div>
         ) : (
           <ul className="space-y-4">
-            {(data?.comments ?? []).map((c) => {
-              const initial = (c.authorName || "U").slice(0, 1).toUpperCase();
+            {topLevel.map((c) => {
+              const replies = repliesByParent.get(c.id) ?? [];
+              const isOpen = !!expanded[c.id];
               return (
-                <li key={c.id} className="flex gap-3 items-start">
-                  {c.authorAvatarUrl ? (
-                    <img src={c.authorAvatarUrl} alt="" className="h-9 w-9 rounded-full object-cover shrink-0" />
-                  ) : (
-                    <div
-                      className="h-9 w-9 rounded-full flex items-center justify-center text-white text-[13px] font-bold shrink-0"
-                      style={{ background: c.authorColor }}
-                    >
-                      {initial}
+                <li key={c.id}>
+                  {renderComment(c, false)}
+                  {replies.length > 0 && (
+                    <div className="pl-12 mt-2">
+                      {!isOpen ? (
+                        <button
+                          type="button"
+                          onClick={() => setExpanded((prev) => ({ ...prev, [c.id]: true }))}
+                          className="flex items-center gap-2 text-[13px] font-semibold text-neutral-400 active:opacity-60"
+                        >
+                          <span className="h-px w-6 bg-neutral-300" />
+                          View {replies.length} {replies.length === 1 ? "reply" : "replies"}
+                        </button>
+                      ) : (
+                        <div className="space-y-3">
+                          {replies.map((r) => (
+                            <div key={r.id}>{renderComment(r, true)}</div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setExpanded((prev) => ({ ...prev, [c.id]: false }))}
+                            className="flex items-center gap-2 text-[13px] font-semibold text-neutral-400 active:opacity-60"
+                          >
+                            <span className="h-px w-6 bg-neutral-300" />
+                            Hide replies
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-[14px] font-bold text-neutral-900">
-                        {c.isMine ? "You" : c.authorName}
-                      </span>
-                      <span className="text-[12px] text-neutral-400">{timeAgo(c.createdAt)}</span>
-                    </div>
-                    {c.body && (
-                      <div className="text-[15px] text-neutral-800 whitespace-pre-wrap break-words mt-0.5">{c.body}</div>
-                    )}
-                    {c.mediaUrl && (
-                      <button
-                        type="button"
-                        onClick={() => setLightbox({ src: c.mediaUrl!, kind: c.mediaKind === "video" ? "video" : "image" })}
-                        className="mt-2 block rounded-xl overflow-hidden bg-neutral-100 max-w-[220px]"
-                      >
-                        {c.mediaKind === "video" ? (
-                          <video src={c.mediaUrl} className="w-full max-h-64 object-cover" muted playsInline preload="metadata" />
-                        ) : (
-                          <img src={c.mediaUrl} alt="" className="w-full max-h-64 object-cover" />
-                        )}
-                      </button>
-                    )}
-                    <CommentLikeButton comment={c} postId={postId} />
-                  </div>
                 </li>
               );
             })}
-            {(data?.comments ?? []).length === 0 && (
+            {allComments.length === 0 && (
               <li className="text-[14px] text-neutral-400 text-center py-8">No comments yet. Be the first to say something.</li>
             )}
           </ul>
         )}
       </div>
+      {replyTo && (
+        <div className="px-4 pt-2 flex items-center justify-between text-[13px] text-neutral-500 bg-neutral-50 py-2">
+          <span>Replying to {replyTo.name}</span>
+          <button
+            type="button"
+            onClick={() => setReplyTo(null)}
+            className="text-neutral-400 font-semibold px-2"
+            aria-label="Cancel reply"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {pendingPreview && (
         <div className="px-4 pt-3 flex items-center gap-3">
           <div className="relative h-16 w-16 rounded-xl overflow-hidden bg-neutral-100">
