@@ -121,7 +121,7 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
         onLoadedMetadata={handleLoadedMetadata}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        className="w-full h-full object-cover bg-black"
+        className="w-full h-full object-contain bg-black"
       />
       <button
         type="button"
