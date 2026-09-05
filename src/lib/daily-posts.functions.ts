@@ -115,6 +115,37 @@ async function getMyGroupAndTz(
   };
 }
 
+/**
+ * Resolves the set of groups a post should land in.
+ * - `groupIds` (multi-post): filtered down to real memberships.
+ * - otherwise: the single preferred/most-recent group.
+ */
+async function getMyTargetGroupsAndTz(
+  supabase: SupabaseClient,
+  userId: string,
+  preferredGroupId?: string | null,
+  groupIds?: string[] | null,
+) {
+  if (groupIds && groupIds.length > 0) {
+    const { data: members } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId)
+      .in("group_id", groupIds);
+    const allowed = (members ?? []).map((m) => m.group_id as string);
+    if (allowed.length > 0) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("timezone")
+        .eq("id", userId)
+        .maybeSingle();
+      return { groupIds: allowed, timezone: profile?.timezone ?? "UTC" };
+    }
+  }
+  const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, preferredGroupId);
+  return { groupIds: groupId ? [groupId] : [], timezone };
+}
+
 export const saveMyTimezone = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { timezone: string }) => ({
