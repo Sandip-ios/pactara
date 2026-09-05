@@ -548,10 +548,16 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
   const fileRef = useRef<HTMLInputElement>(null);
   const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
-    mutationFn: (vars: { body: string; mediaUrl?: string | null; mediaType?: string | null }) =>
-      addPostComment({ data: { postId, ...vars } }),
-    onSuccess: () => {
+    mutationFn: (vars: {
+      body: string;
+      mediaUrl?: string | null;
+      mediaType?: string | null;
+      parentCommentId?: string | null;
+    }) => addPostComment({ data: { postId, ...vars } }),
+    onSuccess: (_res, vars) => {
       setText("");
+      if (vars.parentCommentId) setExpanded((prev) => ({ ...prev, [vars.parentCommentId!]: true }));
+      setReplyTo(null);
       clearPending();
       queryClient.invalidateQueries({ queryKey: ["post-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
@@ -613,7 +619,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
       setUploading(false);
     }
 
-    add.mutate({ body, mediaUrl, mediaType });
+    add.mutate({ body, mediaUrl, mediaType, parentCommentId: replyTo?.id ?? null });
   };
 
   const busy = add.isPending || uploading;
