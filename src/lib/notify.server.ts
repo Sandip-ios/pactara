@@ -94,12 +94,33 @@ export async function pushToUsers(
     try {
       const { data: rows } = await supabaseAdmin
         .from("fcm_tokens" as never)
-        .select("token")
+        .select("token, user_id")
         .in("user_id", userIds);
-      const tokens = ((rows ?? []) as Array<{ token: string }>).map((r) => r.token);
+      const tokenRows = (rows ?? []) as Array<{ token: string; user_id: string }>;
+      const tokens = tokenRows.map((r) => r.token);
       if (tokens.length > 0) {
+        // Bump each recipient's app-icon badge and attach the new total.
+        const badgeByToken: Record<string, number> = {};
+        try {
+          const { data: counts } = await supabaseAdmin.rpc("increment_badge_counts" as never, {
+            _user_ids: userIds,
+          } as never);
+          const byUser = new Map(
+            ((counts ?? []) as Array<{ user_id: string; count: number }>).map((c) => [
+              c.user_id,
+              c.count,
+            ]),
+          );
+          for (const r of tokenRows) {
+            const n = byUser.get(r.user_id);
+            if (typeof n === "number") badgeByToken[r.token] = n;
+          }
+        } catch (err) {
+          console.warn("[notify] badge increment failed", err);
+        }
+
         const { sendFcm } = await import("@/lib/fcm.server");
-        const result = await sendFcm(tokens, payload);
+        const result = await sendFcm(tokens, payload, badgeByToken);
         fcmSent = result.sent;
         if (result.expired.length > 0) {
           await supabaseAdmin

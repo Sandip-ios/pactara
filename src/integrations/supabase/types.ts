@@ -627,11 +627,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_badge_counts: {
+        Row: {
+          count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      increment_badge_counts: {
+        Args: { _user_ids: string[] }
+        Returns: {
+          count: number
+          user_id: string
+        }[]
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean

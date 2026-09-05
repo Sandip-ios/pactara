@@ -3,7 +3,7 @@ import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate } from "@tanstack/react-router";
 import { isNative, nativePlatform } from "@/lib/native";
 import { supabase } from "@/integrations/supabase/client";
-import { saveFcmToken } from "@/lib/push.functions";
+import { clearBadgeCount, saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
@@ -56,6 +56,16 @@ export function NativeBootstrap() {
         console.info("[push] FCM token saved");
       } catch (err) {
         console.warn("[push] saveFcmToken failed", err);
+      }
+    };
+
+    const resetBadge = async () => {
+      try {
+        const { data: auth } = await supabase.auth.getSession();
+        if (!auth.session || cancelled) return;
+        await clearBadgeCount({ data: undefined });
+      } catch (err) {
+        console.warn("[push] clearing badge failed", err);
       }
     };
 
@@ -112,7 +122,10 @@ export function NativeBootstrap() {
         );
         listenerHandles.push(
           App.addListener("appStateChange", ({ isActive }) => {
-            if (isActive) void registerForPush();
+            if (isActive) {
+              void registerForPush();
+              void resetBadge();
+            }
           }),
         );
         const launchGroupId = await getLaunchInviteGroupId();
@@ -123,6 +136,8 @@ export function NativeBootstrap() {
       } catch (err) {
         console.warn("[deeplink] native URL handling failed", err);
       }
+
+      void resetBadge();
 
       try {
         await configureRevenueCat();

@@ -90,7 +90,11 @@ export type FcmSendResult = { sent: number; expired: string[] };
  * Returns count sent and the list of tokens the server reported as invalid
  * (UNREGISTERED / NOT_FOUND / INVALID_ARGUMENT) so the caller can prune them.
  */
-export async function sendFcm(tokens: string[], payload: FcmPayload): Promise<FcmSendResult> {
+export async function sendFcm(
+  tokens: string[],
+  payload: FcmPayload,
+  badgeByToken?: Record<string, number>,
+): Promise<FcmSendResult> {
   if (tokens.length === 0) return { sent: 0, expired: [] };
   const sa = loadServiceAccount();
   const accessToken = await getAccessToken(sa);
@@ -102,6 +106,7 @@ export async function sendFcm(tokens: string[], payload: FcmPayload): Promise<Fc
 
   await Promise.all(
     tokens.map(async (token) => {
+      const badge = badgeByToken?.[token];
       const message = {
         message: {
           token,
@@ -109,12 +114,19 @@ export async function sendFcm(tokens: string[], payload: FcmPayload): Promise<Fc
           data: { url: dataUrl },
           apns: {
             payload: {
-              aps: { sound: "default", "content-available": 1 },
+              aps: {
+                sound: "default",
+                "content-available": 1,
+                ...(typeof badge === "number" ? { badge } : {}),
+              },
             },
           },
           android: {
             priority: "HIGH",
-            notification: { click_action: "FLUTTER_NOTIFICATION_CLICK" },
+            notification: {
+              click_action: "FLUTTER_NOTIFICATION_CLICK",
+              ...(typeof badge === "number" ? { notification_count: badge } : {}),
+            },
           },
         },
       };
@@ -146,4 +158,40 @@ export async function sendFcm(tokens: string[], payload: FcmPayload): Promise<Fc
   );
 
   return { sent, expired };
+}
+
+/**
+ * Silent push used to update the iOS app-icon badge (usually to clear it).
+ * Carries no alert, so nothing is shown to the user.
+ */
+export async function sendBadgeUpdate(tokens: string[], badge: number): Promise<void> {
+  if (tokens.length === 0) return;
+  const sa = loadServiceAccount();
+  const accessToken = await getAccessToken(sa);
+  const endpoint = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
+
+  await Promise.all(
+    tokens.map(async (token) => {
+      try {
+        await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            message: {
+              token,
+              apns: {
+                headers: { "apns-push-type": "background", "apns-priority": "5" },
+                payload: { aps: { badge, "content-available": 1 } },
+              },
+            },
+          }),
+        });
+      } catch {
+        // badge updates are best-effort
+      }
+    }),
+  );
 }

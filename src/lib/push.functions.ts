@@ -105,3 +105,41 @@ export const deleteFcmToken = createServerFn({ method: "POST" })
   });
 
 
+
+// -- App icon badge ----------------------------------------------------------
+
+/**
+ * Resets the app-icon badge for the signed-in user. Called whenever the app is
+ * opened or returns to the foreground. A silent push carries badge 0 to the
+ * device, since iOS only lets APNs set the icon badge here.
+ */
+export const clearBadgeCount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .upsert({ user_id: userId, count: 0, updated_at: new Date().toISOString() } as never, {
+        onConflict: "user_id",
+      });
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      try {
+        const { data: rows } = await supabaseAdmin
+          .from("fcm_tokens" as never)
+          .select("token")
+          .eq("user_id", userId);
+        const tokens = ((rows ?? []) as Array<{ token: string }>).map((r) => r.token);
+        if (tokens.length > 0) {
+          const { sendBadgeUpdate } = await import("@/lib/fcm.server");
+          await sendBadgeUpdate(tokens, 0);
+        }
+      } catch (err) {
+        console.warn("[push] clearBadgeCount failed", err);
+      }
+    }
+
+    return { ok: true };
+  });
