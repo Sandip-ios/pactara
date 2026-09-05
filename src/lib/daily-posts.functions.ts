@@ -173,28 +173,34 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
 
 export const postMorningRitual = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text: string; groupId?: string | null }) => ({
+  .inputValidator((input: { text: string; groupId?: string | null; groupIds?: string[] | null }) => ({
     text: String(input?.text ?? "").slice(0, 280).trim(),
     groupId: input?.groupId ?? null,
+    groupIds: Array.isArray(input?.groupIds) ? input.groupIds.map(String).slice(0, 20) : null,
   }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     if (!data.text) throw new Error("Empty ritual");
 
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
-    if (!groupId) throw new Error("You're not in a group yet");
+    const { groupIds, timezone } = await getMyTargetGroupsAndTz(
+      supabase,
+      userId,
+      data.groupId,
+      data.groupIds,
+    );
+    if (groupIds.length === 0) throw new Error("You're not in a group yet");
 
     const today = localDateFor(timezone);
 
     const { error } = await supabase.from("daily_posts").upsert(
-      {
+      groupIds.map((groupId) => ({
         user_id: userId,
         group_id: groupId,
         local_date: today,
         morning_ritual_text: data.text,
         morning_ritual_posted_at: new Date().toISOString(),
         morning_missed: false,
-      },
+      })),
       { onConflict: "user_id,group_id,local_date" },
     );
     if (error) throw new Error(error.message);
@@ -202,16 +208,18 @@ export const postMorningRitual = createServerFn({ method: "POST" })
     try {
       const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
       const name = await displayName(userId);
-      await notifyGroupActivity(groupId, userId, {
-        title: `${name} posted their commitment ☀️`,
-        body: data.text.slice(0, 120),
-        url: "/home",
-      });
+      for (const groupId of groupIds) {
+        await notifyGroupActivity(groupId, userId, {
+          title: `${name} posted their commitment ☀️`,
+          body: data.text.slice(0, 120),
+          url: "/home",
+        });
+      }
     } catch (err) {
       console.warn("[ritual] push failed", err);
     }
 
-    return { ok: true };
+    return { ok: true, groupCount: groupIds.length };
 
   });
 
