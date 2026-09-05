@@ -93,14 +93,18 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
     <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
       <div
         ref={trackRef}
-        className="flex transition-transform duration-300 ease-out"
+        className="flex items-start transition-transform duration-300 ease-out"
         style={{ transform: `translateX(-${index * 100}%)` }}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
         {/* Slide 1 — Today's commitment */}
-        <div className="w-full shrink-0">
+        <div
+          className="w-full shrink-0 overflow-hidden"
+          style={{ maxHeight: index === 0 ? 400 : 0 }}
+          aria-hidden={index !== 0}
+        >
           <div className="px-4 pt-4">
             <span className="text-[15px] font-bold text-neutral-900">{copy.title}</span>
           </div>
@@ -119,7 +123,11 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         </div>
 
         {/* Slide 2 — Weekly snapshot */}
-        <div className="w-full shrink-0">
+        <div
+          className="w-full shrink-0 overflow-hidden"
+          style={{ maxHeight: index === 1 ? 400 : 0 }}
+          aria-hidden={index !== 1}
+        >
           <div className="px-4 pt-4">
             <span className="text-[15px] font-bold text-neutral-900">Weekly snapshot</span>
           </div>
