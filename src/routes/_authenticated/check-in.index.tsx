@@ -386,6 +386,14 @@ function MorningRitual({
         <div className="mt-2 pr-1 text-right text-[13px] text-neutral-400">
           {count}/{MAX}
         </div>
+        <div className="mt-3">
+          <AllGroupsToggle
+            count={groups.length}
+            value={allGroups}
+            onChange={setAllGroups}
+            label="Post to all my groups"
+          />
+        </div>
       </div>
 
 
@@ -399,7 +407,9 @@ function MorningRitual({
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold flex items-center justify-center gap-2 disabled:text-neutral-500"
           style={{ background: canPost ? PURPLE : "#D9D6D1" }}
         >
-          {mutation.isPending ? "Posting…" : (<>Post to group <ArrowRight size={18} /></>)}
+          {mutation.isPending
+            ? "Posting…"
+            : (<>{allGroups && groups.length > 1 ? "Post to all groups" : "Post to group"} <ArrowRight size={18} /></>)}
         </button>
       </div>
     </div>
