@@ -17,6 +17,7 @@ import {
   setPostReaction,
   addPostComment,
   getPostComments,
+  toggleCommentLike,
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import { hapticLight } from "@/lib/native";
@@ -30,6 +31,7 @@ import {
   Send,
   Loader2,
   ImagePlus,
+  Heart,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import {
@@ -494,6 +496,44 @@ const commentsQueryOptions = (postId: string) => ({
   gcTime: 5 * 60_000,
 });
 
+function CommentLikeButton({ comment, postId }: { comment: { id: string; likeCount: number; likedByMe: boolean }; postId: string }) {
+  const queryClient = useQueryClient();
+  const [optimistic, setOptimistic] = useState<{ liked: boolean; count: number } | null>(null);
+  const liked = optimistic ? optimistic.liked : comment.likedByMe;
+  const count = optimistic ? optimistic.count : comment.likeCount;
+  const like = useMutation({
+    mutationFn: () => toggleCommentLike({ data: { commentId: comment.id } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["post-comments", postId] });
+    },
+    onError: () => {
+      setOptimistic(null);
+      toast.error("Couldn't update like");
+    },
+  });
+
+  return (
+    <button
+      type="button"
+      aria-label={liked ? "Unlike comment" : "Like comment"}
+      aria-pressed={liked}
+      onClick={() => {
+        if (like.isPending) return;
+        hapticLight();
+        setOptimistic({ liked: !liked, count: count + (liked ? -1 : 1) });
+        like.mutate();
+      }}
+      className="mt-1.5 inline-flex items-center gap-1 text-[13px] text-neutral-400 active:opacity-60"
+    >
+      <Heart
+        className={liked ? "h-4 w-4 text-rose-500" : "h-4 w-4"}
+        fill={liked ? "currentColor" : "none"}
+      />
+      {count > 0 && <span className={liked ? "text-rose-500 font-semibold" : ""}>{count}</span>}
+    </button>
+  );
+}
+
 function CommentSection({ postId, groupId }: { postId: string; groupId: string }) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
@@ -620,6 +660,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
                         )}
                       </button>
                     )}
+                    <CommentLikeButton comment={c} postId={postId} />
                   </div>
                 </li>
               );
