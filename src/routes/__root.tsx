@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { SplashScreen } from "@/components/SplashScreen";
+import { InAppNotifications } from "@/components/InAppNotifications";
 import { NativeBootstrap } from "@/components/NativeBootstrap";
 import { PostHogProvider } from "@/components/PostHogProvider";
 
@@ -191,6 +192,7 @@ function RootComponent() {
         <Toaster />
         <SplashScreen />
         <NativeBootstrap />
+        <InAppNotifications />
       </PostHogProvider>
     </QueryClientProvider>
 
