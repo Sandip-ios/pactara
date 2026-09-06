@@ -9,6 +9,7 @@ import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
+import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -162,7 +163,7 @@ function GroupSwitcher({
   selectedGroupId,
   onSelect,
 }: {
-  groups: { id: string; name: string }[];
+  groups: SwitcherGroup[];
   selectedGroupId: string | null;
   onSelect: (id: string) => void;
 }) {
@@ -182,39 +183,19 @@ function GroupSwitcher({
     <div className="px-6 pt-safe-6 relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-800"
       >
         {active.name}
         <ChevronDown size={14} />
       </button>
-      {open && (
-        <>
-          <button
-            aria-hidden
-            onClick={() => setOpen(false)}
-            className="fixed inset-0 z-30 bg-transparent"
-          />
-          <div className="absolute left-6 z-40 mt-2 min-w-[200px] rounded-xl bg-white ring-1 ring-neutral-200 shadow-lg py-1">
-            {groups.map((g) => {
-              const isActive = g.id === (selectedGroupId ?? active.id);
-              return (
-                <button
-                  key={g.id}
-                  onClick={() => {
-                    onSelect(g.id);
-                    setOpen(false);
-                  }}
-                  className="w-full text-left px-3 py-2 text-[14px] hover:bg-neutral-50 flex items-center justify-between gap-2"
-                >
-                  <span className="truncate">{g.name}</span>
-                  {isActive && <Check size={14} style={{ color: PURPLE }} />}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+      <GroupSwitcherSheet
+        open={open}
+        onClose={() => setOpen(false)}
+        groups={groups}
+        selectedGroupId={selectedGroupId}
+        onSelect={onSelect}
+      />
     </div>
   );
 }
