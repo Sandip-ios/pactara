@@ -198,10 +198,17 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   return (
     <div
-      className="fixed inset-0 z-[100] w-full flex flex-col overflow-y-auto"
-      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}
+      className="fixed inset-0 z-[100] w-full flex flex-col overflow-y-auto overscroll-contain"
+      style={{
+        background: BG,
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: INK,
+        touchAction: "pan-y",
+        WebkitOverflowScrolling: "touch",
+      }}
     >
       <div className="min-h-[100dvh] flex flex-col shrink-0">
+
         {isIntro && onDismiss && (
           <button
             type="button"
