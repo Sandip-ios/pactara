@@ -34,15 +34,14 @@ export function MemberAvatar({
 export function statusLabel(status: MemberTodayStatus): string {
   switch (status) {
     case "done":
-      return "Showed up";
+      return "Already checked in";
     case "in_progress":
-      return "Almost there";
     case "committed":
-      return "Waiting for check-in";
+      return "Waiting to check in";
     case "missed":
-      return "Missed today";
+      return "Didn't commit today";
     default:
-      return "No commitment yet";
+      return "Didn't commit today";
   }
 }
 
@@ -51,22 +50,19 @@ export function StatusPill({ status }: { status: MemberTodayStatus }) {
     return (
       <span className="flex items-center gap-1 text-[13px] font-semibold text-green-600">
         <Check size={15} strokeWidth={3} />
-        Done
+        Already checked in
       </span>
     );
-  }
-  if (status === "missed") {
-    return <span className="text-[13px] font-semibold text-neutral-400">Missed</span>;
   }
   if (status === "committed" || status === "in_progress") {
     return (
       <span className="flex items-center gap-1 text-[13px] font-semibold text-amber-500">
         <Hourglass size={14} />
-        Waiting
+        Waiting to check in
       </span>
     );
   }
-  return <span className="text-[13px] font-semibold text-neutral-400">Not yet</span>;
+  return <span className="text-[13px] font-semibold text-neutral-400">Didn't commit today</span>;
 }
 
 export function formatTime(iso: string | null): string | null {
