@@ -12,7 +12,7 @@ import {
   type MetricDefinition,
   type CohortRow,
 } from "@/lib/admin/analytics-data";
-import { Area, AreaChart, ResponsiveContainer } from "recharts";
+import { Area, AreaChart, ResponsiveContainer, YAxis } from "recharts";
 
 export function PageHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -115,24 +115,27 @@ export function HealthPill({ health }: { health: Health }) {
 
 export function Sparkline({ data, positive = true }: { data: number[]; positive?: boolean }) {
   const points = data.map((v, i) => ({ i, v }));
-  const stroke = positive ? "var(--pactara-purple)" : "oklch(0.6 0.2 20)";
+  const id = positive ? "sparkUp" : "sparkDown";
+  const stroke = positive ? "#7C3AED" : "#E11D48";
   return (
     <div className="h-10 w-full">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={points} margin={{ top: 2, bottom: 0, left: 0, right: 0 }}>
           <defs>
-            <linearGradient id={`spark-${stroke}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={stroke} stopOpacity={0.28} />
-              <stop offset="100%" stopColor={stroke} stopOpacity={0} />
+            <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={stroke} stopOpacity={0.3} />
+              <stop offset="100%" stopColor={stroke} stopOpacity={0.02} />
             </linearGradient>
           </defs>
+          <YAxis hide domain={["dataMin", "dataMax"]} />
           <Area
             type="monotone"
             dataKey="v"
             stroke={stroke}
             strokeWidth={2}
-            fill={`url(#spark-${stroke})`}
+            fill={`url(#${id})`}
             dot={false}
+            isAnimationActive={false}
           />
         </AreaChart>
       </ResponsiveContainer>
