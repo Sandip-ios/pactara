@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -160,8 +160,8 @@ function GroupsPage() {
             </thead>
             <tbody>
               {data.groupList.map((g) => (
-                <>
-                  <tr key={g.id} className="border-b border-border/40">
+                <Fragment key={g.id}>
+                  <tr className="border-b border-border/40">
                     <td className="px-3 py-3 font-semibold">{g.name}</td>
                     <td className="px-3 py-3">{g.size}</td>
                     <td className="px-3 py-3">{g.active}</td>
@@ -193,7 +193,7 @@ function GroupsPage() {
                     </td>
                   </tr>
                   {openGroup === g.id && (
-                    <tr key={`${g.id}-detail`}>
+                    <tr>
                       <td colSpan={7} className="bg-pactara-purple-soft/40 px-3 py-4">
                         <div className="grid gap-3 sm:grid-cols-4">
                           <StatTile label="Commitments this period" value={String(g.active * 11)} />
@@ -204,7 +204,7 @@ function GroupsPage() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
