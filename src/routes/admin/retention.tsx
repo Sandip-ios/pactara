@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useAdmin } from "./route";
+import { useAdmin } from "@/lib/admin/context";
 import { BarList, CohortTable, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
 import { cn } from "@/lib/utils";
 

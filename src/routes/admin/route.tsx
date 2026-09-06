@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   LayoutDashboard,
   Filter,
@@ -13,7 +13,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buildAnalytics, RANGE_LABELS, type Analytics, type RangeKey } from "@/lib/admin/analytics-data";
+import { buildAnalytics, RANGE_LABELS, type RangeKey } from "@/lib/admin/analytics-data";
+import { AdminContext } from "@/lib/admin/context";
 import { DemoBadge } from "@/components/admin/kit";
 
 export const Route = createFileRoute("/admin")({
@@ -27,15 +28,6 @@ export const Route = createFileRoute("/admin")({
   }),
   component: AdminLayout,
 });
-
-type Ctx = { range: RangeKey; compare: boolean; data: Analytics };
-const AdminContext = createContext<Ctx | null>(null);
-
-export function useAdmin() {
-  const ctx = useContext(AdminContext);
-  if (!ctx) throw new Error("useAdmin must be used inside the admin layout");
-  return ctx;
-}
 
 const NAV = [
   { to: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },

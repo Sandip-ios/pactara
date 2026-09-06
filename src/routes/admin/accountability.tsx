@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useAdmin } from "./route";
+import { useAdmin } from "@/lib/admin/context";
 import { BarList, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
 
 export const Route = createFileRoute("/admin/accountability")({
