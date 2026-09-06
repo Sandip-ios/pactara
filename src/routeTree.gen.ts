@@ -18,9 +18,19 @@ import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
+import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
+import { Route as AdminGrowthRouteImport } from './routes/admin/growth'
+import { Route as AdminGroupsRouteImport } from './routes/admin/groups'
+import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
+import { Route as AdminEventsRouteImport } from './routes/admin/events'
+import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
@@ -93,6 +103,11 @@ const BadgePreviewRoute = BadgePreviewRouteImport.update({
   path: '/badge-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -102,10 +117,55 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   id: '/join/$groupId',
   path: '/join/$groupId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRetentionRoute = AdminRetentionRouteImport.update({
+  id: '/retention',
+  path: '/retention',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminGrowthRoute = AdminGrowthRouteImport.update({
+  id: '/growth',
+  path: '/growth',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminGroupsRoute = AdminGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminFunnelRoute = AdminFunnelRouteImport.update({
+  id: '/funnel',
+  path: '/funnel',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAccountabilityRoute = AdminAccountabilityRouteImport.update({
+  id: '/accountability',
+  path: '/accountability',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -258,6 +318,7 @@ const ApiPublicOgInviteGroupIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -272,7 +333,16 @@ export interface FileRoutesByFullPath {
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/accountability': typeof AdminAccountabilityRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
+  '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -311,7 +381,16 @@ export interface FileRoutesByTo {
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/accountability': typeof AdminAccountabilityRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
+  '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -338,6 +417,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -352,7 +432,16 @@ export interface FileRoutesById {
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/admin/accountability': typeof AdminAccountabilityRoute
+  '/admin/events': typeof AdminEventsRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
+  '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -379,6 +468,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/badge-preview'
     | '/forgot-password'
     | '/login'
@@ -393,7 +483,16 @@ export interface FileRouteTypes {
     | '/new-pactara'
     | '/plan'
     | '/profile'
+    | '/admin/accountability'
+    | '/admin/events'
+    | '/admin/funnel'
+    | '/admin/groups'
+    | '/admin/growth'
+    | '/admin/retention'
+    | '/admin/revenue'
+    | '/admin/settings'
     | '/join/$groupId'
+    | '/admin/'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -432,7 +531,16 @@ export interface FileRouteTypes {
     | '/new-pactara'
     | '/plan'
     | '/profile'
+    | '/admin/accountability'
+    | '/admin/events'
+    | '/admin/funnel'
+    | '/admin/groups'
+    | '/admin/growth'
+    | '/admin/retention'
+    | '/admin/revenue'
+    | '/admin/settings'
     | '/join/$groupId'
+    | '/admin'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -458,6 +566,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/badge-preview'
     | '/forgot-password'
     | '/login'
@@ -472,7 +581,16 @@ export interface FileRouteTypes {
     | '/_authenticated/new-pactara'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
+    | '/admin/accountability'
+    | '/admin/events'
+    | '/admin/funnel'
+    | '/admin/groups'
+    | '/admin/growth'
+    | '/admin/retention'
+    | '/admin/revenue'
+    | '/admin/settings'
     | '/join/$groupId'
+    | '/admin/'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
     | '/_authenticated/account-settings/notifications'
@@ -499,6 +617,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BadgePreviewRoute: typeof BadgePreviewRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -586,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BadgePreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -600,12 +726,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/join/$groupId': {
       id: '/join/$groupId'
       path: '/join/$groupId'
       fullPath: '/join/$groupId'
       preLoaderRoute: typeof JoinGroupIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/retention': {
+      id: '/admin/retention'
+      path: '/retention'
+      fullPath: '/admin/retention'
+      preLoaderRoute: typeof AdminRetentionRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/growth': {
+      id: '/admin/growth'
+      path: '/growth'
+      fullPath: '/admin/growth'
+      preLoaderRoute: typeof AdminGrowthRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/groups': {
+      id: '/admin/groups'
+      path: '/groups'
+      fullPath: '/admin/groups'
+      preLoaderRoute: typeof AdminGroupsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/funnel': {
+      id: '/admin/funnel'
+      path: '/funnel'
+      fullPath: '/admin/funnel'
+      preLoaderRoute: typeof AdminFunnelRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/events': {
+      id: '/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/accountability': {
+      id: '/admin/accountability'
+      path: '/accountability'
+      fullPath: '/admin/accountability'
+      preLoaderRoute: typeof AdminAccountabilityRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -837,9 +1026,38 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AdminRouteRouteChildren {
+  AdminAccountabilityRoute: typeof AdminAccountabilityRoute
+  AdminEventsRoute: typeof AdminEventsRoute
+  AdminFunnelRoute: typeof AdminFunnelRoute
+  AdminGroupsRoute: typeof AdminGroupsRoute
+  AdminGrowthRoute: typeof AdminGrowthRoute
+  AdminRetentionRoute: typeof AdminRetentionRoute
+  AdminRevenueRoute: typeof AdminRevenueRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminAccountabilityRoute: AdminAccountabilityRoute,
+  AdminEventsRoute: AdminEventsRoute,
+  AdminFunnelRoute: AdminFunnelRoute,
+  AdminGroupsRoute: AdminGroupsRoute,
+  AdminGrowthRoute: AdminGrowthRoute,
+  AdminRetentionRoute: AdminRetentionRoute,
+  AdminRevenueRoute: AdminRevenueRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   BadgePreviewRoute: BadgePreviewRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
