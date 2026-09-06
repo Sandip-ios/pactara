@@ -23,7 +23,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
+import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
+import { Route as AdminGrowthRouteImport } from './routes/admin/growth'
 import { Route as AdminGroupsRouteImport } from './routes/admin/groups'
 import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
 import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
@@ -123,9 +125,19 @@ const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   path: '/join/$groupId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminRetentionRoute = AdminRetentionRouteImport.update({
   id: '/retention',
   path: '/retention',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminGrowthRoute = AdminGrowthRouteImport.update({
+  id: '/growth',
+  path: '/growth',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminGroupsRoute = AdminGroupsRouteImport.update({
@@ -312,7 +324,9 @@ export interface FileRoutesByFullPath {
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
   '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -356,7 +370,9 @@ export interface FileRoutesByTo {
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
   '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -403,7 +419,9 @@ export interface FileRoutesById {
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
+  '/admin/growth': typeof AdminGrowthRoute
   '/admin/retention': typeof AdminRetentionRoute
+  '/admin/revenue': typeof AdminRevenueRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -450,7 +468,9 @@ export interface FileRouteTypes {
     | '/admin/accountability'
     | '/admin/funnel'
     | '/admin/groups'
+    | '/admin/growth'
     | '/admin/retention'
+    | '/admin/revenue'
     | '/join/$groupId'
     | '/admin/'
     | '/account-settings/email'
@@ -494,7 +514,9 @@ export interface FileRouteTypes {
     | '/admin/accountability'
     | '/admin/funnel'
     | '/admin/groups'
+    | '/admin/growth'
     | '/admin/retention'
+    | '/admin/revenue'
     | '/join/$groupId'
     | '/admin'
     | '/account-settings/email'
@@ -540,7 +562,9 @@ export interface FileRouteTypes {
     | '/admin/accountability'
     | '/admin/funnel'
     | '/admin/groups'
+    | '/admin/growth'
     | '/admin/retention'
+    | '/admin/revenue'
     | '/join/$groupId'
     | '/admin/'
     | '/_authenticated/account-settings/email'
@@ -692,11 +716,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/retention': {
       id: '/admin/retention'
       path: '/retention'
       fullPath: '/admin/retention'
       preLoaderRoute: typeof AdminRetentionRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/growth': {
+      id: '/admin/growth'
+      path: '/growth'
+      fullPath: '/admin/growth'
+      preLoaderRoute: typeof AdminGrowthRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/groups': {
@@ -954,7 +992,9 @@ interface AdminRouteRouteChildren {
   AdminAccountabilityRoute: typeof AdminAccountabilityRoute
   AdminFunnelRoute: typeof AdminFunnelRoute
   AdminGroupsRoute: typeof AdminGroupsRoute
+  AdminGrowthRoute: typeof AdminGrowthRoute
   AdminRetentionRoute: typeof AdminRetentionRoute
+  AdminRevenueRoute: typeof AdminRevenueRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -962,7 +1002,9 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAccountabilityRoute: AdminAccountabilityRoute,
   AdminFunnelRoute: AdminFunnelRoute,
   AdminGroupsRoute: AdminGroupsRoute,
+  AdminGrowthRoute: AdminGrowthRoute,
   AdminRetentionRoute: AdminRetentionRoute,
+  AdminRevenueRoute: AdminRevenueRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
