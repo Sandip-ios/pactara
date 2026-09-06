@@ -18,8 +18,10 @@ import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
@@ -93,6 +95,11 @@ const BadgePreviewRoute = BadgePreviewRouteImport.update({
   path: '/badge-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRouteRoute = AdminRouteRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -101,6 +108,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   id: '/join/$groupId',
@@ -258,6 +270,7 @@ const ApiPublicOgInviteGroupIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -273,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -312,6 +326,7 @@ export interface FileRoutesByTo {
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -338,6 +353,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
@@ -353,6 +369,7 @@ export interface FileRoutesById {
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -379,6 +396,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/badge-preview'
     | '/forgot-password'
     | '/login'
@@ -394,6 +412,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/profile'
     | '/join/$groupId'
+    | '/admin/'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -433,6 +452,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/profile'
     | '/join/$groupId'
+    | '/admin'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -458,6 +478,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/badge-preview'
     | '/forgot-password'
     | '/login'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/_authenticated/plan'
     | '/_authenticated/profile'
     | '/join/$groupId'
+    | '/admin/'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
     | '/_authenticated/account-settings/notifications'
@@ -499,6 +521,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BadgePreviewRoute: typeof BadgePreviewRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
@@ -586,6 +609,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BadgePreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -599,6 +629,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/join/$groupId': {
       id: '/join/$groupId'
@@ -837,9 +874,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AdminRouteRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
   BadgePreviewRoute: BadgePreviewRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
