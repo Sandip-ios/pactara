@@ -99,7 +99,7 @@ function EventsPage() {
                   <td className="px-3 py-2 text-muted-foreground">{e.group}</td>
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap gap-1">
-                      {e.props.map((p) => (
+                      {Array.from(new Set(e.props)).map((p) => (
                         <span key={p} className="rounded-md bg-muted px-1.5 py-0.5 font-mono text-[11px]">
                           {p}
                         </span>
