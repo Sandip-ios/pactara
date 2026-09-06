@@ -231,7 +231,6 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
 
   let secondary = statusLabel(member.status);
   if (member.status === "committed" && time) secondary = `Committed at ${time}`;
-  if (member.status === "missed") secondary = "Missed today";
 
   return (
     <div className="px-4 py-3.5 flex items-center gap-3">
@@ -252,10 +251,10 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
                   : "#8A8580",
           }}
         >
-          {member.status === "done" ? "✓ Showed up" : secondary}
+          {member.status === "done" ? "✓ Already checked in" : secondary}
         </div>
         {member.status === "committed" && (
-          <div className="text-[12px] text-neutral-400 mt-0.5">⏳ Waiting for check-in</div>
+          <div className="text-[12px] text-neutral-400 mt-0.5">⏳ Waiting to check in</div>
         )}
         {member.status === "missed" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">Tomorrow is a fresh start.</div>
