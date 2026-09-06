@@ -23,6 +23,8 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
+import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
+import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
@@ -118,6 +120,16 @@ const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   id: '/join/$groupId',
   path: '/join/$groupId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRetentionRoute = AdminRetentionRouteImport.update({
+  id: '/retention',
+  path: '/retention',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminFunnelRoute = AdminFunnelRouteImport.update({
+  id: '/funnel',
+  path: '/funnel',
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
@@ -285,6 +297,8 @@ export interface FileRoutesByFullPath {
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/retention': typeof AdminRetentionRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -325,6 +339,8 @@ export interface FileRoutesByTo {
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/retention': typeof AdminRetentionRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -368,6 +384,8 @@ export interface FileRoutesById {
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/admin/funnel': typeof AdminFunnelRoute
+  '/admin/retention': typeof AdminRetentionRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
@@ -411,6 +429,8 @@ export interface FileRouteTypes {
     | '/new-pactara'
     | '/plan'
     | '/profile'
+    | '/admin/funnel'
+    | '/admin/retention'
     | '/join/$groupId'
     | '/admin/'
     | '/account-settings/email'
@@ -451,6 +471,8 @@ export interface FileRouteTypes {
     | '/new-pactara'
     | '/plan'
     | '/profile'
+    | '/admin/funnel'
+    | '/admin/retention'
     | '/join/$groupId'
     | '/admin'
     | '/account-settings/email'
@@ -493,6 +515,8 @@ export interface FileRouteTypes {
     | '/_authenticated/new-pactara'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
+    | '/admin/funnel'
+    | '/admin/retention'
     | '/join/$groupId'
     | '/admin/'
     | '/_authenticated/account-settings/email'
@@ -643,6 +667,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/join/$groupId'
       preLoaderRoute: typeof JoinGroupIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/retention': {
+      id: '/admin/retention'
+      path: '/retention'
+      fullPath: '/admin/retention'
+      preLoaderRoute: typeof AdminRetentionRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/funnel': {
+      id: '/admin/funnel'
+      path: '/funnel'
+      fullPath: '/admin/funnel'
+      preLoaderRoute: typeof AdminFunnelRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
@@ -875,10 +913,14 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AdminRouteRouteChildren {
+  AdminFunnelRoute: typeof AdminFunnelRoute
+  AdminRetentionRoute: typeof AdminRetentionRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
+  AdminFunnelRoute: AdminFunnelRoute,
+  AdminRetentionRoute: AdminRetentionRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
