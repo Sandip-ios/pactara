@@ -198,21 +198,15 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   return (
     <div
-      className="fixed inset-0 z-[100] w-full overflow-hidden"
+      className="fixed inset-0 z-[100] w-full overflow-x-hidden overflow-y-auto overscroll-contain"
       style={{
         background: BG,
         fontFamily: "Inter, system-ui, sans-serif",
         color: INK,
+        touchAction: "pan-y",
+        WebkitOverflowScrolling: "touch",
       }}
     >
-      <div
-        className="absolute inset-0 overflow-x-hidden overflow-y-scroll overscroll-contain"
-        style={{
-          touchAction: "pan-y",
-          WebkitOverflowScrolling: "touch",
-          pointerEvents: "auto",
-        }}
-      >
       <div className="min-h-full flex flex-col">
 
         {isIntro && onDismiss && (
@@ -328,7 +322,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
         <div
           className="mt-6 shrink-0 overflow-x-auto no-scrollbar"
-          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x" }}
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "auto" }}
         >
           <div className="flex gap-3 px-6 pb-2 items-stretch">
             {testimonials.map((t, i) => (
@@ -459,7 +453,6 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
             </a>
           </div>
         </div>
-      </div>
       </div>
     </div>
   );
