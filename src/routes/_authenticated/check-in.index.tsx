@@ -39,11 +39,7 @@ function ToolbarBtn({
     <button
       type="button"
       aria-label={label}
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onInsert();
-      }}
-      onTouchStart={(e) => {
+      onPointerDown={(e) => {
         e.preventDefault();
         onInsert();
       }}
