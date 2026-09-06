@@ -25,11 +25,12 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
-import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
@@ -126,16 +127,17 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const DotwellKnownAppleAppSiteAssociationRoute =
   DotwellKnownAppleAppSiteAssociationRouteImport.update({
     id: '/.well-known/apple-app-site-association',
     path: '/.well-known/apple-app-site-association',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedGroupsIndexRoute =
+  AuthenticatedGroupsIndexRouteImport.update({
+    id: '/groups/',
+    path: '/groups/',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCheckInIndexRoute =
   AuthenticatedCheckInIndexRouteImport.update({
@@ -152,6 +154,12 @@ const AuthenticatedAccountSettingsIndexRoute =
   AuthenticatedAccountSettingsIndexRouteImport.update({
     id: '/account-settings/',
     path: '/account-settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/groups/$groupId',
+    path: '/groups/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCheckInNotesRoute =
@@ -260,7 +268,6 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
@@ -273,9 +280,11 @@ export interface FileRoutesByFullPath {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
+  '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -298,7 +307,6 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/groups': typeof AuthenticatedGroupsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/plan': typeof AuthenticatedPlanRoute
@@ -311,9 +319,11 @@ export interface FileRoutesByTo {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
+  '/groups': typeof AuthenticatedGroupsIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -338,7 +348,6 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/_authenticated/groups': typeof AuthenticatedGroupsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
@@ -351,9 +360,11 @@ export interface FileRoutesById {
   '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
+  '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -378,7 +389,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
-    | '/groups'
     | '/home'
     | '/new-pactara'
     | '/plan'
@@ -391,9 +401,11 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/groups/$groupId'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
+    | '/groups/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -416,7 +428,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
-    | '/groups'
     | '/home'
     | '/new-pactara'
     | '/plan'
@@ -429,9 +440,11 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/groups/$groupId'
     | '/account-settings'
     | '/chat'
     | '/check-in'
+    | '/groups'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -455,7 +468,6 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
-    | '/_authenticated/groups'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
     | '/_authenticated/plan'
@@ -468,9 +480,11 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
+    | '/_authenticated/groups/$groupId'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
+    | '/_authenticated/groups/'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -621,19 +635,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/groups': {
-      id: '/_authenticated/groups'
-      path: '/groups'
-      fullPath: '/groups'
-      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/.well-known/apple-app-site-association': {
       id: '/.well-known/apple-app-site-association'
       path: '/.well-known/apple-app-site-association'
       fullPath: '/.well-known/apple-app-site-association'
       preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/groups/': {
+      id: '/_authenticated/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/check-in/': {
       id: '/_authenticated/check-in/'
@@ -654,6 +668,13 @@ declare module '@tanstack/react-router' {
       path: '/account-settings'
       fullPath: '/account-settings/'
       preLoaderRoute: typeof AuthenticatedAccountSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/check-in/notes': {
@@ -772,7 +793,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
@@ -784,13 +804,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatGroupIdRoute: typeof AuthenticatedChatGroupIdRoute
   AuthenticatedCheckInCameraRoute: typeof AuthenticatedCheckInCameraRoute
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
+  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
+  AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
@@ -805,10 +826,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatGroupIdRoute: AuthenticatedChatGroupIdRoute,
   AuthenticatedCheckInCameraRoute: AuthenticatedCheckInCameraRoute,
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
+  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedAccountSettingsIndexRoute:
     AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
   AuthenticatedCheckInIndexRoute: AuthenticatedCheckInIndexRoute,
+  AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
