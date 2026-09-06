@@ -321,14 +321,15 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
         </div>
 
         <div
-          className="mt-6 flex-1 min-h-0 overflow-x-auto no-scrollbar"
-          style={{ WebkitOverflowScrolling: "touch" }}
+          className="mt-6 shrink-0 overflow-x-auto no-scrollbar"
+          style={{ WebkitOverflowScrolling: "touch", touchAction: "pan-x pan-y" }}
         >
-          <div className="flex gap-3 px-6 pb-2 h-full">
+          <div className="flex gap-3 px-6 pb-2 items-stretch">
             {testimonials.map((t, i) => (
               <div
                 key={i}
-                className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden h-full"
+                className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden"
+
                 style={{
                   width: 220,
                   boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
