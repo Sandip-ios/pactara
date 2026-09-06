@@ -248,7 +248,7 @@ export function FunnelView({ stages }: { stages: FunnelStage[] }) {
                 style={{ width: `${Math.max(8, (stage.users / top) * 100)}%` }}
               />
               <div className="relative flex items-center justify-between px-4 py-3">
-                <span className="text-sm font-bold text-white mix-blend-luminosity drop-shadow-sm">
+                <span className="text-sm font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.35)]">
                   {stage.label}
                 </span>
                 <span className="text-sm font-bold text-foreground">

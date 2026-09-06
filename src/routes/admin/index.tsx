@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 import { useAdmin } from "./route";
 import {
-  ChangeChip,
   InfoTip,
   InsightCallout,
   MetricCard,
