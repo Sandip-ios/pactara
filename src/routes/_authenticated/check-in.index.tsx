@@ -39,10 +39,15 @@ function ToolbarBtn({
     <button
       type="button"
       aria-label={label}
+      tabIndex={-1}
       onPointerDown={(e) => {
         e.preventDefault();
         onInsert();
       }}
+      onMouseDown={(e) => e.preventDefault()}
+      onTouchStart={(e) => e.preventDefault()}
+      onTouchEnd={(e) => e.preventDefault()}
+      onClick={(e) => e.preventDefault()}
       className="h-9 w-9 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200"
     >
       {children}
