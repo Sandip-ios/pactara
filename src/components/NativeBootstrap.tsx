@@ -128,6 +128,8 @@ export function NativeBootstrap() {
         console.warn("[deeplink] native URL handling failed", err);
       }
 
+      void syncAppBadge();
+
       try {
         await configureRevenueCat();
       } catch (err) {
