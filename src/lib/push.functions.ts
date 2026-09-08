@@ -43,7 +43,21 @@ export const savePushSubscription = createServerFn({ method: "POST" })
         { onConflict: "endpoint" },
       );
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });
 
 export const deletePushSubscription = createServerFn({ method: "POST" })
@@ -60,7 +74,21 @@ export const deletePushSubscription = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .eq("endpoint", data.endpoint);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });
 
 // -- FCM tokens (native iOS/Android via @capacitor-firebase/messaging) --------
@@ -84,7 +112,21 @@ export const saveFcmToken = createServerFn({ method: "POST" })
       { onConflict: "token" },
     );
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });
 
 export const deleteFcmToken = createServerFn({ method: "POST" })
@@ -101,7 +143,21 @@ export const deleteFcmToken = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .eq("token", data.token);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });
 
 
@@ -157,5 +213,19 @@ export const clearBadgeCount = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });
