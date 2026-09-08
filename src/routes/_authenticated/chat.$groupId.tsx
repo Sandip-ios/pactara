@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead } from "@/lib/chat.functions";
-import { clearBadgeCount } from "@/lib/push.functions";
+import { clearBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 
 const PURPLE = "#7C3AED";
@@ -77,7 +77,7 @@ function GroupChatPage() {
         const n = prev.counts[groupId] ?? 0;
         if (n === 0) return prev;
         // Opening the thread is the interaction: drop those from the app badge.
-        void clearBadgeCount({ data: { by: n } }).catch(() => {});
+        void clearBadge(n).catch(() => {});
         return {
           counts: { ...prev.counts, [groupId]: 0 },
           total: Math.max(0, prev.total - n),
