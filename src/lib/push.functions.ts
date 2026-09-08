@@ -104,8 +104,6 @@ export const deleteFcmToken = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
-
 // -- App icon badge ----------------------------------------------------------
 
 /**
@@ -157,5 +155,19 @@ export const clearBadgeCount = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true };
+    return { ok: true, count: next };
+  });
+
+/** Current unread badge total for the signed-in user. */
+export const getBadgeCount = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin
+      .from("user_badge_counts" as never)
+      .select("count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    return { count: ((row ?? null) as { count?: number } | null)?.count ?? 0 };
   });

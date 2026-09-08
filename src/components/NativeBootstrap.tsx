@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate } from "@tanstack/react-router";
 import { isNative, nativePlatform } from "@/lib/native";
+import { syncAppBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import { saveFcmToken } from "@/lib/push.functions";
 import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/revenuecat";
@@ -112,7 +113,10 @@ export function NativeBootstrap() {
         );
         listenerHandles.push(
           App.addListener("appStateChange", ({ isActive }) => {
-            if (isActive) void registerForPush();
+            if (isActive) {
+              void registerForPush();
+              void syncAppBadge();
+            }
           }),
         );
         const launchGroupId = await getLaunchInviteGroupId();
@@ -123,6 +127,8 @@ export function NativeBootstrap() {
       } catch (err) {
         console.warn("[deeplink] native URL handling failed", err);
       }
+
+      void syncAppBadge();
 
       try {
         await configureRevenueCat();
