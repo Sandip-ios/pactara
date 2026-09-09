@@ -326,15 +326,20 @@ function JoinPage() {
           <HowRow
             icon={<CheckSquare size={20} className="text-white" />}
             bg="#22C55E"
-            title="Check in every day"
+            title={
+              data && data.frequency !== "daily"
+                ? `Check in ${data.daysPerWeek}× per week`
+                : "Check in every day"
+            }
             text="Come back at the end of the day. A photo, a note — whatever feels right. Your group will notice."
           />
           <HowRow
             icon={<Flame size={20} className="text-[#EA580C]" />}
             bg="#FEE2C7"
-            title="Build momentum together"
+            title={data ? `Build momentum for ${data.durationDays} days` : "Build momentum together"}
             text="Streaks, reactions, and real accountability."
           />
+
         </div>
 
         {isMobileWeb && (
