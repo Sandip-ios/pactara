@@ -375,6 +375,26 @@ function GroupChatPage() {
         )}
       </div>
 
+      {pickerFor && !sheetFor && (
+        <button
+          aria-label="Dismiss reactions"
+          onClick={() => setPickerFor(null)}
+          className="fixed inset-0 z-[85] cursor-default"
+        />
+      )}
+
+      <EmojiPickerSheet
+        open={!!sheetFor}
+        onClose={() => {
+          setSheetFor(null);
+          setPickerFor(null);
+        }}
+        onSelect={(emoji) => {
+          if (sheetFor) onReact(sheetFor, emoji);
+          setSheetFor(null);
+        }}
+      />
+
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
