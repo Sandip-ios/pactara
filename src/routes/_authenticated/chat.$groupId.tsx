@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2, Plus } from "lucide-react";
+import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
 import { clearBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
@@ -159,6 +159,8 @@ function GroupChatPage() {
   const group = data?.group;
   const messages = data?.messages ?? [];
   const currentUserId = data?.currentUserId;
+  const members = data?.members ?? [];
+
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -227,20 +229,42 @@ function GroupChatPage() {
         >
           <ChevronLeft size={20} className="text-neutral-700" />
         </button>
-        <span
-          className="h-11 w-11 rounded-2xl flex items-center justify-center shrink-0"
-          style={{ background: PURPLE_SOFT }}
-        >
-          <Users size={20} style={{ color: PURPLE }} />
-        </span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 text-[17px] font-bold truncate">
+          <div className="flex items-center gap-1.5 text-[17px] font-bold">
             <span>{group?.emoji ?? "💬"}</span>
             <span className="truncate">{group?.name ?? " "}</span>
           </div>
-          <div className="text-[13px] text-neutral-500 truncate">{group?.name ?? ""}</div>
+          <div className="mt-1 flex items-center gap-2">
+            {members.length > 0 && (
+              <div className="flex -space-x-2">
+                {members.slice(0, 5).map((m) => (
+                  <span
+                    key={m.id}
+                    title={m.name}
+                    className="h-6 w-6 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-[10px] font-bold text-white"
+                    style={{ background: m.avatarColor }}
+                  >
+                    {m.avatarUrl ? (
+                      <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
+                    ) : (
+                      (m.name?.[0] ?? "?").toUpperCase()
+                    )}
+                  </span>
+                ))}
+                {members.length > 5 && (
+                  <span className="h-6 w-6 rounded-full ring-2 ring-white bg-neutral-200 text-neutral-600 text-[10px] font-bold flex items-center justify-center">
+                    +{members.length - 5}
+                  </span>
+                )}
+              </div>
+            )}
+            <span className="text-[12px] text-neutral-500 truncate">
+              {members.length > 0 ? `${members.length} members` : ""}
+            </span>
+          </div>
         </div>
       </div>
+
 
       <div
         ref={scrollRef}

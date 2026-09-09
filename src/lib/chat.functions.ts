@@ -100,7 +100,16 @@ export const getGroupChat = createServerFn({ method: "GET" })
       }
     }
 
-    const userIds = Array.from(new Set((messages ?? []).map((m) => m.user_id)));
+    const { data: memberRows } = await supabase
+      .from("group_members")
+      .select("user_id, joined_at")
+      .eq("group_id", data.groupId)
+      .order("joined_at", { ascending: true });
+    const memberIds = (memberRows ?? []).map((m) => m.user_id);
+
+    const userIds = Array.from(
+      new Set([...(messages ?? []).map((m) => m.user_id), ...memberIds]),
+    );
     let profiles: Record<string, { name: string; avatarColor: string; avatarUrl: string | null }> = {};
     if (userIds.length > 0) {
       const { data: profs } = await supabase
@@ -127,6 +136,13 @@ export const getGroupChat = createServerFn({ method: "GET" })
     return {
       group,
       currentUserId: userId,
+      members: memberIds.map((id) => ({
+        id,
+        name: profiles[id]?.name ?? "Member",
+        avatarColor: profiles[id]?.avatarColor ?? "#7C3AED",
+        avatarUrl: profiles[id]?.avatarUrl ?? null,
+      })),
+
       messages: (messages ?? []).map((m) => ({
         id: m.id,
         userId: m.user_id,
