@@ -229,37 +229,37 @@ function GroupChatPage() {
         >
           <ChevronLeft size={20} className="text-neutral-700" />
         </button>
+        {members.length > 0 && (
+          <div className="flex -space-x-2 shrink-0">
+            {members.slice(0, 4).map((m) => (
+              <span
+                key={m.id}
+                title={m.name}
+                className="h-9 w-9 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-xs font-bold text-white"
+                style={{ background: m.avatarColor }}
+              >
+                {m.avatarUrl ? (
+                  <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
+                ) : (
+                  (m.name?.[0] ?? "?").toUpperCase()
+                )}
+              </span>
+            ))}
+            {members.length > 4 && (
+              <span className="h-9 w-9 rounded-full ring-2 ring-white bg-neutral-200 text-neutral-600 text-xs font-bold flex items-center justify-center">
+                +{members.length - 4}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 text-[17px] font-bold">
             <span>{group?.emoji ?? "💬"}</span>
             <span className="truncate">{group?.name ?? " "}</span>
           </div>
-          <div className="mt-1.5 flex flex-col gap-1">
-            {members.length > 0 && (
-              <div className="flex -space-x-2">
-                {members.slice(0, 5).map((m) => (
-                  <span
-                    key={m.id}
-                    title={m.name}
-                    className="h-6 w-6 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-[10px] font-bold text-white"
-                    style={{ background: m.avatarColor }}
-                  >
-                    {m.avatarUrl ? (
-                      <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
-                    ) : (
-                      (m.name?.[0] ?? "?").toUpperCase()
-                    )}
-                  </span>
-                ))}
-                {members.length > 5 && (
-                  <span className="h-6 w-6 rounded-full ring-2 ring-white bg-neutral-200 text-neutral-600 text-[10px] font-bold flex items-center justify-center">
-                    +{members.length - 5}
-                  </span>
-                )}
-              </div>
-            )}
+          <div className="mt-0.5">
             <span
-              className="self-start inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
               style={{ background: PURPLE_SOFT, color: PURPLE }}
             >
               {members.length} {members.length === 1 ? "member" : "members"}
