@@ -395,7 +395,7 @@ function HomePage() {
                 <GroupSwitcherSheet
                   open={switcherOpen}
                   onClose={() => setSwitcherOpen(false)}
-                  groups={myGroups as never}
+                  groups={myGroups}
                   selectedGroupId={selectedGroupId}
                   onSelect={(id) => setSelectedGroupId(id)}
                 />
