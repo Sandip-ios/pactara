@@ -175,3 +175,38 @@ export const sendGroupMessage = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+export const toggleMessageReaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { messageId: string; emoji: string }) => {
+    if (!input || typeof input.messageId !== "string" || typeof input.emoji !== "string") {
+      throw new Error("Invalid input");
+    }
+    const emoji = input.emoji.trim().slice(0, 8);
+    if (!emoji) throw new Error("Emoji required");
+    return { messageId: input.messageId, emoji };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: existing } = await supabase
+      .from("message_reactions")
+      .select("id")
+      .eq("message_id", data.messageId)
+      .eq("user_id", userId)
+      .eq("emoji", data.emoji)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase.from("message_reactions").delete().eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      return { ok: true, added: false };
+    }
+
+    const { error } = await supabase.from("message_reactions").insert({
+      message_id: data.messageId,
+      user_id: userId,
+      emoji: data.emoji,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, added: true };
+  });
