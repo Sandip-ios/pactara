@@ -257,13 +257,8 @@ function GroupChatPage() {
             <span>{group?.emoji ?? "💬"}</span>
             <span className="truncate">{group?.name ?? " "}</span>
           </div>
-          <div className="mt-0.5">
-            <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
-              style={{ background: PURPLE_SOFT, color: PURPLE }}
-            >
-              {members.length} {members.length === 1 ? "member" : "members"}
-            </span>
+          <div className="mt-0.5 text-[13px] text-neutral-500">
+            {members.length} {members.length === 1 ? "member" : "members"}
           </div>
         </div>
       </div>
