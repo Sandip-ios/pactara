@@ -81,6 +81,25 @@ export const getGroupChat = createServerFn({ method: "GET" })
       .limit(200);
     if (mErr) throw new Error(mErr.message);
 
+    const messageIds = (messages ?? []).map((m) => m.id);
+    const reactionsByMessage: Record<string, { emoji: string; count: number; mine: boolean }[]> = {};
+    if (messageIds.length > 0) {
+      const { data: reacts } = await supabase
+        .from("message_reactions")
+        .select("message_id, user_id, emoji")
+        .in("message_id", messageIds);
+      for (const r of reacts ?? []) {
+        const list = (reactionsByMessage[r.message_id] ??= []);
+        const found = list.find((x) => x.emoji === r.emoji);
+        if (found) {
+          found.count += 1;
+          if (r.user_id === userId) found.mine = true;
+        } else {
+          list.push({ emoji: r.emoji, count: 1, mine: r.user_id === userId });
+        }
+      }
+    }
+
     const userIds = Array.from(new Set((messages ?? []).map((m) => m.user_id)));
     let profiles: Record<string, { name: string; avatarColor: string; avatarUrl: string | null }> = {};
     if (userIds.length > 0) {
