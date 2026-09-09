@@ -8,7 +8,7 @@ import {
   markNotificationsRead,
   type NotificationItem,
 } from "@/lib/notifications.functions";
-import { GroupSwitcherSheet } from "@/components/GroupSwitcherSheet";
+import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { PullToRefresh } from "@/components/PullToRefresh";
 
 const PURPLE = "#7C3AED";
@@ -176,7 +176,7 @@ function NotificationsPage() {
       <GroupSwitcherSheet
         open={switcherOpen}
         groups={groups}
-        selectedId={selectedGroupId}
+        selectedGroupId={selectedGroupId}
         onSelect={(id) => {
           setSelectedGroupId(id);
           if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", id);
