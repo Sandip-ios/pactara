@@ -33,6 +33,7 @@ import { Route as AdminEventsRouteImport } from './routes/admin/events'
 import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
@@ -177,6 +178,12 @@ const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
   id: '/new-pactara',
   path: '/new-pactara',
@@ -331,6 +338,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -379,6 +387,7 @@ export interface FileRoutesByTo {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -430,6 +439,7 @@ export interface FileRoutesById {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/home'
     | '/new-pactara'
+    | '/notifications'
     | '/plan'
     | '/profile'
     | '/admin/accountability'
@@ -529,6 +540,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/home'
     | '/new-pactara'
+    | '/notifications'
     | '/plan'
     | '/profile'
     | '/admin/accountability'
@@ -579,6 +591,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
+    | '/_authenticated/notifications'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
     | '/admin/accountability'
@@ -810,6 +823,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/new-pactara': {
       id: '/_authenticated/new-pactara'
       path: '/new-pactara'
@@ -984,6 +1004,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
@@ -1003,6 +1024,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedAccountSettingsEmailRoute:
