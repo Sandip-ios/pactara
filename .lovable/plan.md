@@ -1,70 +1,58 @@
-We'll rebuild the desktop view at `/` into a full marketing landing page that drives App Store downloads, using https://calai.app/ as the page-structure reference and Pactara's existing purple/yellow brand as the visual identity.
+# Notifications page
 
-### What we will build
+A new Notifications screen, reachable from a bell button in the home header, showing recent activity in a group — comments, reactions, likes, chat messages, check-ins and new members — grouped into "Last 7 days" and "Last 30 days", Instagram-style.
 
-**1. Header**
-- Sticky top nav with Pactara wordmark on the left.
-- Center links: How it works, Features, Pricing, FAQ.
-- Right side: Log in + App Store badge (primary CTA).
-- Mobile: keep the existing mobile slide flow unchanged.
+## Bell button
 
-**2. Hero**
-- Social-proof badge at the top of the section (e.g., "Loved by X users with ★ 4.9 rating" or a real stat if available).
-- Large, bold headline + subheadline.
-- Two CTAs: App Store badge + "Join the waitlist" / secondary link.
-- Right side: a rendered iPhone mockup showing the Pactara group list / check-in UI.
-- Background: subtle Pactara-purple radial glow on white.
+- Sits to the right of the "How Pactara works" pill in the home header.
+- Shows a red number badge when there are unread items (capped at 99+).
+- Tapping it opens the Notifications page.
 
-**3. Testimonials / influencer row**
-- A section titled "Used by people who hate restarting" (or similar) with horizontal cards or an image grid of real users / accountability partners.
-- Each card: photo/avatar, name, short quote.
-- If no real photos are available, we'll use avatar circles + initials with placeholder copy the user can replace.
+## Notifications page
 
-**4. What Pactara includes**
-- Feature list similar to Cal AI's "What does Cal AI include?" section.
-- Items: small group accountability, daily check-in, streaks, morning ritual, goal tracking.
-- Each item pairs a short headline with an app screenshot / visual card.
+- Header: back arrow, title "Notifications", and the group name with a chevron.
+  Tapping the group name opens the existing bottom sheet to switch groups, so the
+  list shows one group at a time.
+- Sections: "Last 7 days" and "Last 30 days" (anything older is not shown).
+- Each row: a person's profile photo on the left (with a small coloured glyph badge
+  for the type — heart for reactions/likes, speech bubble for comments/chat, flame
+  for check-ins, people for new members), the sentence in the middle, relative time,
+  and a thumbnail of the related photo/video on the right when one exists.
+- Unread rows are bold with a faint purple tint; read rows are regular weight.
+- Tapping a row marks it read and jumps to the right place: the post's comments,
+  the group chat, or the group page.
+- Empty state when there is nothing yet.
 
-**5. Why choose Pactara**
-- 3 value-proposition cards (like Cal AI's "Why choose Cal AI?"):
-  - Built on social pressure, not self-discipline.
-  - 10-second daily check-in.
-  - Real streaks with real people.
+## Read state
 
-**6. Pricing / trial callout**
-- A clean section stating the trial terms: e.g., "7-day free trial. No credit card required." plus monthly/annual pricing if available.
-- If pricing is not finalized yet, we'll use a "Start free — pricing inside the app" CTA.
+Opening the page does not clear everything — a row becomes read when tapped,
+matching how the chat and comment badges already behave. A "Mark all as read"
+action in the header handles the rest.
 
-**7. FAQ**
-- Accordion or simple list of 4-6 questions covering groups, privacy, subscription, cancellation, and how accountability works.
+## Wording examples
 
-**8. Final CTA + footer**
-- A large purple-gradient CTA section with the headline "Stop restarting. Start showing up." and an App Store badge.
-- Footer with copyright, links, and social icons.
+- "Maya commented on your check-in"
+- "Chris reacted 🔥 to your check-in"
+- "Sam liked your comment"
+- "Alex sent a message in Morning Milers"
+- "Jordan checked in"
+- "Taylor joined the group"
 
-### Visual direction
-- Keep the existing Pactara purple/yellow palette and the Inter + Plus Jakarta Sans typography.
-- Cal AI-inspired layout: clean white background, generous spacing, bold black type, phone mockups, and app-store badges as the primary action.
-- No dark mode section; Pactara's app is already dark, so the landing page stays light for contrast.
+## Technical notes
 
-### Content defaults (since real assets are a mix)
-- I'll use the best existing copy from the current `DesktopLanding` component and draft placeholders for anything missing (testimonial names, influencer copy, FAQ answers).
-- The user will provide the App Store / TestFlight link, and any real testimonials or pricing details they want swapped in before we publish.
-
-### Technical notes
-- The current `DesktopLanding` is not rendering on desktop because `Index.tsx` has a React hooks-order bug (it conditionally returns early after some hooks are declared). We'll fix that as part of this redesign.
-- The mobile `/` route stays the same; only viewports ≥1024px get the new marketing page.
-- All metadata (title, description, og tags) will be updated to match the new marketing copy.
-
-### Deliverables
-- Updated `src/routes/index.tsx` (fix hooks bug + keep mobile flow).
-- Updated `src/components/DesktopLanding.tsx` with the new Cal AI-inspired structure.
-- New generated phone mockup visuals uploaded to project assets.
-- Updated SEO meta tags for the desktop route.
-
-### Not in scope for this pass
-- Native app store product pages (we only link to the existing store URL).
-- Blog, Jobs, or Press pages (nav links can point to `#` or be removed if not needed).
-- A waitlist backend/email collection form (the hero can link to App Store or /signup instead).
-
-I won't build until you approve this plan or tell me what to change.
+- New table `notification_reads (user_id, item_key text, read_at)` with RLS scoped to
+  `auth.uid()` and grants for `authenticated` / `service_role`. An item key is
+  `<type>:<row id>` so no backfill or event table is needed.
+- New `src/lib/notifications.functions.ts`:
+  - `getNotifications({ groupId })` — reads the last 30 days from `post_comments`,
+    `comment_likes`, `post_reactions`, `group_messages`, `check_ins` and
+    `group_members`, excludes the current user's own actions, filters comments/likes
+    to threads the user is part of, joins profile names/avatars (signed URLs) and
+    media thumbnails, sorts by time, and marks each item read/unread from
+    `notification_reads`.
+  - `getUnreadNotificationCount()` — same derivation across all the user's groups,
+    count only; used by the bell badge with a 30s refetch.
+  - `markNotificationsRead({ keys })` — upserts read rows.
+- New route `src/routes/_authenticated/notifications.tsx` reusing
+  `GroupSwitcherSheet` and `listMyGroups`.
+- Home header gains the bell button; no other screens change.
