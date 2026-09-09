@@ -275,19 +275,74 @@ function GroupChatPage() {
                     {!mine && (
                       <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
                     )}
-                    {m.imageUrl && (
-                      <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
-                    )}
-                    {m.body && (
-                      <div
-                        className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
-                          mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
-                        }`}
-                        style={mine ? { background: PURPLE } : undefined}
-                      >
-                        {m.body}
+
+                    {pickerFor === m.id && (
+                      <div className="mb-1 flex items-center gap-1 rounded-full bg-white shadow-lg px-2 py-1.5">
+                        {QUICK_EMOJIS.map((e) => (
+                          <button
+                            key={e}
+                            type="button"
+                            aria-label={`React ${e}`}
+                            onClick={() => onReact(m.id, e)}
+                            className="text-[20px] leading-none px-1 active:scale-90 transition-transform"
+                          >
+                            {e}
+                          </button>
+                        ))}
                       </div>
                     )}
+
+                    <div
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setPickerFor((cur) => (cur === m.id ? null : m.id));
+                      }}
+                      onPointerDown={() => {
+                        longPress.current = window.setTimeout(
+                          () => setPickerFor((cur) => (cur === m.id ? null : m.id)),
+                          400,
+                        );
+                      }}
+                      onPointerUp={cancelLongPress}
+                      onPointerLeave={cancelLongPress}
+                      onPointerCancel={cancelLongPress}
+                      className="select-none"
+                    >
+                      {m.imageUrl && (
+                        <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
+                      )}
+                      {m.body && (
+                        <div
+                          className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
+                            mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
+                          }`}
+                          style={mine ? { background: PURPLE } : undefined}
+                        >
+                          {m.body}
+                        </div>
+                      )}
+                    </div>
+
+                    {m.reactions.length > 0 && (
+                      <div className={`flex flex-wrap gap-1 mt-1 ${mine ? "justify-end" : ""}`}>
+                        {m.reactions.map((r) => (
+                          <button
+                            key={r.emoji}
+                            type="button"
+                            onClick={() => onReact(m.id, r.emoji)}
+                            className="flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[12px]"
+                            style={{
+                              borderColor: r.mine ? PURPLE : "#E5E5E5",
+                              color: r.mine ? PURPLE : "#525252",
+                            }}
+                          >
+                            <span className="text-[13px]">{r.emoji}</span>
+                            <span className="font-semibold">{r.count}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     <span className={`text-[11px] text-neutral-400 mt-1 ${mine ? "mr-2" : "ml-2"}`}>
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                     </span>
