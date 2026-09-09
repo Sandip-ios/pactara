@@ -13,6 +13,12 @@ export type SwitcherGroup = {
   durationDays?: number;
   startDate?: string | null;
   createdAt?: string | null;
+  members?: {
+    id: string;
+    name: string;
+    avatarColor: string;
+    avatarUrl: string | null;
+  }[];
 };
 
 function dayNumberFor(g: SwitcherGroup) {
