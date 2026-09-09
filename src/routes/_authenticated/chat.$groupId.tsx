@@ -10,6 +10,7 @@ const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 const BG = "#F5F2EE";
 const BUCKET = "chat-photos";
+const QUICK_EMOJIS = ["❤️", "😂", "🔥", "👏", "💪", "👍"];
 
 export const Route = createFileRoute("/_authenticated/chat/$groupId")({
   component: GroupChatPage,
