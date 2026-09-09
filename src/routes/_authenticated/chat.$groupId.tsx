@@ -29,6 +29,14 @@ function GroupChatPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const longPress = useRef<number | null>(null);
+
+  function cancelLongPress() {
+    if (longPress.current) {
+      clearTimeout(longPress.current);
+      longPress.current = null;
+    }
+  }
 
   const { data } = useQuery({
     queryKey: ["group-chat", groupId],
