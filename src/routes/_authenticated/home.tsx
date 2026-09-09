@@ -2,11 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
+import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
@@ -153,6 +154,13 @@ function HomePage() {
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
   });
+  const { data: notifCount } = useQuery({
+    queryKey: ["unread-notification-count"],
+    queryFn: () => getUnreadNotificationCount(),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  const notifUnread = notifCount?.total ?? 0;
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
