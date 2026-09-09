@@ -287,18 +287,29 @@ function GroupChatPage() {
                     )}
 
                     {pickerFor === m.id && (
-                      <div className="mb-1 flex items-center gap-1 rounded-full bg-white shadow-lg px-2 py-1.5">
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative z-[90] mb-1 flex items-center gap-1 rounded-full bg-white shadow-xl px-2.5 py-2"
+                      >
                         {QUICK_EMOJIS.map((e) => (
                           <button
                             key={e}
                             type="button"
                             aria-label={`React ${e}`}
                             onClick={() => onReact(m.id, e)}
-                            className="text-[20px] leading-none px-1 active:scale-90 transition-transform"
+                            className="text-[26px] leading-none px-0.5 active:scale-90 transition-transform"
                           >
                             {e}
                           </button>
                         ))}
+                        <button
+                          type="button"
+                          aria-label="More emojis"
+                          onClick={() => setSheetFor(m.id)}
+                          className="ml-1 h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center active:scale-90 transition-transform"
+                        >
+                          <Plus size={18} className="text-neutral-600" />
+                        </button>
                       </div>
                     )}
 
