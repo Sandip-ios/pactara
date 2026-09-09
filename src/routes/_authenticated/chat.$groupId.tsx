@@ -47,6 +47,35 @@ function GroupChatPage() {
     onError: (e: Error) => setError(e.message),
   });
 
+  const react = useMutation({
+    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+      toggleMessageReaction({ data: { messageId, emoji } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+  });
+
+  function onReact(messageId: string, emoji: string) {
+    setPickerFor(null);
+    queryClient.setQueryData(["group-chat", groupId], (prev: typeof data) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        messages: prev.messages.map((m) => {
+          if (m.id !== messageId) return m;
+          const list = m.reactions.map((r) => ({ ...r }));
+          const found = list.find((r) => r.emoji === emoji);
+          if (found) {
+            found.count += found.mine ? -1 : 1;
+            found.mine = !found.mine;
+          } else {
+            list.push({ emoji, count: 1, mine: true });
+          }
+          return { ...m, reactions: list.filter((r) => r.count > 0) };
+        }),
+      };
+    });
+    react.mutate({ messageId, emoji });
+  }
+
   function clearPending() {
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
     setPendingFile(null);
