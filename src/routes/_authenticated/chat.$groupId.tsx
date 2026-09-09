@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
-import { getGroupChat, sendGroupMessage, markGroupRead } from "@/lib/chat.functions";
+import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
 import { clearBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 
