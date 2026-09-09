@@ -91,6 +91,11 @@ function GroupChatPage() {
         { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` },
         () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
+        () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
