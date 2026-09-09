@@ -442,6 +442,24 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_reads: {
+        Row: {
+          item_key: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          item_key: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          item_key?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           body: string
