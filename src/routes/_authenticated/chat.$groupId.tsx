@@ -234,7 +234,7 @@ function GroupChatPage() {
             <span>{group?.emoji ?? "💬"}</span>
             <span className="truncate">{group?.name ?? " "}</span>
           </div>
-          <div className="mt-1.5 flex items-center gap-2.5">
+          <div className="mt-1.5 flex flex-col gap-1">
             {members.length > 0 && (
               <div className="flex -space-x-2">
                 {members.slice(0, 5).map((m) => (
@@ -259,7 +259,7 @@ function GroupChatPage() {
               </div>
             )}
             <span
-              className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+              className="self-start inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
               style={{ background: PURPLE_SOFT, color: PURPLE }}
             >
               {members.length} {members.length === 1 ? "member" : "members"}
