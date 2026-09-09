@@ -30,6 +30,7 @@ function GroupChatPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
 
   function cancelLongPress() {
