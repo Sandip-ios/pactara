@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
-import { getGroupChat, sendGroupMessage, markGroupRead } from "@/lib/chat.functions";
+import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
 import { clearBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -10,6 +10,7 @@ const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 const BG = "#F5F2EE";
 const BUCKET = "chat-photos";
+const QUICK_EMOJIS = ["❤️", "😂", "🔥", "👏", "💪", "👍"];
 
 export const Route = createFileRoute("/_authenticated/chat/$groupId")({
   component: GroupChatPage,
@@ -27,6 +28,15 @@ function GroupChatPage() {
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const longPress = useRef<number | null>(null);
+
+  function cancelLongPress() {
+    if (longPress.current) {
+      clearTimeout(longPress.current);
+      longPress.current = null;
+    }
+  }
 
   const { data } = useQuery({
     queryKey: ["group-chat", groupId],
@@ -45,6 +55,35 @@ function GroupChatPage() {
     onError: (e: Error) => setError(e.message),
   });
 
+  const react = useMutation({
+    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+      toggleMessageReaction({ data: { messageId, emoji } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+  });
+
+  function onReact(messageId: string, emoji: string) {
+    setPickerFor(null);
+    queryClient.setQueryData(["group-chat", groupId], (prev: typeof data) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        messages: prev.messages.map((m) => {
+          if (m.id !== messageId) return m;
+          const list = m.reactions.map((r) => ({ ...r }));
+          const found = list.find((r) => r.emoji === emoji);
+          if (found) {
+            found.count += found.mine ? -1 : 1;
+            found.mine = !found.mine;
+          } else {
+            list.push({ emoji, count: 1, mine: true });
+          }
+          return { ...m, reactions: list.filter((r) => r.count > 0) };
+        }),
+      };
+    });
+    react.mutate({ messageId, emoji });
+  }
+
   function clearPending() {
     if (pendingPreview) URL.revokeObjectURL(pendingPreview);
     setPendingFile(null);
@@ -58,6 +97,11 @@ function GroupChatPage() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
         () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
       )
       .subscribe();
@@ -239,19 +283,74 @@ function GroupChatPage() {
                     {!mine && (
                       <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
                     )}
-                    {m.imageUrl && (
-                      <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
-                    )}
-                    {m.body && (
-                      <div
-                        className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
-                          mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
-                        }`}
-                        style={mine ? { background: PURPLE } : undefined}
-                      >
-                        {m.body}
+
+                    {pickerFor === m.id && (
+                      <div className="mb-1 flex items-center gap-1 rounded-full bg-white shadow-lg px-2 py-1.5">
+                        {QUICK_EMOJIS.map((e) => (
+                          <button
+                            key={e}
+                            type="button"
+                            aria-label={`React ${e}`}
+                            onClick={() => onReact(m.id, e)}
+                            className="text-[20px] leading-none px-1 active:scale-90 transition-transform"
+                          >
+                            {e}
+                          </button>
+                        ))}
                       </div>
                     )}
+
+                    <div
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        setPickerFor((cur) => (cur === m.id ? null : m.id));
+                      }}
+                      onPointerDown={() => {
+                        longPress.current = window.setTimeout(
+                          () => setPickerFor((cur) => (cur === m.id ? null : m.id)),
+                          400,
+                        );
+                      }}
+                      onPointerUp={cancelLongPress}
+                      onPointerLeave={cancelLongPress}
+                      onPointerCancel={cancelLongPress}
+                      className="select-none"
+                    >
+                      {m.imageUrl && (
+                        <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
+                      )}
+                      {m.body && (
+                        <div
+                          className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
+                            mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
+                          }`}
+                          style={mine ? { background: PURPLE } : undefined}
+                        >
+                          {m.body}
+                        </div>
+                      )}
+                    </div>
+
+                    {m.reactions.length > 0 && (
+                      <div className={`flex flex-wrap gap-1 mt-1 ${mine ? "justify-end" : ""}`}>
+                        {m.reactions.map((r) => (
+                          <button
+                            key={r.emoji}
+                            type="button"
+                            onClick={() => onReact(m.id, r.emoji)}
+                            className="flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[12px]"
+                            style={{
+                              borderColor: r.mine ? PURPLE : "#E5E5E5",
+                              color: r.mine ? PURPLE : "#525252",
+                            }}
+                          >
+                            <span className="text-[13px]">{r.emoji}</span>
+                            <span className="font-semibold">{r.count}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     <span className={`text-[11px] text-neutral-400 mt-1 ${mine ? "mr-2" : "ml-2"}`}>
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                     </span>

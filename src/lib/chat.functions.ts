@@ -81,6 +81,25 @@ export const getGroupChat = createServerFn({ method: "GET" })
       .limit(200);
     if (mErr) throw new Error(mErr.message);
 
+    const messageIds = (messages ?? []).map((m) => m.id);
+    const reactionsByMessage: Record<string, { emoji: string; count: number; mine: boolean }[]> = {};
+    if (messageIds.length > 0) {
+      const { data: reacts } = await supabase
+        .from("message_reactions")
+        .select("message_id, user_id, emoji")
+        .in("message_id", messageIds);
+      for (const r of reacts ?? []) {
+        const list = (reactionsByMessage[r.message_id] ??= []);
+        const found = list.find((x) => x.emoji === r.emoji);
+        if (found) {
+          found.count += 1;
+          if (r.user_id === userId) found.mine = true;
+        } else {
+          list.push({ emoji: r.emoji, count: 1, mine: r.user_id === userId });
+        }
+      }
+    }
+
     const userIds = Array.from(new Set((messages ?? []).map((m) => m.user_id)));
     let profiles: Record<string, { name: string; avatarColor: string; avatarUrl: string | null }> = {};
     if (userIds.length > 0) {
@@ -117,6 +136,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
         authorName: profiles[m.user_id]?.name ?? "User",
         authorColor: profiles[m.user_id]?.avatarColor ?? "#7C3AED",
         authorAvatarUrl: profiles[m.user_id]?.avatarUrl ?? null,
+        reactions: reactionsByMessage[m.id] ?? [],
       })),
     };
 
@@ -155,3 +175,38 @@ export const sendGroupMessage = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+
+export const toggleMessageReaction = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { messageId: string; emoji: string }) => {
+    if (!input || typeof input.messageId !== "string" || typeof input.emoji !== "string") {
+      throw new Error("Invalid input");
+    }
+    const emoji = input.emoji.trim().slice(0, 8);
+    if (!emoji) throw new Error("Emoji required");
+    return { messageId: input.messageId, emoji };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: existing } = await supabase
+      .from("message_reactions")
+      .select("id")
+      .eq("message_id", data.messageId)
+      .eq("user_id", userId)
+      .eq("emoji", data.emoji)
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase.from("message_reactions").delete().eq("id", existing.id);
+      if (error) throw new Error(error.message);
+      return { ok: true, added: false };
+    }
+
+    const { error } = await supabase.from("message_reactions").insert({
+      message_id: data.messageId,
+      user_id: userId,
+      emoji: data.emoji,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, added: true };
+  });
