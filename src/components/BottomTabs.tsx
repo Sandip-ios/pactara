@@ -23,7 +23,8 @@ export function BottomTabs() {
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
-  const hasUnread = (unread?.total ?? 0) > 0;
+  const unreadTotal = unread?.total ?? 0;
+  const hasUnread = unreadTotal > 0;
   const initial = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const isProfile = pathname === "/profile";
 
@@ -62,7 +63,9 @@ export function BottomTabs() {
           <span className="relative inline-flex">
             <MessageCircle size={22} />
             {hasUnread && (
-              <span className="absolute -top-0.5 -right-1 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+              <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
+                {unreadTotal > 99 ? "99+" : unreadTotal}
+              </span>
             )}
           </span>
         }
