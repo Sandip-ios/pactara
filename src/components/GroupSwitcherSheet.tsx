@@ -89,6 +89,8 @@ export default function GroupSwitcherSheet({
           {groups.map((g) => {
             const active = g.id === selectedGroupId;
             const { dayNumber, duration } = dayNumberFor(g);
+            const members = g.members ?? [];
+            const showStack = members.length > 0;
             return (
               <button
                 key={g.id}
@@ -98,12 +100,40 @@ export default function GroupSwitcherSheet({
                 }}
                 className="w-full flex items-center gap-3 rounded-2xl px-3 py-3 text-left active:bg-neutral-100"
               >
-                <span
-                  className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-[20px]"
-                  style={{ background: active ? "#EFE9FB" : "#F5F2EE" }}
-                >
-                  {g.emoji || "👥"}
-                </span>
+                {showStack ? (
+                  <span className="relative shrink-0 flex items-center">
+                    <span className="flex -space-x-3">
+                      {members.slice(0, 3).map((m) => (
+                        <span
+                          key={m.id}
+                          className="h-11 w-11 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-white text-[14px] font-bold"
+                          style={{ background: m.avatarColor }}
+                        >
+                          {m.avatarUrl ? (
+                            <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
+                          ) : (
+                            (m.name || "?").charAt(0).toUpperCase()
+                          )}
+                        </span>
+                      ))}
+                      {members.length > 3 && (
+                        <span
+                          className="h-11 w-11 rounded-full ring-2 ring-white flex items-center justify-center text-[13px] font-bold"
+                          style={{ background: "#EDE4FF", color: PURPLE }}
+                        >
+                          +{members.length - 3}
+                        </span>
+                      )}
+                    </span>
+                  </span>
+                ) : (
+                  <span
+                    className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-[20px]"
+                    style={{ background: active ? "#EFE9FB" : "#F5F2EE" }}
+                  >
+                    {g.emoji || "👥"}
+                  </span>
+                )}
                 <span className="flex-1 min-w-0">
                   <span className="block truncate text-[16px] font-semibold text-neutral-900">
                     {g.name}
