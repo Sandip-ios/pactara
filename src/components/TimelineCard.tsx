@@ -705,7 +705,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+      <div className="flex-1 overflow-y-auto px-4 py-3 select-none">
         {isLoading ? (
           <div className="text-[13px] text-neutral-400">Loading…</div>
         ) : (

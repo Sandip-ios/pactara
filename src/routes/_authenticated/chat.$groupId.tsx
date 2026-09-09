@@ -258,7 +258,7 @@ function GroupChatPage() {
             </div>
           </div>
         ) : (
-          <ul className="space-y-3">
+          <ul className="space-y-3 select-none">
             {messages.map((m) => {
               const mine = m.userId === currentUserId;
               const initial = (m.authorName || "U").slice(0, 1).toUpperCase();
