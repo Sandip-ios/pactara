@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
 import { listMyGroups } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -75,13 +74,32 @@ function ChatPage() {
                 onClick={() => navigate({ to: "/chat/$groupId", params: { groupId: g.id } })}
                 className="w-full flex items-center gap-4 px-6 py-4 text-left"
               >
-                <span
-                  className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 relative"
-                  style={{ background: PURPLE_SOFT }}
-                >
-                  <Users size={22} style={{ color: PURPLE }} />
+                <span className="relative shrink-0 flex items-center">
+                  <span className="flex -space-x-3">
+                    {g.members.slice(0, 3).map((m) => (
+                      <span
+                        key={m.id}
+                        className="h-11 w-11 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-white text-[14px] font-bold"
+                        style={{ background: m.avatarColor }}
+                      >
+                        {m.avatarUrl ? (
+                          <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
+                        ) : (
+                          (m.name || "?").charAt(0).toUpperCase()
+                        )}
+                      </span>
+                    ))}
+                    {g.members.length > 3 && (
+                      <span
+                        className="h-11 w-11 rounded-full ring-2 ring-white flex items-center justify-center text-[13px] font-bold"
+                        style={{ background: PURPLE_SOFT, color: PURPLE }}
+                      >
+                        +{g.members.length - 3}
+                      </span>
+                    )}
+                  </span>
                   {hasUnread && (
-                    <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white" />
+                    <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-red-500 ring-2 ring-white" />
                   )}
                 </span>
                 <span className="flex-1 min-w-0">
