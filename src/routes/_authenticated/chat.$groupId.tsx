@@ -159,6 +159,8 @@ function GroupChatPage() {
   const group = data?.group;
   const messages = data?.messages ?? [];
   const currentUserId = data?.currentUserId;
+  const members = data?.members ?? [];
+
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
