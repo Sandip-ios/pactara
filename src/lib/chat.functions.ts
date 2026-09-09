@@ -136,6 +136,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
         authorName: profiles[m.user_id]?.name ?? "User",
         authorColor: profiles[m.user_id]?.avatarColor ?? "#7C3AED",
         authorAvatarUrl: profiles[m.user_id]?.avatarUrl ?? null,
+        reactions: reactionsByMessage[m.id] ?? [],
       })),
     };
 
