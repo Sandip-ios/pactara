@@ -1,16 +1,17 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2 } from "lucide-react";
+import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, Users, X, Loader2, Plus } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
 import { clearBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
+import EmojiPickerSheet from "@/components/EmojiPickerSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 const BG = "#F5F2EE";
 const BUCKET = "chat-photos";
-const QUICK_EMOJIS = ["❤️", "😂", "🔥", "👏", "💪", "👍"];
+const QUICK_EMOJIS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
 export const Route = createFileRoute("/_authenticated/chat/$groupId")({
   component: GroupChatPage,
@@ -29,6 +30,7 @@ function GroupChatPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
 
   function cancelLongPress() {
@@ -285,18 +287,29 @@ function GroupChatPage() {
                     )}
 
                     {pickerFor === m.id && (
-                      <div className="mb-1 flex items-center gap-1 rounded-full bg-white shadow-lg px-2 py-1.5">
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative z-[90] mb-1 flex items-center gap-1 rounded-full bg-white shadow-xl px-2.5 py-2"
+                      >
                         {QUICK_EMOJIS.map((e) => (
                           <button
                             key={e}
                             type="button"
                             aria-label={`React ${e}`}
                             onClick={() => onReact(m.id, e)}
-                            className="text-[20px] leading-none px-1 active:scale-90 transition-transform"
+                            className="text-[26px] leading-none px-0.5 active:scale-90 transition-transform"
                           >
                             {e}
                           </button>
                         ))}
+                        <button
+                          type="button"
+                          aria-label="More emojis"
+                          onClick={() => setSheetFor(m.id)}
+                          className="ml-1 h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center active:scale-90 transition-transform"
+                        >
+                          <Plus size={18} className="text-neutral-600" />
+                        </button>
                       </div>
                     )}
 
@@ -361,6 +374,26 @@ function GroupChatPage() {
           </ul>
         )}
       </div>
+
+      {pickerFor && !sheetFor && (
+        <button
+          aria-label="Dismiss reactions"
+          onClick={() => setPickerFor(null)}
+          className="fixed inset-0 z-[85] cursor-default"
+        />
+      )}
+
+      <EmojiPickerSheet
+        open={!!sheetFor}
+        onClose={() => {
+          setSheetFor(null);
+          setPickerFor(null);
+        }}
+        onSelect={(emoji) => {
+          if (sheetFor) onReact(sheetFor, emoji);
+          setSheetFor(null);
+        }}
+      />
 
       <form
         onSubmit={handleSubmit}
