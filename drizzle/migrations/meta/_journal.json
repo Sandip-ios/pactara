@@ -57,6 +57,13 @@
       "when": 1788955447893,
       "tag": "0007_create_message_reactions",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788968351246,
+      "tag": "0008_create_notification_reads",
+      "breakpoints": true
     }
   ]
 }

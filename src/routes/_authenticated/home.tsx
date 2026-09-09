@@ -2,11 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
+import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
@@ -153,6 +154,13 @@ function HomePage() {
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
   });
+  const { data: notifCount } = useQuery({
+    queryKey: ["unread-notification-count"],
+    queryFn: () => getUnreadNotificationCount(),
+    refetchInterval: 60_000,
+    refetchOnWindowFocus: true,
+  });
+  const notifUnread = notifCount?.total ?? 0;
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -312,14 +320,30 @@ function HomePage() {
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span><span>actara</span>
         </div>
-        <button
-          onClick={() => setShowOnboarding(true)}
-          className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
-          style={{ background: "#EDE6FE", color: PURPLE }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-          How Pactara works
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowOnboarding(true)}
+            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
+            style={{ background: "#EDE6FE", color: PURPLE }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            How Pactara works
+          </button>
+          <button
+            onClick={() => navigate({ to: "/notifications" })}
+            aria-label="Notifications"
+            className="relative h-9 w-9 flex items-center justify-center rounded-full"
+            style={{ background: "#EDE6FE", color: PURPLE }}
+          >
+            <Bell size={18} />
+            {notifUnread > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
+                {notifUnread > 99 ? "99+" : notifUnread}
+              </span>
+            )}
+          </button>
+        </div>
+
       </header>
       <PullToRefresh
         onRefresh={() =>
