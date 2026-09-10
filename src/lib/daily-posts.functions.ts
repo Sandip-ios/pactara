@@ -705,7 +705,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         });
       }
 
-      if (myCheckIns.length === 0) {
+      // Only day-cards that carry a commitment get a check-in slot. A plain
+      // "what's on your mind" update is just an update, not a pending check-in.
+      const hasCommitment = nodes.some((n) => n.kind === "ritual" || n.kind === "ritual_missed");
+
+      if (myCheckIns.length === 0 && hasCommitment) {
         if (checkInMissed) {
           nodes.push({
             kind: "check_in_missed",
