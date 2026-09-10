@@ -40,7 +40,11 @@ function GroupsOverview() {
 
   const groups = data.groups;
   const count = groups.length;
-  const waitingOn = groups.reduce((n, g) => n + (g.memberCount - g.doneCount), 0);
+  // Count distinct people, not per-group rows — the same person in several
+  // groups was being counted once per group.
+  const waitingOn = new Set(
+    groups.flatMap((g) => g.members.filter((m) => m.status !== "done").map((m) => m.userId)),
+  ).size;
 
   return (
     <div
