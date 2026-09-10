@@ -82,7 +82,9 @@ function splitFeedIntoTimelineCards(items: FeedItem[]) {
     const nodes = item.nodes.length > 0 ? item.nodes : [{ kind: "pending", id: `empty-${item.id}` } as TimelineNode];
     for (const node of nodes) {
       const localDate = nodeTimelineDate(item, node);
-      const key = `${item.userId}-${localDate}`;
+      // Standalone "what's on your mind" updates are their own card, never
+      // merged into the day's commitment timeline.
+      const key = node.kind === "thought" ? `${item.userId}-${localDate}-${node.id}` : `${item.userId}-${localDate}`;
       const nodeAt = "at" in node ? node.at : item.updatedAt;
       const existing = grouped.get(key);
 
