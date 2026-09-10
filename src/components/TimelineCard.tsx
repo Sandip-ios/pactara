@@ -919,6 +919,7 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
+  const standaloneThought = nodes.length === 1 && nodes[0]?.kind === "thought" ? nodes[0] : null;
   const queryClient = useQueryClient();
   const prefetchComments = () => {
     queryClient.prefetchQuery(commentsQueryOptions(item.id));
@@ -939,18 +940,46 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2 flex-wrap">
+          <div className="flex items-baseline justify-between gap-2">
             <span className="text-[17px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</span>
+            {standaloneThought && (
+              <span className="shrink-0 text-[12px] text-neutral-400">{timeLabel(standaloneThought.at)}</span>
+            )}
           </div>
-          <div className="text-[13px] text-neutral-400 mt-0.5">{(() => {
-            const c = nodes.filter((n) => n.kind !== "pending").length;
-            return `${c} ${c === 1 ? "update" : "updates"}`;
-          })()}</div>
+          {!standaloneThought && (
+            <div className="text-[13px] text-neutral-400 mt-0.5">{(() => {
+              const c = nodes.filter((n) => n.kind !== "pending").length;
+              return `${c} ${c === 1 ? "update" : "updates"}`;
+            })()}</div>
+          )}
 
         </div>
       </div>
 
-      {/* Timeline */}
+      {standaloneThought ? (
+        <div className="px-4 pb-4 pt-3">
+          {standaloneThought.text && <ExpandableText text={standaloneThought.text} />}
+          {standaloneThought.photoUrl && (() => {
+            const src = standaloneThought.photoUrl;
+            const isVideo = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i.test(src);
+            return (
+              <button
+                type="button"
+                onClick={() => setLightbox({ src, kind: isVideo ? "video" : "image" })}
+                aria-label={isVideo ? "View video" : "View photo"}
+                className="mt-3 block w-full overflow-hidden rounded-xl bg-transparent p-0"
+              >
+                {isVideo ? (
+                  <VideoBlock src={src} />
+                ) : (
+                  <img src={src} alt="" className="max-h-[360px] w-full rounded-xl object-cover" />
+                )}
+              </button>
+            );
+          })()}
+        </div>
+      ) : (
+      /* Timeline */
       <div className="px-4 pt-3 pb-3 relative">
         {nodes.length > 1 && (
           <div
@@ -1049,6 +1078,7 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
           </div>
         )}
       </div>
+      )}
 
       <ReactionBar item={item} unreadComments={unreadComments} onToggleComments={() => { prefetchComments(); openComments(); }} onPrefetchComments={prefetchComments} commentsOpen={commentsOpen} />
       <Drawer open={commentsOpen} onOpenChange={setCommentsOpen} repositionInputs={false}>
