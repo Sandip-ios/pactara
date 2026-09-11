@@ -1,22 +1,11 @@
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 
-const TIMELINE_DAY_START_HOUR = 0;
-
-function formatLocalDate(d: Date) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function timelineDateFor(iso: string) {
-  const d = new Date(iso);
-  d.setHours(d.getHours() - TIMELINE_DAY_START_HOUR);
-  return formatLocalDate(d);
-}
-
-function nodeTimelineDate(item: FeedItem, node: TimelineNode) {
-  if (node.kind === "pending" || node.kind === "ritual_missed" || node.kind === "check_in_missed") {
-    return item.localDate;
-  }
-  return timelineDateFor(node.at);
+// The server already assigns every node to the author's local day. Re-deriving
+// the day from each node's timestamp in the viewer's timezone splits a single
+// day into two cards (e.g. a late-evening check-in landing on the next day),
+// so always group by the item's own local date.
+function nodeTimelineDate(item: FeedItem, _node: TimelineNode) {
+  return item.localDate;
 }
 
 /**
