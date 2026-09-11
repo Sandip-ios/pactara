@@ -23,6 +23,7 @@ function CameraRoute() {
 function pickMimeType(): string {
   if (typeof MediaRecorder === "undefined") return "";
   const candidates = [
+    "video/mp4;codecs=avc1.42E01E,mp4a.40.2",
     "video/mp4",
     "video/webm;codecs=vp9,opus",
     "video/webm;codecs=vp8,opus",
@@ -139,11 +140,28 @@ function VideoRecordScreen() {
         aspectRatio: { ideal: 4 / 3 },
       };
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: videoConstraints,
-        audio: false,
-      });
-      return stream;
+      const audioConstraints: MediaTrackConstraints = {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      };
+
+      try {
+        return await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+          audio: audioConstraints,
+        });
+      } catch (audioErr) {
+        const audioName = (audioErr as DOMException)?.name;
+        // If the mic is unavailable/denied, still let them record video.
+        if (audioName === "NotAllowedError" || audioName === "NotFoundError" || audioName === "NotReadableError") {
+          return await navigator.mediaDevices.getUserMedia({
+            video: videoConstraints,
+            audio: false,
+          });
+        }
+        throw audioErr;
+      }
     } catch (err) {
       const name = (err as DOMException)?.name;
       if (name === "NotAllowedError") setError("Camera permission denied. Enable it in your browser settings.");
