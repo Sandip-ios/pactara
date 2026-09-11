@@ -52,9 +52,6 @@ async function uploadThoughtPhoto(file: File): Promise<string | null> {
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
-const TIMELINE_DAY_START_HOUR = 0;
-
-import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
