@@ -15,6 +15,7 @@ import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
+import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
