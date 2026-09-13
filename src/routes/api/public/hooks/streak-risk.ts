@@ -41,12 +41,15 @@ export const Route = createFileRoute("/api/public/hooks/streak-risk")({
 
         const { data: profiles } = await supabaseAdmin
           .from("profiles")
-          .select("id, timezone")
+          .select("id, timezone, streak_freezes_available")
           .in(
             "id",
             rows.map((r) => r.user_id),
           );
         const tzById = new Map((profiles ?? []).map((p) => [p.id, p.timezone || "UTC"]));
+        const freezesById = new Map(
+          (profiles ?? []).map((p) => [p.id, (p as { streak_freezes_available?: number }).streak_freezes_available ?? 0]),
+        );
 
         const now = new Date();
         const due = rows
