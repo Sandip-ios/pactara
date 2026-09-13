@@ -92,6 +92,19 @@ function NotificationsPage() {
 
   const markRead = useMutation({
     mutationFn: (keys: string[]) => markNotificationsRead({ data: { keys } }),
+    // Flip the rows locally right away so the state sticks even if we navigate.
+    onMutate: async (keys: string[]) => {
+      const set = new Set(keys);
+      queryClient.setQueryData(
+        ["notifications", selectedGroupId],
+        (old: { items: NotificationItem[] } | undefined) =>
+          old
+            ? {
+                items: old.items.map((i) => (set.has(i.key) ? { ...i, read: true } : i)),
+              }
+            : old,
+      );
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
@@ -103,14 +116,31 @@ function NotificationsPage() {
   const older = items.filter((i) => new Date(i.createdAt).getTime() < sevenDaysAgo);
   const unreadKeys = items.filter((i) => !i.read).map((i) => i.key);
 
-  const open = (item: NotificationItem) => {
-    if (!item.read) markRead.mutate([item.key]);
+  const open = async (item: NotificationItem) => {
+    // Persist the read before leaving the page — a navigation can cancel it otherwise.
+    if (!item.read) {
+      try {
+        await markRead.mutateAsync([item.key]);
+      } catch {
+        /* still navigate */
+      }
+    }
+
     if (item.kind === "message") {
       navigate({ to: "/chat/$groupId", params: { groupId: item.groupId } });
       return;
     }
+    if (item.kind === "join") {
+      navigate({ to: "/groups/$groupId", params: { groupId: item.groupId } });
+      return;
+    }
+    // Only conversation notifications should land inside the comments thread.
+    const wantsComments =
+      item.kind === "comment" || item.kind === "reply" || item.kind === "comment_like";
     if (item.postId) {
-      window.location.assign(`/home?post=${item.postId}&comments=1`);
+      window.location.assign(
+        wantsComments ? `/home?post=${item.postId}&comments=1` : `/home?post=${item.postId}`,
+      );
       return;
     }
     navigate({ to: "/groups/$groupId", params: { groupId: item.groupId } });
