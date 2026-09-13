@@ -106,6 +106,7 @@ function timeLabel(iso: string) {
 function VideoThumb({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const primedRef = useRef(false);
+  const visibleRef = useRef(false);
 
   useEffect(() => {
     const v = ref.current;
@@ -113,14 +114,16 @@ function VideoThumb({ src }: { src: string }) {
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          const visible = entry.isIntersecting && entry.intersectionRatio >= 0.4;
+          visibleRef.current = visible;
+          if (visible) {
             v.play().catch(() => {});
-          } else {
+          } else if (!v.paused) {
             v.pause();
           }
         }
       },
-      { threshold: [0, 0.6, 1] },
+      { threshold: [0, 0.4, 0.75, 1] },
     );
     io.observe(v);
     return () => io.disconnect();
@@ -136,13 +139,19 @@ function VideoThumb({ src }: { src: string }) {
       preload="auto"
       // iOS Safari won't paint a first frame from preload alone or from a
       // bare currentTime seek. Briefly play muted then pause so the frame
-      // is rendered; without this the thumbnail stays solid black.
+      // is rendered; without this the thumbnail stays solid black. Skip the
+      // pause when the video is already on screen so autoplay keeps running.
       onLoadedMetadata={() => {
         const v = ref.current;
         if (!v || primedRef.current) return;
         primedRef.current = true;
+        if (visibleRef.current) {
+          v.play().catch(() => {});
+          return;
+        }
         v.play()
           .then(() => {
+            if (visibleRef.current) return;
             v.pause();
             try {
               v.currentTime = 0.1;
@@ -158,6 +167,7 @@ function VideoThumb({ src }: { src: string }) {
     />
   );
 }
+
 
 
 function VideoBlock({ src }: { src: string }) {
