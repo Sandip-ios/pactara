@@ -203,7 +203,7 @@ function JoinPage() {
       }
 
       router.invalidate();
-      navigate({ to: "/home" });
+      navigate({ to: "/pact/$groupId", params: { groupId } });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't join the group");
       setJoining(false);
