@@ -62,14 +62,71 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
         const recipients = due.filter((id) => !alreadyToday.has(id));
         if (recipients.length === 0) return Response.json({ ok: true, sent: 0, due: due.length });
 
-        const { pushToUsers } = await import("@/lib/notify.server");
-        const result = await pushToUsers(recipients, {
-          title: "Time to check in ✅",
-          body: "Keep your streak alive — log today's check-in.",
-          url: "/check-in",
-        });
+        // Work out where each person is in their challenge, so the reminder can
+        // say "Day 12 of 30 in Morning Milers".
+        const { data: memberships } = await supabaseAdmin
+          .from("group_members")
+          .select("user_id, group_id")
+          .in("user_id", recipients);
 
-        return Response.json({ ok: true, due: due.length, ...result });
+        const groupIds = Array.from(
+          new Set((memberships ?? []).map((m) => m.group_id)),
+        );
+        const { data: groups } = groupIds.length
+          ? await supabaseAdmin
+              .from("groups")
+              .select("id, name, start_date, duration_days")
+              .in("id", groupIds)
+          : { data: [] as Array<{ id: string; name: string; start_date: string; duration_days: number }> };
+        const groupById = new Map((groups ?? []).map((g) => [g.id, g]));
+
+        /** Day number (1-based) in the challenge for a given timezone, or null if outside it. */
+        const dayNumber = (startDate: string, durationDays: number, tz: string) => {
+          const localToday = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
+          const diff = Math.round(
+            (Date.parse(`${localToday}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) /
+              86400000,
+          );
+          const day = diff + 1;
+          if (day < 1 || day > durationDays) return null;
+          return day;
+        };
+
+        // Group recipients by the exact message they should receive.
+        const byBody = new Map<string, string[]>();
+        for (const userId of recipients) {
+          const tz = tzById.get(userId) ?? "UTC";
+          let best: { day: number; total: number; name: string } | null = null;
+          for (const m of memberships ?? []) {
+            if (m.user_id !== userId) continue;
+            const g = groupById.get(m.group_id);
+            if (!g) continue;
+            const day = dayNumber(g.start_date, g.duration_days, tz);
+            if (day === null) continue;
+            if (!best || day > best.day) best = { day, total: g.duration_days, name: g.name };
+          }
+          const body = best
+            ? best.day === best.total
+              ? `Final day of ${best.name} — finish strong and check in. 🏁`
+              : `Day ${best.day} of ${best.total} in ${best.name} — keep it going. 🔥`
+            : "Keep your streak alive — log today's check-in.";
+          const list = byBody.get(body);
+          if (list) list.push(userId);
+          else byBody.set(body, [userId]);
+        }
+
+        const { pushToUsers } = await import("@/lib/notify.server");
+        let sent = 0;
+        for (const [body, users] of byBody) {
+          const result = await pushToUsers(users, {
+            title: "Time to check in ✅",
+            body,
+            url: "/check-in",
+          });
+          sent += (result as { sent?: number }).sent ?? 0;
+        }
+
+        return Response.json({ ok: true, due: due.length, sent });
       },
     },
   },
