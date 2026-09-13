@@ -263,6 +263,10 @@ async function collect(
     });
   }
 
+  // Map a check-in back to its feed post so the notification opens that post.
+  const postByCheckIn = new Map<string, string>();
+  for (const p of postRows) if (p.check_in_id) postByCheckIn.set(p.check_in_id, p.id);
+
   for (const c of (checkIns ?? []) as Array<{
     id: string;
     user_id: string;
@@ -278,7 +282,7 @@ async function collect(
       mediaPath: c.photo_url ?? null,
       mediaKind: null,
       groupId,
-      postId: null,
+      postId: postByCheckIn.get(c.id) ?? null,
     });
   }
 
