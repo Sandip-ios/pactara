@@ -64,6 +64,13 @@
       "when": 1788968351246,
       "tag": "0008_create_notification_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789320598554,
+      "tag": "0009_add_pact_signing",
+      "breakpoints": true
     }
   ]
 }

@@ -277,6 +277,7 @@ export type Database = {
           id: string
           joined_at: string
           last_read_at: string
+          pact_signed_at: string | null
           user_id: string
         }
         Insert: {
@@ -284,6 +285,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string
+          pact_signed_at?: string | null
           user_id: string
         }
         Update: {
@@ -291,6 +293,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string
+          pact_signed_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -349,6 +352,7 @@ export type Database = {
           id: string
           name: string
           owner_id: string
+          pact_promise: string | null
           start_date: string
         }
         Insert: {
@@ -361,6 +365,7 @@ export type Database = {
           id?: string
           name: string
           owner_id: string
+          pact_promise?: string | null
           start_date?: string
         }
         Update: {
@@ -373,6 +378,7 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string
+          pact_promise?: string | null
           start_date?: string
         }
         Relationships: []
