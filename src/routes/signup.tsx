@@ -421,7 +421,11 @@ function SignupFlow() {
       <TrialEndedPaywall
         firstName={firstName}
         mode="intro"
-        onDismiss={() => navigate({ to: "/home" })}
+        onDismiss={() =>
+          invitedGroupId
+            ? navigate({ to: "/pact/$groupId", params: { groupId: invitedGroupId } })
+            : navigate({ to: "/home" })
+        }
       />
     );
   }
