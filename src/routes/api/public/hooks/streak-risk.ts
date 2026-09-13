@@ -41,12 +41,15 @@ export const Route = createFileRoute("/api/public/hooks/streak-risk")({
 
         const { data: profiles } = await supabaseAdmin
           .from("profiles")
-          .select("id, timezone")
+          .select("id, timezone, streak_freezes_available")
           .in(
             "id",
             rows.map((r) => r.user_id),
           );
         const tzById = new Map((profiles ?? []).map((p) => [p.id, p.timezone || "UTC"]));
+        const freezesById = new Map(
+          (profiles ?? []).map((p) => [p.id, (p as { streak_freezes_available?: number }).streak_freezes_available ?? 0]),
+        );
 
         const now = new Date();
         const due = rows
@@ -101,18 +104,22 @@ export const Route = createFileRoute("/api/public/hooks/streak-risk")({
 
         const { pushToUsers } = await import("@/lib/notify.server");
         let sent = 0;
-        // Group by streak length so the copy can name the number.
-        const byStreak = new Map<number, string[]>();
+        // Group by streak length + whether they have a freeze, so the copy fits.
+        const byKey = new Map<string, { streak: number; hasFreeze: boolean; userIds: string[] }>();
         for (const r of atRisk) {
-          const list = byStreak.get(r.streak) ?? [];
-          list.push(r.userId);
-          byStreak.set(r.streak, list);
+          const hasFreeze = (freezesById.get(r.userId) ?? 0) > 0;
+          const key = `${r.streak}:${hasFreeze ? "f" : "n"}`;
+          const entry = byKey.get(key) ?? { streak: r.streak, hasFreeze, userIds: [] };
+          entry.userIds.push(r.userId);
+          byKey.set(key, entry);
         }
-        for (const [streak, userIds] of byStreak) {
+        for (const { streak, hasFreeze, userIds } of byKey.values()) {
           const result = await pushToUsers(userIds, {
             title: `Your ${streak}-day streak is at risk 🔥`,
-            body: "Check in before midnight to keep it alive.",
-            url: "/check-in",
+            body: hasFreeze
+              ? "Check in before midnight — or use a streak freeze to protect it."
+              : "Check in before midnight to keep it alive.",
+            url: hasFreeze ? "/profile" : "/check-in",
           });
           sent += (result as { sent?: number }).sent ?? 0;
         }
