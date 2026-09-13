@@ -60,14 +60,36 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   const navigate = useNavigate();
-  // Deep link from a comment push: /home?post=<id>&comments=1
+  // Deep link from a notification: /home?post=<id>[&comments=1]
   const [search, setSearch] = useState<{ post?: string; comments?: boolean }>({});
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const post = params.get("post") ?? undefined;
     const comments = params.get("comments") === "1";
-    if (post && comments) setSearch({ post, comments });
+    if (post) setSearch({ post, comments });
   }, []);
+
+  // Scroll the linked post into view once the feed has rendered it.
+  useEffect(() => {
+    if (!search.post) return;
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      tries += 1;
+      const el = document.getElementById(`post-${search.post}`);
+      if (el) {
+        window.clearInterval(timer);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-purple-300", "rounded-2xl");
+        window.setTimeout(
+          () => el.classList.remove("ring-2", "ring-purple-300", "rounded-2xl"),
+          2000,
+        );
+      } else if (tries > 40) {
+        window.clearInterval(timer);
+      }
+    }, 150);
+    return () => window.clearInterval(timer);
+  }, [search.post]);
   const { data: status } = useQuery({
     queryKey: ["my-group-status"],
     queryFn: () => getMyGroupStatus(),
