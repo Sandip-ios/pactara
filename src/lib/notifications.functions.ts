@@ -85,7 +85,7 @@ async function collect(
         .limit(50),
       supabase
         .from("check_ins")
-        .select("id, user_id, photo_url, created_at")
+        .select("id, user_id, checkin_date, photo_url, created_at")
         .eq("group_id", groupId)
         .neq("user_id", userId)
         .gte("created_at", from)
@@ -266,10 +266,21 @@ async function collect(
   // Map a check-in back to its feed post so the notification opens that post.
   const postByCheckIn = new Map<string, string>();
   for (const p of postRows) if (p.check_in_id) postByCheckIn.set(p.check_in_id, p.id);
+  // A daily post stores only the first check-in ID, while every later check-in
+  // from that member on the same day is rendered on that same feed card.
+  const postByMemberDay = new Map<string, string>();
+  for (const p of (posts ?? []) as Array<{
+    id: string;
+    user_id: string;
+    local_date: string;
+  }>) {
+    postByMemberDay.set(`${p.user_id}:${p.local_date}`, p.id);
+  }
 
   for (const c of (checkIns ?? []) as Array<{
     id: string;
     user_id: string;
+    checkin_date: string;
     photo_url: string | null;
     created_at: string;
   }>) {
@@ -282,7 +293,10 @@ async function collect(
       mediaPath: c.photo_url ?? null,
       mediaKind: null,
       groupId,
-      postId: postByCheckIn.get(c.id) ?? null,
+      postId:
+        postByCheckIn.get(c.id) ??
+        postByMemberDay.get(`${c.user_id}:${c.checkin_date}`) ??
+        null,
     });
   }
 
