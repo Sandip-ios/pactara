@@ -794,7 +794,7 @@ export const togglePostReaction = createServerFn({ method: "POST" })
         await notifyPostAuthor(data.postId, userId, (name) => ({
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
-          url: "/home",
+          url: `/home?post=${data.postId}`,
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
@@ -825,7 +825,7 @@ export const setPostReaction = createServerFn({ method: "POST" })
         await notifyPostAuthor(data.postId, userId, (name) => ({
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
-          url: "/home",
+          url: `/home?post=${data.postId}`,
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
