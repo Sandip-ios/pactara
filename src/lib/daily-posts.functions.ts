@@ -362,17 +362,22 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         .eq("local_date", today)
         .maybeSingle();
 
-      const { error: dpErr } = await supabase.from("daily_posts").upsert(
-        {
-          user_id: userId,
-          group_id: groupId,
-          local_date: today,
-          check_in_id: existing?.check_in_id ?? checkIn.id,
-          check_in_missed: false,
-        },
-        { onConflict: "user_id,group_id,local_date" },
-      );
+      const { data: postRow, error: dpErr } = await supabase
+        .from("daily_posts")
+        .upsert(
+          {
+            user_id: userId,
+            group_id: groupId,
+            local_date: today,
+            check_in_id: existing?.check_in_id ?? checkIn.id,
+            check_in_missed: false,
+          },
+          { onConflict: "user_id,group_id,local_date" },
+        )
+        .select("id")
+        .single();
       if (dpErr) throw new Error(dpErr.message);
+
 
       try {
         const { awardBadgesForUser } = await import("./badges.functions");
