@@ -5,7 +5,11 @@
 // learns the true unread count, and clears delivered notifications with it.
 
 import { isNative } from "@/lib/native";
-import { clearBadgeCount, getBadgeCount } from "@/lib/push.functions";
+import {
+  markGroupNotificationsRead,
+  syncBadgeCount,
+  type NotificationKind,
+} from "@/lib/notifications.functions";
 
 export async function setAppBadge(count: number): Promise<void> {
   const value = Math.max(0, Math.floor(count));
@@ -41,20 +45,30 @@ export async function setAppBadge(count: number): Promise<void> {
   }
 }
 
-/** Pull the authoritative count from the server and mirror it on the icon. */
+/**
+ * Recompute the badge from what is genuinely still unread and mirror it on the
+ * icon. This is the only source of truth, so the badge can never get stuck.
+ */
 export async function syncAppBadge(): Promise<void> {
   try {
-    const res = await getBadgeCount();
+    const res = await syncBadgeCount();
     await setAppBadge(res?.count ?? 0);
   } catch {
     // best effort
   }
 }
 
-/** Called when the user actually opens the items that caused the badge. */
-export async function clearBadge(by?: number): Promise<void> {
+/**
+ * Called when the user actually opens the items that caused the badge: marks
+ * those notifications read server-side, then re-syncs the icon.
+ */
+export async function markReadAndSyncBadge(input: {
+  groupId: string;
+  kinds?: NotificationKind[];
+  postId?: string | null;
+}): Promise<void> {
   try {
-    const res = await clearBadgeCount({ data: by ? { by } : {} });
+    const res = await markGroupNotificationsRead({ data: input });
     await setAppBadge(res?.count ?? 0);
   } catch {
     // best effort
