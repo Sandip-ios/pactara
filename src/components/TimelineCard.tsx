@@ -12,7 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
-import { clearBadge } from "@/lib/badge-client";
+import { markReadAndSyncBadge } from "@/lib/badge-client";
 import {
   togglePostReaction,
   setPostReaction,
@@ -913,9 +913,11 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
   }, [autoOpenComments]);
   const unreadComments = Math.max(0, item.commentCount - seenCount);
   const openComments = () => {
-    if (unreadComments > 0) {
-      void clearBadge(unreadComments).catch(() => {});
-    }
+    void markReadAndSyncBadge({
+      groupId: item.groupId,
+      kinds: ["comment", "reply", "comment_like", "reaction", "checkin"],
+      postId: item.id,
+    });
     markCommentsSeen(item.id, item.commentCount);
     setSeenCount(item.commentCount);
     setCommentsOpen(true);
