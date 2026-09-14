@@ -10,6 +10,7 @@ import {
 } from "@/lib/notifications.functions";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { syncAppBadge } from "@/lib/badge-client";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -108,6 +109,7 @@ function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
       queryClient.invalidateQueries({ queryKey: ["unread-notification-count"] });
+      void syncAppBadge();
     },
   });
 
