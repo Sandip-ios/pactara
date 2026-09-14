@@ -447,3 +447,94 @@ export const markNotificationsRead = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+/** Real unread total across all of the user's groups, mirrored to the badge row. */
+async function computeUnreadTotal(supabase: SupabaseClient, userId: string): Promise<number> {
+  const { data: memberships } = await supabase
+    .from("group_members")
+    .select("group_id")
+    .eq("user_id", userId);
+  const groupIds = ((memberships ?? []) as Array<{ group_id: string }>).map((m) => m.group_id);
+  if (groupIds.length === 0) return 0;
+
+  const { data: groups } = await supabase.from("groups").select("id, name").in("id", groupIds);
+  const nameById = new Map(
+    ((groups ?? []) as Array<{ id: string; name: string }>).map((g) => [g.id, g.name]),
+  );
+
+  const read = await readKeys(supabase, userId);
+  const lists = await Promise.all(
+    groupIds.map((id) => collect(supabase, userId, id, nameById.get(id) ?? "your group")),
+  );
+  let total = 0;
+  for (const list of lists) {
+    for (const item of list) if (!read.has(item.key)) total += 1;
+  }
+  return total;
+}
+
+async function writeBadge(userId: string, count: number) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  await supabaseAdmin
+    .from("user_badge_counts" as never)
+    .upsert({ user_id: userId, count, updated_at: new Date().toISOString() } as never, {
+      onConflict: "user_id",
+    });
+}
+
+/** Recompute the app-icon badge from actual unread items (authoritative). */
+export const syncBadgeCount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const total = await computeUnreadTotal(supabase, userId);
+    await writeBadge(userId, total);
+    return { count: total };
+  });
+
+/**
+ * Marks everything the user just opened as read: a whole group, or only the
+ * notifications tied to one post / set of kinds. Returns the new badge total.
+ */
+export const markGroupNotificationsRead = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: { groupId: string; kinds?: NotificationKind[]; postId?: string | null }) => {
+      if (!input || typeof input.groupId !== "string") throw new Error("groupId required");
+      return {
+        groupId: input.groupId,
+        kinds: Array.isArray(input.kinds) ? input.kinds : null,
+        postId: typeof input.postId === "string" ? input.postId : null,
+      };
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: membership } = await supabase
+      .from("group_members")
+      .select("id")
+      .eq("group_id", data.groupId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!membership) return { ok: false, count: 0 };
+
+    const raw = await collect(supabase, userId, data.groupId, "your group");
+    const keys = raw
+      .filter((r) => (data.kinds ? data.kinds.includes(r.kind) : true))
+      .filter((r) => (data.postId ? r.postId === data.postId : true))
+      .map((r) => r.key);
+
+    if (keys.length > 0) {
+      await supabase
+        .from("notification_reads")
+        .upsert(
+          keys.map((k) => ({ user_id: userId, item_key: k })),
+          { onConflict: "user_id,item_key" },
+        );
+    }
+
+    const total = await computeUnreadTotal(supabase, userId);
+    await writeBadge(userId, total);
+    return { ok: true, count: total };
+  });
