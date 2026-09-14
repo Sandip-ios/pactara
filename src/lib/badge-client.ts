@@ -5,7 +5,11 @@
 // learns the true unread count, and clears delivered notifications with it.
 
 import { isNative } from "@/lib/native";
-import { clearBadgeCount, getBadgeCount } from "@/lib/push.functions";
+import {
+  markGroupNotificationsRead,
+  syncBadgeCount,
+  type NotificationKind,
+} from "@/lib/notifications.functions";
 
 export async function setAppBadge(count: number): Promise<void> {
   const value = Math.max(0, Math.floor(count));
