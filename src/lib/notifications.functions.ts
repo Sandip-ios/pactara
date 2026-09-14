@@ -72,7 +72,7 @@ async function collect(
     await Promise.all([
       supabase
         .from("daily_posts")
-        .select("id, user_id, check_in_id")
+        .select("id, user_id, local_date, check_in_id")
         .eq("group_id", groupId)
         .gte("local_date", from.slice(0, 10)),
       supabase
@@ -104,6 +104,7 @@ async function collect(
   const postRows = (posts ?? []) as Array<{
     id: string;
     user_id: string;
+    local_date: string;
     check_in_id: string | null;
   }>;
   const postIds = postRows.map((p) => p.id);
@@ -269,11 +270,7 @@ async function collect(
   // A daily post stores only the first check-in ID, while every later check-in
   // from that member on the same day is rendered on that same feed card.
   const postByMemberDay = new Map<string, string>();
-  for (const p of (posts ?? []) as Array<{
-    id: string;
-    user_id: string;
-    local_date: string;
-  }>) {
+  for (const p of postRows) {
     postByMemberDay.set(`${p.user_id}:${p.local_date}`, p.id);
   }
 
