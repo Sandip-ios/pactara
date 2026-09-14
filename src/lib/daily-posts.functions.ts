@@ -393,7 +393,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         await notifyGroupActivity(groupId, userId, {
           title: `${name} checked in 🔥`,
           body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
-          url: "/home",
+          url: postRow?.id ? `/home?post=${postRow.id}` : "/home",
+
         });
       } catch (err) {
         console.warn("[check-in] push failed", err);
