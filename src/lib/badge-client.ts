@@ -51,7 +51,7 @@ export async function setAppBadge(count: number): Promise<void> {
  */
 export async function syncAppBadge(): Promise<void> {
   try {
-    const res = await syncBadgeCount({ data: {} });
+    const res = await syncBadgeCount();
     await setAppBadge(res?.count ?? 0);
   } catch {
     // best effort
