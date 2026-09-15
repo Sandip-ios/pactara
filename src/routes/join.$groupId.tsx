@@ -288,8 +288,52 @@ function JoinPage() {
   };
 
   const inviterName = data?.inviter?.fullName?.trim() || data?.inviter?.name || "Someone";
-  const groupName = data?.name ?? "this group";
-  const emoji = data?.emoji ?? "🔥";
+  const groupName = data?.name ?? ctx?.group?.name ?? "this group";
+  const emoji = data?.emoji ?? ctx?.group?.emoji ?? "🔥";
+
+  if (resolution === "ALREADY_MEMBER") {
+    return (
+      <StatusScreen
+        title="You're already in 🔥"
+        text={`You're already a member of ${groupName}.`}
+        ctaLabel={`Open ${groupName}`}
+        onCta={() => navigate({ to: "/groups/$groupId", params: { groupId }, replace: true })}
+      />
+    );
+  }
+
+  if (resolution === "INVITE_INVALID") {
+    return (
+      <StatusScreen
+        title="This invite is no longer available"
+        text="The link may have expired or been revoked."
+        ctaLabel="Go to Pactara"
+        onCta={() => navigate({ to: "/" })}
+      />
+    );
+  }
+
+  if (resolution === "GROUP_UNAVAILABLE") {
+    return (
+      <StatusScreen
+        title="This group is no longer active"
+        text="Ask whoever invited you for a new invite."
+        ctaLabel="Go to Groups"
+        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+      />
+    );
+  }
+
+  if (resolution === "GROUP_FULL" && !isMobileWeb) {
+    return (
+      <StatusScreen
+        title="This group is full"
+        text={`${groupName} has reached its member limit of 8 people, so no one else can join right now.`}
+        ctaLabel={isSignedIn ? "Go to Groups" : "Go to Pactara"}
+        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+      />
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] w-full pb-32" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
