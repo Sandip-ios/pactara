@@ -1,10 +1,11 @@
-import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomTabs } from "@/components/BottomTabs";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
+import { getPendingPact } from "@/lib/pact.functions";
 import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
 import { isNative } from "@/lib/native";
 
@@ -22,6 +23,27 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  // Everyone must sign their group pact before using the app.
+  useEffect(() => {
+    if (pathname.startsWith("/pact/")) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getPendingPact();
+        if (!cancelled && res?.groupId) {
+          navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });
+        }
+      } catch {
+        /* ignore — never block the app on this check */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, navigate]);
+
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
     areBottomTabsHidden,

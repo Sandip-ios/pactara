@@ -139,3 +139,26 @@ export const signPact = createServerFn({ method: "POST" })
 
     return { ok: true, signedAt: now };
   });
+
+/**
+ * First group the current user still needs to sign the pact for.
+ * Used to gate the app until every existing member has signed.
+ */
+export const getPendingPact = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data, error } = await supabaseAdmin
+      .from("group_members")
+      .select("group_id, joined_at, pact_signed_at")
+      .eq("user_id", userId)
+      .is("pact_signed_at", null)
+      .order("joined_at", { ascending: true })
+      .limit(1);
+    if (error) throw new Error(error.message);
+
+    const row = (data ?? [])[0];
+    return { groupId: row ? (row.group_id as string) : null };
+  });
