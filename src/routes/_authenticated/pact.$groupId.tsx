@@ -75,7 +75,6 @@ function PactPage() {
       setSigned(true);
       await queryClient.invalidateQueries({ queryKey: ["pact", groupId] });
       setShowSuccess(true);
-      window.setTimeout(() => setShowSuccess(false), 2400);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't sign the pact");
     } finally {
