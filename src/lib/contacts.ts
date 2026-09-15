@@ -155,9 +155,9 @@ export async function pickDeviceContact(): Promise<
 
 /** Sends the user to Pactara's own iOS settings, where Contacts access lives. */
 export async function openAppSettings(): Promise<boolean> {
+  if (!isNative()) return false;
   try {
-    const { App } = await import("@capacitor/app");
-    await App.openUrl({ url: "app-settings:" });
+    window.location.href = "app-settings:";
     return true;
   } catch {
     return false;
