@@ -274,7 +274,10 @@ function Section({
                     n.read ? "text-neutral-600" : "text-neutral-900 font-semibold"
                   }`}
                 >
-                  <span className="font-bold">{n.actorName}</span> {n.text}
+                  {n.kind !== "pact_complete" && (
+                    <span className="font-bold">{n.actorName} </span>
+                  )}
+                  {n.text}
                 </span>
                 <span className="block text-[12px] text-neutral-400 mt-0.5">
                   {showGroup && n.groupName ? `${n.groupName} · ` : ""}
