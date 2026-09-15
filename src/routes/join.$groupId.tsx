@@ -521,6 +521,46 @@ function JoinPage() {
   );
 }
 
+function StatusScreen({
+  title,
+  text,
+  ctaLabel,
+  onCta,
+}: {
+  title: string;
+  text: string;
+  ctaLabel: string;
+  onCta: () => void;
+}) {
+  return (
+    <div
+      className="min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 text-center"
+      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div
+        className="h-16 w-16 rounded-2xl flex items-center justify-center text-[30px] mb-5"
+        style={{ background: PURPLE_SOFT }}
+      >
+        🔥
+      </div>
+      <div className="text-[22px] font-extrabold leading-tight">{title}</div>
+      <p className="mt-2 text-[15px] max-w-[320px]" style={{ color: TEXT_MUTED }}>
+        {text}
+      </p>
+      <button
+        onClick={onCta}
+        className="mt-7 w-full max-w-[320px] rounded-2xl py-4 text-[17px] font-semibold text-white active:scale-[0.99] transition-transform"
+        style={{
+          background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
+          boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
+        }}
+      >
+        {ctaLabel}
+      </button>
+    </div>
+  );
+}
+
 function HowRow({ icon, bg, title, text }: { icon: React.ReactNode; bg: string; title: string; text: string }) {
   return (
     <div className="flex items-start gap-3 py-2">
