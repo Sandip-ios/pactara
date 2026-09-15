@@ -174,12 +174,15 @@ function NewPactaraFlow() {
         },
       });
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
-      navigate({ to: "/groups" });
+      // Group now exists — move on to inviting people into it.
+      setStepIdx(STEPS.indexOf("invite"));
+      setFinishing(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setFinishError(msg);
       setFinishing(false);
     }
+
   };
 
   const canContinue = (() => {
