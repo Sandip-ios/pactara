@@ -82,7 +82,7 @@ import {
   getContactsAccess,
   loadContacts,
   openAppSettings,
-  pickDeviceContact,
+  requestFullContactsAccess,
   sendInvite,
   type DeviceContact,
 } from "@/lib/contacts";
@@ -1385,26 +1385,33 @@ export function InviteStep({
     setSheetOpen(false);
   };
 
-  // Escape hatch for people who chose "Select Contacts" on the iOS share
-  // prompt: the OS picker always shows every contact on the device.
-  const pickFromDevice = async () => {
+  // Escape hatch for people who chose "Select Contacts": re-ask iOS, which
+  // resurfaces the "How do you want to share contacts?" sheet so they can pick
+  // "Share All Contacts" and stay inside our own picker.
+  const shareAllContacts = async () => {
     setInlineError(null);
-    const res = await pickDeviceContact();
-    if (res.status === "cancelled") return;
-    if (res.status === "error") {
-      setInlineError(res.message);
-      return;
+    setLoading(true);
+    const level = await requestFullContactsAccess();
+    setAccess(level);
+    const res = await loadContacts();
+    setLoading(false);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+      setQuery("");
     }
-    await handlePick(res.contact);
+    if (level === "limited" || level === "denied") {
+      setInlineError(
+        "Still only some contacts are shared. Tap again and choose “Share All Contacts”, or open Settings → Pactara → Contacts.",
+      );
+    }
   };
 
-  const shareAllContacts = async () => {
+  const openSettings = async () => {
     setInlineError(null);
     const opened = await openAppSettings();
     if (!opened) {
-      setInlineError(
-        "Open iOS Settings → Pactara → Contacts and choose Full Access, then come back and refresh.",
-      );
+      setInlineError("Open iOS Settings → Pactara → Contacts and choose Full Access.");
     }
   };
 
@@ -1704,22 +1711,22 @@ export function InviteStep({
                       ? "You're only sharing some contacts with Pactara."
                       : "Can't find someone?"}
                   </div>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={pickFromDevice}
-                      className="flex-1 rounded-full border-2 py-3 text-[14px] font-semibold"
-                      style={{ borderColor: PURPLE, color: PURPLE }}
-                    >
-                      Browse all contacts
-                    </button>
+                  <div className="mt-2">
                     <button
                       type="button"
                       onClick={shareAllContacts}
-                      className="flex-1 rounded-full py-3 text-[14px] font-semibold text-white"
+                      className="w-full rounded-full py-3 text-[14px] font-semibold text-white"
                       style={{ background: PURPLE }}
                     >
                       Share all contacts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openSettings}
+                      className="mt-2 w-full py-2 text-[13px] font-medium"
+                      style={{ color: TEXT_MUTED }}
+                    >
+                      Open Pactara settings instead
                     </button>
                   </div>
                 </div>
