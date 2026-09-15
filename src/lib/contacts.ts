@@ -153,6 +153,26 @@ export async function pickDeviceContact(): Promise<
   }
 }
 
+/**
+ * Asks iOS for contacts access again. When the app is on "limited" access this
+ * re-presents the system "How do you want to share contacts?" sheet, where the
+ * user can pick "Share All Contacts" — no trip to Settings needed.
+ * Returns the access level afterwards.
+ */
+export async function requestFullContactsAccess(): Promise<
+  "full" | "limited" | "denied" | "unknown"
+> {
+  if (!isNative()) return "unknown";
+  try {
+    const { Contacts } = await import("@capacitor-community/contacts");
+    clearContactsCache();
+    await Contacts.requestPermissions();
+    return await getContactsAccess();
+  } catch {
+    return "unknown";
+  }
+}
+
 /** Sends the user to Pactara's own iOS settings, where Contacts access lives. */
 export async function openAppSettings(): Promise<boolean> {
   if (!isNative()) return false;
