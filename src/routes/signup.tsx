@@ -1357,20 +1357,18 @@ export function InviteStep({
   const filtered = useMemo(() => {
     if (!contacts) return [];
     const q = normalize(query.trim());
-    if (!q) return contacts.slice(0, 200);
+    if (!q) return contacts;
     const digits = q.replace(/\D/g, "");
-    return contacts
-      .filter((c) => {
-        const name = normalize(c.name);
-        if (name.includes(q)) return true;
-        // match any word start, e.g. "ber" -> "Anna Bertille"
-        if (name.split(/\s+/).some((part) => part.startsWith(q))) return true;
-        if (c.email && normalize(c.email).includes(q)) return true;
-        if (digits.length >= 3 && c.phone && c.phone.replace(/\D/g, "").includes(digits))
-          return true;
-        return false;
-      })
-      .slice(0, 200);
+    return contacts.filter((c) => {
+      const name = normalize(c.name);
+      if (name.includes(q)) return true;
+      // match any word start, e.g. "ber" -> "Anna Bertille"
+      if (name.split(/\s+/).some((part) => part.startsWith(q))) return true;
+      if (c.email && normalize(c.email).includes(q)) return true;
+      if (digits.length >= 3 && c.phone && c.phone.replace(/\D/g, "").includes(digits))
+        return true;
+      return false;
+    });
   }, [contacts, query]);
 
 
@@ -1679,9 +1677,9 @@ export function InviteStep({
                   )}
 
                   {!loading &&
-                    filtered.map((c) => (
+                    filtered.map((c, i) => (
                       <button
-                        key={c.id}
+                        key={`${c.id}-${i}`}
                         type="button"
                         onClick={() => handlePick(c)}
                         className="w-full flex items-center gap-3 py-3 border-b border-neutral-100 active:bg-neutral-50 text-left"

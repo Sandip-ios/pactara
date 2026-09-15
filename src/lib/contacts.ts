@@ -79,9 +79,19 @@ export async function loadContacts(): Promise<ContactsResult> {
       const res = await Contacts.getContacts({
         projection: { name: true, phones: true, emails: true, image: false },
       });
+      const seen = new Set<string>();
       const list = ((res.contacts ?? []) as Parameters<typeof normalizeContact>[0][])
         .map(normalizeContact)
         .filter((c): c is DeviceContact => c !== null)
+        .filter((c) => {
+          // Some devices return the same person more than once (linked accounts).
+          // Duplicate ids break list rendering, so keep the first occurrence only.
+          const key = `${c.name.toLowerCase()}|${(c.phone ?? c.email ?? "").replace(/\D/g, "")}`;
+          if (seen.has(key) || seen.has(c.id)) return false;
+          seen.add(key);
+          seen.add(c.id);
+          return true;
+        })
         .sort((a, b) => a.name.localeCompare(b.name));
       cache = list;
       return list;
