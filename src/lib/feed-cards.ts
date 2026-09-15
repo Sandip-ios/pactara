@@ -59,26 +59,27 @@ export function splitFeedIntoTimelineCards(items: FeedItem[]): FeedItem[] {
     });
   }
 
-  // Sort by the card's most recent activity, not just its day. A day-card can
-  // carry nodes that are newer than its local date (late check-ins, missed
-  // markers written after midnight), so ranking on real timestamps guarantees
-  // the newest post is always first.
+  // Sort by the card's most recent REAL activity. Synthetic nodes ("missed
+  // commitment", "missed check-in", "pending") carry placeholder timestamps
+  // (noon / 23:59 of their day), which would otherwise float empty cards above
+  // genuine posts made earlier the same day.
   // Never rank on updatedAt: nightly "missed" jobs touch old rows and would
   // bubble stale days back to the top.
+  const REAL_KINDS = new Set(["ritual", "thought", "check_in"]);
   const recency = (card: FeedItem) => {
-    let newest = `${card.localDate}T00:00:00.000Z`;
+    let newest = Date.parse(`${card.localDate}T00:00:00.000Z`);
     for (const n of card.nodes) {
-      const at = "at" in n && n.at ? n.at : "";
-      if (at > newest) newest = at;
+      if (!REAL_KINDS.has(n.kind)) continue;
+      const at = "at" in n && n.at ? Date.parse(n.at) : NaN;
+      if (!Number.isNaN(at) && at > newest) newest = at;
     }
     return newest;
   };
 
-
   return Array.from(grouped.values()).sort((a, b) => {
     const ra = recency(a);
     const rb = recency(b);
-    if (ra !== rb) return ra < rb ? 1 : -1;
+    if (ra !== rb) return rb - ra;
     if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
     return 0;
   });
