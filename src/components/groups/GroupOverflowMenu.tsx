@@ -12,7 +12,9 @@ import {
   Mail,
   MessageCircle,
   Share2,
+  QrCode,
 } from "lucide-react";
+import { GroupQrSheet } from "@/components/groups/GroupQrSheet";
 import { renameGroup, updateGroupCommitment, deleteGroup } from "@/lib/groups.functions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -62,6 +64,7 @@ export function GroupOverflowMenu({
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
@@ -143,6 +146,15 @@ export function GroupOverflowMenu({
               handleInvite();
             }}
           />
+          <Divider />
+          <MenuButton
+            icon={<QrCode size={18} style={{ color: PURPLE }} />}
+            label="Invite with QR code"
+            onClick={() => {
+              setMenuOpen(false);
+              setQrOpen(true);
+            }}
+          />
           {isAdmin && (
             <>
               <Divider />
@@ -212,6 +224,17 @@ export function GroupOverflowMenu({
         shareText={shareText}
         onCopy={handleCopy}
         copied={copied}
+        onShowQr={() => {
+          setShareOpen(false);
+          setQrOpen(true);
+        }}
+      />
+      <GroupQrSheet
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        groupName={groupName}
+        emoji={emoji}
+        inviteLink={link}
       />
       <Drawer open={deleteOpen} onOpenChange={(o) => !deleting && setDeleteOpen(o)}>
         <DrawerContent className="rounded-t-3xl">
@@ -531,6 +554,7 @@ export function ShareInviteDrawer({
   shareText,
   onCopy,
   copied,
+  onShowQr,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -539,6 +563,7 @@ export function ShareInviteDrawer({
   shareText: string;
   onCopy: () => void;
   copied: boolean;
+  onShowQr?: () => void;
 }) {
   const fullMessage = `${shareText} ${inviteLink}`;
   const encoded = encodeURIComponent(fullMessage);
@@ -550,6 +575,7 @@ export function ShareInviteDrawer({
       icon: copied ? <Check size={20} /> : <Copy size={20} />,
       onClick: onCopy,
     },
+    ...(onShowQr ? [{ label: "QR code", icon: <QrCode size={20} />, onClick: onShowQr }] : []),
     { label: "Messages", icon: <MessageCircle size={20} />, href: `sms:&body=${encoded}` },
     { label: "WhatsApp", icon: <Share2 size={20} />, href: `https://wa.me/?text=${encoded}` },
     { label: "Email", icon: <Mail size={20} />, href: `mailto:?subject=${subject}&body=${encoded}` },
@@ -572,7 +598,7 @@ export function ShareInviteDrawer({
           {inviteLink}
         </div>
 
-        <div className="mt-5 grid grid-cols-4 gap-3">
+        <div className="mt-5 grid grid-cols-4 gap-3 gap-y-4">
           {options.map((opt) => {
             const inner = (
               <>
