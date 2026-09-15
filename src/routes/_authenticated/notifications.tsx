@@ -70,23 +70,24 @@ function NotificationsPage() {
   });
   const groups = groupsData?.groups ?? [];
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
-    if (typeof localStorage === "undefined") return null;
-    return localStorage.getItem("active-group-id");
+  // Default to every group so nothing from a second group is hidden.
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "all";
+    return localStorage.getItem("notifications-group-filter") ?? "all";
   });
 
   useEffect(() => {
-    if (groups.length === 0) return;
-    const exists = selectedGroupId && groups.some((g) => g.id === selectedGroupId);
-    if (!exists) setSelectedGroupId(groups[0].id);
+    if (groups.length === 0 || selectedGroupId === "all") return;
+    if (!groups.some((g) => g.id === selectedGroupId)) setSelectedGroupId("all");
   }, [groups, selectedGroupId]);
 
   const selected = groups.find((g) => g.id === selectedGroupId) ?? null;
+  const showGroupLabel = selectedGroupId === "all";
 
   const { data, isLoading } = useQuery({
     queryKey: ["notifications", selectedGroupId],
-    queryFn: () => getNotifications({ data: { groupId: selectedGroupId as string } }),
-    enabled: !!selectedGroupId,
+    queryFn: () => getNotifications({ data: { groupId: selectedGroupId } }),
+    enabled: selectedGroupId === "all" ? groups.length > 0 : !!selectedGroupId,
   });
 
   const items = useMemo(() => data?.items ?? [], [data]);
@@ -168,7 +169,11 @@ function NotificationsPage() {
             className="flex items-center gap-1 text-[13px] font-semibold text-neutral-500"
           >
             <span className="truncate max-w-[200px]">
-              {selected ? `${selected.emoji} ${selected.name}` : "Select a group"}
+              {selectedGroupId === "all"
+                ? "All groups"
+                : selected
+                  ? `${selected.emoji} ${selected.name}`
+                  : "Select a group"}
             </span>
             <ChevronDown size={14} />
           </button>
@@ -196,22 +201,26 @@ function NotificationsPage() {
             <div className="text-[40px] mb-2">🔔</div>
             <div className="text-[16px] font-bold">Nothing yet</div>
             <div className="text-[14px] text-neutral-500 mt-1">
-              Reactions, comments and check-ins from this group will show up here.
+              Reactions, comments and check-ins from your groups will show up here.
             </div>
           </div>
         )}
 
-        <Section title="Last 7 days" items={recent} onOpen={open} />
-        <Section title="Last 30 days" items={older} onOpen={open} />
+        <Section title="Last 7 days" items={recent} onOpen={open} showGroup={showGroupLabel} />
+        <Section title="Last 30 days" items={older} onOpen={open} showGroup={showGroupLabel} />
       </PullToRefresh>
 
       <GroupSwitcherSheet
         open={switcherOpen}
         groups={groups}
         selectedGroupId={selectedGroupId}
+        allowAll
         onSelect={(id) => {
           setSelectedGroupId(id);
-          if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", id);
+          if (typeof localStorage !== "undefined") {
+            localStorage.setItem("notifications-group-filter", id);
+            if (id !== "all") localStorage.setItem("active-group-id", id);
+          }
           setSwitcherOpen(false);
         }}
         onClose={() => setSwitcherOpen(false)}
@@ -224,10 +233,12 @@ function Section({
   title,
   items,
   onOpen,
+  showGroup = false,
 }: {
   title: string;
   items: NotificationItem[];
   onOpen: (item: NotificationItem) => void;
+  showGroup?: boolean;
 }) {
   if (items.length === 0) return null;
   return (
@@ -264,6 +275,7 @@ function Section({
                   <span className="font-bold">{n.actorName}</span> {n.text}
                 </span>
                 <span className="block text-[12px] text-neutral-400 mt-0.5">
+                  {showGroup && n.groupName ? `${n.groupName} · ` : ""}
                   {timeAgo(n.createdAt)}
                 </span>
               </span>
