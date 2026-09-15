@@ -339,61 +339,89 @@ function AvatarStack({ members, size = 32 }: { members: PactMember[]; size?: num
 }
 
 function PactSuccess({
-  meName,
+  groupName,
+  emoji,
   signedCount,
   memberCount,
   durationDays,
   members,
+  onDone,
 }: {
-  meName: string;
+  groupName: string;
+  emoji: string;
   signedCount: number;
   memberCount: number;
   durationDays: number;
   members: PactMember[];
+  onDone: () => void;
 }) {
   const everyone = signedCount >= memberCount;
   const waiting = members.filter((m) => !m.signed && !m.isMe);
+  const doneRef = useRef(onDone);
+  doneRef.current = onDone;
+
+  useEffect(() => {
+    const t = window.setTimeout(() => doneRef.current(), everyone ? 2800 : 2000);
+    return () => window.clearTimeout(t);
+  }, [everyone]);
 
   return (
     <div
       className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-8 text-center animate-in fade-in duration-200"
       style={{ background: `linear-gradient(180deg, ${PURPLE_DEEP} 0%, ${PURPLE} 100%)` }}
     >
+      {everyone && <ConfettiBurst durationMs={2600} />}
+
+      <div className="text-[14px] font-semibold text-white/70 animate-in fade-in duration-300">
+        <span className="mr-1.5">{emoji}</span>
+        {groupName}
+      </div>
+
       {everyone ? (
         <>
-          <div className="text-[40px] animate-in zoom-in duration-300">🎉</div>
-          <div className="mt-4 text-[12px] font-bold tracking-[0.2em] text-white/80">
+          <div
+            className="mt-6 h-16 w-16 rounded-full bg-white flex items-center justify-center animate-in zoom-in duration-300"
+            style={{ boxShadow: "0 12px 30px -12px rgba(0,0,0,0.5)" }}
+          >
+            <Check size={30} style={{ color: PURPLE }} strokeWidth={3} />
+          </div>
+          <div className="mt-5 text-[12px] font-bold tracking-[0.2em] text-white/80 animate-in fade-in duration-500">
             THE PACT IS MADE
           </div>
-          <div className="mt-2 text-[28px] font-black text-white leading-tight">Everyone is in.</div>
-          <div className="mt-5 text-[15px] text-white/85 leading-relaxed">
-            {memberCount} {memberCount === 1 ? "person" : "people"}
-            <br />
-            {durationDays} days
-            <br />
-            One promise: show up.
+          <div className="mt-2 text-[28px] font-black text-white leading-tight animate-in fade-in duration-500">
+            Everyone's in.
+          </div>
+          <div className="mt-4 text-[15px] text-white/80 animate-in fade-in duration-700">
+            {memberCount} {memberCount === 1 ? "person" : "people"} · {durationDays} days
+          </div>
+          <div className="mt-2 text-[15px] font-semibold text-white/90 animate-in fade-in duration-700">
+            Now show up.
           </div>
         </>
       ) : (
         <>
           <div
-            className="h-16 w-16 rounded-full bg-white flex items-center justify-center animate-in zoom-in duration-300"
+            className="mt-6 h-16 w-16 rounded-full bg-white flex items-center justify-center animate-in zoom-in duration-300"
             style={{ boxShadow: "0 12px 30px -12px rgba(0,0,0,0.5)" }}
           >
             <Check size={30} style={{ color: PURPLE }} strokeWidth={3} />
           </div>
-          <div className="mt-5 text-[26px] font-black text-white leading-tight">Pact made</div>
-          <div className="mt-1 text-[16px] text-white/90">{meName} is in.</div>
-          <div className="mt-4 text-[14px] text-white/75">
-            {signedCount} of {memberCount} members committed
+          <div className="mt-5 text-[26px] font-black text-white leading-tight animate-in fade-in duration-500">
+            Pact made
+          </div>
+          <div className="mt-1 text-[16px] text-white/90 animate-in fade-in duration-500">
+            You're in.
+          </div>
+          <div className="mt-4 text-[14px] text-white/75 animate-in fade-in duration-700">
+            {signedCount} of {memberCount} have made the pact
           </div>
           {waiting.length > 0 && (
-            <div className="mt-6 flex flex-col items-center gap-2">
-              <AvatarStack members={waiting} size={36} />
+            <div className="mt-6 flex flex-col items-center gap-2 animate-in fade-in duration-700">
+              <AvatarStack members={waiting.slice(0, 3)} size={36} />
               <div className="text-[13px] text-white/75">
                 {waiting.length === 1
-                  ? `${waiting[0].name.split(" ")[0]} is yet to make the pact`
-                  : `${waiting.length} members still need to make the pact`}
+                  ? `Waiting on ${waiting[0].name.split(" ")[0]}`
+                  : `${waiting.length} people still need to make the pact`}
               </div>
             </div>
           )}
