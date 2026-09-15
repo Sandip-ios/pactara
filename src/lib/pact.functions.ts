@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const DEFAULT_PACT_LINES = [
   "I'll tell my group what I'm doing each day.",
-  "I'll check in with proof when it's done.",
+  "I'll capture proof while I'm doing it, not after.",
   "If I slip, I'll say so instead of going quiet.",
   "I'll show up for the people counting on me.",
 ];
