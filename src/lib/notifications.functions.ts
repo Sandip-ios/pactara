@@ -56,7 +56,7 @@ async function signMany(
 
 type RawItem = Omit<
   NotificationItem,
-  "actorName" | "actorColor" | "actorAvatarUrl" | "read" | "mediaUrl"
+  "actorName" | "actorColor" | "actorAvatarUrl" | "read" | "mediaUrl" | "groupName"
 > & { mediaPath: string | null };
 
 /** Collect raw notification rows for one group, newest first. */
