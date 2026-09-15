@@ -43,10 +43,11 @@ const ALL_STEPS: StepKey[] = [
   "group",
   "commitment",
   "company",
-  "invite",
   "notify",
   "greeting",
+  "invite",
 ];
+
 
 // Skip the notification opt-in screen if the user has already responded
 // to the notification prompt (granted or denied) in the browser OR the
