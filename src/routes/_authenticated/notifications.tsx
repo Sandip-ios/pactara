@@ -233,10 +233,12 @@ function Section({
   title,
   items,
   onOpen,
+  showGroup = false,
 }: {
   title: string;
   items: NotificationItem[];
   onOpen: (item: NotificationItem) => void;
+  showGroup?: boolean;
 }) {
   if (items.length === 0) return null;
   return (
