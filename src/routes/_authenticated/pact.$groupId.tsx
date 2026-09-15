@@ -272,11 +272,13 @@ function PactPage() {
 
       {showSuccess && data && (
         <PactSuccess
-          meName={(me?.name ?? "You").split(" ")[0]}
+          groupName={data.name}
+          emoji={data.emoji ?? "🔥"}
           signedCount={data.signedCount}
           memberCount={data.memberCount}
           durationDays={data.durationDays}
           members={data.members}
+          onDone={enterGroup}
         />
       )}
     </div>
