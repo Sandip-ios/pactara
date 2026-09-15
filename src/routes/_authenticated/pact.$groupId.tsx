@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, Users, CalendarDays } from "lucide-react";
 import { getPact, signPact, DEFAULT_PACT_LINES } from "@/lib/pact.functions";
 import { hapticLight, hapticMedium } from "@/lib/native";
+import ConfettiBurst from "@/components/ConfettiBurst";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
@@ -425,7 +426,7 @@ function PactSuccess({
           </div>
           {waiting.length > 0 && (
             <div className="mt-6 flex flex-col items-center gap-2 animate-in fade-in duration-700">
-              <AvatarStack members={waiting.slice(0, 3)} size={36} />
+              <AvatarStack members={waiting} size={36} max={3} />
               <div className="text-[13px] text-white/75">
                 {waiting.length === 1
                   ? `Waiting on ${waiting[0].name.split(" ")[0]}`
