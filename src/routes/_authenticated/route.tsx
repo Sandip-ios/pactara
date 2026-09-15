@@ -23,6 +23,27 @@ export const Route = createFileRoute("/_authenticated")({
 
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+
+  // Everyone must sign their group pact before using the app.
+  useEffect(() => {
+    if (pathname.startsWith("/pact/")) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getPendingPact();
+        if (!cancelled && res?.groupId) {
+          navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });
+        }
+      } catch {
+        /* ignore — never block the app on this check */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname, navigate]);
+
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
     areBottomTabsHidden,
