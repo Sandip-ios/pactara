@@ -53,6 +53,7 @@ export function decideInviteResolution(input: InviteResolverInput): InviteResolu
 
   if (!isAuthenticated) return "AUTH_REQUIRED";
   if (group.memberCount >= MAX_GROUP_MEMBERS) return "GROUP_FULL";
-  if (!profileComplete) return "PROFILE_SETUP_REQUIRED";
+  // A new user with an incomplete profile still joins first; onboarding runs
+  // after the membership exists.
   return "JOIN_REQUIRED";
 }
