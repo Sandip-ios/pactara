@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, Flame } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
+import { getInviteContext, getInviteGroup } from "@/lib/invite.functions";
+import { decideInviteResolution, type InviteResolution } from "@/lib/invite-resolver";
+import { trackInvite } from "@/lib/invite-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative } from "@/lib/native";
 import { setPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
@@ -104,6 +107,60 @@ function JoinPage() {
 
   const isMobileWeb = surface === "ios" || surface === "android";
 
+  // ---- Central invite resolution -------------------------------------------
+  const fetchInviteContext = useServerFn(getInviteContext);
+  const fetchInviteGroup = useServerFn(getInviteGroup);
+
+  const { data: ctx } = useQuery({
+    queryKey: ["invite-context", groupId, isSignedIn],
+    enabled: authReady,
+    queryFn: async () => {
+      if (isSignedIn) return await fetchInviteContext({ data: { groupId } });
+      const { group } = await fetchInviteGroup({ data: { groupId } });
+      return { group, isMember: false, membershipId: null, profileComplete: false };
+    },
+  });
+
+  const resolution: InviteResolution | null = ctx
+    ? decideInviteResolution({
+        groupId,
+        group: ctx.group,
+        isAuthenticated: isSignedIn,
+        isMember: ctx.isMember,
+        profileComplete: ctx.profileComplete,
+      })
+    : null;
+
+  useEffect(() => {
+    trackInvite("invite_link_opened", { group_id: groupId, app_install_state: surface });
+  }, [groupId, surface]);
+
+  // Already a member (e.g. a replayed deferred deep link after a reinstall):
+  // never show a join CTA — go straight to the group.
+  useEffect(() => {
+    if (!resolution) return;
+    trackInvite("invite_resolved", {
+      group_id: groupId,
+      invite_status: resolution,
+      membership_exists: !!ctx?.isMember,
+      auth_state: isSignedIn ? "authenticated" : "anonymous",
+      app_install_state: surface,
+    });
+    if (resolution === "ALREADY_MEMBER") {
+      trackInvite("invite_resolution_already_member", { group_id: groupId });
+      clearPendingInvite();
+      if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", groupId);
+      trackInvite("invite_redirected_to_existing_group", { group_id: groupId });
+      navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
+    } else if (resolution === "PROFILE_SETUP_REQUIRED") {
+      setPendingInvite(groupId);
+      navigate({ to: "/signup", replace: true });
+    } else if (resolution === "JOIN_REQUIRED") {
+      trackInvite("invite_resolution_join_required", { group_id: groupId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolution, groupId]);
+
   const handOffToApp = (fallbackToStore: boolean, viaGesture = false) => {
     setPendingInvite(groupId);
     const scheme = `pactara://join/${groupId}`;
@@ -187,32 +244,96 @@ function JoinPage() {
     }
 
 
-    if (!data) return;
     if (!isSignedIn) {
       setPendingInvite(groupId);
       navigate({ to: "/signup" });
       return;
     }
 
+    // Already a member — the resolver redirect handles it, but make the CTA
+    // safe too (never a dead button).
+    if (resolution === "ALREADY_MEMBER" || ctx?.isMember) {
+      clearPendingInvite();
+      navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
+      return;
+    }
+
     try {
       setJoining(true);
-      await join({ data: { groupId } });
+      trackInvite("invite_join_started", { group_id: groupId });
+      const res = await join({ data: { groupId } });
       clearPendingInvite();
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("active-group-id", groupId);
       }
+      if (res?.status === "already_member") {
+        trackInvite("invite_join_already_member", { group_id: groupId });
+      } else {
+        trackInvite("invite_join_completed", { group_id: groupId });
+      }
 
       router.invalidate();
-      navigate({ to: "/pact/$groupId", params: { groupId } });
+      // "joined" and "already_member" are both success — both open the group.
+      navigate(
+        res?.status === "already_member"
+          ? { to: "/groups/$groupId", params: { groupId }, replace: true }
+          : { to: "/pact/$groupId", params: { groupId } },
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't join the group");
+      const message = e instanceof Error ? e.message : "Couldn't join the group";
+      trackInvite("invite_join_failed", { group_id: groupId, error_code: message });
+      setError(message);
       setJoining(false);
     }
   };
 
   const inviterName = data?.inviter?.fullName?.trim() || data?.inviter?.name || "Someone";
-  const groupName = data?.name ?? "this group";
-  const emoji = data?.emoji ?? "🔥";
+  const groupName = data?.name ?? ctx?.group?.name ?? "this group";
+  const emoji = data?.emoji ?? ctx?.group?.emoji ?? "🔥";
+
+  if (resolution === "ALREADY_MEMBER") {
+    return (
+      <StatusScreen
+        title="You're already in 🔥"
+        text={`You're already a member of ${groupName}.`}
+        ctaLabel={`Open ${groupName}`}
+        onCta={() => navigate({ to: "/groups/$groupId", params: { groupId }, replace: true })}
+      />
+    );
+  }
+
+  if (resolution === "INVITE_INVALID") {
+    return (
+      <StatusScreen
+        title="This invite is no longer available"
+        text="The link may have expired or been revoked."
+        ctaLabel="Go to Pactara"
+        onCta={() => navigate({ to: "/" })}
+      />
+    );
+  }
+
+  if (resolution === "GROUP_UNAVAILABLE") {
+    return (
+      <StatusScreen
+        title="This group is no longer active"
+        text="Ask whoever invited you for a new invite."
+        ctaLabel="Go to Groups"
+        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+      />
+    );
+  }
+
+  if (resolution === "GROUP_FULL" && !isMobileWeb) {
+    return (
+      <StatusScreen
+        title="This group is full"
+        text={`${groupName} has reached its member limit of 8 people, so no one else can join right now.`}
+        ctaLabel={isSignedIn ? "Go to Groups" : "Go to Pactara"}
+        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+      />
+    );
+  }
 
   return (
     <div className="min-h-[100dvh] w-full pb-32" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
@@ -380,7 +501,7 @@ function JoinPage() {
       <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-6 bg-white border-t border-neutral-100">
         <button
           onClick={handleJoin}
-          disabled={joining || (!isMobileWeb && (isLoading || !authReady))}
+          disabled={joining || (!isMobileWeb && (isLoading || !authReady || !resolution))}
           className="w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
           style={{
             background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
@@ -396,6 +517,46 @@ function JoinPage() {
         </button>
       </div>
 
+    </div>
+  );
+}
+
+function StatusScreen({
+  title,
+  text,
+  ctaLabel,
+  onCta,
+}: {
+  title: string;
+  text: string;
+  ctaLabel: string;
+  onCta: () => void;
+}) {
+  return (
+    <div
+      className="min-h-[100dvh] w-full flex flex-col items-center justify-center px-6 text-center"
+      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div
+        className="h-16 w-16 rounded-2xl flex items-center justify-center text-[30px] mb-5"
+        style={{ background: PURPLE_SOFT }}
+      >
+        🔥
+      </div>
+      <div className="text-[22px] font-extrabold leading-tight">{title}</div>
+      <p className="mt-2 text-[15px] max-w-[320px]" style={{ color: TEXT_MUTED }}>
+        {text}
+      </p>
+      <button
+        onClick={onCta}
+        className="mt-7 w-full max-w-[320px] rounded-2xl py-4 text-[17px] font-semibold text-white active:scale-[0.99] transition-transform"
+        style={{
+          background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
+          boxShadow: "0 14px 34px -14px rgba(124, 58, 237, 0.55)",
+        }}
+      >
+        {ctaLabel}
+      </button>
     </div>
   );
 }
