@@ -1,0 +1,1 @@
+ALTER TABLE public.group_members ADD COLUMN IF NOT EXISTS pact_nudged_at timestamptz;

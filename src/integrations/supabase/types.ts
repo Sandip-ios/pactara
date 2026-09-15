@@ -277,6 +277,7 @@ export type Database = {
           id: string
           joined_at: string
           last_read_at: string
+          pact_nudged_at: string | null
           pact_signed_at: string | null
           user_id: string
         }
@@ -285,6 +286,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string
+          pact_nudged_at?: string | null
           pact_signed_at?: string | null
           user_id: string
         }
@@ -293,6 +295,7 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string
+          pact_nudged_at?: string | null
           pact_signed_at?: string | null
           user_id?: string
         }
