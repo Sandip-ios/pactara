@@ -135,7 +135,7 @@ function NotificationsPage() {
       navigate({ to: "/chat/$groupId", params: { groupId: item.groupId } });
       return;
     }
-    if (item.kind === "join") {
+    if (item.kind === "join" || item.kind === "pact_signed" || item.kind === "pact_complete") {
       navigate({ to: "/groups/$groupId", params: { groupId: item.groupId } });
       return;
     }
