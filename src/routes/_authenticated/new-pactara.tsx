@@ -130,12 +130,22 @@ function NewPactaraFlow() {
 
   const next = () => {
     if (step === "goal") ensureGroupName();
+    if (step === "invite") {
+      navigate({ to: "/groups" });
+      return;
+    }
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
   };
   const back = () => {
+    if (step === "invite") {
+      // Group already exists at this point — don't step back into creation.
+      navigate({ to: "/groups" });
+      return;
+    }
     if (stepIdx === 0) navigate({ to: "/groups" });
     else setStepIdx((i) => i - 1);
   };
+
 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
