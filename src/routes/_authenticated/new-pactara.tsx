@@ -43,10 +43,11 @@ const ALL_STEPS: StepKey[] = [
   "group",
   "commitment",
   "company",
-  "invite",
   "notify",
   "greeting",
+  "invite",
 ];
+
 
 // Skip the notification opt-in screen if the user has already responded
 // to the notification prompt (granted or denied) in the browser OR the
@@ -129,12 +130,22 @@ function NewPactaraFlow() {
 
   const next = () => {
     if (step === "goal") ensureGroupName();
+    if (step === "invite") {
+      navigate({ to: "/groups" });
+      return;
+    }
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
   };
   const back = () => {
+    if (step === "invite") {
+      // Group already exists at this point — don't step back into creation.
+      navigate({ to: "/groups" });
+      return;
+    }
     if (stepIdx === 0) navigate({ to: "/groups" });
     else setStepIdx((i) => i - 1);
   };
+
 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
@@ -163,12 +174,15 @@ function NewPactaraFlow() {
         },
       });
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
-      navigate({ to: "/groups" });
+      // Group now exists — move on to inviting people into it.
+      setStepIdx(STEPS.indexOf("invite"));
+      setFinishing(false);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Something went wrong";
       setFinishError(msg);
       setFinishing(false);
     }
+
   };
 
   const canContinue = (() => {
