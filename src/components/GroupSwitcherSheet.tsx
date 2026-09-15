@@ -39,12 +39,15 @@ export default function GroupSwitcherSheet({
   groups,
   selectedGroupId,
   onSelect,
+  allowAll = false,
 }: {
   open: boolean;
   onClose: () => void;
   groups: SwitcherGroup[];
   selectedGroupId: string | null;
   onSelect: (id: string) => void;
+  /** Adds an "All groups" row that selects the id "all". */
+  allowAll?: boolean;
 }) {
   useHideBottomTabs(open);
   const [mounted, setMounted] = useState(false);
