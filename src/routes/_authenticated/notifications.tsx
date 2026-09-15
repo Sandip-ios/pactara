@@ -46,6 +46,8 @@ function KindGlyph({ kind }: { kind: NotificationItem["kind"] }) {
     message: { bg: PURPLE, icon: <MessageCircle size={11} /> },
     checkin: { bg: "#22C55E", icon: <Zap size={11} fill="currentColor" /> },
     join: { bg: "#0EA5E9", icon: <UserPlus size={11} /> },
+    pact_signed: { bg: PURPLE, icon: <Sparkles size={11} /> },
+    pact_complete: { bg: PURPLE, icon: <Sparkles size={11} fill="currentColor" /> },
   };
   const cfg = map[kind];
   return (
