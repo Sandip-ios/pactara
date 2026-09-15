@@ -107,6 +107,60 @@ function JoinPage() {
 
   const isMobileWeb = surface === "ios" || surface === "android";
 
+  // ---- Central invite resolution -------------------------------------------
+  const fetchInviteContext = useServerFn(getInviteContext);
+  const fetchInviteGroup = useServerFn(getInviteGroup);
+
+  const { data: ctx } = useQuery({
+    queryKey: ["invite-context", groupId, isSignedIn],
+    enabled: authReady,
+    queryFn: async () => {
+      if (isSignedIn) return await fetchInviteContext({ data: { groupId } });
+      const { group } = await fetchInviteGroup({ data: { groupId } });
+      return { group, isMember: false, membershipId: null, profileComplete: false };
+    },
+  });
+
+  const resolution: InviteResolution | null = ctx
+    ? decideInviteResolution({
+        groupId,
+        group: ctx.group,
+        isAuthenticated: isSignedIn,
+        isMember: ctx.isMember,
+        profileComplete: ctx.profileComplete,
+      })
+    : null;
+
+  useEffect(() => {
+    trackInvite("invite_link_opened", { group_id: groupId, app_install_state: surface });
+  }, [groupId, surface]);
+
+  // Already a member (e.g. a replayed deferred deep link after a reinstall):
+  // never show a join CTA — go straight to the group.
+  useEffect(() => {
+    if (!resolution) return;
+    trackInvite("invite_resolved", {
+      group_id: groupId,
+      invite_status: resolution,
+      membership_exists: !!ctx?.isMember,
+      auth_state: isSignedIn ? "authenticated" : "anonymous",
+      app_install_state: surface,
+    });
+    if (resolution === "ALREADY_MEMBER") {
+      trackInvite("invite_resolution_already_member", { group_id: groupId });
+      clearPendingInvite();
+      if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", groupId);
+      trackInvite("invite_redirected_to_existing_group", { group_id: groupId });
+      navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
+    } else if (resolution === "PROFILE_SETUP_REQUIRED") {
+      setPendingInvite(groupId);
+      navigate({ to: "/signup", replace: true });
+    } else if (resolution === "JOIN_REQUIRED") {
+      trackInvite("invite_resolution_join_required", { group_id: groupId });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resolution, groupId]);
+
   const handOffToApp = (fallbackToStore: boolean, viaGesture = false) => {
     setPendingInvite(groupId);
     const scheme = `pactara://join/${groupId}`;
