@@ -309,8 +309,16 @@ function Avatar({ m, size = 32 }: { m: PactMember; size?: number }) {
   );
 }
 
-function AvatarStack({ members, size = 32 }: { members: PactMember[]; size?: number }) {
-  const shown = members.slice(0, 4);
+function AvatarStack({
+  members,
+  size = 32,
+  max = 4,
+}: {
+  members: PactMember[];
+  size?: number;
+  max?: number;
+}) {
+  const shown = members.slice(0, max);
   const extra = members.length - shown.length;
   return (
     <div className="flex items-center">
