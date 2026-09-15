@@ -113,20 +113,52 @@ export const joinGroupById = createServerFn({ method: "POST" })
     if (gErr) throw new Error(gErr.message);
     if (!group) throw new Error("Group not found");
 
-    const { data: existing } = await supabaseAdmin
+    // Joining is idempotent: an existing membership is a success, never an
+    // error. Replayed invite links and double taps both land here.
+    const findMembership = async () => {
+      const { data: row } = await supabaseAdmin
+        .from("group_members")
+        .select("id")
+        .eq("group_id", data.groupId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      return row?.id ?? null;
+    };
+
+    const existingId = await findMembership();
+    if (existingId) {
+      return {
+        ok: true,
+        status: "already_member" as const,
+        groupId: data.groupId,
+        membershipId: existingId,
+      };
+    }
+
+    const { data: inserted, error } = await supabaseAdmin
       .from("group_members")
+      .insert({ group_id: data.groupId, user_id: userId })
       .select("id")
-      .eq("group_id", data.groupId)
-      .eq("user_id", userId)
       .maybeSingle();
 
-    if (!existing) {
-      const { error } = await supabaseAdmin
-        .from("group_members")
-        .insert({ group_id: data.groupId, user_id: userId });
-      if (error) throw new Error(error.message);
+    if (error) {
+      // Unique violation = a concurrent request won the race; still a success.
+      const raced = await findMembership();
+      if (!raced) throw new Error(error.message);
+      return {
+        ok: true,
+        status: "already_member" as const,
+        groupId: data.groupId,
+        membershipId: raced,
+      };
     }
-    return { ok: true, groupId: data.groupId };
+
+    return {
+      ok: true,
+      status: "joined" as const,
+      groupId: data.groupId,
+      membershipId: inserted?.id ?? (await findMembership()),
+    };
   });
 
 /**
