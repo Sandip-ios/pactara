@@ -89,6 +89,36 @@ export default function GroupSwitcherSheet({
           <h2 className="text-[17px] font-bold text-neutral-900">Switch group</h2>
         </div>
         <div className="max-h-[60vh] overflow-y-auto px-2 pb-2">
+          {allowAll && (
+            <button
+              onClick={() => {
+                onSelect("all");
+                onClose();
+              }}
+              className="w-full flex items-center gap-3 rounded-2xl px-3 py-3 text-left active:bg-neutral-100"
+            >
+              <span
+                className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-[20px]"
+                style={{ background: selectedGroupId === "all" ? "#EFE9FB" : "#F5F2EE" }}
+              >
+                🔔
+              </span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-[16px] font-semibold text-neutral-900">All groups</span>
+                <span className="block text-[13px] text-neutral-500">
+                  Everything from your {groups.length} group{groups.length === 1 ? "" : "s"}
+                </span>
+              </span>
+              {selectedGroupId === "all" && (
+                <span
+                  className="h-6 w-6 rounded-full flex items-center justify-center text-white"
+                  style={{ background: PURPLE }}
+                >
+                  <Check size={14} strokeWidth={3} />
+                </span>
+              )}
+            </button>
+          )}
           {groups.map((g) => {
             const active = g.id === selectedGroupId;
             const { dayNumber, duration } = dayNumberFor(g);
