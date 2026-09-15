@@ -244,25 +244,45 @@ function JoinPage() {
     }
 
 
-    if (!data) return;
     if (!isSignedIn) {
       setPendingInvite(groupId);
       navigate({ to: "/signup" });
       return;
     }
 
+    // Already a member — the resolver redirect handles it, but make the CTA
+    // safe too (never a dead button).
+    if (resolution === "ALREADY_MEMBER" || ctx?.isMember) {
+      clearPendingInvite();
+      navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
+      return;
+    }
+
     try {
       setJoining(true);
-      await join({ data: { groupId } });
+      trackInvite("invite_join_started", { group_id: groupId });
+      const res = await join({ data: { groupId } });
       clearPendingInvite();
       if (typeof localStorage !== "undefined") {
         localStorage.setItem("active-group-id", groupId);
       }
+      if (res?.status === "already_member") {
+        trackInvite("invite_join_already_member", { group_id: groupId });
+      } else {
+        trackInvite("invite_join_completed", { group_id: groupId });
+      }
 
       router.invalidate();
-      navigate({ to: "/pact/$groupId", params: { groupId } });
+      // "joined" and "already_member" are both success — both open the group.
+      navigate(
+        res?.status === "already_member"
+          ? { to: "/groups/$groupId", params: { groupId }, replace: true }
+          : { to: "/pact/$groupId", params: { groupId } },
+      );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't join the group");
+      const message = e instanceof Error ? e.message : "Couldn't join the group";
+      trackInvite("invite_join_failed", { group_id: groupId, error_code: message });
+      setError(message);
       setJoining(false);
     }
   };
