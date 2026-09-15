@@ -82,7 +82,7 @@ import {
   getContactsAccess,
   loadContacts,
   openAppSettings,
-  pickDeviceContact,
+  requestFullContactsAccess,
   sendInvite,
   type DeviceContact,
 } from "@/lib/contacts";
