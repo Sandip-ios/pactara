@@ -9,7 +9,9 @@ export type NotificationKind =
   | "reaction"
   | "message"
   | "checkin"
-  | "join";
+  | "join"
+  | "pact_signed"
+  | "pact_complete";
 
 export type NotificationItem = {
   key: string;
