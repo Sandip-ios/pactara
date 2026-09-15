@@ -52,6 +52,7 @@ function AuthLayout() {
   const hideTabs =
     tabsHiddenByModal ||
     pathname.startsWith("/check-in/") ||
+    pathname.startsWith("/pact/") ||
     pathname === "/new-pactara" ||
     /^\/chat\/[^/]+/.test(pathname);
 
