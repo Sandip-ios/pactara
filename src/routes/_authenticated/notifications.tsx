@@ -169,7 +169,11 @@ function NotificationsPage() {
             className="flex items-center gap-1 text-[13px] font-semibold text-neutral-500"
           >
             <span className="truncate max-w-[200px]">
-              {selected ? `${selected.emoji} ${selected.name}` : "Select a group"}
+              {selectedGroupId === "all"
+                ? "All groups"
+                : selected
+                  ? `${selected.emoji} ${selected.name}`
+                  : "Select a group"}
             </span>
             <ChevronDown size={14} />
           </button>
