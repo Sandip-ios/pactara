@@ -143,6 +143,15 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       if (!byUser.has(u)) byUser.set(u, new Set());
       byUser.get(u)!.add(row.checkin_date as string);
     }
+    for (const row of freezesRes.data ?? []) {
+      const g = row.group_id as string;
+      const u = row.user_id as string;
+      if (!daysByGroupUser.has(g)) daysByGroupUser.set(g, new Map());
+      const byUser = daysByGroupUser.get(g)!;
+      if (!byUser.has(u)) byUser.set(u, new Set());
+      byUser.get(u)!.add(row.freeze_date as string);
+    }
+
 
     const postByKey = new Map<
       string,
