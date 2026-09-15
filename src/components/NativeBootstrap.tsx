@@ -9,6 +9,7 @@ import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/re
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
+import { trackInvite } from "@/lib/invite-analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -201,6 +202,7 @@ export function NativeBootstrap() {
             // back without the user tapping the link again.
             try {
               const claimed = await claimDeferredInvite();
+              if (claimed) trackInvite("deferred_deeplink_received", { group_id: claimed, app_install_state: "native" });
               if (claimed && !wasInviteConsumed(claimed)) {
                 pending = claimed;
                 setPendingInvite(claimed);
