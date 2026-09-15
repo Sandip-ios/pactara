@@ -1711,22 +1711,22 @@ export function InviteStep({
                       ? "You're only sharing some contacts with Pactara."
                       : "Can't find someone?"}
                   </div>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={pickFromDevice}
-                      className="flex-1 rounded-full border-2 py-3 text-[14px] font-semibold"
-                      style={{ borderColor: PURPLE, color: PURPLE }}
-                    >
-                      Browse all contacts
-                    </button>
+                  <div className="mt-2">
                     <button
                       type="button"
                       onClick={shareAllContacts}
-                      className="flex-1 rounded-full py-3 text-[14px] font-semibold text-white"
+                      className="w-full rounded-full py-3 text-[14px] font-semibold text-white"
                       style={{ background: PURPLE }}
                     >
                       Share all contacts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={openSettings}
+                      className="mt-2 w-full py-2 text-[13px] font-medium"
+                      style={{ color: TEXT_MUTED }}
+                    >
+                      Open Pactara settings instead
                     </button>
                   </div>
                 </div>
