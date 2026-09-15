@@ -21,28 +21,52 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
 });
 
+// Once the pact check has resolved in this session we never show the splash
+// again — later navigations re-check silently in the background.
+let pactCheckResolved = false;
+
+function PactSplash() {
+  return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div className="text-2xl font-bold tracking-tight text-foreground">Pactara</div>
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+      </div>
+    </div>
+  );
+}
+
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
+  const onPactRoute = pathname.startsWith("/pact/");
+  const [pactChecked, setPactChecked] = useState(pactCheckResolved);
 
   // Everyone must sign their group pact before using the app.
   useEffect(() => {
-    if (pathname.startsWith("/pact/")) return;
+    if (onPactRoute) return;
     let cancelled = false;
     (async () => {
       try {
         const res = await getPendingPact();
-        if (!cancelled && res?.groupId) {
+        if (cancelled) return;
+        if (res?.groupId) {
           navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });
+          return;
         }
       } catch {
         /* ignore — never block the app on this check */
       }
+      if (cancelled) return;
+      pactCheckResolved = true;
+      setPactChecked(true);
     })();
     return () => {
       cancelled = true;
     };
-  }, [pathname, navigate]);
+  }, [pathname, onPactRoute, navigate]);
+
+  const showPactSplash = !onPactRoute && !pactChecked;
 
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
@@ -130,7 +154,8 @@ function AuthLayout() {
     <>
       <TimezoneSync />
       <Outlet />
-      {!hideTabs && <BottomTabs />}
+      {showPactSplash && <PactSplash />}
+      {!hideTabs && !showPactSplash && <BottomTabs />}
       {trialState && !trialState.loading && trialState.expired && (
         <TrialEndedPaywall firstName={trialState.firstName} daysActive={trialState.daysActive} />
       )}
