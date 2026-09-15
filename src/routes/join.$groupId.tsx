@@ -501,7 +501,7 @@ function JoinPage() {
       <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-6 bg-white border-t border-neutral-100">
         <button
           onClick={handleJoin}
-          disabled={joining || (!isMobileWeb && (isLoading || !authReady))}
+          disabled={joining || (!isMobileWeb && (isLoading || !authReady || !resolution))}
           className="w-full rounded-2xl py-4 flex items-center justify-center gap-2 text-[17px] font-semibold text-white transition-transform active:scale-[0.99] disabled:opacity-60"
           style={{
             background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)`,
