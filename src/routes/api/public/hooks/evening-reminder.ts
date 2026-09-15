@@ -53,8 +53,8 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           dueByHour.set(local, list);
         }
 
+        const { pushToUsers } = await import("@/lib/notify.server");
         const due = [...dueByHour.values()].flat();
-        if (due.length === 0) return Response.json({ ok: true, sent: 0, scanned: rows.length });
 
         // Skip anyone who already checked in on their local date.
         const { data: checked } = await supabaseAdmin
@@ -72,7 +72,6 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
             .map((c) => c.user_id),
         );
 
-        const { pushToUsers } = await import("@/lib/notify.server");
         let sent = 0;
         for (const hour of EVENING_HOURS) {
           const recipients = (dueByHour.get(hour) ?? []).filter((id) => !alreadyToday.has(id));
@@ -84,7 +83,40 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           sent += (result as { sent?: number }).sent ?? 0;
         }
 
-        return Response.json({ ok: true, due: due.length, sent });
+        // One-time nudge for members who still haven't made their group's pact
+        // more than 24h after joining. Sent once, only to that member.
+        let pactNudged = 0;
+        try {
+          const cutoff = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
+          const { data: pending } = await supabaseAdmin
+            .from("group_members")
+            .select("id, user_id, group_id, joined_at, pact_signed_at, pact_nudged_at")
+            .is("pact_signed_at", null)
+            .is("pact_nudged_at", null)
+            .lt("joined_at", cutoff)
+            .limit(200);
+          const rows2 = (pending ?? []) as Array<{
+            id: string;
+            user_id: string;
+            group_id: string;
+          }>;
+          for (const r of rows2) {
+            await pushToUsers([r.user_id], {
+              title: "Your group is waiting on you",
+              body: "Make the pact to get started with your group.",
+              url: `/pact/${r.group_id}`,
+            });
+            await supabaseAdmin
+              .from("group_members")
+              .update({ pact_nudged_at: new Date().toISOString() } as never)
+              .eq("id", r.id);
+            pactNudged++;
+          }
+        } catch (err) {
+          console.warn("[evening-reminder] pact nudge failed", err);
+        }
+
+        return Response.json({ ok: true, due: due.length, sent, pactNudged });
       },
     },
   },

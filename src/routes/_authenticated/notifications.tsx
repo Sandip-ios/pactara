@@ -46,6 +46,8 @@ function KindGlyph({ kind }: { kind: NotificationItem["kind"] }) {
     message: { bg: PURPLE, icon: <MessageCircle size={11} /> },
     checkin: { bg: "#22C55E", icon: <Zap size={11} fill="currentColor" /> },
     join: { bg: "#0EA5E9", icon: <UserPlus size={11} /> },
+    pact_signed: { bg: PURPLE, icon: <Sparkles size={11} /> },
+    pact_complete: { bg: PURPLE, icon: <Sparkles size={11} fill="currentColor" /> },
   };
   const cfg = map[kind];
   return (
@@ -133,7 +135,7 @@ function NotificationsPage() {
       navigate({ to: "/chat/$groupId", params: { groupId: item.groupId } });
       return;
     }
-    if (item.kind === "join") {
+    if (item.kind === "join" || item.kind === "pact_signed" || item.kind === "pact_complete") {
       navigate({ to: "/groups/$groupId", params: { groupId: item.groupId } });
       return;
     }
@@ -272,7 +274,10 @@ function Section({
                     n.read ? "text-neutral-600" : "text-neutral-900 font-semibold"
                   }`}
                 >
-                  <span className="font-bold">{n.actorName}</span> {n.text}
+                  {n.kind !== "pact_complete" && (
+                    <span className="font-bold">{n.actorName} </span>
+                  )}
+                  {n.text}
                 </span>
                 <span className="block text-[12px] text-neutral-400 mt-0.5">
                   {showGroup && n.groupName ? `${n.groupName} · ` : ""}

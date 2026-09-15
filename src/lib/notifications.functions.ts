@@ -9,7 +9,9 @@ export type NotificationKind =
   | "reaction"
   | "message"
   | "checkin"
-  | "join";
+  | "join"
+  | "pact_signed"
+  | "pact_complete";
 
 export type NotificationItem = {
   key: string;
@@ -310,6 +312,50 @@ async function collect(
       groupId,
       postId: null,
     });
+  }
+
+  // Pact signatures: "X made the pact", plus one celebratory item when the
+  // last member makes it.
+  const { data: pactRows } = await supabase
+    .from("group_members")
+    .select("user_id, pact_signed_at")
+    .eq("group_id", groupId);
+
+  const pacts = (pactRows ?? []) as Array<{ user_id: string; pact_signed_at: string | null }>;
+  for (const p of pacts) {
+    if (p.user_id === userId) continue;
+    if (!p.pact_signed_at || p.pact_signed_at < from) continue;
+    items.push({
+      key: `pact:${groupId}:${p.user_id}`,
+      kind: "pact_signed",
+      actorId: p.user_id,
+      text: `made the pact in ${groupName}`,
+      createdAt: p.pact_signed_at,
+      mediaPath: null,
+      mediaKind: null,
+      groupId,
+      postId: null,
+    });
+  }
+
+  if (pacts.length > 1 && pacts.every((p) => Boolean(p.pact_signed_at))) {
+    const last = pacts
+      .map((p) => p.pact_signed_at as string)
+      .sort()
+      .slice(-1)[0];
+    if (last && last >= from) {
+      items.push({
+        key: `pact_done:${groupId}:${last}`,
+        kind: "pact_complete",
+        actorId: userId,
+        text: "Everyone's in — the pact is made. Time to show up.",
+        createdAt: last,
+        mediaPath: null,
+        mediaKind: null,
+        groupId,
+        postId: null,
+      });
+    }
   }
 
   items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());

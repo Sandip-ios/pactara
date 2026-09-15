@@ -137,6 +137,39 @@ export const signPact = createServerFn({ method: "POST" })
       .eq("id", row.id);
     if (uErr) throw new Error(uErr.message);
 
+    // Tell the rest of the group — and celebrate once everyone is in.
+    try {
+      const [{ data: members }, { data: group }] = await Promise.all([
+        supabaseAdmin
+          .from("group_members")
+          .select("user_id, pact_signed_at")
+          .eq("group_id", data.groupId),
+        supabaseAdmin.from("groups").select("name").eq("id", data.groupId).maybeSingle(),
+      ]);
+      const rows2 = (members ?? []) as Array<{ user_id: string; pact_signed_at: string | null }>;
+      const others = rows2.map((m) => m.user_id).filter((id) => id !== userId);
+      const groupName = (group?.name as string) ?? "your group";
+      const everyoneIn = rows2.length > 1 && rows2.every((m) => Boolean(m.pact_signed_at));
+
+      if (others.length > 0) {
+        const { notifyUsers, displayName } = await import("@/lib/notify.server");
+        const name = await displayName(userId);
+        await notifyUsers(
+          others,
+          {
+            title: `${name} made the pact`,
+            body: everyoneIn
+              ? `Everyone's in on ${groupName}. Time to show up.`
+              : `${name} is in on ${groupName}.`,
+            url: `/groups/${data.groupId}`,
+          },
+          "group_activity_enabled",
+        );
+      }
+    } catch (err) {
+      console.warn("[pact] sign notification failed", err);
+    }
+
     return { ok: true, signedAt: now };
   });
 
