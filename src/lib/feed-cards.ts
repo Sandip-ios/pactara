@@ -63,14 +63,17 @@ export function splitFeedIntoTimelineCards(items: FeedItem[]): FeedItem[] {
   // carry nodes that are newer than its local date (late check-ins, missed
   // markers written after midnight), so ranking on real timestamps guarantees
   // the newest post is always first.
+  // Never rank on updatedAt: nightly "missed" jobs touch old rows and would
+  // bubble stale days back to the top.
   const recency = (card: FeedItem) => {
-    let newest = card.updatedAt ?? "";
+    let newest = `${card.localDate}T00:00:00.000Z`;
     for (const n of card.nodes) {
       const at = "at" in n && n.at ? n.at : "";
       if (at > newest) newest = at;
     }
     return newest;
   };
+
 
   return Array.from(grouped.values()).sort((a, b) => {
     const ra = recency(a);
