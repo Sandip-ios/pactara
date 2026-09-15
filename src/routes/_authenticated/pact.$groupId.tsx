@@ -509,7 +509,7 @@ function SwipeToSign({
           className="absolute inset-0 flex items-center justify-center pointer-events-none text-[15px] font-bold"
           style={{ color: PURPLE_DEEP, opacity: 1 - progress }}
         >
-          {busy ? "Signing…" : "Swipe to sign the pact →"}
+          {busy ? "Making the pact…" : "Swipe to make the pact →"}
         </div>
         <div
           onPointerDown={(e) => {
