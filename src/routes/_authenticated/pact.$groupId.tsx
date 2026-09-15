@@ -51,6 +51,7 @@ function PactPage() {
 
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +74,8 @@ function PactPage() {
       void hapticMedium();
       setSigned(true);
       await queryClient.invalidateQueries({ queryKey: ["pact", groupId] });
+      setShowSuccess(true);
+      window.setTimeout(() => setShowSuccess(false), 2400);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't sign the pact");
     } finally {
@@ -107,7 +110,7 @@ function PactPage() {
         <p className="text-[15px] mt-2 opacity-90 leading-snug">
           {signed
             ? "Your name is on it. Here's who else is in."
-            : "This isn't terms and conditions. It's a promise to people who are counting on you."}
+            : "Make a promise to yourself and the people counting on you."}
         </p>
       </div>
 
@@ -147,9 +150,20 @@ function PactPage() {
             />
           </div>
 
+          {data && data.members.length > 0 && (
+            <div className="mt-4 flex items-center gap-3">
+              <AvatarStack members={data.members} />
+              <div className="text-[13px] text-neutral-500 leading-snug">
+                {data.memberCount === 1
+                  ? "You're the first one in"
+                  : `${data.memberCount} people are making this pact together`}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 pt-5 border-t border-neutral-100">
             <div className="text-[11px] font-bold tracking-[0.16em] text-neutral-400 mb-4">
-              WHAT I'M COMMITTING TO
+              THE PACT
             </div>
             <ul className="space-y-3">
               {lines.map((line) => (
@@ -243,16 +257,147 @@ function PactPage() {
             Enter the group <ChevronRight size={18} />
           </button>
         ) : (
-          <SwipeToSign
-            disabled={isLoading || signing}
-            busy={signing}
-            avatarUrl={me?.avatarUrl ?? null}
-            avatarColor={me?.avatarColor ?? PURPLE_DEEP}
-            initial={(me?.name ?? "Y").slice(0, 1).toUpperCase()}
-            onComplete={doSign}
-          />
+          <>
+            <div className="text-center text-[13px] text-neutral-500 mb-3">Ready to commit?</div>
+            <SwipeToSign
+              disabled={isLoading || signing}
+              busy={signing}
+              avatarUrl={me?.avatarUrl ?? null}
+              avatarColor={me?.avatarColor ?? PURPLE_DEEP}
+              initial={(me?.name ?? "Y").slice(0, 1).toUpperCase()}
+              onComplete={doSign}
+            />
+          </>
         )}
       </div>
+
+      {showSuccess && data && (
+        <PactSuccess
+          meName={(me?.name ?? "You").split(" ")[0]}
+          signedCount={data.signedCount}
+          memberCount={data.memberCount}
+          durationDays={data.durationDays}
+          members={data.members}
+        />
+      )}
+    </div>
+  );
+}
+
+type PactMember = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+  signed: boolean;
+  isMe: boolean;
+};
+
+function Avatar({ m, size = 32 }: { m: PactMember; size?: number }) {
+  return (
+    <div
+      className="rounded-full overflow-hidden flex items-center justify-center text-white font-bold shrink-0 ring-2 ring-white"
+      style={{ background: m.avatarColor, height: size, width: size, fontSize: size * 0.42 }}
+    >
+      {m.avatarUrl ? (
+        <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
+      ) : (
+        m.name.slice(0, 1).toUpperCase()
+      )}
+    </div>
+  );
+}
+
+function AvatarStack({ members, size = 32 }: { members: PactMember[]; size?: number }) {
+  const shown = members.slice(0, 4);
+  const extra = members.length - shown.length;
+  return (
+    <div className="flex items-center">
+      {shown.map((m, i) => (
+        <div key={m.id} style={{ marginLeft: i === 0 ? 0 : -10 }}>
+          <Avatar m={m} size={size} />
+        </div>
+      ))}
+      {extra > 0 && (
+        <div
+          className="rounded-full flex items-center justify-center font-bold ring-2 ring-white shrink-0"
+          style={{
+            marginLeft: -10,
+            height: size,
+            width: size,
+            fontSize: size * 0.36,
+            background: "#F1E9FF",
+            color: PURPLE_DEEP,
+          }}
+        >
+          +{extra}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PactSuccess({
+  meName,
+  signedCount,
+  memberCount,
+  durationDays,
+  members,
+}: {
+  meName: string;
+  signedCount: number;
+  memberCount: number;
+  durationDays: number;
+  members: PactMember[];
+}) {
+  const everyone = signedCount >= memberCount;
+  const waiting = members.filter((m) => !m.signed && !m.isMe);
+
+  return (
+    <div
+      className="fixed inset-0 z-[90] flex flex-col items-center justify-center px-8 text-center animate-in fade-in duration-200"
+      style={{ background: `linear-gradient(180deg, ${PURPLE_DEEP} 0%, ${PURPLE} 100%)` }}
+    >
+      {everyone ? (
+        <>
+          <div className="text-[40px] animate-in zoom-in duration-300">🎉</div>
+          <div className="mt-4 text-[12px] font-bold tracking-[0.2em] text-white/80">
+            THE PACT IS MADE
+          </div>
+          <div className="mt-2 text-[28px] font-black text-white leading-tight">Everyone is in.</div>
+          <div className="mt-5 text-[15px] text-white/85 leading-relaxed">
+            {memberCount} {memberCount === 1 ? "person" : "people"}
+            <br />
+            {durationDays} days
+            <br />
+            One promise: show up.
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            className="h-16 w-16 rounded-full bg-white flex items-center justify-center animate-in zoom-in duration-300"
+            style={{ boxShadow: "0 12px 30px -12px rgba(0,0,0,0.5)" }}
+          >
+            <Check size={30} style={{ color: PURPLE }} strokeWidth={3} />
+          </div>
+          <div className="mt-5 text-[26px] font-black text-white leading-tight">Pact made</div>
+          <div className="mt-1 text-[16px] text-white/90">{meName} is in.</div>
+          <div className="mt-4 text-[14px] text-white/75">
+            {signedCount} of {memberCount} members committed
+          </div>
+          {waiting.length > 0 && (
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <AvatarStack members={waiting} size={36} />
+              <div className="text-[13px] text-white/75">
+                {waiting.length === 1
+                  ? `${waiting[0].name.split(" ")[0]} is yet to make the pact`
+                  : `${waiting.length} members still need to make the pact`}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
@@ -364,7 +509,7 @@ function SwipeToSign({
           className="absolute inset-0 flex items-center justify-center pointer-events-none text-[15px] font-bold"
           style={{ color: PURPLE_DEEP, opacity: 1 - progress }}
         >
-          {busy ? "Signing…" : "Swipe to sign the pact →"}
+          {busy ? "Making the pact…" : "Swipe to make the pact →"}
         </div>
         <div
           onPointerDown={(e) => {
