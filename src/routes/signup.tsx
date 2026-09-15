@@ -1385,26 +1385,33 @@ export function InviteStep({
     setSheetOpen(false);
   };
 
-  // Escape hatch for people who chose "Select Contacts" on the iOS share
-  // prompt: the OS picker always shows every contact on the device.
-  const pickFromDevice = async () => {
+  // Escape hatch for people who chose "Select Contacts": re-ask iOS, which
+  // resurfaces the "How do you want to share contacts?" sheet so they can pick
+  // "Share All Contacts" and stay inside our own picker.
+  const shareAllContacts = async () => {
     setInlineError(null);
-    const res = await pickDeviceContact();
-    if (res.status === "cancelled") return;
-    if (res.status === "error") {
-      setInlineError(res.message);
-      return;
+    setLoading(true);
+    const level = await requestFullContactsAccess();
+    setAccess(level);
+    const res = await loadContacts();
+    setLoading(false);
+    if (res.status === "ok") {
+      setContacts(res.contacts);
+      setPermissionDenied(false);
+      setQuery("");
     }
-    await handlePick(res.contact);
+    if (level === "limited" || level === "denied") {
+      setInlineError(
+        "Still only some contacts are shared. Tap again and choose “Share All Contacts”, or open Settings → Pactara → Contacts.",
+      );
+    }
   };
 
-  const shareAllContacts = async () => {
+  const openSettings = async () => {
     setInlineError(null);
     const opened = await openAppSettings();
     if (!opened) {
-      setInlineError(
-        "Open iOS Settings → Pactara → Contacts and choose Full Access, then come back and refresh.",
-      );
+      setInlineError("Open iOS Settings → Pactara → Contacts and choose Full Access.");
     }
   };
 
