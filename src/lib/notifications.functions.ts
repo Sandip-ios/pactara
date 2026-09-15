@@ -408,6 +408,7 @@ export const getNotifications = createServerFn({ method: "GET" })
         mediaUrl: r.mediaPath ? (mediaUrls[r.mediaPath] ?? null) : null,
         mediaKind: r.mediaPath ? (isVideo(r.mediaPath) ? "video" : "image") : null,
         groupId: r.groupId,
+        groupName: nameById.get(r.groupId) ?? "",
         postId: r.postId,
       };
     });
