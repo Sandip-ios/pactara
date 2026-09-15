@@ -355,7 +355,7 @@ function SwipeToSign({
         <div
           className="absolute inset-y-0 left-0"
           style={{
-            width: `${THUMB + PAD * 2 + x}px`,
+            width: `${THUMB + x}px`,
             background: `linear-gradient(90deg, ${PURPLE_DEEP}, ${PURPLE})`,
             transition: dragging ? "none" : "width 220ms cubic-bezier(0.22,1,0.36,1)",
           }}
@@ -371,7 +371,7 @@ function SwipeToSign({
             (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
             onDown(e.clientX);
           }}
-          className="absolute top-1 h-14 w-14 rounded-xl bg-white flex items-center justify-center shadow-md cursor-grab active:cursor-grabbing"
+          className="absolute top-1 bottom-1 w-14 rounded-xl bg-white flex items-center justify-center shadow-sm cursor-grab active:cursor-grabbing"
           style={{
             left: PAD,
             transform: `translateX(${x}px)`,
