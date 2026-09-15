@@ -189,8 +189,6 @@ function SignupFlow() {
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
-  const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
@@ -329,8 +327,9 @@ function SignupFlow() {
             name: finalGroupName,
             emoji: goalEmoji,
             durationDays,
-            frequency: frequency === "weekly" ? "specific" : "daily",
-            daysPerWeek,
+            frequency: "daily",
+            daysPerWeek: 7,
+
           },
         });
       }
@@ -392,13 +391,8 @@ function SignupFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration);
-    const frequencyLabel = invitedGroup
-      ? invitedGroup.frequency === "daily"
-        ? "Every day"
-        : `${invitedGroup.daysPerWeek}× per week`
-      : frequency === "daily"
-        ? "Every day"
-        : `${daysPerWeek}× per week`;
+    const frequencyLabel = "Every day";
+
     return (
       <>
         <GreetingStep
@@ -495,10 +489,6 @@ function SignupFlow() {
             setDuration={setDuration}
             customDays={customDays}
             setCustomDays={setCustomDays}
-            frequency={frequency}
-            setFrequency={setFrequency}
-            daysPerWeek={daysPerWeek}
-            setDaysPerWeek={setDaysPerWeek}
           />
         )}
 
