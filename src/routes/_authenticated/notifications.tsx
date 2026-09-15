@@ -70,18 +70,19 @@ function NotificationsPage() {
   });
   const groups = groupsData?.groups ?? [];
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
-    if (typeof localStorage === "undefined") return null;
-    return localStorage.getItem("active-group-id");
+  // Default to every group so nothing from a second group is hidden.
+  const [selectedGroupId, setSelectedGroupId] = useState<string>(() => {
+    if (typeof localStorage === "undefined") return "all";
+    return localStorage.getItem("notifications-group-filter") ?? "all";
   });
 
   useEffect(() => {
-    if (groups.length === 0) return;
-    const exists = selectedGroupId && groups.some((g) => g.id === selectedGroupId);
-    if (!exists) setSelectedGroupId(groups[0].id);
+    if (groups.length === 0 || selectedGroupId === "all") return;
+    if (!groups.some((g) => g.id === selectedGroupId)) setSelectedGroupId("all");
   }, [groups, selectedGroupId]);
 
   const selected = groups.find((g) => g.id === selectedGroupId) ?? null;
+  const showGroupLabel = selectedGroupId === "all";
 
   const { data, isLoading } = useQuery({
     queryKey: ["notifications", selectedGroupId],
