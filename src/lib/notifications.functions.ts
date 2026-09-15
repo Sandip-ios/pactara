@@ -333,21 +333,36 @@ export const getNotifications = createServerFn({ method: "GET" })
   .handler(async ({ data, context }): Promise<{ items: NotificationItem[] }> => {
     const { supabase, userId } = context;
 
-    const { data: membership } = await supabase
+    // Every group the user belongs to; "all" aggregates across them.
+    const { data: memberships } = await supabase
       .from("group_members")
-      .select("id")
-      .eq("group_id", data.groupId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!membership) return { items: [] };
+      .select("group_id")
+      .eq("user_id", userId);
+    const myGroupIds = ((memberships ?? []) as Array<{ group_id: string }>).map(
+      (m) => m.group_id,
+    );
 
-    const { data: group } = await supabase
+    const groupIds =
+      data.groupId === "all"
+        ? myGroupIds
+        : myGroupIds.filter((id) => id === data.groupId);
+    if (groupIds.length === 0) return { items: [] };
+
+    const { data: groups } = await supabase
       .from("groups")
       .select("id, name")
-      .eq("id", data.groupId)
-      .maybeSingle();
+      .in("id", groupIds);
+    const nameById = new Map(
+      ((groups ?? []) as Array<{ id: string; name: string }>).map((g) => [g.id, g.name]),
+    );
 
-    const raw = await collect(supabase, userId, data.groupId, group?.name ?? "your group");
+    const lists = await Promise.all(
+      groupIds.map((id) => collect(supabase, userId, id, nameById.get(id) ?? "your group")),
+    );
+    const raw = lists
+      .flat()
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 200);
     if (raw.length === 0) return { items: [] };
 
     const actorIds = Array.from(new Set(raw.map((r) => r.actorId)));
