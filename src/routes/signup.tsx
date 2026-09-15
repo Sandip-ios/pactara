@@ -77,7 +77,15 @@ import { createGroupForUser, setMyName, getGroupPreview } from "@/lib/groups.fun
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { setAvatarPath } from "@/lib/profile.functions";
-import { clearContactsCache, loadContacts, sendInvite, type DeviceContact } from "@/lib/contacts";
+import {
+  clearContactsCache,
+  getContactsAccess,
+  loadContacts,
+  openAppSettings,
+  pickDeviceContact,
+  sendInvite,
+  type DeviceContact,
+} from "@/lib/contacts";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -1287,6 +1295,7 @@ export function InviteStep({
   const [query, setQuery] = useState("");
   const [manualName, setManualName] = useState("");
   const [manualContact, setManualContact] = useState("");
+  const [access, setAccess] = useState<"full" | "limited" | "denied" | "unknown">("unknown");
   const canAddMore = friends.length < MAX_FRIENDS;
   const viewport = useVisualViewport();
 
@@ -1304,6 +1313,7 @@ export function InviteStep({
     // cache or a previous "denied" must never lock us into manual entry.
     clearContactsCache();
     setLoading(true);
+    void getContactsAccess().then(setAccess);
     const res = await loadContacts();
     setLoading(false);
     if (res.status === "ok") {
@@ -1322,6 +1332,7 @@ export function InviteStep({
     setInlineError(null);
     clearContactsCache();
     setLoading(true);
+    void getContactsAccess().then(setAccess);
     const res = await loadContacts();
     setLoading(false);
     if (res.status === "ok") {
@@ -1372,6 +1383,29 @@ export function InviteStep({
     }
     setFriends([...friends, c.name]);
     setSheetOpen(false);
+  };
+
+  // Escape hatch for people who chose "Select Contacts" on the iOS share
+  // prompt: the OS picker always shows every contact on the device.
+  const pickFromDevice = async () => {
+    setInlineError(null);
+    const res = await pickDeviceContact();
+    if (res.status === "cancelled") return;
+    if (res.status === "error") {
+      setInlineError(res.message);
+      return;
+    }
+    await handlePick(res.contact);
+  };
+
+  const shareAllContacts = async () => {
+    setInlineError(null);
+    const opened = await openAppSettings();
+    if (!opened) {
+      setInlineError(
+        "Open iOS Settings → Pactara → Contacts and choose Full Access, then come back and refresh.",
+      );
+    }
   };
 
   const submitManual = async () => {
@@ -1632,8 +1666,7 @@ export function InviteStep({
                         Refresh contacts
                       </button>
                       <div className="mt-2 px-4 text-[12px] leading-snug">
-                        If someone is missing, allow Pactara full access to Contacts in
-                        iOS Settings → Privacy → Contacts.
+                        Only the contacts you shared with Pactara appear here.
                       </div>
                     </div>
                   )}
@@ -1663,6 +1696,32 @@ export function InviteStep({
                         </div>
                       </button>
                     ))}
+                </div>
+
+                <div className="shrink-0 pt-3 border-t border-neutral-100">
+                  <div className="text-[13px]" style={{ color: TEXT_MUTED }}>
+                    {access === "limited"
+                      ? "You're only sharing some contacts with Pactara."
+                      : "Can't find someone?"}
+                  </div>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={pickFromDevice}
+                      className="flex-1 rounded-full border-2 py-3 text-[14px] font-semibold"
+                      style={{ borderColor: PURPLE, color: PURPLE }}
+                    >
+                      Browse all contacts
+                    </button>
+                    <button
+                      type="button"
+                      onClick={shareAllContacts}
+                      className="flex-1 rounded-full py-3 text-[14px] font-semibold text-white"
+                      style={{ background: PURPLE }}
+                    >
+                      Share all contacts
+                    </button>
+                  </div>
                 </div>
               </>
 
