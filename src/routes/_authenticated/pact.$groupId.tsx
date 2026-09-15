@@ -389,6 +389,7 @@ function SwipeToSign({
             )}
           </div>
         </div>
+      </div>
     </div>
   );
 }
