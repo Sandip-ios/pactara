@@ -390,15 +390,6 @@ function SwipeToSign({
           </div>
         </div>
       </div>
-
-      <button
-        onClick={onComplete}
-        disabled={disabled || busy}
-        className="w-full text-center text-[13px] font-semibold mt-3 disabled:opacity-50"
-        style={{ color: PURPLE_DEEP }}
-      >
-        Or tap here to sign the pact
-      </button>
     </div>
   );
 }
