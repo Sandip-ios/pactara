@@ -87,7 +87,7 @@ export async function loadContacts(): Promise<ContactsResult> {
           // Some devices return the same person more than once (linked accounts).
           // Duplicate ids break list rendering, so keep the first occurrence only.
           const key = `${c.name.toLowerCase()}|${(c.phone ?? c.email ?? "").replace(/\D/g, "")}`;
-          if (seen.has(key) || seen.has(c.id)) return true && false;
+          if (seen.has(key) || seen.has(c.id)) return false;
           seen.add(key);
           seen.add(c.id);
           return true;
