@@ -97,7 +97,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const memberIds = Array.from(new Set(allMembers.map((m) => m.user_id as string)));
     const safeIds = memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"];
 
-    const [profilesRes, checkinsRes, postsRes] = await Promise.all([
+    const [profilesRes, checkinsRes, postsRes, freezesRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_color, avatar_url").in("id", safeIds),
       supabase
         .from("check_ins")
@@ -111,7 +111,16 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         .select("group_id, user_id, morning_ritual_text, morning_ritual_posted_at, check_in_missed, check_in_id")
         .in("group_id", groupIds)
         .eq("local_date", today),
+      // Applied streak freezes count as a kept day, same as on the home screen.
+      supabase
+        .from("streak_freezes_used")
+        .select("group_id, user_id, freeze_date")
+        .in("group_id", groupIds)
+        .gte("freeze_date", windowStart)
+        .lte("freeze_date", today)
+        .limit(20000),
     ]);
+
 
     const profileById = new Map<string, { name: string; color: string; url: string | null }>();
     await Promise.all(
