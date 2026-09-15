@@ -86,8 +86,8 @@ function NotificationsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["notifications", selectedGroupId],
-    queryFn: () => getNotifications({ data: { groupId: selectedGroupId as string } }),
-    enabled: !!selectedGroupId,
+    queryFn: () => getNotifications({ data: { groupId: selectedGroupId } }),
+    enabled: selectedGroupId === "all" ? groups.length > 0 : !!selectedGroupId,
   });
 
   const items = useMemo(() => data?.items ?? [], [data]);
