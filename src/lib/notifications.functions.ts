@@ -24,6 +24,7 @@ export type NotificationItem = {
   mediaUrl: string | null;
   mediaKind: "image" | "video" | null;
   groupId: string;
+  groupName: string;
   postId: string | null;
 };
 
