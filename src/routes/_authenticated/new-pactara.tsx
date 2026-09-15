@@ -87,8 +87,6 @@ function NewPactaraFlow() {
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
-  const [daysPerWeek, setDaysPerWeek] = useState(3);
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
   // Reserved up-front so invite links point at the group's join screen.
   const [pendingGroupId] = useState(() =>
@@ -169,8 +167,9 @@ function NewPactaraFlow() {
           emoji: goalEmoji,
           goal: goalLabel,
           durationDays,
-          frequency: frequency === "weekly" ? "specific" : "daily",
-          daysPerWeek,
+          frequency: "daily",
+          daysPerWeek: 7,
+
         },
       });
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
@@ -209,7 +208,7 @@ function NewPactaraFlow() {
         : duration === "custom"
           ? parseInt(customDays, 10) || 30
           : duration;
-    const frequencyLabel = frequency === "daily" ? "Every day" : `${daysPerWeek}× per week`;
+    const frequencyLabel = "Every day";
     return (
       <>
         <GreetingStep
@@ -293,10 +292,7 @@ function NewPactaraFlow() {
             setDuration={setDuration}
             customDays={customDays}
             setCustomDays={setCustomDays}
-            frequency={frequency}
-            setFrequency={setFrequency}
-            daysPerWeek={daysPerWeek}
-            setDaysPerWeek={setDaysPerWeek}
+
           />
         )}
         {step === "invite" && (
