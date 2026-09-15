@@ -275,6 +275,7 @@ function Section({
                   <span className="font-bold">{n.actorName}</span> {n.text}
                 </span>
                 <span className="block text-[12px] text-neutral-400 mt-0.5">
+                  {showGroup && n.groupName ? `${n.groupName} · ` : ""}
                   {timeAgo(n.createdAt)}
                 </span>
               </span>
