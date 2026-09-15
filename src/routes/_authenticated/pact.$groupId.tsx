@@ -51,6 +51,7 @@ function PactPage() {
 
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -73,6 +74,8 @@ function PactPage() {
       void hapticMedium();
       setSigned(true);
       await queryClient.invalidateQueries({ queryKey: ["pact", groupId] });
+      setShowSuccess(true);
+      window.setTimeout(() => setShowSuccess(false), 2400);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't sign the pact");
     } finally {
@@ -107,7 +110,7 @@ function PactPage() {
         <p className="text-[15px] mt-2 opacity-90 leading-snug">
           {signed
             ? "Your name is on it. Here's who else is in."
-            : "This isn't terms and conditions. It's a promise to people who are counting on you."}
+            : "Make a promise to yourself and the people counting on you."}
         </p>
       </div>
 
@@ -147,9 +150,20 @@ function PactPage() {
             />
           </div>
 
+          {data && data.members.length > 0 && (
+            <div className="mt-4 flex items-center gap-3">
+              <AvatarStack members={data.members} />
+              <div className="text-[13px] text-neutral-500 leading-snug">
+                {data.memberCount === 1
+                  ? "You're the first one in"
+                  : `${data.memberCount} people are making this pact together`}
+              </div>
+            </div>
+          )}
+
           <div className="mt-6 pt-5 border-t border-neutral-100">
             <div className="text-[11px] font-bold tracking-[0.16em] text-neutral-400 mb-4">
-              WHAT I'M COMMITTING TO
+              THE PACT
             </div>
             <ul className="space-y-3">
               {lines.map((line) => (
