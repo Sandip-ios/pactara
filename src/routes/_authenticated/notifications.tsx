@@ -201,22 +201,26 @@ function NotificationsPage() {
             <div className="text-[40px] mb-2">🔔</div>
             <div className="text-[16px] font-bold">Nothing yet</div>
             <div className="text-[14px] text-neutral-500 mt-1">
-              Reactions, comments and check-ins from this group will show up here.
+              Reactions, comments and check-ins from your groups will show up here.
             </div>
           </div>
         )}
 
-        <Section title="Last 7 days" items={recent} onOpen={open} />
-        <Section title="Last 30 days" items={older} onOpen={open} />
+        <Section title="Last 7 days" items={recent} onOpen={open} showGroup={showGroupLabel} />
+        <Section title="Last 30 days" items={older} onOpen={open} showGroup={showGroupLabel} />
       </PullToRefresh>
 
       <GroupSwitcherSheet
         open={switcherOpen}
         groups={groups}
         selectedGroupId={selectedGroupId}
+        allowAll
         onSelect={(id) => {
           setSelectedGroupId(id);
-          if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", id);
+          if (typeof localStorage !== "undefined") {
+            localStorage.setItem("notifications-group-filter", id);
+            if (id !== "all") localStorage.setItem("active-group-id", id);
+          }
           setSwitcherOpen(false);
         }}
         onClose={() => setSwitcherOpen(false)}
