@@ -348,7 +348,7 @@ async function collect(
         key: `pact_done:${groupId}:${last}`,
         kind: "pact_complete",
         actorId: userId,
-        text: `Everyone's in — the pact is made in ${groupName}. Time to show up.`,
+        text: "Everyone's in — the pact is made. Time to show up.",
         createdAt: last,
         mediaPath: null,
         mediaKind: null,
