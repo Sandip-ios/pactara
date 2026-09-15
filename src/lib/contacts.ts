@@ -107,6 +107,63 @@ export async function loadContacts(): Promise<ContactsResult> {
   }
 }
 
+/**
+ * iOS 18+ "limited" access: the user picked a handful of contacts when asked
+ * how to share. Knowing this lets the UI offer a way out instead of leaving
+ * them searching for someone they never shared.
+ */
+export async function getContactsAccess(): Promise<"full" | "limited" | "denied" | "unknown"> {
+  if (!isNative()) return "unknown";
+  try {
+    const { Contacts } = await import("@capacitor-community/contacts");
+    const perm = await Contacts.checkPermissions();
+    const status = String(perm.contacts ?? "");
+    if (status === "limited") return "limited";
+    if (status === "granted") return "full";
+    if (status === "denied") return "denied";
+    return "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+/**
+ * Opens the OS contact picker. On iOS this shows EVERY contact on the device,
+ * even when the app itself only has limited access — so it's the reliable
+ * escape hatch for "the person I want isn't in the list".
+ */
+export async function pickDeviceContact(): Promise<
+  { status: "ok"; contact: DeviceContact } | { status: "cancelled" } | { status: "error"; message: string }
+> {
+  if (!isNative()) return { status: "error", message: "Contacts aren't available here." };
+  try {
+    const { Contacts } = await import("@capacitor-community/contacts");
+    const res = await Contacts.pickContact({
+      projection: { name: true, phones: true, emails: true, image: false },
+    });
+    const raw = res?.contact as Parameters<typeof normalizeContact>[0] | undefined;
+    if (!raw) return { status: "cancelled" };
+    const contact = normalizeContact(raw);
+    if (!contact) return { status: "cancelled" };
+    return { status: "ok", contact };
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "";
+    if (/cancel/i.test(message)) return { status: "cancelled" };
+    return { status: "error", message: message || "Couldn't open your contacts." };
+  }
+}
+
+/** Sends the user to Pactara's own iOS settings, where Contacts access lives. */
+export async function openAppSettings(): Promise<boolean> {
+  if (!isNative()) return false;
+  try {
+    window.location.href = "app-settings:";
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function getCachedContacts(): DeviceContact[] | null {
   return cache;
 }
