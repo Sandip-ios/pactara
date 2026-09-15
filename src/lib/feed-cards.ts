@@ -59,8 +59,25 @@ export function splitFeedIntoTimelineCards(items: FeedItem[]): FeedItem[] {
     });
   }
 
+  // Sort by the card's most recent activity, not just its day. A day-card can
+  // carry nodes that are newer than its local date (late check-ins, missed
+  // markers written after midnight), so ranking on real timestamps guarantees
+  // the newest post is always first.
+  const recency = (card: FeedItem) => {
+    let newest = card.updatedAt ?? "";
+    for (const n of card.nodes) {
+      const at = "at" in n && n.at ? n.at : "";
+      if (at > newest) newest = at;
+    }
+    return newest;
+  };
+
   return Array.from(grouped.values()).sort((a, b) => {
+    const ra = recency(a);
+    const rb = recency(b);
+    if (ra !== rb) return ra < rb ? 1 : -1;
     if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
-    return a.updatedAt < b.updatedAt ? 1 : -1;
+    return 0;
   });
 }
+
