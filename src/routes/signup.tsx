@@ -1677,9 +1677,9 @@ export function InviteStep({
                   )}
 
                   {!loading &&
-                    filtered.map((c) => (
+                    filtered.map((c, i) => (
                       <button
-                        key={c.id}
+                        key={`${c.id}-${i}`}
                         type="button"
                         onClick={() => handlePick(c)}
                         className="w-full flex items-center gap-3 py-3 border-b border-neutral-100 active:bg-neutral-50 text-left"
