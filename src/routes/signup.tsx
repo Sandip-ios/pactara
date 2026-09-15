@@ -1053,10 +1053,6 @@ export function CommitmentStep({
   setDuration,
   customDays,
   setCustomDays,
-  frequency,
-  setFrequency,
-  daysPerWeek,
-  setDaysPerWeek,
 }: {
   goalLabel: string;
   goalId: string | null;
@@ -1064,10 +1060,7 @@ export function CommitmentStep({
   setDuration: (v: 30 | 60 | 90 | "custom") => void;
   customDays: string;
   setCustomDays: (v: string) => void;
-  frequency: "daily" | "weekly";
-  setFrequency: (v: "daily" | "weekly") => void;
-  daysPerWeek: number;
-  setDaysPerWeek: (n: number) => void;
+
 }) {
   const durationOptions: { val: 30 | 60 | 90; sub: string }[] = [
     { val: 30, sub: "1 month" },
@@ -1092,42 +1085,8 @@ export function CommitmentStep({
             <div className="text-[13px] mt-1" style={{ color: TEXT_MUTED }}>Locked in for the 75 Hard program</div>
           </div>
         </div>
-
-        <div className="mt-7 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-          CHECK-IN FREQUENCY
-        </div>
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <FreqCard selected={frequency === "daily"} onClick={() => setFrequency("daily")} emoji="🔥" title="Every day" sub="Daily check-ins" />
-          <FreqCard selected={frequency === "weekly"} onClick={() => setFrequency("weekly")} emoji="📅" title="Weekly" sub="Choose days/week" />
-        </div>
-
-        {frequency === "weekly" && (
-          <>
-            <div className="mt-6 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-              DAYS PER WEEK
-            </div>
-            <div className="mt-3 grid grid-cols-7 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7].map((n) => {
-                const selected = daysPerWeek === n;
-                return (
-                  <button
-                    key={n}
-                    onClick={() => setDaysPerWeek(n)}
-                    className="aspect-square rounded-xl text-[16px] font-semibold transition"
-                    style={{
-                      background: selected ? PURPLE_SOFT : "white",
-                      border: selected ? `2px solid ${PURPLE}` : "1px solid #ECECEC",
-                      color: selected ? PURPLE : TEXT,
-                    }}
-                  >
-                    {n}
-                  </button>
-                );
-              })}
-            </div>
-          </>
-        )}
       </div>
+
     );
   }
 
@@ -1190,43 +1149,8 @@ export function CommitmentStep({
           Custom duration
         </button>
       )}
-
-
-      <div className="mt-7 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-        CHECK-IN FREQUENCY
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <FreqCard selected={frequency === "daily"} onClick={() => setFrequency("daily")} emoji="🔥" title="Every day" sub="Daily check-ins" />
-        <FreqCard selected={frequency === "weekly"} onClick={() => setFrequency("weekly")} emoji="📅" title="Weekly" sub="Choose days/week" />
-      </div>
-
-      {frequency === "weekly" && (
-        <>
-          <div className="mt-6 text-[12px] font-semibold tracking-wider" style={{ color: LABEL }}>
-            DAYS PER WEEK
-          </div>
-          <div className="mt-3 grid grid-cols-7 gap-2">
-            {[1, 2, 3, 4, 5, 6, 7].map((n) => {
-              const selected = daysPerWeek === n;
-              return (
-                <button
-                  key={n}
-                  onClick={() => setDaysPerWeek(n)}
-                  className="aspect-square rounded-xl text-[16px] font-semibold transition"
-                  style={{
-                    background: selected ? PURPLE_SOFT : "white",
-                    border: selected ? `2px solid ${PURPLE}` : "1px solid #ECECEC",
-                    color: selected ? PURPLE : TEXT,
-                  }}
-                >
-                  {n}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
     </div>
+
   );
 }
 
