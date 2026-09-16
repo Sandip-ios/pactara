@@ -108,6 +108,27 @@ function AccountSettingsHub() {
             subtitle="Push and reminders"
             onClick={() => navigate({ to: "/account-settings/notifications" })}
           />
+          <Divider />
+          <Row
+            icon={<Zap size={18} style={{ color: PURPLE }} />}
+            iconBg={PURPLE_SOFT}
+            title="Plan"
+            subtitle="Subscription and billing"
+            onClick={() => navigate({ to: "/plan" })}
+          />
+          <Divider />
+          <button
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-4 px-4 py-4 text-left"
+          >
+            <span
+              className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: PURPLE_SOFT }}
+            >
+              <LogOut size={18} style={{ color: PURPLE }} />
+            </span>
+            <span className="flex-1 text-[16px] font-semibold text-neutral-900">Sign out</span>
+          </button>
         </div>
       </section>
 
