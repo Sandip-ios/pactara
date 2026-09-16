@@ -181,7 +181,7 @@ function StepCheckin() {
         Check in every day — it takes 10 seconds
       </h2>
       <p className="mt-3 text-[15px] text-neutral-600 leading-relaxed">
-        At the end of the day, tap Check In and mark how it went. Crushed it, made progress, or missed it — honesty is what makes the group work.
+        When you're doing it, tap Check In and capture proof in the moment. Crushed it, made progress, or missed it — honesty is what makes the group work.
       </p>
 
       <div className="mt-5 rounded-2xl p-3 space-y-2" style={{ background: "#22C55E" }}>
