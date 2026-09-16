@@ -423,13 +423,14 @@ function TabButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="flex-1 py-3 flex items-center justify-center border-b-2"
+      className="flex-1 py-3 flex items-center justify-center gap-1.5 border-b-2"
       style={{
         borderColor: active ? PURPLE : "transparent",
         color: active ? PURPLE : "#A3A3A3",
       }}
     >
       {children}
+      <span className="text-[13px] font-semibold">{label}</span>
     </button>
   );
 }
