@@ -67,7 +67,7 @@ export default function HowToRecordSheet({ open, onClose, onRecord }: Props) {
           <div className="mt-6 space-y-5">
             <Tip
               icon={<Clock size={24} strokeWidth={1.75} />}
-              title="Keep it to 5–15 seconds"
+              title="Keep it to 5–60 seconds"
               desc="Long enough to be real, short enough to be painless"
             />
             <Tip
