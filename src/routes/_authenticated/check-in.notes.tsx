@@ -140,7 +140,6 @@ function NotesPage() {
       }
       const result = await mutation.mutateAsync({
         note: note || undefined,
-        mood: mood || undefined,
         activity: activity || undefined,
         photoUrl,
         groupId: activeGroupId,
