@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Copy, Share2 } from "lucide-react";
+import { Check, Copy, Share2, X } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
 const PURPLE = "#7C3AED";
@@ -75,6 +75,14 @@ export function GroupQrSheet({
       <DrawerContent className="px-6 pb-sheet pt-2 border-0" style={{ background: PURPLE }}>
         <DrawerTitle className="sr-only">Scan to join {groupName}</DrawerTitle>
 
+        <button
+          onClick={() => onOpenChange(false)}
+          aria-label="Close"
+          className="absolute top-4 right-4 h-9 w-9 rounded-full bg-white/15 flex items-center justify-center text-white"
+        >
+          <X size={18} />
+        </button>
+
         <div className="flex flex-col items-center pt-4">
           <div className="text-[15px] font-bold text-white/90 flex items-center gap-1.5">
             <span>{emoji}</span>
@@ -113,13 +121,6 @@ export function GroupQrSheet({
               Share
             </button>
           </div>
-
-          <button
-            onClick={() => onOpenChange(false)}
-            className="mt-3 w-full rounded-2xl py-3 text-[15px] font-semibold text-white/80"
-          >
-            Close
-          </button>
         </div>
       </DrawerContent>
     </Drawer>
