@@ -205,17 +205,24 @@ export function NativeBootstrap() {
             // Deferred deep link: the invite was opened in mobile Safari on
             // this same network before the install, so the server can hand it
             // back without the user tapping the link again.
-            try {
-              const claimed = await claimDeferredInvite();
-              if (claimed) trackInvite("deferred_deeplink_received", { group_id: claimed, app_install_state: "native" });
-              if (claimed && !wasInviteConsumed(claimed)) {
-                pending = claimed;
-                setPendingInvite(claimed);
+            // Only for a genuine fresh install with no signed-in account —
+            // an existing signed-in user must never inherit a network-matched
+            // invite they never tapped.
+            const { data: auth } = await supabase.auth.getSession();
+            if (!auth.session) {
+              try {
+                const claimed = await claimDeferredInvite();
+                if (claimed) trackInvite("deferred_deeplink_received", { group_id: claimed, app_install_state: "native" });
+                if (claimed && !wasInviteConsumed(claimed)) {
+                  pending = claimed;
+                  setPendingInvite(claimed);
+                }
+              } catch {
+                // network unavailable
               }
-            } catch {
-              // network unavailable
             }
           }
+
 
           if (pending && !cancelled) {
             void navigate({ to: "/join/$groupId", params: { groupId: pending }, replace: true });
