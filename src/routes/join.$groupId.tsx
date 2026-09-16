@@ -459,7 +459,7 @@ function JoinPage() {
                 ? `Check in ${data.daysPerWeek}× per week`
                 : "Check in every day"
             }
-            text="Come back at the end of the day. A photo, a note — whatever feels right. Your group will notice."
+            text="Check in while you're doing it, not after. A photo, a note — whatever feels right. Your group will notice."
           />
           <HowRow
             icon={<Flame size={20} className="text-[#EA580C]" />}
