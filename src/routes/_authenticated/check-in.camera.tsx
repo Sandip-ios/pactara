@@ -682,6 +682,17 @@ function VideoRecordScreen() {
           </div>
         </div>
 
+        {/* Active look name (below the carousel) */}
+        {ready && !error && !recording && (
+          <div
+            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide whitespace-nowrap"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
+          >
+            {look.label}
+          </div>
+        )}
+
+
       </div>
 
       <HowToRecordSheet
