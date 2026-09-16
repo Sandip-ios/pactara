@@ -22,6 +22,7 @@ import {
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import { hapticLight } from "@/lib/native";
+import { attachVideoDurationFix } from "@/lib/video-playback";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Hourglass,
@@ -111,6 +112,7 @@ function VideoThumb({ src }: { src: string }) {
   useEffect(() => {
     const v = ref.current;
     if (!v) return;
+    const detach = attachVideoDurationFix(v);
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -126,7 +128,10 @@ function VideoThumb({ src }: { src: string }) {
       { threshold: [0, 0.4, 0.75, 1] },
     );
     io.observe(v);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      detach();
+    };
   }, []);
 
   return (
@@ -134,7 +139,6 @@ function VideoThumb({ src }: { src: string }) {
       ref={ref}
       src={src}
       muted
-      loop
       playsInline
       preload="auto"
       // iOS Safari won't paint a first frame from preload alone or from a
@@ -163,8 +167,22 @@ function VideoThumb({ src }: { src: string }) {
             } catch {}
           });
       }}
+      onEnded={() => {
+        // Manual loop so a wrong header duration can't cut the clip short.
+        const v = ref.current;
+        if (!v) return;
+        window.setTimeout(() => {
+          const el = ref.current;
+          if (!el || !el.ended) return;
+          try {
+            el.currentTime = 0;
+            if (visibleRef.current) void el.play().catch(() => {});
+          } catch {}
+        }, 60);
+      }}
       className="w-full h-full object-cover pointer-events-none"
     />
+
   );
 }
 
