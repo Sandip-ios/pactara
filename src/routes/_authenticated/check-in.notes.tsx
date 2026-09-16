@@ -114,7 +114,6 @@ function NotesPage() {
 
   const finalizeAndExit = () => {
     sessionStorage.setItem("checkin-celebrate", "1");
-    sessionStorage.removeItem("checkin-mood");
     clearCheckInPhoto();
     queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
     queryClient.invalidateQueries({ queryKey: ["group-feed"] });
@@ -123,7 +122,7 @@ function NotesPage() {
 
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: async (vars: { note?: string; mood?: string; activity?: string; photoUrl?: string; groupId?: string | null; groupIds?: string[] | null }) =>
+    mutationFn: async (vars: { note?: string; activity?: string; photoUrl?: string; groupId?: string | null; groupIds?: string[] | null }) =>
       recordCheckInFn({ data: vars }),
   });
 
