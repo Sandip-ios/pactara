@@ -54,8 +54,29 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
   const startX = useRef<number | null>(null);
   const deltaX = useRef(0);
   const trackRef = useRef<HTMLDivElement>(null);
+  // iOS: when the keyboard collapses mid-tap the later click event dispatches at
+  // stale screen coordinates and can land on another element (e.g. the home
+  // composer's photo button, which opens the file picker). Navigate at touch
+  // time instead, and only when the touch didn't move (not a scroll/swipe).
+  const ctaTouch = useRef<{ x: number; y: number } | null>(null);
 
   const SLIDES = 2;
+
+  const goToCheckIn = () => navigate({ to: "/check-in" });
+
+  const onCtaTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    ctaTouch.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const onCtaTouchEnd = (e: React.TouchEvent) => {
+    const t = e.changedTouches[0];
+    const start = ctaTouch.current;
+    ctaTouch.current = null;
+    if (start && Math.hypot(t.clientX - start.x, t.clientY - start.y) < 12) {
+      goToCheckIn();
+    }
+  };
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
