@@ -65,7 +65,11 @@ function VideoRecordScreen() {
   const [error, setError] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
-  const [helpOpen, setHelpOpen] = useState(false);
+  // First-timers see the "for the best proof" sheet over the warming-up
+  // camera, then tapping "Record now" (or closing it) drops them straight in.
+  const [helpOpen, setHelpOpen] = useState(
+    () => typeof localStorage === "undefined" || localStorage.getItem("howto-record-seen") !== "1",
+  );
   const [facingMode, setFacingMode] = useState<"environment" | "user">("user");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -527,7 +531,9 @@ function VideoRecordScreen() {
     bakeCleanupRef.current?.();
     bakeCleanupRef.current = null;
     stopStream();
-    navigate({ to: "/check-in" });
+    // Back to home — /check-in now relaunches the camera, so returning there
+    // would bounce straight back into the recorder.
+    navigate({ to: "/home" });
   };
 
   const progress = Math.min(1, elapsed / MAX_SECS);
@@ -764,8 +770,14 @@ function VideoRecordScreen() {
 
       <HowToRecordSheet
         open={helpOpen}
-        onClose={() => setHelpOpen(false)}
-        onRecord={() => setHelpOpen(false)}
+        onClose={() => {
+          if (typeof localStorage !== "undefined") localStorage.setItem("howto-record-seen", "1");
+          setHelpOpen(false);
+        }}
+        onRecord={() => {
+          if (typeof localStorage !== "undefined") localStorage.setItem("howto-record-seen", "1");
+          setHelpOpen(false);
+        }}
       />
     </div>
   );

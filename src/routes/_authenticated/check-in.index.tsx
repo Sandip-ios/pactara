@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, List, ListOrdered, CheckSquare, ChevronDown } from "lucide-react";
+import { ArrowRight, List, ListOrdered, CheckSquare, ChevronDown } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,7 +8,7 @@ import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.funct
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
-import HowToRecordSheet from "@/components/HowToRecordSheet";
+
 import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
 
 const PURPLE = "#7C3AED";
@@ -234,7 +234,7 @@ function CheckInRouter() {
       onPosted={() => setLocalPosted(selectedGroupId)}
     />
   ) : (
-    <CheckInMood switcher={switcher} />
+    <CheckInLaunch />
   );
 }
 
@@ -400,120 +400,37 @@ function MorningRitual({
   );
 }
 
-function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
+// No separate mood screen: tapping check-in goes straight to the camera.
+// This tiny screen pre-warms the camera while the router swaps over to the
+// recorder, so it opens instantly and the "best proof" sheet can show on top.
+function CheckInLaunch() {
   const navigate = useNavigate();
-  const [selected, setSelected] = useState<MoodId | null>(null);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [howToOpen, setHowToOpen] = useState(false);
 
-
-
-
-  const onContinue = async (moodId: MoodId) => {
-    setCameraError(null);
-    sessionStorage.setItem("checkin-mood", moodId);
+  useEffect(() => {
     clearCheckInPhoto();
     clearCheckInStream();
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setCameraError("Camera not supported on this device.");
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "user" },
-          width: { ideal: 1920 },
-          height: { ideal: 1440 },
-          aspectRatio: { ideal: 4 / 3 },
-          frameRate: { ideal: 30 },
-        },
-        audio: true,
-      });
-      setCheckInStream(stream);
-      navigate({ to: "/check-in/camera" });
-    } catch (err) {
-      const name = (err as DOMException)?.name;
-      if (name === "NotAllowedError") {
-        setCameraError("Camera permission denied. Enable it in your browser settings to record your check-in.");
-      } else {
-        setCameraError("Camera unavailable.");
+    void (async () => {
+      if (!navigator.mediaDevices?.getUserMedia) return;
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "user" },
+            width: { ideal: 1920 },
+            height: { ideal: 1440 },
+            aspectRatio: { ideal: 4 / 3 },
+            frameRate: { ideal: 30 },
+          },
+          audio: true,
+        });
+        setCheckInStream(stream);
+      } catch {
+        /* the camera screen surfaces permission/unavailable errors itself */
       }
-    }
-  };
+    })();
+    navigate({ to: "/check-in/camera", replace: true });
+  }, [navigate]);
 
-  const onSelectMood = (moodId: MoodId) => {
-    setSelected(moodId);
-    setCameraError(null);
-    const seen = typeof localStorage !== "undefined" && localStorage.getItem("howto-record-seen") === "1";
-    if (!seen) {
-      sessionStorage.setItem("checkin-mood", moodId);
-      setHowToOpen(true);
-      return;
-    }
-    void onContinue(moodId);
-  };
-
-  return (
-    <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-40" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
-      {switcher}
-      <div className="px-6 pt-safe-6">
-        <h1 className="text-[34px] font-black leading-tight tracking-tight">Let's check you in</h1>
-        <p className="text-neutral-500 text-[15px] mt-1">How did today go?</p>
-      </div>
-
-      <div className="px-4 mt-8 space-y-3">
-        {MOODS.map((m) => {
-          const active = selected === m.id;
-          return (
-            <button
-              key={m.id}
-              onClick={() => onSelectMood(m.id)}
-              className="w-full rounded-2xl p-4 flex items-center gap-4 text-left transition"
-              style={{
-                background: active ? m.bg : "#FFFFFF",
-                boxShadow: active ? `0 0 0 2px ${m.ring}` : "none",
-              }}
-            >
-              <span className="text-[32px] leading-none">{m.emoji}</span>
-              <span className="flex-1">
-                <span className="block text-[18px] font-bold" style={{ color: active ? m.color : "#0A0A0A" }}>
-                  {m.label}
-                </span>
-                <span className="block text-[14px] text-neutral-500">{m.sub}</span>
-              </span>
-              {active && (
-                <span className="h-7 w-7 rounded-full flex items-center justify-center text-white" style={{ background: m.color }}>
-                  <Check size={16} strokeWidth={3} />
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {cameraError && (
-        <div className="px-6 pb-4">
-          <div className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-[14px] text-red-700">
-            {cameraError}
-          </div>
-        </div>
-      )}
-
-      <HowToRecordSheet
-        open={howToOpen}
-        onClose={() => setHowToOpen(false)}
-        onRecord={() => {
-          if (typeof localStorage !== "undefined") localStorage.setItem("howto-record-seen", "1");
-          setHowToOpen(false);
-          if (selected) onContinue(selected);
-        }}
-      />
-
-
-
-    </div>
-  );
+  return <div className="fixed inset-0 w-full" style={{ background: BG }} />;
 }
+
 
