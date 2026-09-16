@@ -111,9 +111,12 @@ function JoinPage() {
   const fetchInviteContext = useServerFn(getInviteContext);
   const fetchInviteGroup = useServerFn(getInviteGroup);
 
-  const { data: ctx } = useQuery({
+  const { data: ctx, isError: ctxError } = useQuery({
     queryKey: ["invite-context", groupId, isSignedIn],
     enabled: authReady,
+    // A flaky network call must never be mistaken for "group no longer active".
+    retry: 3,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
     queryFn: async () => {
       if (isSignedIn) return await fetchInviteContext({ data: { groupId } });
       const { group } = await fetchInviteGroup({ data: { groupId } });
@@ -121,7 +124,7 @@ function JoinPage() {
     },
   });
 
-  const resolution: InviteResolution | null = ctx
+  const resolution: InviteResolution | null = ctx && !ctxError
     ? decideInviteResolution({
         groupId,
         group: ctx.group,

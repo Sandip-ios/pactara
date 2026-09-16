@@ -10,11 +10,14 @@ function validGroupId(input: { groupId: string }) {
 
 async function loadGroupSummary(groupId: string): Promise<InviteGroupSummary | null> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data: group } = await supabaseAdmin
+  const { data: group, error } = await supabaseAdmin
     .from("groups")
     .select("id, name, emoji")
     .eq("id", groupId)
     .maybeSingle();
+  // A transient/backend error must NOT be reported as "group no longer active" —
+  // throw so the client retries instead of showing a dead-end screen.
+  if (error) throw new Error(error.message || "Could not load group");
   if (!group) return null;
 
   const { count } = await supabaseAdmin
