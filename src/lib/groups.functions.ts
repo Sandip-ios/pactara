@@ -529,6 +529,39 @@ export const deleteGroup = createServerFn({ method: "POST" })
   });
 
 /**
+ * Removes the current user from a group. Owners must delete (or hand over)
+ * the group instead, so a group is never left without an admin.
+ */
+export const leaveGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { groupId: string }) => {
+    if (!input || typeof input.groupId !== "string" || !input.groupId.trim()) {
+      throw new Error("Missing group");
+    }
+    return { groupId: input.groupId.trim() };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: group } = await supabase
+      .from("groups")
+      .select("owner_id")
+      .eq("id", data.groupId)
+      .maybeSingle();
+    if (group?.owner_id === userId) {
+      throw new Error("You created this group — delete it instead of leaving.");
+    }
+
+    const { error } = await supabase
+      .from("group_members")
+      .delete()
+      .eq("group_id", data.groupId)
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/**
  * Lists group members who haven't yet checked in today (UTC date),
  * excluding the current user if they've already checked in.
  */
