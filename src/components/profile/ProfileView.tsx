@@ -130,20 +130,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
       />
 
       <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[40px_1fr_40px] items-center">
-        {isOwn ? (
-          <div className="text-[24px] font-black tracking-tight px-2 justify-self-start">
-            <span style={{ color: PURPLE }}>P</span>
-            <span>actara</span>
-          </div>
-        ) : (
-          <button
-            onClick={() => navigate({ to: "/groups" })}
-            aria-label="Back"
-            className="h-9 w-9 rounded-full flex items-center justify-center justify-self-start"
-          >
-            <ChevronLeft size={22} />
-          </button>
-        )}
+        <div className="w-10 justify-self-start" />
         {groups.length > 1 && activeGroup ? (
           <div className="relative justify-self-center">
             <button
