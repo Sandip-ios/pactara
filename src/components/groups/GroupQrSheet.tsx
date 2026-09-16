@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Copy, Share2 } from "lucide-react";
+import { Check, Copy, Share2, X } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 
 const PURPLE = "#7C3AED";
