@@ -55,7 +55,7 @@ function VideoRecordScreen() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [zoomOptions, setZoomOptions] = useState<number[]>([1]);
+  
   const [zoomRange, setZoomRange] = useState<{ min: number; max: number; native: boolean }>({
     min: 1,
     max: 1,
@@ -79,31 +79,75 @@ function VideoRecordScreen() {
       : undefined) as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
     const nativeZoom = caps?.zoom;
     // Only treat native zoom as useful when it actually spans a range.
-    // Front cameras often report zoom capability with min=max=1, which would
-    // hide the zoom pill entirely — fall back to CSS scale in that case so
-    // the front camera gets the same presets as the rear.
     const useNative = Boolean(nativeZoom && nativeZoom.max > nativeZoom.min);
     const min = useNative ? nativeZoom!.min : 1;
     const max = useNative ? nativeZoom!.max : 4; // CSS-scale fallback caps at 4x
-    const presets = [0.5, 1, 2, 4, 8].filter((v) => v >= min && v <= max);
-    if (!presets.includes(1) && min <= 1 && 1 <= max) presets.unshift(1);
     setZoomRange({ min, max, native: useNative });
-    setZoomOptions(presets.length > 1 ? presets : [1, 2, 4]);
-    setZoom(1);
-  };
-
-  const applyZoom = async (value: number) => {
-    const stream = streamRef.current;
-    setZoom(value);
-    if (!stream) return;
-    const track = stream.getVideoTracks()[0];
-    if (!track) return;
-    if (zoomRange.native) {
+    // Always start fully zoomed out, on both the front and rear camera.
+    setZoom(min);
+    if (useNative) {
       try {
-        await track.applyConstraints({ advanced: [{ zoom: value } as MediaTrackConstraintSet & { zoom: number }] });
+        void track.applyConstraints({
+          advanced: [{ zoom: min } as MediaTrackConstraintSet & { zoom: number }],
+        });
       } catch {
         /* noop */
       }
+    }
+  };
+
+  const applyZoom = async (value: number, range = zoomRange) => {
+    const clamped = Math.min(range.max, Math.max(range.min, value));
+    const stream = streamRef.current;
+    setZoom(clamped);
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    if (range.native) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: clamped } as MediaTrackConstraintSet & { zoom: number }] });
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
+  // ---- Pinch to zoom -------------------------------------------------
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
+  const [pinching, setPinching] = useState(false);
+
+  const pinchDistance = () => {
+    const pts = Array.from(pointersRef.current.values());
+    if (pts.length < 2) return 0;
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    return Math.hypot(dx, dy);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 2) {
+      pinchRef.current = { dist: pinchDistance(), zoom };
+      setPinching(true);
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const start = pinchRef.current;
+    if (!start || pointersRef.current.size < 2) return;
+    const dist = pinchDistance();
+    if (!dist || !start.dist) return;
+    void applyZoom(start.zoom * (dist / start.dist));
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) {
+      pinchRef.current = null;
+      setPinching(false);
     }
   };
 
@@ -366,6 +410,17 @@ function VideoRecordScreen() {
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
 
+      {/* Pinch-to-zoom surface (sits under the controls) */}
+      <div
+        className="absolute inset-0"
+        style={{ touchAction: "none" }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+        onPointerLeave={onPointerUp}
+      />
+
       {(!ready || !frameReady) && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="flex flex-col items-center gap-3 opacity-70">
@@ -428,35 +483,14 @@ function VideoRecordScreen() {
           </div>
         )}
 
-        {/* Zoom presets, iPhone-style */}
-        {ready && !recording && zoomOptions.length > 1 && (
-          <div className="flex items-center gap-1.5 px-2 py-1.5">
-            {zoomOptions.map((v) => {
-              const active = Math.abs(zoom - v) < 0.01;
-              const label = v < 1 ? `.${Math.round(v * 10)}` : `${v}`;
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => applyZoom(v)}
-                  className="flex items-center justify-center rounded-full transition-all touch-manipulation tabular-nums"
-                  style={{
-                    height: active ? 34 : 30,
-                    minWidth: active ? 34 : 30,
-                    padding: "0 6px",
-                    background: active ? "rgba(0,0,0,0.55)" : "transparent",
-                    color: active ? "#FBBF24" : "#FFFFFF",
-                    fontSize: active ? 12 : 11,
-                    fontWeight: 700,
-                  }}
-                  aria-label={`Zoom ${v}x`}
-                  aria-pressed={active}
-                >
-                  {label}
-                  <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
-                </button>
-              );
-            })}
+        {/* Pinch-to-zoom readout */}
+        {ready && (pinching || Math.abs(zoom - zoomRange.min) > 0.01) && (
+          <div
+            className="px-3 py-1 rounded-full bg-black/55 backdrop-blur text-[12px] font-bold tabular-nums transition-opacity"
+            style={{ color: "#FBBF24" }}
+          >
+            {zoom.toFixed(1)}
+            <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
           </div>
         )}
 
