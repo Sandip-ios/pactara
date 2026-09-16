@@ -675,6 +675,7 @@ function VideoRecordScreen() {
               cursor: recording && !canStop ? "not-allowed" : "pointer",
             }}
           />
+          </div>
         </div>
 
       </div>
