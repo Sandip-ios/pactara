@@ -472,35 +472,14 @@ function VideoRecordScreen() {
           </div>
         )}
 
-        {/* Zoom presets, iPhone-style */}
-        {ready && !recording && zoomOptions.length > 1 && (
-          <div className="flex items-center gap-1.5 px-2 py-1.5">
-            {zoomOptions.map((v) => {
-              const active = Math.abs(zoom - v) < 0.01;
-              const label = v < 1 ? `.${Math.round(v * 10)}` : `${v}`;
-              return (
-                <button
-                  key={v}
-                  type="button"
-                  onClick={() => applyZoom(v)}
-                  className="flex items-center justify-center rounded-full transition-all touch-manipulation tabular-nums"
-                  style={{
-                    height: active ? 34 : 30,
-                    minWidth: active ? 34 : 30,
-                    padding: "0 6px",
-                    background: active ? "rgba(0,0,0,0.55)" : "transparent",
-                    color: active ? "#FBBF24" : "#FFFFFF",
-                    fontSize: active ? 12 : 11,
-                    fontWeight: 700,
-                  }}
-                  aria-label={`Zoom ${v}x`}
-                  aria-pressed={active}
-                >
-                  {label}
-                  <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
-                </button>
-              );
-            })}
+        {/* Pinch-to-zoom readout */}
+        {ready && (pinching || Math.abs(zoom - zoomRange.min) > 0.01) && (
+          <div
+            className="px-3 py-1 rounded-full bg-black/55 backdrop-blur text-[12px] font-bold tabular-nums transition-opacity"
+            style={{ color: "#FBBF24" }}
+          >
+            {zoom.toFixed(1)}
+            <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
           </div>
         )}
 
