@@ -234,7 +234,7 @@ function CheckInRouter() {
       onPosted={() => setLocalPosted(selectedGroupId)}
     />
   ) : (
-    <CheckInMood switcher={switcher} />
+    <CheckInLaunch />
   );
 }
 
