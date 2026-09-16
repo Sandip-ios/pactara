@@ -12,7 +12,9 @@ export type InviteEvent =
   | "invite_join_already_member"
   | "invite_join_failed"
   | "invite_redirected_to_existing_group"
+  | "invite_declined"
   | "deferred_deeplink_received";
+
 
 export type InviteEventProps = {
   group_id?: string | null;
