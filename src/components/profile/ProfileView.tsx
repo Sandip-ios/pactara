@@ -26,6 +26,7 @@ import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
