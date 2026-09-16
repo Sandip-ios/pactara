@@ -22,6 +22,7 @@ import {
   deleteCheckIn,
 } from "@/lib/daily-posts.functions";
 import { hapticLight } from "@/lib/native";
+import { attachVideoDurationFix } from "@/lib/video-playback";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Hourglass,
