@@ -8,6 +8,7 @@ import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
 import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
+import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { GroupOverflowMenu } from "@/components/groups/GroupOverflowMenu";
 import {
   BG,
