@@ -134,7 +134,9 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
             <p className="flex-1 text-[15px] leading-[1.35] text-neutral-700">{copy.message}</p>
             {copy.cta && (
               <button
-                onClick={() => navigate({ to: "/check-in" })}
+                onClick={goToCheckIn}
+                onTouchStart={onCtaTouchStart}
+                onTouchEnd={onCtaTouchEnd}
                 className="shrink-0 rounded-full px-4 py-2.5 text-[14px] font-bold text-white active:scale-[0.98]"
                 style={{ background: PURPLE }}
               >
