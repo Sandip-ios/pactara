@@ -9,7 +9,7 @@ import { decideInviteResolution, type InviteResolution } from "@/lib/invite-reso
 import { trackInvite } from "@/lib/invite-analytics";
 import { supabase } from "@/integrations/supabase/client";
 import { isNative } from "@/lib/native";
-import { setPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+import { setPendingInvite, clearPendingInvite, rememberSavedInvite } from "@/lib/pending-invite";
 import { recordDeferredInvite } from "@/lib/deferred-invite";
 
 
@@ -526,6 +526,8 @@ function JoinPage() {
           <button
             onClick={() => {
               trackInvite("invite_declined", { group_id: groupId });
+              // Keep it around so the Groups page can offer a way back in.
+              rememberSavedInvite(groupId);
               clearPendingInvite();
               navigate({ to: "/groups", replace: true });
             }}

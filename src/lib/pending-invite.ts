@@ -69,3 +69,37 @@ export function wasInviteConsumed(groupId: string): boolean {
   }
 }
 
+
+const SAVED_KEY = "saved-invites";
+
+/**
+ * Invites the user chose "Not now" on. Kept locally so the Groups page can
+ * offer a way back in — the link itself is easy to lose in a text thread.
+ */
+export function rememberSavedInvite(groupId: string) {
+  try {
+    const list = getSavedInvites().filter((id) => id !== groupId);
+    list.unshift(groupId);
+    localStorage.setItem(SAVED_KEY, JSON.stringify(list.slice(0, 5)));
+  } catch {
+    // ignore
+  }
+}
+
+export function getSavedInvites(): string[] {
+  try {
+    const raw = localStorage.getItem(SAVED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((v) => typeof v === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export function removeSavedInvite(groupId: string) {
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify(getSavedInvites().filter((id) => id !== groupId)));
+  } catch {
+    // ignore
+  }
+}
