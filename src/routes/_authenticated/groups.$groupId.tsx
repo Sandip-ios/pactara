@@ -32,6 +32,14 @@ function GroupDetailPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"today" | "activity">("today");
 
+  // Viewing a group makes it the active group, so a check-in started from here
+  // posts to this group.
+  useEffect(() => {
+    if (groupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", groupId);
+    }
+  }, [groupId]);
+
   const { data, isLoading } = useQuery({
     queryKey: ["groups-today"],
     queryFn: () => getGroupsToday(),
