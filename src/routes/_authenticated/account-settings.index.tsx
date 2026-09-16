@@ -11,6 +11,8 @@ import {
   Bell,
   Trash2,
   Loader2,
+  Zap,
+  LogOut,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/profile.functions";
