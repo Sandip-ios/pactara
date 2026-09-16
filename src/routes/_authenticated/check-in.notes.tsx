@@ -298,6 +298,11 @@ function NotesPage() {
           </div>
         </div>
         <div className="px-6 pt-6">
+          {!allGroups && activeGroupName && (
+            <div className="mb-3 text-[14px] text-neutral-500">
+              Posting to <span className="font-semibold text-neutral-900">{activeGroupName}</span>
+            </div>
+          )}
           <AllGroupsToggle
             count={myGroups.length}
             value={allGroups}
