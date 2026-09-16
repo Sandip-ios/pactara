@@ -198,8 +198,9 @@ function VideoRecordScreen() {
   const onCarouselPointerDown = (e: React.PointerEvent) => {
     if (recording) return;
     swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    draggedRef.current = false;
     lastStepRef.current = 0;
-    setDragging(true);
+
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
