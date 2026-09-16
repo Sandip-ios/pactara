@@ -192,9 +192,6 @@ function VideoRecordScreen() {
   // The carousel tracks the finger continuously (fractional index) and snaps
   // to the nearest look on release — Snapchat-style, no stepped jumps.
   const SPACING = 72;
-  const [dragOffset, setDragOffset] = useState(0); // in look units, live drag
-  const [dragging, setDragging] = useState(false);
-  const lastStepRef = useRef(0);
 
   const onCarouselPointerDown = (e: React.PointerEvent) => {
     swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
