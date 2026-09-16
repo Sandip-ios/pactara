@@ -70,7 +70,14 @@ function VideoRecordScreen() {
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [lookIndex, setLookIndex] = useState(0);
-  const look = LOOKS[lookIndex] ?? LOOKS[0];
+  const [dragOffset, setDragOffset] = useState(0); // live drag, in look units
+  const [dragging, setDragging] = useState(false);
+  const lastStepRef = useRef(0);
+  const displayIndex = Math.min(
+    LOOKS.length - 1,
+    Math.max(0, Math.round(lookIndex + dragOffset)),
+  );
+  const look = LOOKS[displayIndex] ?? LOOKS[0];
   const lookRef = useRef(look.css);
   lookRef.current = look.css;
   const bakeCleanupRef = useRef<(() => void) | null>(null);
