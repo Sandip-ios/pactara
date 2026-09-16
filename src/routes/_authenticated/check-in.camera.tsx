@@ -307,11 +307,18 @@ function VideoRecordScreen() {
       return;
     }
 
+    // Bake the selected look into the recording by drawing the camera frames
+    // through a filtered canvas and recording that canvas instead.
+    const baked = buildBakedStream(stream, lookRef.current);
+    bakeCleanupRef.current = baked.cleanup;
+
     const mimeType = pickMimeType();
     let rec: MediaRecorder;
     try {
-      rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      rec = new MediaRecorder(baked.stream, mimeType ? { mimeType } : undefined);
     } catch {
+      baked.cleanup();
+      bakeCleanupRef.current = null;
       setError("Recording isn't supported on this browser.");
       return;
     }
@@ -323,6 +330,8 @@ function VideoRecordScreen() {
       const type = rec.mimeType || "video/webm";
       const blob = new Blob(chunksRef.current, { type });
       chunksRef.current = [];
+      bakeCleanupRef.current?.();
+      bakeCleanupRef.current = null;
       if (blob.size > 0) setCheckInPhoto(blob);
       stopStream();
       navigate({ to: "/check-in/notes" });
