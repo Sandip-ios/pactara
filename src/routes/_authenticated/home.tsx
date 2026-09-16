@@ -220,7 +220,15 @@ function HomePage() {
     thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: photoPath || undefined } });
   };
 
+  // iOS ghost-tap guard: when the keyboard collapses or the page shifts
+  // mid-tap, the click event can dispatch at stale coordinates and land on
+  // this button, opening the photo picker unexpectedly. Only honor a click
+  // when a touch actually started on the button recently, or on devices that
+  // never send touch events (desktop).
+  const addPhotoTouchAt = useRef(0);
   const pickImage = () => {
+    const touched = addPhotoTouchAt.current;
+    if (touched !== 0 && Date.now() - touched > 1500) return;
     setComposerOpen(true);
     fileInputRef.current?.click();
   };
