@@ -660,12 +660,11 @@ function VideoRecordScreen() {
         {/* Lens carousel: record button in the centre, looks slide past it */}
         <div
           className="relative w-full h-28 flex items-center justify-center"
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "none" }}
           onPointerDown={onCarouselPointerDown}
           onPointerMove={onCarouselPointerMove}
           onPointerUp={onCarouselPointerUp}
           onPointerCancel={onCarouselPointerUp}
-          onPointerLeave={onCarouselPointerUp}
         >
           {ready && !error && !recording && LOOKS.map((l, i) => {
             // Fractional offset so circles glide with the finger.
@@ -682,9 +681,12 @@ function VideoRecordScreen() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => { if (!dragging) setLookIndex(i); }}
+                onClick={() => {
+                  if (dragging || draggedRef.current) return;
+                  setLookIndex(i);
+                }}
                 aria-label={l.label}
-                className="absolute rounded-full touch-manipulation"
+                className="absolute rounded-full"
                 style={{
                   height: size,
                   width: size,
@@ -692,6 +694,7 @@ function VideoRecordScreen() {
                   background: l.swatch,
                   border: "2px solid rgba(255,255,255,0.75)",
                   opacity,
+                  touchAction: "none",
                   pointerEvents: abs < 0.45 ? "none" : "auto",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
                   transition: dragging
@@ -701,6 +704,7 @@ function VideoRecordScreen() {
               />
             );
           })}
+
 
 
           <div className="relative h-24 w-24 flex items-center justify-center">
