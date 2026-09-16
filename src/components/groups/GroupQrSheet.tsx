@@ -121,13 +121,6 @@ export function GroupQrSheet({
               Share
             </button>
           </div>
-
-          <button
-            onClick={() => onOpenChange(false)}
-            className="mt-3 w-full rounded-2xl py-3 text-[15px] font-semibold text-white/80"
-          >
-            Close
-          </button>
         </div>
       </DrawerContent>
     </Drawer>
