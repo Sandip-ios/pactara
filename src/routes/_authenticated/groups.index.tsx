@@ -5,6 +5,7 @@ import { Plus, Link as LinkIcon, ChevronRight } from "lucide-react";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { GroupOverflowMenu } from "@/components/groups/GroupOverflowMenu";
+import { PendingInvitesRow } from "@/components/groups/PendingInvitesRow";
 import {
   BG,
   GroupStreakChip,
@@ -133,6 +134,8 @@ function GroupsOverview() {
             </button>
           </div>
         )}
+
+        <PendingInvitesRow joinedIds={groups.map((g) => g.id)} />
 
         <div className="mt-4 space-y-3">
           {groups.length === 0 && <EmptyGroups />}
