@@ -66,7 +66,7 @@ function VideoRecordScreen() {
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("user");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [lookIndex, setLookIndex] = useState(0);
@@ -156,11 +156,7 @@ function VideoRecordScreen() {
 
   const onPointerDown = (e: React.PointerEvent) => {
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointersRef.current.size === 1) {
-      swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
-    }
     if (pointersRef.current.size === 2) {
-      swipeRef.current = null;
       pinchRef.current = { dist: pinchDistance(), zoom };
       setPinching(true);
     }
@@ -169,17 +165,6 @@ function VideoRecordScreen() {
   const onPointerMove = (e: React.PointerEvent) => {
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    const swipe = swipeRef.current;
-    if (swipe && !swipe.done && pointersRef.current.size === 1 && swipe.id === e.pointerId) {
-      const dx = e.clientX - swipe.x;
-      const dy = e.clientY - swipe.y;
-      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-        stepLook(dx < 0 ? 1 : -1);
-        // Allow continuous swiping: re-anchor for the next step.
-        swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
-      }
-    }
 
     const start = pinchRef.current;
     if (!start || pointersRef.current.size < 2) return;
@@ -190,11 +175,31 @@ function VideoRecordScreen() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     pointersRef.current.delete(e.pointerId);
-    if (swipeRef.current?.id === e.pointerId) swipeRef.current = null;
     if (pointersRef.current.size < 2) {
       pinchRef.current = null;
       setPinching(false);
     }
+  };
+
+  // ---- Swipe on the filter carousel itself ---------------------------
+  const onCarouselPointerDown = (e: React.PointerEvent) => {
+    swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+  };
+
+  const onCarouselPointerMove = (e: React.PointerEvent) => {
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.done || swipe.id !== e.pointerId) return;
+    const dx = e.clientX - swipe.x;
+    const dy = e.clientY - swipe.y;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+      stepLook(dx < 0 ? 1 : -1);
+      // Allow continuous swiping: re-anchor for the next step.
+      swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    }
+  };
+
+  const onCarouselPointerUp = (e: React.PointerEvent) => {
+    if (swipeRef.current?.id === e.pointerId) swipeRef.current = null;
   };
 
   const attachStream = (stream: MediaStream) => {
@@ -603,18 +608,16 @@ function VideoRecordScreen() {
           </div>
         )}
 
-        {/* Active look name (Snapchat-style label above the carousel) */}
-        {ready && !error && !recording && (
-          <div
-            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide"
-            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
-          >
-            {look.label}
-          </div>
-        )}
-
         {/* Lens carousel: record button in the centre, looks slide past it */}
-        <div className="relative w-full h-28 flex items-center justify-center">
+        <div
+          className="relative w-full h-28 flex items-center justify-center"
+          style={{ touchAction: "pan-y" }}
+          onPointerDown={onCarouselPointerDown}
+          onPointerMove={onCarouselPointerMove}
+          onPointerUp={onCarouselPointerUp}
+          onPointerCancel={onCarouselPointerUp}
+          onPointerLeave={onCarouselPointerUp}
+        >
           {ready && !error && !recording && LOOKS.map((l, i) => {
             const offset = i - lookIndex;
             if (offset === 0) return null;
@@ -642,6 +645,7 @@ function VideoRecordScreen() {
               />
             );
           })}
+
 
           <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
@@ -677,6 +681,17 @@ function VideoRecordScreen() {
           />
           </div>
         </div>
+
+        {/* Active look name (below the carousel) */}
+        {ready && !error && !recording && (
+          <div
+            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide whitespace-nowrap"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
+          >
+            {look.label}
+          </div>
+        )}
+
 
       </div>
 
