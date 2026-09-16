@@ -1,5 +1,6 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Home, Users, Zap, MessageCircle } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
@@ -10,6 +11,7 @@ const AVATAR_BG = "#7C3AED";
 
 export function BottomTabs() {
   const navigate = useNavigate();
+  const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: status } = useQuery({
@@ -33,6 +35,22 @@ export function BottomTabs() {
   const isActive = (path: string) =>
     path === "/home" ? pathname === "/home" : pathname.startsWith(path);
 
+  // Warm every tab's code so switching is instant, not a chunk download.
+  useEffect(() => {
+    const warm = () => {
+      for (const to of ["/home", "/groups", "/check-in", "/chat", "/profile"]) {
+        router.preloadRoute({ to }).catch(() => {});
+      }
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(warm);
+    else setTimeout(warm, 500);
+  }, [router]);
+
+  const preload = (to: string) => () => {
+    router.preloadRoute({ to }).catch(() => {});
+  };
+
   return (
     <nav
       data-bottom-tabs
@@ -44,18 +62,21 @@ export function BottomTabs() {
         icon={<Home size={22} />}
         label="Home"
         active={isActive("/home")}
+        onPointerDown={preload("/home")}
         onClick={() => navigate({ to: "/home" })}
       />
       <TabItem
         icon={<Users size={22} />}
         label="Groups"
         active={isActive("/groups")}
+        onPointerDown={preload("/groups")}
         onClick={() => navigate({ to: "/groups" })}
       />
       <TabItem
         icon={<Zap size={22} />}
         label="Check In"
         active={isActive("/check-in")}
+        onPointerDown={preload("/check-in")}
         onClick={() => navigate({ to: "/check-in" })}
       />
       <TabItem
@@ -71,9 +92,11 @@ export function BottomTabs() {
         }
         label="Chat"
         active={isActive("/chat")}
+        onPointerDown={preload("/chat")}
         onClick={() => navigate({ to: "/chat" })}
       />
       <button
+        onPointerDown={preload("/profile")}
         onClick={() => navigate({ to: "/profile" })}
         className="flex flex-col items-center gap-1"
         aria-label="Profile"
@@ -99,14 +122,17 @@ function TabItem({
   label,
   active,
   onClick,
+  onPointerDown,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick?: () => void;
+  onPointerDown?: () => void;
 }) {
   return (
     <button
+      onPointerDown={onPointerDown}
       onClick={onClick}
       className="flex flex-col items-center gap-1"
       style={{ color: active ? PURPLE : "#A3A3A3" }}
