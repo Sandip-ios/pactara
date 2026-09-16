@@ -467,7 +467,12 @@ function HomePage() {
             {(streaksData?.members ?? []).map((m) => {
               const initial = (m.name || "U").slice(0, 1).toUpperCase();
               return (
-                <div key={m.userId} className="shrink-0 flex flex-col items-center pb-2">
+                <MemberProfileLink
+                  key={m.userId}
+                  userId={m.userId}
+                  isYou={m.isYou}
+                  className="shrink-0 flex flex-col items-center pb-2"
+                >
                   <div className="relative">
                     <div
                       className="h-[128px] w-[80px] rounded-lg flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
