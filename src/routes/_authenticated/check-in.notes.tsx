@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getCheckInCelebrationData, recordCheckIn, type CelebrationData } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
-import type { MoodId } from "./check-in.index";
+
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 import { listMyGroups } from "@/lib/groups.functions";
@@ -86,7 +86,6 @@ function NotesPage() {
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [mood, setMood] = useState<MoodId | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [allGroups, setAllGroups] = useState(false);
@@ -99,7 +98,6 @@ function NotesPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
-    setMood(sessionStorage.getItem("checkin-mood") as MoodId | null);
     setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
   }, []);
 
