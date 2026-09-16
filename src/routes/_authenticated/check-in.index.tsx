@@ -170,12 +170,13 @@ function GroupSwitcher({
 }) {
   const [open, setOpen] = useState(false);
   const active = groups.find((g) => g.id === selectedGroupId) ?? groups[0];
-  if (!active || groups.length < 2) {
-    if (!active) return null;
+  if (!active) return null;
+  if (groups.length < 2) {
     return (
       <div className="px-6 pt-safe-6">
-        <div className="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-700">
-          {active.name}
+        <div className="flex items-center gap-1.5 font-bold text-neutral-900">
+          {active.emoji && <span>{active.emoji}</span>}
+          <span className="truncate max-w-[220px]">{active.name}</span>
         </div>
       </div>
     );
@@ -185,10 +186,11 @@ function GroupSwitcher({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-neutral-200 px-3 py-1.5 text-[13px] font-semibold text-neutral-800"
+        className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
       >
-        {active.name}
-        <ChevronDown size={14} />
+        {active.emoji && <span>{active.emoji}</span>}
+        <span className="truncate max-w-[200px]">{active.name}</span>
+        <ChevronDown size={16} className="text-neutral-500" />
       </button>
       <GroupSwitcherSheet
         open={open}
