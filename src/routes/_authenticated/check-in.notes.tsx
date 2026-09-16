@@ -95,6 +95,11 @@ function NotesPage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const activeGroupName = (() => {
+    const id = getActiveGroupId();
+    const g = myGroups.find((x) => (x.id as string) === id) ?? myGroups[0];
+    return g ? `${g.emoji ? `${g.emoji} ` : ""}${g.name}` : null;
+  })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
