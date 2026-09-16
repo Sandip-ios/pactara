@@ -282,6 +282,9 @@ export const getMemberProfile = createServerFn({ method: "GET" })
             (row) => row.group_id === g.id,
           );
           return {
+            id: g.id,
+            name: g.name,
+            emoji: g.emoji,
             durationDays: g.duration_days ?? 30,
             startDate: g.start_date,
             createdAt: g.created_at,
@@ -293,7 +296,6 @@ export const getMemberProfile = createServerFn({ method: "GET" })
               ),
           };
         },
-      ),
       ),
       media,
       badges,
