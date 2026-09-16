@@ -264,9 +264,13 @@ export function CheckInCelebrationModal({
                   <span
                     key={i}
                     aria-label={t.checkedIn ? "Checked in" : "Not yet"}
-                    className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-semibold"
+                    className="relative inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold"
                     style={{
-                      background: t.checkedIn ? COLORS.checked : "#fff",
+                      background: t.avatarUrl
+                        ? "#F3F4F6"
+                        : t.checkedIn
+                          ? t.avatarColor || COLORS.checked
+                          : "#fff",
                       color: t.checkedIn ? "#fff" : COLORS.pendingText,
                       border: t.checkedIn
                         ? `2px solid #fff`
@@ -274,9 +278,19 @@ export function CheckInCelebrationModal({
                       boxShadow: t.checkedIn
                         ? "0 0 0 1px rgba(0,0,0,0.04)"
                         : "none",
+                      opacity: t.checkedIn ? 1 : 0.65,
                     }}
                   >
-                    {t.initial?.slice(0, 1).toUpperCase() || "•"}
+                    {t.avatarUrl ? (
+                      <img
+                        src={t.avatarUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                        crossOrigin="anonymous"
+                      />
+                    ) : (
+                      t.initial?.slice(0, 1).toUpperCase() || "•"
+                    )}
                     {t.checkedIn && (
                       <span
                         aria-hidden
@@ -289,6 +303,7 @@ export function CheckInCelebrationModal({
                     )}
                   </span>
                 ))}
+
               </div>
               <div className="text-[13px]" style={{ color: COLORS.inkSoft }}>
                 {checkedInCount} checked in
