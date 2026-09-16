@@ -411,7 +411,12 @@ function HomePage() {
           >
             What's on your mind, {firstName}?
           </button>
-          <button onClick={pickImage} className="h-10 w-10 rounded-lg flex items-center justify-center" aria-label="Add photo">
+          <button
+            onClick={pickImage}
+            onTouchStart={() => { addPhotoTouchAt.current = Date.now(); }}
+            className="h-10 w-10 rounded-lg flex items-center justify-center"
+            aria-label="Add photo"
+          >
             <ImageIcon size={20} className="text-green-600" />
           </button>
         </div>
