@@ -220,7 +220,15 @@ function HomePage() {
     thoughtMutation.mutate({ data: { text: text || undefined, photoUrl: photoPath || undefined } });
   };
 
+  // iOS ghost-tap guard: when the keyboard collapses or the page shifts
+  // mid-tap, the click event can dispatch at stale coordinates and land on
+  // this button, opening the photo picker unexpectedly. Only honor a click
+  // when a touch actually started on the button recently, or on devices that
+  // never send touch events (desktop).
+  const addPhotoTouchAt = useRef(0);
   const pickImage = () => {
+    const touched = addPhotoTouchAt.current;
+    if (touched !== 0 && Date.now() - touched > 1500) return;
     setComposerOpen(true);
     fileInputRef.current?.click();
   };
@@ -403,7 +411,12 @@ function HomePage() {
           >
             What's on your mind, {firstName}?
           </button>
-          <button onClick={pickImage} className="h-10 w-10 rounded-lg flex items-center justify-center" aria-label="Add photo">
+          <button
+            onClick={pickImage}
+            onTouchStart={() => { addPhotoTouchAt.current = Date.now(); }}
+            className="h-10 w-10 rounded-lg flex items-center justify-center"
+            aria-label="Add photo"
+          >
             <ImageIcon size={20} className="text-green-600" />
           </button>
         </div>
@@ -437,7 +450,12 @@ function HomePage() {
             </div>
           )}
           <div className="border-t border-neutral-100 px-3 py-2 flex items-center justify-between">
-            <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+            <button
+              onClick={pickImage}
+              onTouchStart={() => { addPhotoTouchAt.current = Date.now(); }}
+              className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center"
+              aria-label="Add photo"
+            >
               <ImageIcon size={20} className="text-green-600" />
             </button>
             <div className="flex items-center gap-2">

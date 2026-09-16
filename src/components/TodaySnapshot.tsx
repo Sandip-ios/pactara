@@ -54,8 +54,29 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
   const startX = useRef<number | null>(null);
   const deltaX = useRef(0);
   const trackRef = useRef<HTMLDivElement>(null);
+  // iOS: when the keyboard collapses mid-tap the later click event dispatches at
+  // stale screen coordinates and can land on another element (e.g. the home
+  // composer's photo button, which opens the file picker). Navigate at touch
+  // time instead, and only when the touch didn't move (not a scroll/swipe).
+  const ctaTouch = useRef<{ x: number; y: number } | null>(null);
 
   const SLIDES = 2;
+
+  const goToCheckIn = () => navigate({ to: "/check-in" });
+
+  const onCtaTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    ctaTouch.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const onCtaTouchEnd = (e: React.TouchEvent) => {
+    const t = e.changedTouches[0];
+    const start = ctaTouch.current;
+    ctaTouch.current = null;
+    if (start && Math.hypot(t.clientX - start.x, t.clientY - start.y) < 12) {
+      goToCheckIn();
+    }
+  };
 
   const onTouchStart = (e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
@@ -103,7 +124,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         {/* Slide 1 — Today's commitment */}
         <div
           className="w-full shrink-0 overflow-hidden"
-          style={{ maxHeight: index === 0 ? 400 : 0 }}
+          style={{ maxHeight: index === 0 ? 400 : 0, visibility: index === 0 ? "visible" : "hidden" }}
           aria-hidden={index !== 0}
         >
           <div className="px-4 pt-4">
@@ -113,7 +134,9 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
             <p className="flex-1 text-[15px] leading-[1.35] text-neutral-700">{copy.message}</p>
             {copy.cta && (
               <button
-                onClick={() => navigate({ to: "/check-in" })}
+                onClick={goToCheckIn}
+                onTouchStart={onCtaTouchStart}
+                onTouchEnd={onCtaTouchEnd}
                 className="shrink-0 rounded-full px-4 py-2.5 text-[14px] font-bold text-white active:scale-[0.98]"
                 style={{ background: PURPLE }}
               >
@@ -126,7 +149,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         {/* Slide 2 — Weekly snapshot */}
         <div
           className="w-full shrink-0 overflow-hidden"
-          style={{ maxHeight: index === 1 ? 400 : 0 }}
+          style={{ maxHeight: index === 1 ? 400 : 0, visibility: index === 1 ? "visible" : "hidden" }}
           aria-hidden={index !== 1}
         >
           <div className="px-4 pt-4">
