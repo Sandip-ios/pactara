@@ -45,6 +45,13 @@ function AccountSettingsHub() {
     onError: (e: Error) => setErr(e.message),
   });
 
+  const handleSignOut = async () => {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    navigate({ to: "/login", replace: true });
+  };
+
   return (
     <div
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
