@@ -576,6 +576,48 @@ function VideoRecordScreen() {
           </div>
         )}
 
+        {/* Look picker */}
+        {ready && !error && (
+          <div
+            className="w-full overflow-x-auto no-scrollbar"
+            style={{ touchAction: "pan-x" }}
+          >
+            <div className="flex items-end gap-3 px-5 pb-1">
+              {LOOKS.map((l) => {
+                const active = l.id === look.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setLookId(l.id)}
+                    className="flex flex-col items-center gap-1.5 shrink-0 touch-manipulation"
+                    aria-label={l.label}
+                    aria-pressed={active}
+                  >
+                    <span
+                      className="block rounded-full"
+                      style={{
+                        height: active ? 46 : 40,
+                        width: active ? 46 : 40,
+                        background: l.swatch,
+                        border: active ? `2.5px solid ${PURPLE}` : "2px solid rgba(255,255,255,0.55)",
+                        boxShadow: active ? `0 0 0 3px rgba(124,58,237,0.28)` : "none",
+                        transition: "all 140ms ease",
+                      }}
+                    />
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{ color: active ? "#FFFFFF" : "rgba(255,255,255,0.65)" }}
+                    >
+                      {l.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
 
 
         <div className="relative h-24 w-24 flex items-center justify-center">
