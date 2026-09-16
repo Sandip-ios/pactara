@@ -54,12 +54,15 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const targetId = data.userId ?? callerId;
     const isSelf = targetId === callerId;
 
-    // Groups the caller belongs to
+    // Groups the caller belongs to, newest membership first (matches the
+    // order every other group switcher sheet uses)
     const { data: myRows } = await supabase
       .from("group_members")
       .select("group_id, joined_at")
-      .eq("user_id", callerId);
-    const myGroupIds = (myRows ?? []).map((r) => r.group_id as string);
+      .eq("user_id", callerId)
+      .order("joined_at", { ascending: false });
+    const myOrder = (myRows ?? []).map((r) => r.group_id as string);
+    const myGroupIds = myOrder;
 
     // Groups the target belongs to (restricted to shared ones when viewing someone else)
     const { data: theirRows } = await supabase
@@ -269,34 +272,40 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       groupEmoji: (group as { emoji?: string } | null)?.emoji ?? null,
       durationDays: (group as { duration_days?: number } | null)?.duration_days ?? null,
       startDate: (group as { start_date?: string } | null)?.start_date ?? null,
-      sharedGroups: (sharedGroups ?? []).map(
-        (g: {
-          id: string;
-          name: string;
-          emoji: string;
-          duration_days: number | null;
-          start_date: string | null;
-          created_at: string | null;
-        }) => {
-          const groupMemberships = (sharedMemberships ?? []).filter(
-            (row) => row.group_id === g.id,
-          );
-          return {
-            id: g.id,
-            name: g.name,
-            emoji: g.emoji,
-            durationDays: g.duration_days ?? 30,
-            startDate: g.start_date,
-            createdAt: g.created_at,
-            memberCount: groupMemberships.length,
-            members: groupMemberships
-              .map((row) => sharedProfileById.get(row.user_id as string))
-              .filter(
-                (member): member is NonNullable<typeof member> => Boolean(member),
-              ),
-          };
-        },
-      ),
+      sharedGroups: (sharedGroups ?? [])
+        .map(
+          (g: {
+            id: string;
+            name: string;
+            emoji: string;
+            duration_days: number | null;
+            start_date: string | null;
+            created_at: string | null;
+          }) => {
+            const groupMemberships = (sharedMemberships ?? []).filter(
+              (row) => row.group_id === g.id,
+            );
+            return {
+              id: g.id,
+              name: g.name,
+              emoji: g.emoji,
+              durationDays: g.duration_days ?? 30,
+              startDate: g.start_date,
+              createdAt: g.created_at,
+              memberCount: groupMemberships.length,
+              members: groupMemberships
+                .map((row) => sharedProfileById.get(row.user_id as string))
+                .filter(
+                  (member): member is NonNullable<typeof member> => Boolean(member),
+                ),
+            };
+          },
+        )
+        // Keep the same order as the home / check-in / notifications sheets
+        .sort(
+          (a, b) =>
+            myOrder.indexOf(a.id) - myOrder.indexOf(b.id),
+        ),
       media,
       badges,
       totalCheckIns: dates.length,
