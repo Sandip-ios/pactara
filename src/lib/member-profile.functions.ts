@@ -97,8 +97,47 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const sharedIds = theirMemberships.map((m) => m.group_id as string);
     const { data: sharedGroups } = await supabase
       .from("groups")
-      .select("id, name, emoji")
+      .select("id, name, emoji, duration_days, start_date, created_at")
       .in("id", sharedIds);
+
+    const { data: sharedMemberships } = await supabase
+      .from("group_members")
+      .select("group_id, user_id, joined_at")
+      .in("group_id", sharedIds)
+      .order("joined_at", { ascending: true });
+
+    const sharedMemberIds = [
+      ...new Set((sharedMemberships ?? []).map((row) => row.user_id as string)),
+    ];
+    const { data: sharedProfiles } = sharedMemberIds.length
+      ? await supabase
+          .from("profiles")
+          .select("id, name, avatar_color, avatar_url")
+          .in("id", sharedMemberIds)
+      : { data: [] };
+    const sharedProfileById = new Map(
+      await Promise.all(
+        (sharedProfiles ?? []).map(async (memberProfile) => {
+          const avatarPath = memberProfile.avatar_url as string | null;
+          let memberAvatarUrl: string | null = null;
+          if (avatarPath) {
+            const { data: signedAvatar } = await supabase.storage
+              .from("avatars")
+              .createSignedUrl(avatarPath, 60 * 60);
+            memberAvatarUrl = signedAvatar?.signedUrl ?? null;
+          }
+          return [
+            memberProfile.id as string,
+            {
+              id: memberProfile.id as string,
+              name: (memberProfile.name as string | null) ?? "Member",
+              avatarColor: (memberProfile.avatar_color as string | null) ?? "#7C3AED",
+              avatarUrl: memberAvatarUrl,
+            },
+          ] as const;
+        }),
+      ),
+    );
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -231,11 +270,32 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       durationDays: (group as { duration_days?: number } | null)?.duration_days ?? null,
       startDate: (group as { start_date?: string } | null)?.start_date ?? null,
       sharedGroups: (sharedGroups ?? []).map(
-        (g: { id: string; name: string; emoji: string }) => ({
-          id: g.id,
-          name: g.name,
-          emoji: g.emoji,
-        }),
+        (g: {
+          id: string;
+          name: string;
+          emoji: string;
+          duration_days: number | null;
+          start_date: string | null;
+          created_at: string | null;
+        }) => {
+          const groupMemberships = (sharedMemberships ?? []).filter(
+            (row) => row.group_id === g.id,
+          );
+          return {
+            id: g.id,
+            name: g.name,
+            emoji: g.emoji,
+            durationDays: g.duration_days ?? 30,
+            startDate: g.start_date,
+            createdAt: g.created_at,
+            memberCount: groupMemberships.length,
+            members: groupMemberships
+              .map((row) => sharedProfileById.get(row.user_id as string))
+              .filter(
+                (member): member is NonNullable<typeof member> => Boolean(member),
+              ),
+          };
+        },
       ),
       media,
       badges,

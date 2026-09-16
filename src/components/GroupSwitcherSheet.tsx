@@ -3,8 +3,6 @@ import { createPortal } from "react-dom";
 import { Check } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
-const PURPLE = "#7C3AED";
-
 export type SwitcherGroup = {
   id: string;
   name: string;
@@ -71,50 +69,46 @@ export default function GroupSwitcherSheet({
       <button
         aria-label="Close"
         onClick={onClose}
-        className="absolute inset-0 bg-black/40 transition-opacity duration-200"
+        className="absolute inset-0 bg-foreground/40 transition-opacity duration-200"
         style={{ opacity: shown ? 1 : 0 }}
       />
       <div
-        className="absolute inset-x-0 bottom-0 rounded-t-[22px] bg-white transition-transform duration-200 ease-out"
+        className="absolute inset-x-0 bottom-0 rounded-t-[28px] bg-background transition-transform duration-200 ease-out"
         style={{
           transform: shown ? "translateY(0)" : "translateY(100%)",
-          paddingBottom: "calc(env(safe-area-inset-bottom) + 12px)",
-          boxShadow: "0 -8px 30px rgba(0,0,0,0.18)",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 18px)",
+          boxShadow: "0 -8px 30px color-mix(in oklab, var(--foreground) 18%, transparent)",
         }}
       >
-        <div className="flex justify-center pt-2.5 pb-1">
-          <span className="h-1 w-10 rounded-full bg-neutral-300" />
+        <div className="flex justify-center pt-3 pb-2">
+          <span className="h-1 w-10 rounded-full bg-border" />
         </div>
-        <div className="px-5 pt-1 pb-2">
-          <h2 className="text-[17px] font-bold text-neutral-900">Switch group</h2>
+        <div className="px-5 pt-1 pb-3">
+          <h2 className="text-[26px] leading-8 font-bold text-foreground">Switch group</h2>
         </div>
-        <div className="max-h-[60vh] overflow-y-auto px-2 pb-2">
+        <div className="max-h-[68vh] overflow-y-auto px-3 pb-2">
           {allowAll && (
             <button
               onClick={() => {
                 onSelect("all");
                 onClose();
               }}
-              className="w-full flex items-center gap-3 rounded-2xl px-3 py-3 text-left active:bg-neutral-100"
+              className="w-full flex items-center gap-4 px-2 py-4 text-left active:bg-muted"
             >
               <span
-                className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-[20px]"
-                style={{ background: selectedGroupId === "all" ? "#EFE9FB" : "#F5F2EE" }}
+                className="h-14 w-14 shrink-0 rounded-full flex items-center justify-center bg-muted text-[22px]"
               >
                 🔔
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[16px] font-semibold text-neutral-900">All groups</span>
-                <span className="block text-[13px] text-neutral-500">
+                <span className="block text-[21px] leading-7 font-bold text-foreground">All groups</span>
+                <span className="mt-0.5 block text-[16px] leading-6 text-muted-foreground">
                   Everything from your {groups.length} group{groups.length === 1 ? "" : "s"}
                 </span>
               </span>
               {selectedGroupId === "all" && (
-                <span
-                  className="h-6 w-6 rounded-full flex items-center justify-center text-white"
-                  style={{ background: PURPLE }}
-                >
-                  <Check size={14} strokeWidth={3} />
+                <span className="h-8 w-8 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
+                  <Check size={19} strokeWidth={3} />
                 </span>
               )}
             </button>
@@ -131,15 +125,15 @@ export default function GroupSwitcherSheet({
                   onSelect(g.id);
                   onClose();
                 }}
-                className="w-full flex items-center gap-3 rounded-2xl px-3 py-3 text-left active:bg-neutral-100"
+                className="w-full flex items-center gap-4 px-2 py-4 text-left active:bg-muted"
               >
                 {showStack ? (
-                  <span className="relative shrink-0 flex items-center">
-                    <span className="flex -space-x-3">
+                  <span className="relative flex w-[84px] shrink-0 items-center">
+                    <span className="flex -space-x-5">
                       {members.slice(0, 3).map((m) => (
                         <span
                           key={m.id}
-                          className="h-11 w-11 rounded-full ring-2 ring-white overflow-hidden flex items-center justify-center text-white text-[14px] font-bold"
+                          className="h-14 w-14 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center text-primary-foreground text-[16px] font-bold"
                           style={{ background: m.avatarColor }}
                         >
                           {m.avatarUrl ? (
@@ -150,10 +144,7 @@ export default function GroupSwitcherSheet({
                         </span>
                       ))}
                       {members.length > 3 && (
-                        <span
-                          className="h-11 w-11 rounded-full ring-2 ring-white flex items-center justify-center text-[13px] font-bold"
-                          style={{ background: "#EDE4FF", color: PURPLE }}
-                        >
+                        <span className="h-14 w-14 rounded-full ring-2 ring-background flex items-center justify-center bg-pactara-purple-soft text-pactara-purple text-[16px] font-bold">
                           +{members.length - 3}
                         </span>
                       )}
@@ -161,27 +152,23 @@ export default function GroupSwitcherSheet({
                   </span>
                 ) : (
                   <span
-                    className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center text-[20px]"
-                    style={{ background: active ? "#EFE9FB" : "#F5F2EE" }}
+                    className="h-14 w-[84px] shrink-0 rounded-full flex items-center justify-center bg-muted text-[24px]"
                   >
                     {g.emoji || "👥"}
                   </span>
                 )}
                 <span className="flex-1 min-w-0">
-                  <span className="block truncate text-[16px] font-semibold text-neutral-900">
+                  <span className="block truncate text-[21px] leading-7 font-bold text-foreground">
                     {g.name}
                   </span>
-                  <span className="block text-[13px] text-neutral-500">
+                  <span className="mt-0.5 block text-[16px] leading-6 text-muted-foreground">
                     {g.memberCount ? `${g.memberCount} member${g.memberCount === 1 ? "" : "s"} · ` : ""}
                     Day {dayNumber} of {duration}
                   </span>
                 </span>
                 {active && (
-                  <span
-                    className="h-6 w-6 rounded-full flex items-center justify-center text-white"
-                    style={{ background: PURPLE }}
-                  >
-                    <Check size={14} strokeWidth={3} />
+                  <span className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
+                    <Check size={19} strokeWidth={3} />
                   </span>
                 )}
               </button>
