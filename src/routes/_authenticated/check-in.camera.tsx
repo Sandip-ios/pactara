@@ -441,6 +441,8 @@ function VideoRecordScreen() {
         recorderRef.current.stop();
       } catch { /* noop */ }
     }
+    bakeCleanupRef.current?.();
+    bakeCleanupRef.current = null;
     stopStream();
     navigate({ to: "/check-in" });
   };
