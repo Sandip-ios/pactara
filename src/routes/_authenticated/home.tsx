@@ -492,7 +492,7 @@ function HomePage() {
                       <span className="leading-none">{m.streak}</span>
                     </div>
                   </div>
-                </div>
+                </MemberProfileLink>
               );
             })}
           </div>
