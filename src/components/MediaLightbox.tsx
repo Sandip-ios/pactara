@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import { attachVideoDurationFix, effectiveDuration } from "@/lib/video-playback";
 
 export function MediaLightbox({
   src,
