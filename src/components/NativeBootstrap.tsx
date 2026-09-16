@@ -194,7 +194,12 @@ export function NativeBootstrap() {
       // permission banner when an app accesses UIPasteboard.
       try {
         const path = typeof window !== "undefined" ? window.location.pathname : "";
-        if (!path.startsWith("/join/")) {
+        // Only replay a stashed invite when the app opened on its default
+        // entry screen. Tapping a push notification loads a real destination
+        // (/home?post=…, /groups/…, /chat/…) — hijacking that with an old
+        // invite sent people to a stale invite screen instead.
+        const isEntryPath = path === "" || path === "/" || path === "/index";
+        if (isEntryPath) {
           let pending = getPendingInvite();
           if (!pending) {
             // Deferred deep link: the invite was opened in mobile Safari on
