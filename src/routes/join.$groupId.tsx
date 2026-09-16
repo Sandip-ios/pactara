@@ -158,6 +158,10 @@ function JoinPage() {
     } else if (resolution === "PROFILE_SETUP_REQUIRED") {
       setPendingInvite(groupId);
       navigate({ to: "/signup", replace: true });
+    } else if (resolution === "GROUP_UNAVAILABLE" || resolution === "INVITE_INVALID") {
+      // Dead invite: forget it so it can never be replayed on a later launch.
+      clearPendingInvite();
+      if (isSignedIn) navigate({ to: "/groups", replace: true });
     } else if (resolution === "JOIN_REQUIRED") {
       trackInvite("invite_resolution_join_required", { group_id: groupId });
     }
