@@ -134,7 +134,13 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
           <div className="w-10" />
         ) : (
           <button
-            onClick={() => navigate({ to: "/groups" })}
+            onClick={() => {
+              if (typeof window !== "undefined" && window.history.length > 1) {
+                router.history.back();
+              } else {
+                navigate({ to: "/groups" });
+              }
+            }}
             aria-label="Back"
             className="h-9 w-9 rounded-full flex items-center justify-center justify-self-start"
           >
