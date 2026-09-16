@@ -69,8 +69,8 @@ function VideoRecordScreen() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [lookId, setLookId] = useState("none");
-  const look = LOOKS.find((l) => l.id === lookId) ?? LOOKS[0];
+  const [lookIndex, setLookIndex] = useState(0);
+  const look = LOOKS[lookIndex] ?? LOOKS[0];
   const lookRef = useRef(look.css);
   lookRef.current = look.css;
   const bakeCleanupRef = useRef<(() => void) | null>(null);
