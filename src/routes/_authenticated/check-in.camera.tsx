@@ -282,6 +282,57 @@ function VideoRecordScreen() {
     setSwitching(false);
   };
 
+  // Draws the live camera frames through a filtered canvas so the selected
+  // look is permanently part of the saved video, not just the preview.
+  const buildBakedStream = (src: MediaStream, css: string): { stream: MediaStream; cleanup: () => void } => {
+    const noop = { stream: src, cleanup: () => {} };
+    if (!css || css === "none") return noop;
+    const video = videoRef.current;
+    if (!video) return noop;
+    const settings = src.getVideoTracks()[0]?.getSettings?.() ?? {};
+    const w = Math.round(settings.width ?? video.videoWidth ?? 1280);
+    const h = Math.round(settings.height ?? video.videoHeight ?? 960);
+    if (!w || !h) return noop;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx || typeof canvas.captureStream !== "function" || !("filter" in ctx)) return noop;
+
+    let stopped = false;
+    let raf = 0;
+    const draw = () => {
+      if (stopped) return;
+      try {
+        ctx.filter = lookRef.current === "none" ? "none" : lookRef.current;
+        ctx.drawImage(video, 0, 0, w, h);
+      } catch {
+        /* frame not ready */
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+
+    let out: MediaStream;
+    try {
+      out = canvas.captureStream(30);
+    } catch {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      return noop;
+    }
+    src.getAudioTracks().forEach((t) => out.addTrack(t));
+
+    return {
+      stream: out,
+      cleanup: () => {
+        stopped = true;
+        cancelAnimationFrame(raf);
+        out.getVideoTracks().forEach((t) => t.stop());
+      },
+    };
+  };
+
   const tick = () => {
     const secs = (Date.now() - startedAtRef.current) / 1000;
     setElapsed(secs);
