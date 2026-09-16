@@ -11,38 +11,59 @@
  */
 export function attachVideoDurationFix(video: HTMLVideoElement): () => void {
   let repairing = false;
+  let repairTimer: number | null = null;
 
-  const bufferedEnd = () => {
+  const rangeEnd = (ranges: TimeRanges) => {
     try {
-      return video.buffered.length ? video.buffered.end(video.buffered.length - 1) : 0;
+      return ranges.length ? ranges.end(ranges.length - 1) : 0;
     } catch {
       return 0;
     }
   };
 
-  const needsRepair = () => !Number.isFinite(video.duration) || video.duration <= 0;
+  const playableEnd = () => Math.max(
+    Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0,
+    rangeEnd(video.buffered),
+    rangeEnd(video.seekable),
+  );
+
+  const needsRepair = () =>
+    !Number.isFinite(video.duration)
+    || video.duration <= 0
+    // Older Pactara recordings can contain the full clip while their MP4
+    // header incorrectly advertises one 15-second fragment.
+    || (video.duration >= 14.5 && video.duration <= 15.5);
 
   const repairDuration = () => {
     if (repairing || !needsRepair()) return;
     repairing = true;
-    const onDurationChange = () => {
-      if (!Number.isFinite(video.duration)) return;
-      video.removeEventListener("durationchange", onDurationChange);
+    const resumeAt = video.currentTime;
+    const shouldResume = !video.paused;
+    const finish = () => {
+      if (!repairing) return;
       repairing = false;
+      video.removeEventListener("durationchange", onDurationChange);
+      if (repairTimer !== null) window.clearTimeout(repairTimer);
+      repairTimer = null;
       try {
-        video.currentTime = 0;
+        video.currentTime = resumeAt;
+        if (shouldResume) void video.play().catch(() => {});
       } catch {
         /* noop */
       }
+    };
+    const onDurationChange = () => {
+      if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+      finish();
     };
     video.addEventListener("durationchange", onDurationChange);
     try {
       // Seeking far past the end makes the browser scan the file and report
       // the real duration.
       video.currentTime = 1e7;
+      repairTimer = window.setTimeout(finish, 250);
     } catch {
-      repairing = false;
-      video.removeEventListener("durationchange", onDurationChange);
+      finish();
     }
   };
 
@@ -51,7 +72,7 @@ export function attachVideoDurationFix(video: HTMLVideoElement): () => void {
   const onEnded = () => {
     // If there is still buffered media beyond where we stopped, the reported
     // duration was wrong — keep going instead of ending/looping.
-    const end = bufferedEnd();
+    const end = playableEnd();
     if (end > video.currentTime + 0.25) {
       try {
         video.currentTime = Math.min(end - 0.05, video.currentTime + 0.05);
@@ -67,17 +88,22 @@ export function attachVideoDurationFix(video: HTMLVideoElement): () => void {
   if (video.readyState >= 1) repairDuration();
 
   return () => {
+    if (repairTimer !== null) window.clearTimeout(repairTimer);
     video.removeEventListener("loadedmetadata", onLoadedMetadata);
     video.removeEventListener("ended", onEnded);
   };
 }
 
-/** Best-known duration for a video, falling back to what is buffered. */
+/** Best-known duration, including fragmented MP4 seekable/buffered ranges. */
 export function effectiveDuration(video: HTMLVideoElement): number {
-  if (Number.isFinite(video.duration) && video.duration > 0) return video.duration;
+  let buffered = 0;
+  let seekable = 0;
   try {
-    return video.buffered.length ? video.buffered.end(video.buffered.length - 1) : 0;
+    buffered = video.buffered.length ? video.buffered.end(video.buffered.length - 1) : 0;
+    seekable = video.seekable.length ? video.seekable.end(video.seekable.length - 1) : 0;
   } catch {
-    return 0;
+    /* noop */
   }
+  const reported = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+  return Math.max(reported, buffered, seekable);
 }

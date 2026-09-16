@@ -178,7 +178,7 @@ function VideoThumb({ src }: { src: string }) {
             el.currentTime = 0;
             if (visibleRef.current) void el.play().catch(() => {});
           } catch {}
-        }, 60);
+        }, 300);
       }}
       className="w-full h-full object-cover pointer-events-none"
     />
