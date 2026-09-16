@@ -194,6 +194,7 @@ function VideoRecordScreen() {
   const SPACING = 72;
 
   const onCarouselPointerDown = (e: React.PointerEvent) => {
+    if (recording) return;
     swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
     lastStepRef.current = 0;
     setDragging(true);
@@ -204,6 +205,7 @@ function VideoRecordScreen() {
     const swipe = swipeRef.current;
     if (!swipe || swipe.id !== e.pointerId) return;
     const dx = e.clientX - swipe.x;
+    if (Math.abs(dx) > 4) swipe.done = true; // a real drag, not a tap
     // Positive drag (finger right) moves toward earlier looks.
     let units = -dx / SPACING;
     const min = -lookIndex;
@@ -225,8 +227,13 @@ function VideoRecordScreen() {
   const onCarouselPointerUp = (e: React.PointerEvent) => {
     const swipe = swipeRef.current;
     if (!swipe || swipe.id !== e.pointerId) return;
+    const dragged = swipe.done;
     swipeRef.current = null;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch { /* noop */ }
     setDragging(false);
+    draggedRef.current = dragged;
     const target = Math.min(
       LOOKS.length - 1,
       Math.max(0, lookIndex + Math.round(dragOffset)),
@@ -234,6 +241,7 @@ function VideoRecordScreen() {
     setDragOffset(0);
     setLookIndex(target);
   };
+
 
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
