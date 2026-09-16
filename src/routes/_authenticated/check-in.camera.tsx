@@ -727,18 +727,23 @@ function VideoRecordScreen() {
           </svg>
           <button
             type="button"
-            onClick={onTapButton}
+            onClick={() => {
+              if (draggedRef.current) return;
+              onTapButton();
+            }}
             disabled={recording && !canStop}
             aria-label={recording ? (canStop ? "Stop recording" : "Recording") : "Start recording"}
-            className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors touch-manipulation"
+            className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors"
             style={{
               background: recording ? RED : "#FFFFFF",
               border: "2px solid rgba(255,255,255,0.9)",
               boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
               opacity: recording && !canStop ? 0.9 : 1,
+              touchAction: "none",
               cursor: recording && !canStop ? "not-allowed" : "pointer",
             }}
           />
+
           </div>
         </div>
 
