@@ -522,7 +522,21 @@ function JoinPage() {
               ? "Joining…"
               : `Join ${emoji} ${groupName}`}
         </button>
+        {!isMobileWeb && isSignedIn && !joining && (
+          <button
+            onClick={() => {
+              trackInvite("invite_declined", { group_id: groupId });
+              clearPendingInvite();
+              navigate({ to: "/groups", replace: true });
+            }}
+            className="w-full mt-2 py-3 text-[15px] font-medium"
+            style={{ color: TEXT_MUTED }}
+          >
+            Not now
+          </button>
+        )}
       </div>
+
 
     </div>
   );
