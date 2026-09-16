@@ -103,7 +103,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         {/* Slide 1 — Today's commitment */}
         <div
           className="w-full shrink-0 overflow-hidden"
-          style={{ maxHeight: index === 0 ? 400 : 0 }}
+          style={{ maxHeight: index === 0 ? 400 : 0, visibility: index === 0 ? "visible" : "hidden" }}
           aria-hidden={index !== 0}
         >
           <div className="px-4 pt-4">
@@ -126,7 +126,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
         {/* Slide 2 — Weekly snapshot */}
         <div
           className="w-full shrink-0 overflow-hidden"
-          style={{ maxHeight: index === 1 ? 400 : 0 }}
+          style={{ maxHeight: index === 1 ? 400 : 0, visibility: index === 1 ? "visible" : "hidden" }}
           aria-hidden={index !== 1}
         >
           <div className="px-4 pt-4">
