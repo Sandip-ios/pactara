@@ -34,9 +34,13 @@ const COLORS = {
   pendingText: "#9CA3AF",
 };
 
+const BRAND_PURPLE = "#7C3AED";
+
 export type Teammate = {
   initial: string;
   checkedIn: boolean;
+  avatarUrl?: string | null;
+  avatarColor?: string | null;
 };
 
 export type CheckInCelebrationModalProps = {
@@ -119,13 +123,25 @@ export function CheckInCelebrationModal({
       {/* Top bar */}
       <div
         className="flex items-center justify-between px-5"
-        style={{ paddingTop: 24, paddingBottom: 12 }}
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)",
+          paddingBottom: 12,
+        }}
       >
-        <span
-          className="text-[17px] font-bold tracking-tight"
-          style={{ color: COLORS.primary }}
-        >
-          Pactara
+        <span className="flex items-center gap-2">
+          <img
+            src="/pactara-icon.png"
+            alt=""
+            width={28}
+            height={28}
+            className="h-7 w-7 rounded-[8px]"
+          />
+          <span
+            className="text-[17px] font-bold tracking-tight"
+            style={{ color: BRAND_PURPLE }}
+          >
+            Pactara
+          </span>
         </span>
         <button
           onClick={onDismiss}
@@ -136,6 +152,7 @@ export function CheckInCelebrationModal({
           <X size={18} />
         </button>
       </div>
+
 
       {/* Content */}
       <div className="flex-1 px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
@@ -247,19 +264,37 @@ export function CheckInCelebrationModal({
                   <span
                     key={i}
                     aria-label={t.checkedIn ? "Checked in" : "Not yet"}
-                    className="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-[12px] font-semibold"
-                    style={{
-                      background: t.checkedIn ? COLORS.checked : "#fff",
-                      color: t.checkedIn ? "#fff" : COLORS.pendingText,
-                      border: t.checkedIn
-                        ? `2px solid #fff`
-                        : `1.5px solid ${COLORS.pendingBorder}`,
-                      boxShadow: t.checkedIn
-                        ? "0 0 0 1px rgba(0,0,0,0.04)"
-                        : "none",
-                    }}
+                    className="relative inline-flex h-9 w-9"
+                    style={{ opacity: t.checkedIn ? 1 : 0.7 }}
                   >
-                    {t.initial?.slice(0, 1).toUpperCase() || "•"}
+                    <span
+                      className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full text-[12px] font-semibold"
+                      style={{
+                        background: t.avatarUrl
+                          ? "#F3F4F6"
+                          : t.checkedIn
+                            ? t.avatarColor || COLORS.checked
+                            : "#fff",
+                        color: t.checkedIn ? "#fff" : COLORS.pendingText,
+                        border: t.checkedIn
+                          ? `2px solid #fff`
+                          : `1.5px solid ${COLORS.pendingBorder}`,
+                        boxShadow: t.checkedIn
+                          ? "0 0 0 1px rgba(0,0,0,0.04)"
+                          : "none",
+                      }}
+                    >
+                      {t.avatarUrl ? (
+                        <img
+                          src={t.avatarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                          crossOrigin="anonymous"
+                        />
+                      ) : (
+                        t.initial?.slice(0, 1).toUpperCase() || "•"
+                      )}
+                    </span>
                     {t.checkedIn && (
                       <span
                         aria-hidden
@@ -272,6 +307,8 @@ export function CheckInCelebrationModal({
                     )}
                   </span>
                 ))}
+
+
               </div>
               <div className="text-[13px]" style={{ color: COLORS.inkSoft }}>
                 {checkedInCount} checked in
