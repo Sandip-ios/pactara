@@ -234,7 +234,9 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
 
   return (
     <div className="px-4 py-3.5 flex items-center gap-3">
-      <MemberAvatar member={member} size={44} />
+      <MemberProfileLink userId={member.userId} isYou={member.isYou}>
+        <MemberAvatar member={member} size={44} />
+      </MemberProfileLink>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-bold truncate">{member.isYou ? "You" : member.name}</span>
