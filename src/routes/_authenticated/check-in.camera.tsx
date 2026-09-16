@@ -608,18 +608,16 @@ function VideoRecordScreen() {
           </div>
         )}
 
-        {/* Active look name (Snapchat-style label above the carousel) */}
-        {ready && !error && !recording && (
-          <div
-            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide"
-            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
-          >
-            {look.label}
-          </div>
-        )}
-
         {/* Lens carousel: record button in the centre, looks slide past it */}
-        <div className="relative w-full h-28 flex items-center justify-center">
+        <div
+          className="relative w-full h-28 flex items-center justify-center"
+          style={{ touchAction: "pan-y" }}
+          onPointerDown={onCarouselPointerDown}
+          onPointerMove={onCarouselPointerMove}
+          onPointerUp={onCarouselPointerUp}
+          onPointerCancel={onCarouselPointerUp}
+          onPointerLeave={onCarouselPointerUp}
+        >
           {ready && !error && !recording && LOOKS.map((l, i) => {
             const offset = i - lookIndex;
             if (offset === 0) return null;
@@ -647,6 +645,16 @@ function VideoRecordScreen() {
               />
             );
           })}
+
+          {/* Active look name (below the carousel) */}
+          {ready && !error && !recording && (
+            <div
+              className="absolute -bottom-1 px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide whitespace-nowrap"
+              style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
+            >
+              {look.label}
+            </div>
+          )}
 
           <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
