@@ -20,6 +20,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
+import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
