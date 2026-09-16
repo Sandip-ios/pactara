@@ -55,7 +55,7 @@ function VideoRecordScreen() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [zoomOptions, setZoomOptions] = useState<number[]>([1]);
+  
   const [zoomRange, setZoomRange] = useState<{ min: number; max: number; native: boolean }>({
     min: 1,
     max: 1,
