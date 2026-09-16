@@ -129,24 +129,74 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
         onChange={onFileChange}
       />
 
-      <header className="bg-white px-4 pt-safe-5 pb-4 flex items-center gap-2">
+      <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[40px_1fr_40px] items-center">
         {isOwn ? (
-          <div className="text-[24px] font-black tracking-tight px-2">
+          <div className="text-[24px] font-black tracking-tight px-2 justify-self-start">
             <span style={{ color: PURPLE }}>P</span>
             <span>actara</span>
           </div>
         ) : (
-          <>
-            <button
-              onClick={() => navigate({ to: "/groups" })}
-              aria-label="Back"
-              className="h-9 w-9 rounded-full flex items-center justify-center"
-            >
-              <ChevronLeft size={22} />
-            </button>
-            <div className="text-[18px] font-bold truncate">{firstName}</div>
-          </>
+          <button
+            onClick={() => navigate({ to: "/groups" })}
+            aria-label="Back"
+            className="h-9 w-9 rounded-full flex items-center justify-center justify-self-start"
+          >
+            <ChevronLeft size={22} />
+          </button>
         )}
+        {groups.length > 1 && activeGroup ? (
+          <div className="relative justify-self-center">
+            <button
+              type="button"
+              onClick={() => setGroupPickerOpen((v) => !v)}
+              className="flex items-center gap-1.5 max-w-[220px]"
+            >
+              {activeGroup.emoji && (
+                <span className="text-[16px] leading-none">{activeGroup.emoji}</span>
+              )}
+              <span className="text-[17px] font-bold truncate">{activeGroup.name}</span>
+              <ChevronDown
+                size={16}
+                className={`text-neutral-400 shrink-0 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {groupPickerOpen && (
+              <>
+                <div className="fixed inset-0 z-10" onClick={() => setGroupPickerOpen(false)} />
+                <div className="absolute z-20 left-1/2 -translate-x-1/2 mt-2 w-56 bg-white rounded-2xl shadow-lg border border-neutral-100 overflow-hidden">
+                  {groups.map((g) => {
+                    const active = g.id === data?.groupId;
+                    return (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedGroupId(g.id);
+                          setGroupPickerOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-left"
+                        style={active ? { background: PURPLE_SOFT } : undefined}
+                      >
+                        {g.emoji && <span className="text-[16px] leading-none">{g.emoji}</span>}
+                        <span
+                          className="text-[14px] font-semibold truncate flex-1"
+                          style={active ? { color: PURPLE } : undefined}
+                        >
+                          {g.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <div className="text-[17px] font-bold truncate text-center justify-self-center">
+            {activeGroup?.name ?? (isOwn ? "Profile" : firstName)}
+          </div>
+        )}
+        <div />
       </header>
 
       <PullToRefresh
