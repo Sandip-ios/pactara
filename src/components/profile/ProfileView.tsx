@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Camera,
   ChevronDown,
@@ -39,6 +39,7 @@ type Tab = "posts" | "badges" | "stats";
 
 export function ProfileView({ userId = null }: { userId?: string | null }) {
   const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const isOwn = userId === null;
   const fileInputRef = useRef<HTMLInputElement>(null);
