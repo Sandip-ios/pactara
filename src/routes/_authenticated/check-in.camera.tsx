@@ -530,9 +530,6 @@ function VideoRecordScreen() {
           />
         </div>
 
-        {!recording && (
-          <p className="text-[13px] text-white/70">Tap to start recording</p>
-        )}
       </div>
 
       <HowToRecordSheet
