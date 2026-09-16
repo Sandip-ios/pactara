@@ -269,7 +269,12 @@ function VideoRecordScreen() {
     setElapsed(0);
     recordingRef.current = true;
     setRecording(true);
-    rec.start();
+    // Ask for regular fragments instead of leaving the whole recording in
+    // Safari's encoder buffer. Some iOS versions otherwise finalize only the
+    // first ~15-second MP4 fragment even though the recording UI reaches 60s.
+    // MediaRecorder guarantees that all fragments from one recording form a
+    // playable Blob when concatenated in order.
+    rec.start(1000);
     rafRef.current = requestAnimationFrame(tick);
     autoStopRef.current = window.setTimeout(() => {
       stopRecording();
@@ -289,7 +294,10 @@ function VideoRecordScreen() {
     setRecording(false);
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") {
-      try { rec.stop(); } catch { /* noop */ }
+      try {
+        rec.requestData();
+        rec.stop();
+      } catch { /* noop */ }
     }
   };
 

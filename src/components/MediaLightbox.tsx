@@ -119,7 +119,7 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
       } catch {
         /* noop */
       }
-    }, 60);
+    }, 300);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
