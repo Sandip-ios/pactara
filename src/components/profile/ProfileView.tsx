@@ -131,10 +131,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
       <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[40px_1fr_40px] items-center">
         {isOwn ? (
-          <div className="text-[24px] font-black tracking-tight px-2 justify-self-start">
-            <span style={{ color: PURPLE }}>P</span>
-            <span>actara</span>
-          </div>
+          <div className="w-10" />
         ) : (
           <button
             onClick={() => navigate({ to: "/groups" })}
