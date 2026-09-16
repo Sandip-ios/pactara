@@ -33,6 +33,13 @@ function GroupChatPage() {
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
 
+  // Keep the active group in sync with the chat being viewed.
+  useEffect(() => {
+    if (groupId && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", groupId);
+    }
+  }, [groupId]);
+
   function cancelLongPress() {
     if (longPress.current) {
       clearTimeout(longPress.current);

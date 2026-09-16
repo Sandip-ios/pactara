@@ -95,6 +95,11 @@ function NotesPage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const activeGroupName = (() => {
+    const id = getActiveGroupId();
+    const g = myGroups.find((x) => (x.id as string) === id) ?? myGroups[0];
+    return g ? `${g.emoji ? `${g.emoji} ` : ""}${g.name}` : null;
+  })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -298,6 +303,11 @@ function NotesPage() {
           </div>
         </div>
         <div className="px-6 pt-6">
+          {!allGroups && activeGroupName && (
+            <div className="mb-3 text-[14px] text-neutral-500">
+              Posting to <span className="font-semibold text-neutral-900">{activeGroupName}</span>
+            </div>
+          )}
           <AllGroupsToggle
             count={myGroups.length}
             value={allGroups}
