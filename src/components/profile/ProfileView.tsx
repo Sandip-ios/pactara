@@ -311,7 +311,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
                   >
                     {m.kind === "video" ? (
                       <video
-                        src={m.url}
+                        src={`${m.url}#t=0.1`}
                         className="h-full w-full object-cover"
                         muted
                         playsInline
