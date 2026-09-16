@@ -12,6 +12,20 @@ const GREEN = "#10B981";
 const MIN_SECS = 5;
 const MAX_SECS = 60;
 
+type Look = { id: string; label: string; css: string; swatch: string };
+
+// Colour looks. `css` is used both for the live preview (CSS filter) and for
+// baking the look into the recorded file (canvas ctx.filter).
+const LOOKS: Look[] = [
+  { id: "none", label: "Normal", css: "none", swatch: "linear-gradient(135deg,#8E8E93,#3A3A3C)" },
+  { id: "golden", label: "Golden", css: "sepia(0.22) saturate(1.3) contrast(1.05) brightness(1.04)", swatch: "linear-gradient(135deg,#FFD98E,#E8994A)" },
+  { id: "arctic", label: "Arctic", css: "saturate(1.1) contrast(1.1) hue-rotate(12deg) brightness(1.03)", swatch: "linear-gradient(135deg,#9FD8FF,#3A7BD5)" },
+  { id: "mono", label: "Mono", css: "grayscale(1) contrast(1.18)", swatch: "linear-gradient(135deg,#FFFFFF,#1C1C1E)" },
+  { id: "film", label: "Film", css: "sepia(0.4) saturate(0.85) contrast(1.12) brightness(0.98)", swatch: "linear-gradient(135deg,#D8C3A5,#8A6A4F)" },
+  { id: "vivid", label: "Vivid", css: "saturate(1.65) contrast(1.15)", swatch: "linear-gradient(135deg,#FF5E7E,#7C3AED)" },
+  { id: "fade", label: "Fade", css: "contrast(0.9) saturate(0.78) brightness(1.1)", swatch: "linear-gradient(135deg,#F2E9E4,#B8B0C9)" },
+];
+
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
   component: CameraRoute,
 });
