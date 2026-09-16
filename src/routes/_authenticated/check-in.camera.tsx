@@ -144,9 +144,23 @@ function VideoRecordScreen() {
     return Math.hypot(dx, dy);
   };
 
+  // ---- Swipe to change look (Snapchat-style) -------------------------
+  const swipeRef = useRef<{ x: number; y: number; id: number; done: boolean } | null>(null);
+
+  const stepLook = (dir: 1 | -1) => {
+    setLookIndex((i) => Math.min(LOOKS.length - 1, Math.max(0, i + dir)));
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate?.(8); } catch { /* noop */ }
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 1) {
+      swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    }
     if (pointersRef.current.size === 2) {
+      swipeRef.current = null;
       pinchRef.current = { dist: pinchDistance(), zoom };
       setPinching(true);
     }
@@ -155,6 +169,18 @@ function VideoRecordScreen() {
   const onPointerMove = (e: React.PointerEvent) => {
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    const swipe = swipeRef.current;
+    if (swipe && !swipe.done && pointersRef.current.size === 1 && swipe.id === e.pointerId) {
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        stepLook(dx < 0 ? 1 : -1);
+        // Allow continuous swiping: re-anchor for the next step.
+        swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+      }
+    }
+
     const start = pinchRef.current;
     if (!start || pointersRef.current.size < 2) return;
     const dist = pinchDistance();
@@ -164,6 +190,7 @@ function VideoRecordScreen() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     pointersRef.current.delete(e.pointerId);
+    if (swipeRef.current?.id === e.pointerId) swipeRef.current = null;
     if (pointersRef.current.size < 2) {
       pinchRef.current = null;
       setPinching(false);
