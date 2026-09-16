@@ -487,6 +487,7 @@ function VideoRecordScreen() {
             !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
           }`.trim() || "none",
           transformOrigin: "center center",
+          filter: look.css,
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
