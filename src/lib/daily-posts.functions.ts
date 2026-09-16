@@ -1015,7 +1015,13 @@ export const getPostComments = createServerFn({ method: "GET" })
     return { comments };
   });
 
-export type CelebrationTeammate = { id: string; initial: string; checkedIn: boolean };
+export type CelebrationTeammate = {
+  id: string;
+  initial: string;
+  checkedIn: boolean;
+  avatarUrl: string | null;
+  avatarColor: string | null;
+};
 export type CelebrationData = {
   streakCount: number;
   groupName: string;
