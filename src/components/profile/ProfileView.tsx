@@ -276,58 +276,6 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             )}
           </div>
 
-          {groups.length > 1 && (
-            <div className="relative mt-3">
-              <button
-                type="button"
-                onClick={() => setGroupPickerOpen((v) => !v)}
-                className="w-full flex items-center justify-between gap-2 rounded-2xl px-4 py-2.5 text-left bg-[#F5F2EE]"
-              >
-                <span className="flex items-center gap-2 min-w-0">
-                  {activeGroup?.emoji && (
-                    <span className="text-[16px] leading-none">{activeGroup.emoji}</span>
-                  )}
-                  <span className="text-[14px] font-semibold truncate">
-                    {activeGroup?.name ?? "Select group"}
-                  </span>
-                </span>
-                <ChevronDown
-                  size={16}
-                  className={`text-neutral-400 transition-transform ${groupPickerOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {groupPickerOpen && (
-                <>
-                  <div className="fixed inset-0 z-10" onClick={() => setGroupPickerOpen(false)} />
-                  <div className="absolute z-20 left-0 right-0 mt-2 bg-white rounded-2xl shadow-lg border border-neutral-100 overflow-hidden">
-                    {groups.map((g) => {
-                      const active = g.id === data?.groupId;
-                      return (
-                        <button
-                          key={g.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedGroupId(g.id);
-                            setGroupPickerOpen(false);
-                          }}
-                          className="w-full flex items-center gap-2 px-4 py-3 text-left"
-                          style={active ? { background: PURPLE_SOFT } : undefined}
-                        >
-                          {g.emoji && <span className="text-[16px] leading-none">{g.emoji}</span>}
-                          <span
-                            className="text-[14px] font-semibold truncate flex-1"
-                            style={active ? { color: PURPLE } : undefined}
-                          >
-                            {g.name}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
         </section>
 
         {/* Tabs */}
