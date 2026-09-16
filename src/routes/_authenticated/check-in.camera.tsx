@@ -12,6 +12,20 @@ const GREEN = "#10B981";
 const MIN_SECS = 5;
 const MAX_SECS = 60;
 
+type Look = { id: string; label: string; css: string; swatch: string };
+
+// Colour looks. `css` is used both for the live preview (CSS filter) and for
+// baking the look into the recorded file (canvas ctx.filter).
+const LOOKS: Look[] = [
+  { id: "none", label: "Normal", css: "none", swatch: "linear-gradient(135deg,#8E8E93,#3A3A3C)" },
+  { id: "golden", label: "Golden", css: "sepia(0.22) saturate(1.3) contrast(1.05) brightness(1.04)", swatch: "linear-gradient(135deg,#FFD98E,#E8994A)" },
+  { id: "arctic", label: "Arctic", css: "saturate(1.1) contrast(1.1) hue-rotate(12deg) brightness(1.03)", swatch: "linear-gradient(135deg,#9FD8FF,#3A7BD5)" },
+  { id: "mono", label: "Mono", css: "grayscale(1) contrast(1.18)", swatch: "linear-gradient(135deg,#FFFFFF,#1C1C1E)" },
+  { id: "film", label: "Film", css: "sepia(0.4) saturate(0.85) contrast(1.12) brightness(0.98)", swatch: "linear-gradient(135deg,#D8C3A5,#8A6A4F)" },
+  { id: "vivid", label: "Vivid", css: "saturate(1.65) contrast(1.15)", swatch: "linear-gradient(135deg,#FF5E7E,#7C3AED)" },
+  { id: "fade", label: "Fade", css: "contrast(0.9) saturate(0.78) brightness(1.1)", swatch: "linear-gradient(135deg,#F2E9E4,#B8B0C9)" },
+];
+
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
   component: CameraRoute,
 });
@@ -55,6 +69,11 @@ function VideoRecordScreen() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [lookId, setLookId] = useState("none");
+  const look = LOOKS.find((l) => l.id === lookId) ?? LOOKS[0];
+  const lookRef = useRef(look.css);
+  lookRef.current = look.css;
+  const bakeCleanupRef = useRef<(() => void) | null>(null);
   
   const [zoomRange, setZoomRange] = useState<{ min: number; max: number; native: boolean }>({
     min: 1,
@@ -263,6 +282,57 @@ function VideoRecordScreen() {
     setSwitching(false);
   };
 
+  // Draws the live camera frames through a filtered canvas so the selected
+  // look is permanently part of the saved video, not just the preview.
+  const buildBakedStream = (src: MediaStream, css: string): { stream: MediaStream; cleanup: () => void } => {
+    const noop = { stream: src, cleanup: () => {} };
+    if (!css || css === "none") return noop;
+    const video = videoRef.current;
+    if (!video) return noop;
+    const settings = src.getVideoTracks()[0]?.getSettings?.() ?? {};
+    const w = Math.round(settings.width ?? video.videoWidth ?? 1280);
+    const h = Math.round(settings.height ?? video.videoHeight ?? 960);
+    if (!w || !h) return noop;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx || typeof canvas.captureStream !== "function" || !("filter" in ctx)) return noop;
+
+    let stopped = false;
+    let raf = 0;
+    const draw = () => {
+      if (stopped) return;
+      try {
+        ctx.filter = lookRef.current === "none" ? "none" : lookRef.current;
+        ctx.drawImage(video, 0, 0, w, h);
+      } catch {
+        /* frame not ready */
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+
+    let out: MediaStream;
+    try {
+      out = canvas.captureStream(30);
+    } catch {
+      stopped = true;
+      cancelAnimationFrame(raf);
+      return noop;
+    }
+    src.getAudioTracks().forEach((t) => out.addTrack(t));
+
+    return {
+      stream: out,
+      cleanup: () => {
+        stopped = true;
+        cancelAnimationFrame(raf);
+        out.getVideoTracks().forEach((t) => t.stop());
+      },
+    };
+  };
+
   const tick = () => {
     const secs = (Date.now() - startedAtRef.current) / 1000;
     setElapsed(secs);
@@ -288,11 +358,18 @@ function VideoRecordScreen() {
       return;
     }
 
+    // Bake the selected look into the recording by drawing the camera frames
+    // through a filtered canvas and recording that canvas instead.
+    const baked = buildBakedStream(stream, lookRef.current);
+    bakeCleanupRef.current = baked.cleanup;
+
     const mimeType = pickMimeType();
     let rec: MediaRecorder;
     try {
-      rec = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      rec = new MediaRecorder(baked.stream, mimeType ? { mimeType } : undefined);
     } catch {
+      baked.cleanup();
+      bakeCleanupRef.current = null;
       setError("Recording isn't supported on this browser.");
       return;
     }
@@ -304,6 +381,8 @@ function VideoRecordScreen() {
       const type = rec.mimeType || "video/webm";
       const blob = new Blob(chunksRef.current, { type });
       chunksRef.current = [];
+      bakeCleanupRef.current?.();
+      bakeCleanupRef.current = null;
       if (blob.size > 0) setCheckInPhoto(blob);
       stopStream();
       navigate({ to: "/check-in/notes" });
@@ -362,6 +441,8 @@ function VideoRecordScreen() {
         recorderRef.current.stop();
       } catch { /* noop */ }
     }
+    bakeCleanupRef.current?.();
+    bakeCleanupRef.current = null;
     stopStream();
     navigate({ to: "/check-in" });
   };
@@ -406,6 +487,7 @@ function VideoRecordScreen() {
             !zoomRange.native && zoom !== 1 ? `scale(${zoom})` : ""
           }`.trim() || "none",
           transformOrigin: "center center",
+          filter: look.css,
         }}
       />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%)" }} />
@@ -491,6 +573,48 @@ function VideoRecordScreen() {
           >
             {zoom.toFixed(1)}
             <span style={{ fontSize: 9, marginLeft: 1 }}>×</span>
+          </div>
+        )}
+
+        {/* Look picker */}
+        {ready && !error && (
+          <div
+            className="w-full overflow-x-auto no-scrollbar"
+            style={{ touchAction: "pan-x" }}
+          >
+            <div className="flex items-end gap-3 px-5 pb-1">
+              {LOOKS.map((l) => {
+                const active = l.id === look.id;
+                return (
+                  <button
+                    key={l.id}
+                    type="button"
+                    onClick={() => setLookId(l.id)}
+                    className="flex flex-col items-center gap-1.5 shrink-0 touch-manipulation"
+                    aria-label={l.label}
+                    aria-pressed={active}
+                  >
+                    <span
+                      className="block rounded-full"
+                      style={{
+                        height: active ? 46 : 40,
+                        width: active ? 46 : 40,
+                        background: l.swatch,
+                        border: active ? `2.5px solid ${PURPLE}` : "2px solid rgba(255,255,255,0.55)",
+                        boxShadow: active ? `0 0 0 3px rgba(124,58,237,0.28)` : "none",
+                        transition: "all 140ms ease",
+                      }}
+                    />
+                    <span
+                      className="text-[11px] font-semibold"
+                      style={{ color: active ? "#FFFFFF" : "rgba(255,255,255,0.65)" }}
+                    >
+                      {l.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
