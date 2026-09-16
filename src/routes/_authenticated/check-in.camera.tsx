@@ -69,8 +69,8 @@ function VideoRecordScreen() {
   const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
-  const [lookId, setLookId] = useState("none");
-  const look = LOOKS.find((l) => l.id === lookId) ?? LOOKS[0];
+  const [lookIndex, setLookIndex] = useState(0);
+  const look = LOOKS[lookIndex] ?? LOOKS[0];
   const lookRef = useRef(look.css);
   lookRef.current = look.css;
   const bakeCleanupRef = useRef<(() => void) | null>(null);
@@ -144,9 +144,23 @@ function VideoRecordScreen() {
     return Math.hypot(dx, dy);
   };
 
+  // ---- Swipe to change look (Snapchat-style) -------------------------
+  const swipeRef = useRef<{ x: number; y: number; id: number; done: boolean } | null>(null);
+
+  const stepLook = (dir: 1 | -1) => {
+    setLookIndex((i) => Math.min(LOOKS.length - 1, Math.max(0, i + dir)));
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      try { navigator.vibrate?.(8); } catch { /* noop */ }
+    }
+  };
+
   const onPointerDown = (e: React.PointerEvent) => {
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 1) {
+      swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    }
     if (pointersRef.current.size === 2) {
+      swipeRef.current = null;
       pinchRef.current = { dist: pinchDistance(), zoom };
       setPinching(true);
     }
@@ -155,6 +169,18 @@ function VideoRecordScreen() {
   const onPointerMove = (e: React.PointerEvent) => {
     if (!pointersRef.current.has(e.pointerId)) return;
     pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    const swipe = swipeRef.current;
+    if (swipe && !swipe.done && pointersRef.current.size === 1 && swipe.id === e.pointerId) {
+      const dx = e.clientX - swipe.x;
+      const dy = e.clientY - swipe.y;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        stepLook(dx < 0 ? 1 : -1);
+        // Allow continuous swiping: re-anchor for the next step.
+        swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+      }
+    }
+
     const start = pinchRef.current;
     if (!start || pointersRef.current.size < 2) return;
     const dist = pinchDistance();
@@ -164,6 +190,7 @@ function VideoRecordScreen() {
 
   const onPointerUp = (e: React.PointerEvent) => {
     pointersRef.current.delete(e.pointerId);
+    if (swipeRef.current?.id === e.pointerId) swipeRef.current = null;
     if (pointersRef.current.size < 2) {
       pinchRef.current = null;
       setPinching(false);
@@ -576,51 +603,47 @@ function VideoRecordScreen() {
           </div>
         )}
 
-        {/* Look picker */}
-        {ready && !error && (
+        {/* Active look name (Snapchat-style label above the carousel) */}
+        {ready && !error && !recording && (
           <div
-            className="w-full overflow-x-auto no-scrollbar"
-            style={{ touchAction: "pan-x" }}
+            className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
           >
-            <div className="flex items-end gap-3 px-5 pb-1">
-              {LOOKS.map((l) => {
-                const active = l.id === look.id;
-                return (
-                  <button
-                    key={l.id}
-                    type="button"
-                    onClick={() => setLookId(l.id)}
-                    className="flex flex-col items-center gap-1.5 shrink-0 touch-manipulation"
-                    aria-label={l.label}
-                    aria-pressed={active}
-                  >
-                    <span
-                      className="block rounded-full"
-                      style={{
-                        height: active ? 46 : 40,
-                        width: active ? 46 : 40,
-                        background: l.swatch,
-                        border: active ? `2.5px solid ${PURPLE}` : "2px solid rgba(255,255,255,0.55)",
-                        boxShadow: active ? `0 0 0 3px rgba(124,58,237,0.28)` : "none",
-                        transition: "all 140ms ease",
-                      }}
-                    />
-                    <span
-                      className="text-[11px] font-semibold"
-                      style={{ color: active ? "#FFFFFF" : "rgba(255,255,255,0.65)" }}
-                    >
-                      {l.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+            {look.label}
           </div>
         )}
 
+        {/* Lens carousel: record button in the centre, looks slide past it */}
+        <div className="relative w-full h-28 flex items-center justify-center">
+          {ready && !error && !recording && LOOKS.map((l, i) => {
+            const offset = i - lookIndex;
+            if (offset === 0) return null;
+            const abs = Math.abs(offset);
+            if (abs > 3) return null;
+            const size = abs === 1 ? 54 : abs === 2 ? 46 : 38;
+            const x = offset * 72 + (offset > 0 ? 14 : -14);
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setLookIndex(i)}
+                aria-label={l.label}
+                className="absolute rounded-full touch-manipulation"
+                style={{
+                  height: size,
+                  width: size,
+                  transform: `translateX(${x}px)`,
+                  background: l.swatch,
+                  border: "2px solid rgba(255,255,255,0.75)",
+                  opacity: abs === 1 ? 0.95 : abs === 2 ? 0.7 : 0.45,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
+                  transition: "transform 180ms ease, opacity 180ms ease, height 180ms ease, width 180ms ease",
+                }}
+              />
+            );
+          })}
 
-
-        <div className="relative h-24 w-24 flex items-center justify-center">
+          <div className="relative h-24 w-24 flex items-center justify-center">
           {/* Progress ring */}
           <svg className="absolute inset-0 pointer-events-none" width="96" height="96" viewBox="0 0 96 96" aria-hidden="true">
             <circle cx="48" cy="48" r={R} stroke="rgba(255,255,255,0.25)" strokeWidth="4" fill="none" />
@@ -652,6 +675,7 @@ function VideoRecordScreen() {
               cursor: recording && !canStop ? "not-allowed" : "pointer",
             }}
           />
+          </div>
         </div>
 
       </div>
