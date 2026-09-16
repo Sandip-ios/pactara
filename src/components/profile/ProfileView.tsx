@@ -39,6 +39,7 @@ type Tab = "posts" | "badges" | "stats";
 
 export function ProfileView({ userId = null }: { userId?: string | null }) {
   const navigate = useNavigate();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const isOwn = userId === null;
   const fileInputRef = useRef<HTMLInputElement>(null);
