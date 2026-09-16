@@ -10,7 +10,7 @@ const PURPLE = "#7C3AED";
 const RED = "#EF4444";
 const GREEN = "#10B981";
 const MIN_SECS = 5;
-const MAX_SECS = 15;
+const MAX_SECS = 60;
 
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
   component: CameraRoute,
