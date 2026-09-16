@@ -153,6 +153,8 @@ function VideoRecordScreen() {
 
   // ---- Swipe to change look (Snapchat-style) -------------------------
   const swipeRef = useRef<{ x: number; y: number; id: number; done: boolean } | null>(null);
+  const draggedRef = useRef(false);
+
 
   const stepLook = (dir: 1 | -1) => {
     setLookIndex((i) => Math.min(LOOKS.length - 1, Math.max(0, i + dir)));
@@ -194,9 +196,12 @@ function VideoRecordScreen() {
   const SPACING = 72;
 
   const onCarouselPointerDown = (e: React.PointerEvent) => {
+    if (recording) return;
     swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    draggedRef.current = false;
     lastStepRef.current = 0;
     setDragging(true);
+
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
@@ -204,6 +209,7 @@ function VideoRecordScreen() {
     const swipe = swipeRef.current;
     if (!swipe || swipe.id !== e.pointerId) return;
     const dx = e.clientX - swipe.x;
+    if (Math.abs(dx) > 4) swipe.done = true; // a real drag, not a tap
     // Positive drag (finger right) moves toward earlier looks.
     let units = -dx / SPACING;
     const min = -lookIndex;
@@ -225,8 +231,13 @@ function VideoRecordScreen() {
   const onCarouselPointerUp = (e: React.PointerEvent) => {
     const swipe = swipeRef.current;
     if (!swipe || swipe.id !== e.pointerId) return;
+    const dragged = swipe.done;
     swipeRef.current = null;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch { /* noop */ }
     setDragging(false);
+    draggedRef.current = dragged;
     const target = Math.min(
       LOOKS.length - 1,
       Math.max(0, lookIndex + Math.round(dragOffset)),
@@ -234,6 +245,7 @@ function VideoRecordScreen() {
     setDragOffset(0);
     setLookIndex(target);
   };
+
 
   const attachStream = (stream: MediaStream) => {
     streamRef.current = stream;
@@ -650,12 +662,11 @@ function VideoRecordScreen() {
         {/* Lens carousel: record button in the centre, looks slide past it */}
         <div
           className="relative w-full h-28 flex items-center justify-center"
-          style={{ touchAction: "pan-y" }}
+          style={{ touchAction: "none" }}
           onPointerDown={onCarouselPointerDown}
           onPointerMove={onCarouselPointerMove}
           onPointerUp={onCarouselPointerUp}
           onPointerCancel={onCarouselPointerUp}
-          onPointerLeave={onCarouselPointerUp}
         >
           {ready && !error && !recording && LOOKS.map((l, i) => {
             // Fractional offset so circles glide with the finger.
@@ -672,9 +683,12 @@ function VideoRecordScreen() {
               <button
                 key={l.id}
                 type="button"
-                onClick={() => { if (!dragging) setLookIndex(i); }}
+                onClick={() => {
+                  if (dragging || draggedRef.current) return;
+                  setLookIndex(i);
+                }}
                 aria-label={l.label}
-                className="absolute rounded-full touch-manipulation"
+                className="absolute rounded-full"
                 style={{
                   height: size,
                   width: size,
@@ -682,6 +696,7 @@ function VideoRecordScreen() {
                   background: l.swatch,
                   border: "2px solid rgba(255,255,255,0.75)",
                   opacity,
+                  touchAction: "none",
                   pointerEvents: abs < 0.45 ? "none" : "auto",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
                   transition: dragging
@@ -691,6 +706,7 @@ function VideoRecordScreen() {
               />
             );
           })}
+
 
 
           <div className="relative h-24 w-24 flex items-center justify-center">
@@ -713,18 +729,23 @@ function VideoRecordScreen() {
           </svg>
           <button
             type="button"
-            onClick={onTapButton}
+            onClick={() => {
+              if (draggedRef.current) return;
+              onTapButton();
+            }}
             disabled={recording && !canStop}
             aria-label={recording ? (canStop ? "Stop recording" : "Recording") : "Start recording"}
-            className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors touch-manipulation"
+            className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors"
             style={{
               background: recording ? RED : "#FFFFFF",
               border: "2px solid rgba(255,255,255,0.9)",
               boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
               opacity: recording && !canStop ? 0.9 : 1,
+              touchAction: "none",
               cursor: recording && !canStop ? "not-allowed" : "pointer",
             }}
           />
+
           </div>
         </div>
 
