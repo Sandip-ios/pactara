@@ -658,17 +658,21 @@ function VideoRecordScreen() {
           onPointerLeave={onCarouselPointerUp}
         >
           {ready && !error && !recording && LOOKS.map((l, i) => {
-            const offset = i - lookIndex;
-            if (offset === 0) return null;
+            // Fractional offset so circles glide with the finger.
+            const offset = i - (lookIndex + dragOffset);
             const abs = Math.abs(offset);
-            if (abs > 3) return null;
-            const size = abs === 1 ? 54 : abs === 2 ? 46 : 38;
-            const x = offset * 72 + (offset > 0 ? 14 : -14);
+            if (abs > 3.6) return null;
+            const t = Math.min(1, abs);
+            // Centre slot is occupied by the record button: push circles out.
+            const gap = offset === 0 ? 0 : Math.sign(offset) * 14 * t;
+            const x = offset * SPACING + gap;
+            const size = 54 - Math.min(abs, 3) * 6;
+            const opacity = Math.max(0.35, 0.95 - Math.min(abs, 3) * 0.2) * (abs < 0.45 ? abs / 0.45 : 1);
             return (
               <button
                 key={l.id}
                 type="button"
-                onClick={() => setLookIndex(i)}
+                onClick={() => { if (!dragging) setLookIndex(i); }}
                 aria-label={l.label}
                 className="absolute rounded-full touch-manipulation"
                 style={{
@@ -677,9 +681,12 @@ function VideoRecordScreen() {
                   transform: `translateX(${x}px)`,
                   background: l.swatch,
                   border: "2px solid rgba(255,255,255,0.75)",
-                  opacity: abs === 1 ? 0.95 : abs === 2 ? 0.7 : 0.45,
+                  opacity,
+                  pointerEvents: abs < 0.45 ? "none" : "auto",
                   boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
-                  transition: "transform 180ms ease, opacity 180ms ease, height 180ms ease, width 180ms ease",
+                  transition: dragging
+                    ? "none"
+                    : "transform 220ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease, height 220ms ease, width 220ms ease",
                 }}
               />
             );
