@@ -450,7 +450,12 @@ function HomePage() {
             </div>
           )}
           <div className="border-t border-neutral-100 px-3 py-2 flex items-center justify-between">
-            <button onClick={pickImage} className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center" aria-label="Add photo">
+            <button
+              onClick={pickImage}
+              onTouchStart={() => { addPhotoTouchAt.current = Date.now(); }}
+              className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center"
+              aria-label="Add photo"
+            >
               <ImageIcon size={20} className="text-green-600" />
             </button>
             <div className="flex items-center gap-2">
