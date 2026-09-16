@@ -182,24 +182,53 @@ function VideoRecordScreen() {
   };
 
   // ---- Swipe on the filter carousel itself ---------------------------
+  // The carousel tracks the finger continuously (fractional index) and snaps
+  // to the nearest look on release — Snapchat-style, no stepped jumps.
+  const SPACING = 72;
+  const [dragOffset, setDragOffset] = useState(0); // in look units, live drag
+  const [dragging, setDragging] = useState(false);
+  const lastStepRef = useRef(0);
+
   const onCarouselPointerDown = (e: React.PointerEvent) => {
     swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    lastStepRef.current = 0;
+    setDragging(true);
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
   const onCarouselPointerMove = (e: React.PointerEvent) => {
     const swipe = swipeRef.current;
-    if (!swipe || swipe.done || swipe.id !== e.pointerId) return;
+    if (!swipe || swipe.id !== e.pointerId) return;
     const dx = e.clientX - swipe.x;
-    const dy = e.clientY - swipe.y;
-    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-      stepLook(dx < 0 ? 1 : -1);
-      // Allow continuous swiping: re-anchor for the next step.
-      swipeRef.current = { x: e.clientX, y: e.clientY, id: e.pointerId, done: false };
+    // Positive drag (finger right) moves toward earlier looks.
+    let units = -dx / SPACING;
+    const min = -lookIndex;
+    const max = LOOKS.length - 1 - lookIndex;
+    // Rubber-band past the ends.
+    if (units < min) units = min + (units - min) * 0.25;
+    if (units > max) units = max + (units - max) * 0.25;
+    setDragOffset(units);
+
+    const step = Math.round(units);
+    if (step !== lastStepRef.current && step >= min && step <= max) {
+      lastStepRef.current = step;
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { navigator.vibrate?.(6); } catch { /* noop */ }
+      }
     }
   };
 
   const onCarouselPointerUp = (e: React.PointerEvent) => {
-    if (swipeRef.current?.id === e.pointerId) swipeRef.current = null;
+    const swipe = swipeRef.current;
+    if (!swipe || swipe.id !== e.pointerId) return;
+    swipeRef.current = null;
+    setDragging(false);
+    const target = Math.min(
+      LOOKS.length - 1,
+      Math.max(0, lookIndex + Math.round(dragOffset)),
+    );
+    setDragOffset(0);
+    setLookIndex(target);
   };
 
   const attachStream = (stream: MediaStream) => {
@@ -208,6 +237,12 @@ function VideoRecordScreen() {
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
       videoRef.current.play().catch(() => {});
+    }
+    const settings = stream.getVideoTracks()[0]?.getSettings?.() as
+      | (MediaTrackSettings & { facingMode?: string })
+      | undefined;
+    if (settings?.facingMode === "environment" || settings?.facingMode === "user") {
+      setFacingMode(settings.facingMode);
     }
     detectZoom(stream);
     setReady(true);
