@@ -54,12 +54,15 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const targetId = data.userId ?? callerId;
     const isSelf = targetId === callerId;
 
-    // Groups the caller belongs to
+    // Groups the caller belongs to, newest membership first (matches the
+    // order every other group switcher sheet uses)
     const { data: myRows } = await supabase
       .from("group_members")
       .select("group_id, joined_at")
-      .eq("user_id", callerId);
-    const myGroupIds = (myRows ?? []).map((r) => r.group_id as string);
+      .eq("user_id", callerId)
+      .order("joined_at", { ascending: false });
+    const myOrder = (myRows ?? []).map((r) => r.group_id as string);
+    const myGroupIds = myOrder;
 
     // Groups the target belongs to (restricted to shared ones when viewing someone else)
     const { data: theirRows } = await supabase
