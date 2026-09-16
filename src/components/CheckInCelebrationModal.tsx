@@ -119,13 +119,25 @@ export function CheckInCelebrationModal({
       {/* Top bar */}
       <div
         className="flex items-center justify-between px-5"
-        style={{ paddingTop: 24, paddingBottom: 12 }}
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 16px)",
+          paddingBottom: 12,
+        }}
       >
-        <span
-          className="text-[17px] font-bold tracking-tight"
-          style={{ color: COLORS.primary }}
-        >
-          Pactara
+        <span className="flex items-center gap-2">
+          <img
+            src="/pactara-icon.png"
+            alt=""
+            width={28}
+            height={28}
+            className="h-7 w-7 rounded-[8px]"
+          />
+          <span
+            className="text-[17px] font-bold tracking-tight"
+            style={{ color: BRAND_PURPLE }}
+          >
+            Pactara
+          </span>
         </span>
         <button
           onClick={onDismiss}
@@ -136,6 +148,7 @@ export function CheckInCelebrationModal({
           <X size={18} />
         </button>
       </div>
+
 
       {/* Content */}
       <div className="flex-1 px-5 pb-[max(env(safe-area-inset-bottom),20px)]">
