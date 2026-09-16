@@ -84,7 +84,7 @@ export default function GroupSwitcherSheet({
           <span className="h-1 w-10 rounded-full bg-border" />
         </div>
         <div className="px-5 pt-1 pb-3">
-          <h2 className="text-[26px] leading-8 font-bold text-foreground">Switch group</h2>
+          <h2 className="text-[17px] leading-6 font-bold text-foreground">Switch group</h2>
         </div>
         <div className="max-h-[68vh] overflow-y-auto px-3 pb-2">
           {allowAll && (
@@ -96,19 +96,19 @@ export default function GroupSwitcherSheet({
               className="w-full flex items-center gap-4 px-2 py-4 text-left active:bg-muted"
             >
               <span
-                className="h-14 w-14 shrink-0 rounded-full flex items-center justify-center bg-muted text-[22px]"
+                className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center bg-muted text-[18px]"
               >
                 🔔
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[21px] leading-7 font-bold text-foreground">All groups</span>
-                <span className="mt-0.5 block text-[16px] leading-6 text-muted-foreground">
+                <span className="block text-[17px] leading-6 font-bold text-foreground">All groups</span>
+                <span className="mt-0.5 block text-[14px] leading-5 text-muted-foreground">
                   Everything from your {groups.length} group{groups.length === 1 ? "" : "s"}
                 </span>
               </span>
               {selectedGroupId === "all" && (
-                <span className="h-8 w-8 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
-                  <Check size={19} strokeWidth={3} />
+                <span className="h-6 w-6 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
+                  <Check size={15} strokeWidth={3} />
                 </span>
               )}
             </button>
@@ -128,12 +128,12 @@ export default function GroupSwitcherSheet({
                 className="w-full flex items-center gap-4 px-2 py-4 text-left active:bg-muted"
               >
                 {showStack ? (
-                  <span className="relative flex w-[84px] shrink-0 items-center">
+                  <span className="relative flex shrink-0 items-center">
                     <span className="flex -space-x-5">
                       {members.slice(0, 3).map((m) => (
                         <span
                           key={m.id}
-                          className="h-14 w-14 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center text-primary-foreground text-[16px] font-bold"
+                          className="h-11 w-11 rounded-full ring-2 ring-background overflow-hidden flex items-center justify-center text-primary-foreground text-[14px] font-bold"
                           style={{ background: m.avatarColor }}
                         >
                           {m.avatarUrl ? (
@@ -144,7 +144,7 @@ export default function GroupSwitcherSheet({
                         </span>
                       ))}
                       {members.length > 3 && (
-                        <span className="h-14 w-14 rounded-full ring-2 ring-background flex items-center justify-center bg-pactara-purple-soft text-pactara-purple text-[16px] font-bold">
+                        <span className="h-11 w-11 rounded-full ring-2 ring-background flex items-center justify-center bg-pactara-purple-soft text-pactara-purple text-[14px] font-bold">
                           +{members.length - 3}
                         </span>
                       )}
@@ -152,23 +152,23 @@ export default function GroupSwitcherSheet({
                   </span>
                 ) : (
                   <span
-                    className="h-14 w-[84px] shrink-0 rounded-full flex items-center justify-center bg-muted text-[24px]"
+                    className="h-11 w-[64px] shrink-0 rounded-full flex items-center justify-center bg-muted text-[20px]"
                   >
                     {g.emoji || "👥"}
                   </span>
                 )}
                 <span className="flex-1 min-w-0">
-                  <span className="block truncate text-[21px] leading-7 font-bold text-foreground">
+                  <span className="block truncate text-[17px] leading-6 font-bold text-foreground">
                     {g.name}
                   </span>
-                  <span className="mt-0.5 block text-[16px] leading-6 text-muted-foreground">
+                  <span className="mt-0.5 block text-[14px] leading-5 text-muted-foreground">
                     {g.memberCount ? `${g.memberCount} member${g.memberCount === 1 ? "" : "s"} · ` : ""}
                     Day {dayNumber} of {duration}
                   </span>
                 </span>
                 {active && (
-                  <span className="h-8 w-8 shrink-0 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
-                    <Check size={19} strokeWidth={3} />
+                  <span className="h-6 w-6 shrink-0 rounded-full flex items-center justify-center bg-pactara-purple text-pactara-purple-foreground">
+                    <Check size={15} strokeWidth={3} />
                   </span>
                 )}
               </button>
