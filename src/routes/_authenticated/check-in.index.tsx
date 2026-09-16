@@ -421,10 +421,10 @@ function CheckInMood({ switcher }: { switcher: React.ReactNode }) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1080 },
-          height: { ideal: 1920 },
-          aspectRatio: { ideal: 9 / 16 },
+          facingMode: { ideal: "user" },
+          width: { ideal: 1920 },
+          height: { ideal: 1440 },
+          aspectRatio: { ideal: 4 / 3 },
           frameRate: { ideal: 30 },
         },
         audio: true,
