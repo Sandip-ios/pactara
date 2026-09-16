@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Check, List, ListOrdered, CheckSquare, ChevronDown } from "lucide-react";
+import { ArrowRight, List, ListOrdered, CheckSquare, ChevronDown } from "lucide-react";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,7 +8,7 @@ import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.funct
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
-import HowToRecordSheet from "@/components/HowToRecordSheet";
+
 import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
 
 const PURPLE = "#7C3AED";
