@@ -34,9 +34,13 @@ const COLORS = {
   pendingText: "#9CA3AF",
 };
 
+const BRAND_PURPLE = "#7C3AED";
+
 export type Teammate = {
   initial: string;
   checkedIn: boolean;
+  avatarUrl?: string | null;
+  avatarColor?: string | null;
 };
 
 export type CheckInCelebrationModalProps = {
