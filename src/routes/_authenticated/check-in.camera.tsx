@@ -153,6 +153,8 @@ function VideoRecordScreen() {
 
   // ---- Swipe to change look (Snapchat-style) -------------------------
   const swipeRef = useRef<{ x: number; y: number; id: number; done: boolean } | null>(null);
+  const draggedRef = useRef(false);
+
 
   const stepLook = (dir: 1 | -1) => {
     setLookIndex((i) => Math.min(LOOKS.length - 1, Math.max(0, i + dir)));
