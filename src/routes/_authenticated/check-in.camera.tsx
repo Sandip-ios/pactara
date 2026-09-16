@@ -79,31 +79,75 @@ function VideoRecordScreen() {
       : undefined) as (MediaTrackCapabilities & { zoom?: { min: number; max: number; step?: number } }) | undefined;
     const nativeZoom = caps?.zoom;
     // Only treat native zoom as useful when it actually spans a range.
-    // Front cameras often report zoom capability with min=max=1, which would
-    // hide the zoom pill entirely — fall back to CSS scale in that case so
-    // the front camera gets the same presets as the rear.
     const useNative = Boolean(nativeZoom && nativeZoom.max > nativeZoom.min);
     const min = useNative ? nativeZoom!.min : 1;
     const max = useNative ? nativeZoom!.max : 4; // CSS-scale fallback caps at 4x
-    const presets = [0.5, 1, 2, 4, 8].filter((v) => v >= min && v <= max);
-    if (!presets.includes(1) && min <= 1 && 1 <= max) presets.unshift(1);
     setZoomRange({ min, max, native: useNative });
-    setZoomOptions(presets.length > 1 ? presets : [1, 2, 4]);
-    setZoom(1);
-  };
-
-  const applyZoom = async (value: number) => {
-    const stream = streamRef.current;
-    setZoom(value);
-    if (!stream) return;
-    const track = stream.getVideoTracks()[0];
-    if (!track) return;
-    if (zoomRange.native) {
+    // Always start fully zoomed out, on both the front and rear camera.
+    setZoom(min);
+    if (useNative) {
       try {
-        await track.applyConstraints({ advanced: [{ zoom: value } as MediaTrackConstraintSet & { zoom: number }] });
+        void track.applyConstraints({
+          advanced: [{ zoom: min } as MediaTrackConstraintSet & { zoom: number }],
+        });
       } catch {
         /* noop */
       }
+    }
+  };
+
+  const applyZoom = async (value: number, range = zoomRange) => {
+    const clamped = Math.min(range.max, Math.max(range.min, value));
+    const stream = streamRef.current;
+    setZoom(clamped);
+    if (!stream) return;
+    const track = stream.getVideoTracks()[0];
+    if (!track) return;
+    if (range.native) {
+      try {
+        await track.applyConstraints({ advanced: [{ zoom: clamped } as MediaTrackConstraintSet & { zoom: number }] });
+      } catch {
+        /* noop */
+      }
+    }
+  };
+
+  // ---- Pinch to zoom -------------------------------------------------
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<{ dist: number; zoom: number } | null>(null);
+  const [pinching, setPinching] = useState(false);
+
+  const pinchDistance = () => {
+    const pts = Array.from(pointersRef.current.values());
+    if (pts.length < 2) return 0;
+    const dx = pts[0].x - pts[1].x;
+    const dy = pts[0].y - pts[1].y;
+    return Math.hypot(dx, dy);
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointersRef.current.size === 2) {
+      pinchRef.current = { dist: pinchDistance(), zoom };
+      setPinching(true);
+    }
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!pointersRef.current.has(e.pointerId)) return;
+    pointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const start = pinchRef.current;
+    if (!start || pointersRef.current.size < 2) return;
+    const dist = pinchDistance();
+    if (!dist || !start.dist) return;
+    void applyZoom(start.zoom * (dist / start.dist));
+  };
+
+  const onPointerUp = (e: React.PointerEvent) => {
+    pointersRef.current.delete(e.pointerId);
+    if (pointersRef.current.size < 2) {
+      pinchRef.current = null;
+      setPinching(false);
     }
   };
 
