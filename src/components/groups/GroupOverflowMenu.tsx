@@ -9,13 +9,14 @@ import {
   Pencil,
   Trash2,
   X,
+  LogOut,
   Mail,
   MessageCircle,
   Share2,
   QrCode,
 } from "lucide-react";
 import { GroupQrSheet } from "@/components/groups/GroupQrSheet";
-import { renameGroup, updateGroupCommitment, deleteGroup } from "@/lib/groups.functions";
+import { renameGroup, updateGroupCommitment, deleteGroup, leaveGroup } from "@/lib/groups.functions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Drawer,
@@ -68,6 +69,9 @@ export function GroupOverflowMenu({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [leaveErr, setLeaveErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   const link = inviteLinkFor(groupId);
@@ -188,6 +192,21 @@ export function GroupOverflowMenu({
               />
             </>
           )}
+          {!isAdmin && (
+            <>
+              <Divider />
+              <MenuButton
+                icon={<LogOut size={18} className="text-red-500" />}
+                label="Leave group"
+                danger
+                onClick={() => {
+                  setMenuOpen(false);
+                  setLeaveErr(null);
+                  setLeaveOpen(true);
+                }}
+              />
+            </>
+          )}
         </PopoverContent>
       </Popover>
 
@@ -236,6 +255,52 @@ export function GroupOverflowMenu({
         emoji={emoji}
         inviteLink={link}
       />
+      <Drawer open={leaveOpen} onOpenChange={(o) => !leaving && setLeaveOpen(o)}>
+        <DrawerContent className="rounded-t-3xl">
+          <DrawerHeader className="text-left">
+            <DrawerTitle className="text-[20px] font-bold">Leave {groupName}?</DrawerTitle>
+            <DrawerDescription>
+              You'll stop seeing this group's check-ins and chat, and your streak here ends. You can
+              rejoin later with an invite link.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-sheet space-y-3">
+            {leaveErr && (
+              <div className="rounded-xl px-3 py-2 text-[13px] bg-red-100 text-red-800">{leaveErr}</div>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setLeaveOpen(false)}
+                disabled={leaving}
+                className="flex-1 rounded-full bg-neutral-200 text-neutral-800 py-3 font-semibold text-[15px]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setLeaving(true);
+                  setLeaveErr(null);
+                  try {
+                    await leaveGroup({ data: { groupId } });
+                    await refresh();
+                    setLeaveOpen(false);
+                    onDeleted?.();
+                  } catch (e) {
+                    setLeaveErr(e instanceof Error ? e.message : "Failed to leave");
+                  } finally {
+                    setLeaving(false);
+                  }
+                }}
+                disabled={leaving}
+                className="flex-1 rounded-full bg-red-600 text-white py-3 font-semibold text-[15px] disabled:opacity-60"
+              >
+                {leaving ? "Leaving…" : "Leave"}
+              </button>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
       <Drawer open={deleteOpen} onOpenChange={(o) => !deleting && setDeleteOpen(o)}>
         <DrawerContent className="rounded-t-3xl">
           <DrawerHeader className="text-left">
