@@ -9,7 +9,7 @@ export const Route = createFileRoute("/api/public/invite/claim")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const { clientIp, fingerprint, ipPrefix, windowStartIso } = await import(
+        const { clientIp, fingerprint, windowStartIso } = await import(
           "@/lib/deferred-invite.server"
         );
 
