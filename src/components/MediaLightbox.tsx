@@ -79,16 +79,46 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
 
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    return attachVideoDurationFix(video);
+  }, [src]);
+
+  const syncDuration = () => {
+    const video = videoRef.current;
+    if (!video) return 0;
+    const d = effectiveDuration(video);
+    setDuration((prev) => (Math.abs(prev - d) > 0.1 ? d : prev));
+    return d;
+  };
+
   const handleTimeUpdate = () => {
     const video = videoRef.current;
-    if (!video || !video.duration) return;
-    setProgress((video.currentTime / video.duration) * 100);
+    if (!video) return;
+    const d = syncDuration();
+    if (!d) return;
+    setProgress(Math.min(100, (video.currentTime / d) * 100));
   };
 
   const handleLoadedMetadata = () => {
+    syncDuration();
+  };
+
+  const handleEnded = () => {
     const video = videoRef.current;
     if (!video) return;
-    setDuration(video.duration);
+    // Loop manually: the native `loop` attribute would restart at the bogus
+    // duration without giving us a chance to keep playing the rest.
+    window.setTimeout(() => {
+      if (!videoRef.current || !videoRef.current.ended) return;
+      try {
+        videoRef.current.currentTime = 0;
+        void videoRef.current.play().catch(() => {});
+      } catch {
+        /* noop */
+      }
+    }, 60);
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,14 +145,18 @@ function VideoPlayer({ src, onClose }: { src: string; onClose: () => void }) {
         ref={videoRef}
         src={src}
         autoPlay
-        loop
         playsInline
+        preload="auto"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onDurationChange={syncDuration}
+        onProgress={syncDuration}
+        onEnded={handleEnded}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         className="w-full h-full object-contain bg-black"
       />
+
       <button
         type="button"
         onClick={togglePlay}
