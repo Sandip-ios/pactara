@@ -1088,16 +1088,32 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
 
     const memberIds = (members ?? []).map((m: any) => m.user_id as string);
     const { data: profs } = memberIds.length
-      ? await supabase.from("profiles").select("id, name").in("id", memberIds)
+      ? await supabase
+          .from("profiles")
+          .select("id, name, avatar_color, avatar_url")
+          .in("id", memberIds)
       : { data: [] as any[] };
+    const avatarPaths = (profs ?? [])
+      .map((p: any) => p.avatar_url)
+      .filter((p: string | null): p is string => !!p);
+    const signedMap = new Map<string, string>();
+    if (avatarPaths.length) {
+      const { data: signed } = await supabase.storage
+        .from("avatars")
+        .createSignedUrls(avatarPaths, 60 * 60);
+      (signed ?? []).forEach((s: any) => {
+        if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
+      });
+    }
     const checkedSet = new Set((todayCheckIns ?? []).map((c: any) => c.user_id as string));
-    // NOTE: real share-card rendering of teammates requires explicit group consent.
-    // We surface initials only here; do not add real names/avatars to exported images.
     const teammates: CelebrationTeammate[] = (profs ?? []).map((p: any) => ({
       id: p.id,
       initial: (p.name ?? "?").trim().charAt(0).toUpperCase() || "•",
       checkedIn: checkedSet.has(p.id),
+      avatarUrl: p.avatar_url ? signedMap.get(p.avatar_url) ?? null : null,
+      avatarColor: p.avatar_color ?? null,
     }));
+
 
     return {
       streakCount: streak,
