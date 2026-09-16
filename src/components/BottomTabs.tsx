@@ -33,6 +33,22 @@ export function BottomTabs() {
   const isActive = (path: string) =>
     path === "/home" ? pathname === "/home" : pathname.startsWith(path);
 
+  // Warm every tab's code so switching is instant, not a chunk download.
+  useEffect(() => {
+    const warm = () => {
+      for (const to of ["/home", "/groups", "/check-in", "/chat", "/profile"]) {
+        router.preloadRoute({ to }).catch(() => {});
+      }
+    };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void) => number };
+    if (w.requestIdleCallback) w.requestIdleCallback(warm);
+    else setTimeout(warm, 500);
+  }, [router]);
+
+  const preload = (to: string) => () => {
+    router.preloadRoute({ to }).catch(() => {});
+  };
+
   return (
     <nav
       data-bottom-tabs
