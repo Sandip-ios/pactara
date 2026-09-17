@@ -25,9 +25,8 @@ import {
 import { WorkoutCheerSheet } from "@/components/groups/WorkoutCheerSheet";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    workout: typeof search.workout === "string" ? search.workout : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { workout?: string } =>
+    typeof search.workout === "string" ? { workout: search.workout } : {},
   component: GroupDetailPage,
 });
 
