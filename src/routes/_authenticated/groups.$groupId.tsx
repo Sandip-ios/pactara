@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
@@ -25,14 +25,15 @@ import {
 import { WorkoutCheerSheet } from "@/components/groups/WorkoutCheerSheet";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
-  validateSearch: (search: Record<string, unknown>): { workout?: string } =>
-    typeof search.workout === "string" ? { workout: search.workout } : {},
   component: GroupDetailPage,
 });
 
 function GroupDetailPage() {
   const { groupId } = Route.useParams();
-  const { workout } = Route.useSearch();
+  // A "started working out" push deep links to ?workout=<sessionId>.
+  const workout = useRouterState({
+    select: (s) => (s.location.search as { workout?: string }).workout,
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"today" | "activity">("today");
@@ -159,7 +160,7 @@ function GroupDetailPage() {
           onClose={() => {
             setCheerSessionId(null);
             if (workout) {
-              navigate({ to: "/groups/$groupId", params: { groupId }, search: {}, replace: true });
+              navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
             }
           }}
         />
