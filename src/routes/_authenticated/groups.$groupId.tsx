@@ -18,19 +18,31 @@ import {
   NudgeButton,
   PURPLE,
   PURPLE_DEEP,
+  elapsedLabel,
   formatTime,
   statusLabel,
 } from "@/components/groups/AccountabilityBits";
+import { WorkoutCheerSheet } from "@/components/groups/WorkoutCheerSheet";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    workout: typeof search.workout === "string" ? search.workout : undefined,
+  }),
   component: GroupDetailPage,
 });
 
 function GroupDetailPage() {
   const { groupId } = Route.useParams();
+  const { workout } = Route.useSearch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"today" | "activity">("today");
+  const [cheerSessionId, setCheerSessionId] = useState<string | null>(null);
+
+  // A "started working out" push deep links straight to that session.
+  useEffect(() => {
+    if (workout) setCheerSessionId(workout);
+  }, [workout]);
 
   // Viewing a group makes it the active group, so a check-in started from here
   // posts to this group.
