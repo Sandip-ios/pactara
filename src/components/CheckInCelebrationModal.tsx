@@ -128,20 +128,9 @@ export function CheckInCelebrationModal({
           paddingBottom: 12,
         }}
       >
-        <span className="flex items-center gap-2">
-          <img
-            src="/pactara-icon.png"
-            alt=""
-            width={28}
-            height={28}
-            className="h-7 w-7 rounded-[8px]"
-          />
-          <span
-            className="text-[17px] font-bold tracking-tight"
-            style={{ color: BRAND_PURPLE }}
-          >
-            Pactara
-          </span>
+        <span className="text-[22px] font-black tracking-tight" aria-label="Pactara">
+          <span style={{ color: BRAND_PURPLE }}>P</span>
+          <span style={{ color: COLORS.ink }}>actara</span>
         </span>
         <button
           onClick={onDismiss}
