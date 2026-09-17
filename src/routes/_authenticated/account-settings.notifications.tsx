@@ -70,6 +70,65 @@ function NotificationsPage() {
     },
   });
 
+  const updateWebPushRegistration = async (next: boolean) => {
+    if (isNative()) return;
+    if (next) {
+      if (!pushSupported()) {
+        throw new Error("Your browser doesn't support push notifications");
+      }
+      if (previewBlocked()) {
+        throw new Error("Push only works on the published app, not the preview");
+      }
+      const { publicKey } = await getKeyFn();
+      const result = await enablePush(publicKey);
+      if (!result.ok) {
+        if (result.reason === "denied") throw new Error("Notification permission denied");
+        if (result.reason === "preview") throw new Error("Push only works on the published app");
+        if (result.reason === "unsupported") {
+          throw new Error("Your browser doesn't support push notifications");
+        }
+        if (result.reason === "no-key") throw new Error("Push isn't configured yet");
+        throw new Error(result.message || "Couldn't enable push");
+      }
+      const sub = result.subscription;
+      if (!sub.endpoint || !sub.keys?.p256dh || !sub.keys.auth) {
+        throw new Error("Couldn't register this device for push notifications");
+      }
+      await saveSubFn({
+        data: {
+          endpoint: sub.endpoint,
+          keys: { p256dh: sub.keys.p256dh, auth: sub.keys.auth },
+          userAgent: navigator.userAgent,
+        },
+      });
+      return;
+    }
+
+    const removed = await disablePush();
+    if (removed?.endpoint) {
+      await deleteSubFn({ data: { endpoint: removed.endpoint } });
+    }
+  };
+
+  const pushToggle = useMutation({
+    mutationFn: async (next: boolean) => {
+      await updateWebPushRegistration(next);
+      await updateFn({ data: { push_enabled: next } });
+      return next;
+    },
+    onMutate: (next) => {
+      setPrefs((p) => (p ? { ...p, push_enabled: next } : p));
+    },
+    onSuccess: (next) => {
+      flash("ok", next ? "Push notifications on" : "Push notifications off");
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+    onError: (e: Error) => {
+      flash("err", e.message);
+      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
+    },
+  });
+
   const morningToggle = useMutation({
     mutationFn: async (next: boolean) => {
       // In the native app pushes are delivered through Firebase, not Web Push.
@@ -83,44 +142,11 @@ function NotificationsPage() {
         return next;
       }
       if (next) {
-        if (!pushSupported()) {
-          throw new Error("Your browser doesn't support push notifications");
-        }
-        if (previewBlocked()) {
-          throw new Error("Push only works on the published app, not the preview");
-        }
-        const { publicKey } = await getKeyFn();
-        const result = await enablePush(publicKey);
-        if (!result.ok) {
-          if (result.reason === "denied")
-            throw new Error("Notification permission denied");
-          if (result.reason === "preview")
-            throw new Error("Push only works on the published app");
-          if (result.reason === "unsupported")
-            throw new Error("Your browser doesn't support push notifications");
-          if (result.reason === "no-key")
-            throw new Error("Push isn't configured yet");
-          throw new Error(result.message || "Couldn't enable push");
-        }
-        const sub = result.subscription;
-        await saveSubFn({
-          data: {
-            endpoint: sub.endpoint!,
-            keys: {
-              p256dh: sub.keys!.p256dh!,
-              auth: sub.keys!.auth!,
-            },
-            userAgent: navigator.userAgent,
-          },
-        });
+        await updateWebPushRegistration(true);
         await updateFn({
           data: { morning_ritual_reminder_enabled: true, push_enabled: true },
         });
       } else {
-        const removed = await disablePush();
-        if (removed?.endpoint) {
-          await deleteSubFn({ data: { endpoint: removed.endpoint } });
-        }
         await updateFn({
           data: { morning_ritual_reminder_enabled: false },
         });
@@ -158,7 +184,8 @@ function NotificationsPage() {
           title="Push notifications"
           subtitle="Alerts on this device"
           value={prefs.push_enabled}
-          onChange={(v) => save.mutate({ push_enabled: v })}
+          disabled={pushToggle.isPending}
+          onChange={(v) => pushToggle.mutate(v)}
         />
       </Card>
 

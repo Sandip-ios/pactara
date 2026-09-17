@@ -134,6 +134,13 @@ export async function pushToUsers(
     }
   }
 
+  console.info("[notify] delivery complete", {
+    recipients: userIds.length,
+    webSent,
+    fcmSent,
+    destination: payload.url ?? "/home",
+  });
+
   return { webSent, fcmSent };
 }
 
