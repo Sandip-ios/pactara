@@ -14,6 +14,7 @@ import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import GifPickerSheet from "@/components/GifPickerSheet";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
+import { getUnreadCommentCounts, markPostCommentsRead } from "@/lib/comment-reads.functions";
 import {
   togglePostReaction,
   setPostReaction,
