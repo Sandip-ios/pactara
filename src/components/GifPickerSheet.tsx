@@ -74,7 +74,6 @@ export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search GIFs"
-              autoFocus
               className="flex-1 bg-transparent outline-none text-[15px]"
             />
           </div>
