@@ -61,7 +61,8 @@ export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
       <div
         role="dialog"
         aria-modal="true"
-        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] max-h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-200"
+        style={{ bottom: keyboardInset, maxHeight: `calc(75dvh - ${keyboardInset}px)` }}
+        className="absolute inset-x-0 bg-white rounded-t-[24px] flex flex-col animate-in slide-in-from-bottom duration-200"
       >
         <div className="pt-2 flex justify-center shrink-0">
           <div className="h-1.5 w-10 rounded-full bg-neutral-300" />
