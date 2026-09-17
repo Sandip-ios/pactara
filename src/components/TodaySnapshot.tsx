@@ -114,7 +114,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
   ];
 
   return (
-    <section className="mx-4 mt-3 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+    <section className="mx-4 mt-3 overflow-hidden rounded-[26px] border border-border/60 bg-card shadow-sm">
       <div
         ref={trackRef}
         className="flex items-start transition-transform duration-300 ease-out"
@@ -136,11 +136,11 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
             embedded
             fallback={
               <>
-                <div className="flex min-h-[214px] flex-col px-5 pb-4 pt-5">
-                  <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+                <div className="flex min-h-[252px] flex-col px-6 pb-5 pt-6">
+                  <span className="text-[14px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                     {copy.title}
                   </span>
-                  <p className="mt-3 flex-1 text-pretty text-[17px] font-bold leading-[1.35] text-card-foreground">
+                  <p className="mt-5 flex-1 text-pretty text-[25px] font-black leading-[1.12] text-card-foreground">
                     {copy.message}
                   </p>
                   {copy.cta && (
@@ -148,7 +148,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                       onClick={goToCheckIn}
                       onTouchStart={onCtaTouchStart}
                       onTouchEnd={onCtaTouchEnd}
-                      className="mt-5 h-12 w-full rounded-full bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
+                      className="mt-7 h-14 w-full rounded-full bg-pactara-purple text-[17px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
                     >
                       {copy.cta}
                     </Button>
@@ -165,25 +165,25 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
           style={{ maxHeight: index === 1 ? 400 : 0, visibility: index === 1 ? "visible" : "hidden" }}
           aria-hidden={index !== 1}
         >
-          <div className="min-h-[214px] px-5 pb-4 pt-5">
-            <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+          <div className="min-h-[252px] px-6 pb-5 pt-6">
+            <span className="text-[14px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
               Weekly snapshot
             </span>
-            <div className="mt-6">
+            <div className="mt-8">
             <div className="flex items-center justify-between">
               {stats.map((s, i) => (
                 <div key={i} className="flex min-w-0 flex-1 flex-col items-center text-center">
-                  <span className="text-[26px] font-black leading-none text-card-foreground">
+                  <span className="text-[28px] font-black leading-none text-card-foreground">
                     {s.value}
                   </span>
-                  <span className="mt-1.5 text-[11px] font-semibold uppercase text-muted-foreground">
+                  <span className="mt-2 text-[11px] font-semibold uppercase text-muted-foreground">
                     {s.label}
                   </span>
                 </div>
               ))}
             </div>
             {pace && (
-              <div className="mt-3.5 border-t border-neutral-100 pt-3">
+              <div className="mt-5 border-t border-border/60 pt-4">
                 <div className="flex items-center justify-between text-[13px]">
                    <span className="font-semibold text-card-foreground">
                     Day {pace.dayNumber} of {pace.durationDays}
@@ -194,7 +194,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                     {pace.pacePct}% on pace
                   </span>
                 </div>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-neutral-100">
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-secondary">
                   <div
                     className={pace.pacePct >= 100 ? "h-full rounded-full bg-green-600 transition-all duration-300" : pace.pacePct >= 80 ? "h-full rounded-full bg-pactara-purple transition-all duration-300" : "h-full rounded-full bg-orange-600 transition-all duration-300"}
                     style={{ width: `${Math.min(100, pace.pacePct)}%` }}
@@ -208,7 +208,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
       </div>
 
       {/* Carousel dots */}
-      <div className="flex items-center justify-center gap-1.5 pb-3 pt-1">
+      <div className="flex items-center justify-center gap-2 pb-5 pt-0">
         {Array.from({ length: SLIDES }).map((_, i) => (
           <Button
             key={i}
@@ -218,7 +218,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
             className="h-6 w-6 rounded-full p-0 hover:bg-transparent"
             aria-label={`Go to slide ${i + 1}`}
           >
-            <span className={i === index ? "h-1.5 w-[18px] rounded-full bg-pactara-purple transition-all duration-200" : "h-1.5 w-1.5 rounded-full bg-border transition-all duration-200"} />
+            <span className={i === index ? "h-1.5 w-5 rounded-full bg-pactara-purple transition-all duration-200" : "h-1.5 w-1.5 rounded-full bg-border transition-all duration-200"} />
           </Button>
         ))}
       </div>
