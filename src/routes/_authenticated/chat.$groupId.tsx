@@ -434,7 +434,7 @@ function GroupChatPage() {
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
-        style={{ paddingBottom: "12px" }}
+        style={{ paddingBottom: "20px" }}
       >
         {pendingPreview && (
           <div className="mb-2 relative inline-block">
