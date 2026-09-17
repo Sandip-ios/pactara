@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
