@@ -7,10 +7,18 @@ export type PushPayload = { title: string; body: string; url?: string };
 type PrefColumn =
   | "group_activity_enabled"
   | "daily_reminder_enabled"
-  | "morning_ritual_reminder_enabled";
+  | "morning_ritual_reminder_enabled"
+  | "workout_start_enabled"
+  | "workout_complete_enabled"
+  | "nudges_enabled"
+  | "group_milestones_enabled";
 
 /** Filter a list of user ids down to those who opted in to this kind of push. */
-export async function filterOptedIn(userIds: string[], pref: PrefColumn): Promise<string[]> {
+export async function filterOptedIn(
+  userIds: string[],
+  pref: PrefColumn,
+  defaultEnabled = true,
+): Promise<string[]> {
   if (userIds.length === 0) return [];
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
@@ -20,11 +28,13 @@ export async function filterOptedIn(userIds: string[], pref: PrefColumn): Promis
 
   const rows = (data ?? []) as Array<Record<string, unknown>>;
   const byId = new Map(rows.map((r) => [r["user_id"] as string, r]));
-  // Users with no preferences row default to enabled.
   return userIds.filter((id) => {
     const row = byId.get(id);
-    if (!row) return true;
-    return row["push_enabled"] !== false && row[pref] !== false;
+    // No preferences row yet — fall back to this notification's default.
+    if (!row) return defaultEnabled;
+    if (row["push_enabled"] === false) return false;
+    const value = row[pref];
+    return value === undefined || value === null ? defaultEnabled : value !== false;
   });
 }
 
@@ -149,9 +159,37 @@ export async function notifyUsers(
   userIds: string[],
   payload: PushPayload,
   pref: PrefColumn,
+  defaultEnabled = true,
 ): Promise<{ webSent: number; fcmSent: number }> {
-  const eligible = await filterOptedIn([...new Set(userIds)], pref);
+  const eligible = await filterOptedIn([...new Set(userIds)], pref, defaultEnabled);
   return pushToUsers(eligible, payload);
+}
+
+/**
+ * Tell the rest of a group that someone started or finished a workout.
+ * Workout-complete pushes are opt-in, so they default off for users who have
+ * never touched their notification settings.
+ */
+export async function notifyGroupWorkout(
+  groupId: string,
+  actorUserId: string,
+  payload: PushPayload,
+  pref: "workout_start_enabled" | "workout_complete_enabled",
+): Promise<void> {
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: members } = await supabaseAdmin
+      .from("group_members")
+      .select("user_id")
+      .eq("group_id", groupId);
+    const recipients = (members ?? [])
+      .map((m) => m.user_id as string)
+      .filter((id) => id !== actorUserId);
+    if (recipients.length === 0) return;
+    await notifyUsers(recipients, payload, pref, pref === "workout_start_enabled");
+  } catch (err) {
+    console.warn("[notify] workout push failed", err);
+  }
 }
 
 /**

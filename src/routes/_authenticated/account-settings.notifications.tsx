@@ -34,6 +34,10 @@ type Prefs = {
   daily_reminder_time: string;
   group_activity_enabled: boolean;
   morning_ritual_reminder_enabled: boolean;
+  workout_start_enabled: boolean;
+  workout_complete_enabled: boolean;
+  nudges_enabled: boolean;
+  group_milestones_enabled: boolean;
 };
 
 function NotificationsPage() {

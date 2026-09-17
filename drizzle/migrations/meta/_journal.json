@@ -92,6 +92,13 @@
       "when": 1789561047112,
       "tag": "0012_backfill_notification_preferences_defaults",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1789662492510,
+      "tag": "0013_create_workout_sessions",
+      "breakpoints": true
     }
   ]
 }

@@ -11,7 +11,13 @@ import { localDateFor } from "@/lib/daily-posts.functions";
  * day plus the group streak (consecutive days where every member showed up).
  */
 
-export type MemberTodayStatus = "done" | "in_progress" | "committed" | "missed" | "not_committed";
+export type MemberTodayStatus =
+  | "done"
+  | "working_out"
+  | "in_progress"
+  | "committed"
+  | "missed"
+  | "not_committed";
 
 export type MemberToday = {
   userId: string;
@@ -25,6 +31,9 @@ export type MemberToday = {
   committedAt: string | null;
   commitmentText: string | null;
   streak: number;
+  /** Set while this member has a live workout session running. */
+  workoutStartedAt: string | null;
+  workoutSessionId: string | null;
 };
 
 export type GroupToday = {
@@ -97,7 +106,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const memberIds = Array.from(new Set(allMembers.map((m) => m.user_id as string)));
     const safeIds = memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"];
 
-    const [profilesRes, checkinsRes, postsRes, freezesRes] = await Promise.all([
+    const [profilesRes, checkinsRes, postsRes, freezesRes, workoutsRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_color, avatar_url").in("id", safeIds),
       supabase
         .from("check_ins")
@@ -119,6 +128,12 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         .gte("freeze_date", windowStart)
         .lte("freeze_date", today)
         .limit(20000),
+      // Live "working out now" sessions.
+      supabase
+        .from("workout_sessions")
+        .select("id, group_id, user_id, started_at")
+        .in("group_id", groupIds)
+        .eq("status", "active"),
     ]);
 
 
@@ -166,6 +181,14 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       });
     }
 
+    const workoutByKey = new Map<string, { id: string; startedAt: string }>();
+    for (const row of workoutsRes.data ?? []) {
+      workoutByKey.set(`${row.group_id}:${row.user_id}`, {
+        id: row.id as string,
+        startedAt: row.started_at as string,
+      });
+    }
+
     const computeStreak = (days: Set<string>): number => {
       const start = days.has(today) ? today : days.has(shiftIso(today, -1)) ? shiftIso(today, -1) : null;
       if (!start) return 0;
@@ -204,9 +227,11 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         const days = byUser.get(uid) ?? new Set<string>();
         const post = postByKey.get(`${gid}:${uid}`);
         const doneToday = days.has(today) || Boolean(post?.checkInId);
+        const workout = workoutByKey.get(`${gid}:${uid}`);
 
         let status: MemberTodayStatus = "not_committed";
         if (doneToday) status = "done";
+        else if (workout) status = "working_out";
         else if (post?.missed) status = "missed";
         else if (post?.ritualText) status = "committed";
 
@@ -223,6 +248,8 @@ export const getGroupsToday = createServerFn({ method: "GET" })
           committedAt: post?.ritualAt ?? null,
           commitmentText: post?.ritualText ?? null,
           streak: computeStreak(days),
+          workoutStartedAt: workout?.startedAt ?? null,
+          workoutSessionId: workout?.id ?? null,
         };
       });
 
@@ -313,7 +340,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
         body: `${groupName} is waiting on you today. You've got this.`,
         url: "/check-in",
       },
-      "group_activity_enabled",
+      "nudges_enabled",
     );
     return { ok: true };
   });

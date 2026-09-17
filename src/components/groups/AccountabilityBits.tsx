@@ -35,6 +35,8 @@ export function statusLabel(status: MemberTodayStatus): string {
   switch (status) {
     case "done":
       return "Already checked in";
+    case "working_out":
+      return "Working out now";
     case "in_progress":
     case "committed":
       return "Waiting to check in";
@@ -45,12 +47,51 @@ export function statusLabel(status: MemberTodayStatus): string {
   }
 }
 
+/** "Started 18 min ago" for a live workout session. */
+export function elapsedLabel(startedAt: string | null): string | null {
+  if (!startedAt) return null;
+  const ms = Date.now() - Date.parse(startedAt);
+  if (!Number.isFinite(ms) || ms < 0) return null;
+  const minutes = Math.floor(ms / 60000);
+  if (minutes < 1) return "Started just now";
+  if (minutes < 60) return `Started ${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  return rest === 0
+    ? `Started ${hours} hr ago`
+    : `Started ${hours} hr ${rest} min ago`;
+}
+
+/** Small pulsing green dot used wherever a live workout is shown. */
+export function LiveDot({ size = 8 }: { size?: number }) {
+  return (
+    <span className="relative inline-flex shrink-0" style={{ height: size, width: size }}>
+      <span
+        className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
+        style={{ background: "#16A34A" }}
+      />
+      <span
+        className="relative inline-flex rounded-full"
+        style={{ height: size, width: size, background: "#16A34A" }}
+      />
+    </span>
+  );
+}
+
 export function StatusPill({ status }: { status: MemberTodayStatus }) {
   if (status === "done") {
     return (
       <span className="flex items-center gap-1 text-[13px] font-semibold text-green-600">
         <Check size={15} strokeWidth={3} />
         Already checked in
+      </span>
+    );
+  }
+  if (status === "working_out") {
+    return (
+      <span className="flex items-center gap-1.5 text-[13px] font-semibold text-green-600">
+        <LiveDot />
+        Working out now
       </span>
     );
   }

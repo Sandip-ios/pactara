@@ -274,6 +274,10 @@ type NotificationPrefs = {
   daily_reminder_time: string; // "HH:MM"
   group_activity_enabled: boolean;
   morning_ritual_reminder_enabled: boolean;
+  workout_start_enabled: boolean;
+  workout_complete_enabled: boolean;
+  nudges_enabled: boolean;
+  group_milestones_enabled: boolean;
 };
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -283,7 +287,26 @@ const DEFAULT_PREFS: NotificationPrefs = {
   daily_reminder_time: "09:00",
   group_activity_enabled: true,
   morning_ritual_reminder_enabled: true,
+  workout_start_enabled: true,
+  workout_complete_enabled: false,
+  nudges_enabled: true,
+  group_milestones_enabled: true,
 };
+
+const PREF_COLUMNS =
+  "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled, morning_ritual_reminder_enabled, workout_start_enabled, workout_complete_enabled, nudges_enabled, group_milestones_enabled";
+
+const BOOLEAN_PREFS = [
+  "push_enabled",
+  "email_enabled",
+  "daily_reminder_enabled",
+  "group_activity_enabled",
+  "morning_ritual_reminder_enabled",
+  "workout_start_enabled",
+  "workout_complete_enabled",
+  "nudges_enabled",
+  "group_milestones_enabled",
+] as const;
 
 export const getNotificationPrefs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -291,35 +314,28 @@ export const getNotificationPrefs = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("notification_preferences")
-      .select(
-        "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled, morning_ritual_reminder_enabled",
-      )
+      .select(PREF_COLUMNS)
       .eq("user_id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
-    const prefs = (data ?? DEFAULT_PREFS) as NotificationPrefs;
-    return {
-      push_enabled: !!prefs.push_enabled,
-      email_enabled: !!prefs.email_enabled,
-      daily_reminder_enabled: !!prefs.daily_reminder_enabled,
-      daily_reminder_time: String(prefs.daily_reminder_time).slice(0, 5),
-      group_activity_enabled: !!prefs.group_activity_enabled,
-      morning_ritual_reminder_enabled: !!prefs.morning_ritual_reminder_enabled,
-    };
+    const row = (data ?? {}) as Partial<NotificationPrefs>;
+    const out = { ...DEFAULT_PREFS };
+    for (const key of BOOLEAN_PREFS) {
+      if (typeof row[key] === "boolean") out[key] = row[key] as boolean;
+    }
+    if (row.daily_reminder_time) {
+      out.daily_reminder_time = String(row.daily_reminder_time).slice(0, 5);
+    }
+    return out;
   });
 
 export const updateNotificationPrefs = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: Partial<NotificationPrefs>) => {
     const out: Partial<NotificationPrefs> = {};
-    if (typeof input.push_enabled === "boolean") out.push_enabled = input.push_enabled;
-    if (typeof input.email_enabled === "boolean") out.email_enabled = input.email_enabled;
-    if (typeof input.daily_reminder_enabled === "boolean")
-      out.daily_reminder_enabled = input.daily_reminder_enabled;
-    if (typeof input.group_activity_enabled === "boolean")
-      out.group_activity_enabled = input.group_activity_enabled;
-    if (typeof input.morning_ritual_reminder_enabled === "boolean")
-      out.morning_ritual_reminder_enabled = input.morning_ritual_reminder_enabled;
+    for (const key of BOOLEAN_PREFS) {
+      if (typeof input[key] === "boolean") out[key] = input[key] as boolean;
+    }
     if (typeof input.daily_reminder_time === "string") {
       const t = input.daily_reminder_time;
       if (!/^\d{2}:\d{2}(:\d{2})?$/.test(t))
