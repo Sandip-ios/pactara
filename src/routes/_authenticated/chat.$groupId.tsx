@@ -493,6 +493,10 @@ function SignedImage({ path, className }: { path: string; className?: string }) 
   const isRemote = /^https?:\/\//.test(path);
   const [url, setUrl] = useState<string | null>(isRemote ? path : null);
   useEffect(() => {
+    if (isRemote) {
+      setUrl(path);
+      return;
+    }
     let cancelled = false;
     supabase.storage
       .from(BUCKET)
@@ -503,7 +507,7 @@ function SignedImage({ path, className }: { path: string; className?: string }) 
     return () => {
       cancelled = true;
     };
-  }, [path]);
+  }, [path, isRemote]);
   if (!url) {
     return <div className={`bg-neutral-200 animate-pulse h-40 w-40 rounded-2xl ${className ?? ""}`} />;
   }
