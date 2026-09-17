@@ -241,7 +241,36 @@ function NotificationsPage() {
           value={prefs.group_activity_enabled}
           onChange={(v) => save.mutate({ group_activity_enabled: v })}
         />
+        <Divider />
+        <ToggleRow
+          title="Workout started"
+          subtitle="When someone in your group starts"
+          value={prefs.workout_start_enabled}
+          onChange={(v) => save.mutate({ workout_start_enabled: v })}
+        />
+        <Divider />
+        <ToggleRow
+          title="Workout completed"
+          subtitle="When someone finishes with proof"
+          value={prefs.workout_complete_enabled}
+          onChange={(v) => save.mutate({ workout_complete_enabled: v })}
+        />
+        <Divider />
+        <ToggleRow
+          title="Nudges"
+          subtitle="When someone says they're waiting on you"
+          value={prefs.nudges_enabled}
+          onChange={(v) => save.mutate({ nudges_enabled: v })}
+        />
+        <Divider />
+        <ToggleRow
+          title="Group milestones"
+          subtitle="Streaks and pacts your group reaches"
+          value={prefs.group_milestones_enabled}
+          onChange={(v) => save.mutate({ group_milestones_enabled: v })}
+        />
       </Card>
+
 
       <p className="text-[12px] text-neutral-400 mt-4 px-1">
         Changes save automatically.
