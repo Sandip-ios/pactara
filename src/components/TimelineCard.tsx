@@ -38,6 +38,7 @@ import {
   Heart,
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -804,7 +805,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
           </button>
         </div>
       )}
-      <form onSubmit={submit} className="flex items-center gap-2 px-4 py-3 border-t border-neutral-100 bg-white mb-4">
+      <form onSubmit={submit} className="border-t border-neutral-100 bg-white px-4 py-3 mb-4">
         <input
           ref={fileRef}
           type="file"
@@ -812,43 +813,50 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
           className="hidden"
           onChange={(e) => pickFile(e.target.files?.[0])}
         />
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          aria-label="Add photo or video"
-          className="h-10 w-10 rounded-full bg-neutral-100 flex items-center justify-center shrink-0"
-        >
-          <ImagePlus size={18} className="text-neutral-500" />
-        </button>
-        <button
-          type="button"
-          onClick={() => setGifOpen(true)}
-          aria-label="Add GIF"
-          className="h-10 px-2.5 rounded-full bg-neutral-100 flex items-center justify-center shrink-0 text-[12px] font-black text-neutral-500"
-        >
-          GIF
-        </button>
-        <input
-          ref={inputRef}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder={replyTo ? `Reply to ${replyTo.name}…` : "Add a comment…"}
-          maxLength={1000}
-          className="flex-1 h-10 rounded-full bg-neutral-100 border border-transparent px-4 text-[16px] outline-none focus:border-[#7C3AED] focus:bg-white"
-        />
-        <button
-          type="submit"
-          disabled={!canSend}
-          aria-label="Post comment"
-          className="h-10 w-10 rounded-full flex items-center justify-center disabled:opacity-50 shrink-0"
-          style={{ background: canSend ? PURPLE : "#E5E5E5" }}
-        >
-          {busy ? (
-            <Loader2 size={16} className="text-white animate-spin" />
+        <div className="flex min-h-13 items-center gap-1 rounded-full bg-muted px-2 py-1.5 transition-colors focus-within:ring-2 focus-within:ring-pactara-purple/20">
+          <input
+            ref={inputRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder={replyTo ? `Reply to ${replyTo.name}…` : "Add a comment…"}
+            maxLength={1000}
+            className="min-w-0 flex-1 bg-transparent px-3 text-[16px] outline-none placeholder:text-muted-foreground"
+          />
+          {text.trim() || pendingFile || busy ? (
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!canSend}
+              aria-label="Post comment"
+              className="h-10 w-10 shrink-0 rounded-full bg-pactara-purple text-pactara-purple-foreground shadow-none transition-all duration-200 hover:bg-pactara-purple-deep"
+            >
+              {busy ? <Loader2 className="animate-spin" /> : <Send />}
+            </Button>
           ) : (
-            <Send size={16} className={canSend ? "text-white" : "text-neutral-400"} />
+            <div className="flex shrink-0 items-center gap-0.5 animate-in fade-in duration-150">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => fileRef.current?.click()}
+                aria-label="Add photo or video"
+                className="h-10 w-10 rounded-full text-foreground hover:bg-background"
+              >
+                <ImagePlus />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setGifOpen(true)}
+                aria-label="Add GIF"
+                className="h-10 w-10 rounded-full text-foreground hover:bg-background"
+              >
+                <span className="rounded border border-current px-1 py-0.5 text-[10px] font-black leading-none">GIF</span>
+              </Button>
+            </div>
           )}
-        </button>
+        </div>
       </form>
       {(add.isError || uploadError) && (
         <div className="text-[12px] text-red-500 px-4 pb-2">{uploadError ?? (add.error as Error)?.message}</div>
