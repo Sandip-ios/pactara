@@ -288,19 +288,12 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
   }
 }
 
-const seenKey = (postId: string) => `post-comments-seen:${postId}`;
+const unreadCommentsQueryOptions = () => ({
+  queryKey: ["comment-unreads"] as const,
+  queryFn: () => getUnreadCommentCounts(),
+  staleTime: 30_000,
+});
 
-export function getSeenCommentCount(postId: string): number {
-  if (typeof localStorage === "undefined") return 0;
-  const raw = localStorage.getItem(seenKey(postId));
-  const n = raw ? Number(raw) : 0;
-  return Number.isFinite(n) ? n : 0;
-}
-
-export function markCommentsSeen(postId: string, count: number) {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(seenKey(postId), String(count));
-}
 
 function ReactionBar({
   item,
