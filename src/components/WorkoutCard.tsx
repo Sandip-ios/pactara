@@ -20,6 +20,26 @@ import { trackWorkout } from "@/lib/workout-analytics";
  * Shows "Start workout" on today's commitment, then a live in-progress state
  * with Record proof / Finish workout. Starting is never completion.
  */
+
+/** Commitments like "100 pushups • Shoulders and arms" render as stacked bullet lines. */
+function CommitmentLines({ text }: { text: string }) {
+  const parts = text
+    .split(/\s*•\s*/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (parts.length <= 1) return <>{text}</>;
+  return (
+    <span className="flex flex-col gap-1.5">
+      {parts.map((p, i) => (
+        <span key={i} className="flex gap-2">
+          <span className="text-muted-foreground">•</span>
+          <span>{p}</span>
+        </span>
+      ))}
+    </span>
+  );
+}
+
 export function WorkoutCard({
   groupId,
   groupSize,
@@ -169,7 +189,7 @@ export function WorkoutCard({
               </span>
             </div>
             <div className="mt-2 flex-1 break-words text-pretty text-[20px] font-black leading-[1.18] text-card-foreground">
-              {session.commitmentText || "Today's commitment"}
+              <CommitmentLines text={session.commitmentText || "Today's commitment"} />
             </div>
             <div className="mt-1 text-[14px] text-muted-foreground">
               {elapsedLabel(session.startedAt) ?? "Started just now"}
@@ -243,7 +263,7 @@ export function WorkoutCard({
       </div>
       <div className="mt-8 flex flex-1 items-center gap-4">
         <div className="min-w-0 flex-1 break-words text-pretty text-[17px] font-bold leading-[1.25] text-card-foreground">
-          {data?.commitmentText}
+          {data?.commitmentText ? <CommitmentLines text={data.commitmentText} /> : null}
         </div>
         <Button
           onClick={() => start.mutate()}
