@@ -13,7 +13,25 @@ type Props = {
 export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [keyboardInset, setKeyboardInset] = useState(0);
   useHideBottomTabs(open);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!open || !vv) return;
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setKeyboardInset(0);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -43,7 +61,8 @@ export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
       <div
         role="dialog"
         aria-modal="true"
-        className="absolute inset-x-0 bottom-0 bg-white rounded-t-[24px] max-h-[75vh] flex flex-col animate-in slide-in-from-bottom duration-200"
+        style={{ bottom: keyboardInset, maxHeight: `calc(75dvh - ${keyboardInset}px)` }}
+        className="absolute inset-x-0 bg-white rounded-t-[24px] flex flex-col animate-in slide-in-from-bottom duration-200"
       >
         <div className="pt-2 flex justify-center shrink-0">
           <div className="h-1.5 w-10 rounded-full bg-neutral-300" />
@@ -55,7 +74,6 @@ export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="Search GIFs"
-              autoFocus
               className="flex-1 bg-transparent outline-none text-[15px]"
             />
           </div>
