@@ -7,6 +7,7 @@ import { markReadAndSyncBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
 import GifPickerSheet from "@/components/GifPickerSheet";
+import { Button } from "@/components/ui/button";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -457,23 +458,7 @@ function GroupChatPage() {
         {error && (
           <div className="mb-2 text-[12px] text-red-500">{error}</div>
         )}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Add photo"
-            onClick={() => fileInputRef.current?.click()}
-            className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0"
-          >
-            <ImageIcon size={20} className="text-neutral-500" />
-          </button>
-          <button
-            type="button"
-            aria-label="Add GIF"
-            onClick={() => setGifOpen(true)}
-            className="h-10 px-2.5 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0 text-[12px] font-black text-neutral-500"
-          >
-            GIF
-          </button>
+        <div className="flex min-h-13 items-center gap-1 rounded-full bg-muted px-2 py-1.5 transition-colors focus-within:ring-2 focus-within:ring-pactara-purple/20">
           <input
             ref={fileInputRef}
             type="file"
@@ -486,21 +471,42 @@ function GroupChatPage() {
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Message your group..."
-            className="flex-1 h-11 rounded-full bg-neutral-100 px-4 text-[15px] outline-none placeholder:text-neutral-400"
+            className="min-w-0 flex-1 bg-transparent px-3 text-[16px] outline-none placeholder:text-muted-foreground"
           />
-          <button
-            type="submit"
-            disabled={(!text.trim() && !pendingFile) || send.isPending || uploading}
-            aria-label="Send"
-            className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 disabled:opacity-50"
-            style={{ background: (text.trim() || pendingFile) ? PURPLE : "#E5E5E5" }}
-          >
-            {uploading || send.isPending ? (
-              <Loader2 size={18} className="text-white animate-spin" />
-            ) : (
-              <Send size={18} className={(text.trim() || pendingFile) ? "text-white" : "text-neutral-400"} />
-            )}
-          </button>
+          {text.trim() || pendingFile || send.isPending || uploading ? (
+            <Button
+              type="submit"
+              size="icon"
+              disabled={(!text.trim() && !pendingFile) || send.isPending || uploading}
+              aria-label="Send"
+              className="h-10 w-10 shrink-0 rounded-full bg-pactara-purple text-pactara-purple-foreground shadow-none transition-all duration-200 hover:bg-pactara-purple-deep"
+            >
+              {uploading || send.isPending ? <Loader2 className="animate-spin" /> : <Send />}
+            </Button>
+          ) : (
+            <div className="flex shrink-0 items-center gap-0.5 animate-in fade-in duration-150">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Add photo"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-10 w-10 rounded-full text-foreground hover:bg-background"
+              >
+                <ImageIcon />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Add GIF"
+                onClick={() => setGifOpen(true)}
+                className="h-10 w-10 rounded-full text-foreground hover:bg-background"
+              >
+                <span className="rounded border border-current px-1 py-0.5 text-[10px] font-black leading-none">GIF</span>
+              </Button>
+            </div>
+          )}
         </div>
       </form>
     </div>
