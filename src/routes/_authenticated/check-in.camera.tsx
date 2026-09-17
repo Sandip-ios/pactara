@@ -594,12 +594,7 @@ function VideoRecordScreen() {
 
       {(!ready || !frameReady) && !error && (
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 opacity-70">
-            <div className="h-14 w-14 rounded-2xl border border-white/30 flex items-center justify-center">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M4 7h3l2-2h6l2 2h3v12H4z"/><circle cx="12" cy="13" r="4"/></svg>
-            </div>
-            <p className="text-[14px]">Camera preview</p>
-          </div>
+          <div className="h-7 w-7 rounded-full border-2 border-white/25 border-t-white/80 animate-spin" />
         </div>
       )}
 
