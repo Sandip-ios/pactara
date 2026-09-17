@@ -14,6 +14,7 @@ import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import GifPickerSheet from "@/components/GifPickerSheet";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
+import { getUnreadCommentCounts, markPostCommentsRead } from "@/lib/comment-reads.functions";
 import {
   togglePostReaction,
   setPostReaction,
@@ -288,19 +289,12 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
   }
 }
 
-const seenKey = (postId: string) => `post-comments-seen:${postId}`;
+const unreadCommentsQueryOptions = () => ({
+  queryKey: ["comment-unreads"] as const,
+  queryFn: () => getUnreadCommentCounts(),
+  staleTime: 30_000,
+});
 
-export function getSeenCommentCount(postId: string): number {
-  if (typeof localStorage === "undefined") return 0;
-  const raw = localStorage.getItem(seenKey(postId));
-  const n = raw ? Number(raw) : 0;
-  return Number.isFinite(n) ? n : 0;
-}
-
-export function markCommentsSeen(postId: string, count: number) {
-  if (typeof localStorage === "undefined") return;
-  localStorage.setItem(seenKey(postId), String(count));
-}
 
 function ReactionBar({
   item,
@@ -946,30 +940,37 @@ function CheckInMenu({ checkInId }: { checkInId: string }) {
 
 export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoOpenComments?: boolean }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const [seenCount, setSeenCount] = useState(0);
+  const qc = useQueryClient();
+  const { data: unreadMap } = useQuery(unreadCommentsQueryOptions());
+  const [seenNow, setSeenNow] = useState(false);
   useEffect(() => {
-    setSeenCount(getSeenCommentCount(item.id));
+    setSeenNow(false);
   }, [item.id]);
   useEffect(() => {
     if (autoOpenComments) setCommentsOpen(true);
   }, [autoOpenComments]);
-  const unreadComments = Math.max(0, item.commentCount - seenCount);
+  const unreadComments = seenNow ? 0 : Math.min(item.commentCount, unreadMap?.[item.id] ?? 0);
+
+  const markSeen = () => {
+    setSeenNow(true);
+    void markPostCommentsRead({ data: { postId: item.id } })
+      .then(() => qc.invalidateQueries({ queryKey: ["comment-unreads"] }))
+      .catch(() => {});
+  };
+
   const openComments = () => {
     void markReadAndSyncBadge({
       groupId: item.groupId,
       kinds: ["comment", "reply", "comment_like", "reaction", "checkin"],
       postId: item.id,
     });
-    markCommentsSeen(item.id, item.commentCount);
-    setSeenCount(item.commentCount);
+    markSeen();
     setCommentsOpen(true);
   };
   useEffect(() => {
-    if (commentsOpen) {
-      markCommentsSeen(item.id, item.commentCount);
-      setSeenCount(item.commentCount);
-    }
-  }, [commentsOpen, item.id, item.commentCount]);
+    if (commentsOpen) markSeen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commentsOpen, item.id]);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const initials = (item.name || "U").slice(0, 1).toUpperCase();
   const nodes = item.nodes;
