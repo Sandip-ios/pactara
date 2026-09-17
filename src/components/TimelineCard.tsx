@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
+import GifPickerSheet from "@/components/GifPickerSheet";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import {
   togglePostReaction,
