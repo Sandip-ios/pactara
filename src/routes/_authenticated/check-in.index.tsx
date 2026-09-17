@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { postMorningRitual, getTodayRitualStatus } from "@/lib/daily-posts.functions";
 import { listMyGroups } from "@/lib/groups.functions";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
-import { setCheckInStream, clearCheckInStream } from "@/lib/checkin-stream-store";
+import { clearCheckInStream } from "@/lib/checkin-stream-store";
 
 import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
 
@@ -401,32 +401,14 @@ function MorningRitual({
 }
 
 // No separate mood screen: tapping check-in goes straight to the camera.
-// This tiny screen pre-warms the camera while the router swaps over to the
-// recorder, so it opens instantly and the "best proof" sheet can show on top.
+// The recorder owns camera startup. Requesting a second stream here can race
+// with the recorder on iOS and leave both requests waiting indefinitely.
 function CheckInLaunch() {
   const navigate = useNavigate();
 
   useEffect(() => {
     clearCheckInPhoto();
     clearCheckInStream();
-    void (async () => {
-      if (!navigator.mediaDevices?.getUserMedia) return;
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "user" },
-            width: { ideal: 1920 },
-            height: { ideal: 1440 },
-            aspectRatio: { ideal: 4 / 3 },
-            frameRate: { ideal: 30 },
-          },
-          audio: true,
-        });
-        setCheckInStream(stream);
-      } catch {
-        /* the camera screen surfaces permission/unavailable errors itself */
-      }
-    })();
     navigate({ to: "/check-in/camera", replace: true });
   }, [navigate]);
 
