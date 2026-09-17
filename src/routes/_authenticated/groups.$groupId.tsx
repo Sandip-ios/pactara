@@ -255,16 +255,25 @@ function TodayTab({ group }: { group: GroupToday }) {
 
       <div className="mx-4 rounded-3xl bg-white shadow-sm divide-y divide-neutral-100 overflow-hidden">
         {group.members.map((m) => (
-          <MemberStatusRow key={m.userId} groupId={group.id} member={m} />
+          <MemberStatusRow key={m.userId} groupId={group.id} member={m} onCheer={onCheer} />
         ))}
       </div>
     </div>
   );
 }
 
-function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberToday }) {
+function MemberStatusRow({
+  groupId,
+  member,
+  onCheer,
+}: {
+  groupId: string;
+  member: MemberToday;
+  onCheer: (sessionId: string) => void;
+}) {
   const time = formatTime(member.committedAt);
   const canNudge = !member.isYou && (member.status === "not_committed" || member.status === "committed" || member.status === "in_progress");
+  const liveWorkout = member.status === "working_out" && member.workoutSessionId;
 
   let secondary = statusLabel(member.status);
   if (member.status === "committed" && time) secondary = `Committed at ${time}`;
@@ -283,7 +292,7 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
           className="text-[13px] mt-0.5 truncate"
           style={{
             color:
-              member.status === "done"
+              member.status === "done" || member.status === "working_out"
                 ? "#16A34A"
                 : member.status === "committed"
                   ? "#D97706"
@@ -292,6 +301,11 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
         >
           {member.status === "done" ? "✓ Already checked in" : secondary}
         </div>
+        {member.status === "working_out" && (
+          <div className="text-[12px] text-neutral-400 mt-0.5">
+            {elapsedLabel(member.workoutStartedAt) ?? "Started just now"}
+          </div>
+        )}
         {member.status === "committed" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">⏳ Waiting to check in</div>
         )}
@@ -299,7 +313,17 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
           <div className="text-[12px] text-neutral-400 mt-0.5">Tomorrow is a fresh start.</div>
         )}
       </div>
-      {canNudge && <NudgeButton groupId={groupId} member={member} variant="ghost" />}
+      {liveWorkout && !member.isYou ? (
+        <button
+          onClick={() => onCheer(member.workoutSessionId as string)}
+          className="rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
+          style={{ background: "#DCFCE7", color: "#15803D" }}
+        >
+          Cheer
+        </button>
+      ) : (
+        canNudge && <NudgeButton groupId={groupId} member={member} variant="ghost" />
+      )}
     </div>
   );
 }
