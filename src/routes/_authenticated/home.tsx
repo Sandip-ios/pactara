@@ -10,7 +10,6 @@ import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStrea
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
-import { WorkoutCard } from "@/components/WorkoutCard";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WelcomeSheet } from "@/components/WelcomeSheet";
@@ -397,11 +396,8 @@ function HomePage() {
               streak={myStreak}
               longestStreak={myLongest}
               pace={paceData ?? null}
-            />
-            <WorkoutCard
               groupId={selectedGroupId}
               groupSize={streaksData?.members?.length}
-              streak={myStreak}
             />
           </>
         );
