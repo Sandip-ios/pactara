@@ -456,6 +456,14 @@ function GroupChatPage() {
           >
             <ImageIcon size={20} className="text-neutral-500" />
           </button>
+          <button
+            type="button"
+            aria-label="Add GIF"
+            onClick={() => setGifOpen(true)}
+            className="h-10 px-2.5 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0 text-[12px] font-black text-neutral-500"
+          >
+            GIF
+          </button>
           <input
             ref={fileInputRef}
             type="file"
