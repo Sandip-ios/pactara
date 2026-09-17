@@ -574,6 +574,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
+  const [gifOpen, setGifOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
