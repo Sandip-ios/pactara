@@ -147,8 +147,24 @@ function GroupDetailPage() {
           })
         }
       >
-        {tab === "today" ? <TodayTab group={group} /> : <ActivityTab groupId={group.id} />}
+        {tab === "today" ? (
+          <TodayTab group={group} onCheer={setCheerSessionId} />
+        ) : (
+          <ActivityTab groupId={group.id} />
+        )}
       </PullToRefresh>
+
+      {cheerSessionId && (
+        <WorkoutCheerSheet
+          sessionId={cheerSessionId}
+          onClose={() => {
+            setCheerSessionId(null);
+            if (workout) {
+              navigate({ to: "/groups/$groupId", params: { groupId }, search: {}, replace: true });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
