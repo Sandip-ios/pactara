@@ -13,7 +13,25 @@ type Props = {
 export default function GifPickerSheet({ open, onClose, onSelect }: Props) {
   const [q, setQ] = useState("");
   const [debounced, setDebounced] = useState("");
+  const [keyboardInset, setKeyboardInset] = useState(0);
   useHideBottomTabs(open);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!open || !vv) return;
+    const update = () => {
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setKeyboardInset(0);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
