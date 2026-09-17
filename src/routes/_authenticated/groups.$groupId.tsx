@@ -180,7 +180,7 @@ function DetailHeader({ title, onBack }: { title: string; onBack: () => void }) 
   );
 }
 
-function TodayTab({ group }: { group: GroupToday }) {
+function TodayTab({ group, onCheer }: { group: GroupToday; onCheer: (sessionId: string) => void }) {
   const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
   const waiting = group.members.filter((m) => m.status !== "done");
   const [confetti, setConfetti] = useState(false);
