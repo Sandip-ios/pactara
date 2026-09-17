@@ -545,7 +545,14 @@ function HomePage() {
         return (
           <div className="pb-2">
             {visibleCards.map((item) => (
-              <div key={`${item.id}-${item.localDate}`} id={`post-${item.id}`}>
+              // Several cards can share the same daily_post id (a day with
+              // separate "thought" cards), so the node ids must be part of the
+              // key — otherwise React reuses one card's DOM for another and an
+              // old day can stay pinned at the top after a refetch.
+              <div
+                key={`${item.id}-${item.localDate}-${item.nodes.map((n) => n.id).join("_")}`}
+                id={`post-${item.id}`}
+              >
                 <TimelineCard
                   item={item}
                   autoOpenComments={Boolean(search.comments) && search.post === item.id}
