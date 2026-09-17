@@ -242,13 +242,13 @@ export function WorkoutCard({
         Today's commitment
       </div>
       <div className="mt-8 flex flex-1 items-center gap-4">
-        <div className="min-w-0 flex-1 break-words text-pretty text-[22px] font-black leading-[1.12] text-card-foreground">
+        <div className="min-w-0 flex-1 break-words text-pretty text-[17px] font-bold leading-[1.25] text-card-foreground">
           {data?.commitmentText}
         </div>
         <Button
           onClick={() => start.mutate()}
           disabled={start.isPending}
-          className="h-14 shrink-0 rounded-full bg-pactara-purple px-8 text-[18px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
+          className="h-12 shrink-0 rounded-full bg-pactara-purple px-6 text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
         >
           {start.isPending ? "Starting…" : "Start workout"}
         </Button>
