@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
@@ -26,6 +26,7 @@ function GroupChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [text, setText] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
@@ -160,11 +161,15 @@ function GroupChatPage() {
   }, [groupId, queryClient]);
 
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [data?.messages.length]);
+  const scrollToLatestMessage = useCallback((behavior: ScrollBehavior = "auto") => {
+    requestAnimationFrame(() => {
+      bottomRef.current?.scrollIntoView({ block: "end", behavior });
+    });
+  }, []);
+
+  useLayoutEffect(() => {
+    scrollToLatestMessage();
+  }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
   const group = data?.group;
   const messages = data?.messages ?? [];
@@ -356,7 +361,11 @@ function GroupChatPage() {
                       className="select-none"
                     >
                       {m.imageUrl && (
-                        <SignedImage path={m.imageUrl} className="mb-1 max-w-full rounded-2xl" />
+                        <SignedImage
+                            path={m.imageUrl}
+                            className="mb-1 max-w-full rounded-2xl"
+                            onLoad={() => scrollToLatestMessage()}
+                          />
                       )}
                       {m.body && (
                         <div
@@ -399,6 +408,7 @@ function GroupChatPage() {
             })}
           </ul>
         )}
+        <div ref={bottomRef} aria-hidden="true" className="h-px" />
       </div>
 
       {pickerFor && !sheetFor && (
@@ -507,7 +517,15 @@ function GroupChatPage() {
   );
 }
 
-function SignedImage({ path, className }: { path: string; className?: string }) {
+function SignedImage({
+  path,
+  className,
+  onLoad,
+}: {
+  path: string;
+  className?: string;
+  onLoad?: () => void;
+}) {
   const isRemote = /^https?:\/\//.test(path);
   const [url, setUrl] = useState<string | null>(isRemote ? path : null);
   useEffect(() => {
@@ -529,5 +547,5 @@ function SignedImage({ path, className }: { path: string; className?: string }) 
   if (!url) {
     return <div className={`bg-neutral-200 animate-pulse h-40 w-40 rounded-2xl ${className ?? ""}`} />;
   }
-  return <img src={url} alt="" className={className} />;
+  return <img src={url} alt="" className={className} onLoad={onLoad} />;
 }
