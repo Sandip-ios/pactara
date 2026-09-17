@@ -225,7 +225,7 @@ function GroupChatPage() {
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
 
-      <div className="px-4 py-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
+      <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
         <button
           onClick={() => navigate({ to: "/chat" })}
           aria-label="Back"
