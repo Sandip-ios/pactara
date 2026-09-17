@@ -426,6 +426,16 @@ function GroupChatPage() {
         }}
       />
 
+      <GifPickerSheet
+        open={gifOpen}
+        onClose={() => setGifOpen(false)}
+        onSelect={(url) => {
+          setGifOpen(false);
+          send.mutate({ body: text.trim(), imageUrl: url });
+        }}
+      />
+
+
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
