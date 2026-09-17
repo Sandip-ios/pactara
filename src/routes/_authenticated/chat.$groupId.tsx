@@ -6,6 +6,7 @@ import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } 
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
+import GifPickerSheet from "@/components/GifPickerSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -32,6 +33,7 @@ function GroupChatPage() {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
+  const [gifOpen, setGifOpen] = useState(false);
 
   // Keep the active group in sync with the chat being viewed.
   useEffect(() => {
@@ -424,6 +426,16 @@ function GroupChatPage() {
         }}
       />
 
+      <GifPickerSheet
+        open={gifOpen}
+        onClose={() => setGifOpen(false)}
+        onSelect={(url) => {
+          setGifOpen(false);
+          send.mutate({ body: text.trim(), imageUrl: url });
+        }}
+      />
+
+
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
@@ -453,6 +465,14 @@ function GroupChatPage() {
             className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0"
           >
             <ImageIcon size={20} className="text-neutral-500" />
+          </button>
+          <button
+            type="button"
+            aria-label="Add GIF"
+            onClick={() => setGifOpen(true)}
+            className="h-10 px-2.5 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0 text-[12px] font-black text-neutral-500"
+          >
+            GIF
           </button>
           <input
             ref={fileInputRef}
@@ -488,8 +508,13 @@ function GroupChatPage() {
 }
 
 function SignedImage({ path, className }: { path: string; className?: string }) {
-  const [url, setUrl] = useState<string | null>(null);
+  const isRemote = /^https?:\/\//.test(path);
+  const [url, setUrl] = useState<string | null>(isRemote ? path : null);
   useEffect(() => {
+    if (isRemote) {
+      setUrl(path);
+      return;
+    }
     let cancelled = false;
     supabase.storage
       .from(BUCKET)
@@ -500,7 +525,7 @@ function SignedImage({ path, className }: { path: string; className?: string }) 
     return () => {
       cancelled = true;
     };
-  }, [path]);
+  }, [path, isRemote]);
   if (!url) {
     return <div className={`bg-neutral-200 animate-pulse h-40 w-40 rounded-2xl ${className ?? ""}`} />;
   }

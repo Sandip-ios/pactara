@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { FeedItem, TimelineNode } from "@/lib/daily-posts.functions";
 import { MediaLightbox } from "@/components/MediaLightbox";
+import GifPickerSheet from "@/components/GifPickerSheet";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import {
   togglePostReaction,
@@ -574,6 +575,7 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
+  const [gifOpen, setGifOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const { data, isLoading } = useQuery(commentsQueryOptions(postId));
   const add = useMutation({
@@ -824,6 +826,14 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
         >
           <ImagePlus size={18} className="text-neutral-500" />
         </button>
+        <button
+          type="button"
+          onClick={() => setGifOpen(true)}
+          aria-label="Add GIF"
+          className="h-10 px-2.5 rounded-full bg-neutral-100 flex items-center justify-center shrink-0 text-[12px] font-black text-neutral-500"
+        >
+          GIF
+        </button>
         <input
           ref={inputRef}
           value={text}
@@ -850,6 +860,20 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
         <div className="text-[12px] text-red-500 px-4 pb-2">{uploadError ?? (add.error as Error)?.message}</div>
       )}
       {lightbox && <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />}
+      <GifPickerSheet
+        open={gifOpen}
+        onClose={() => setGifOpen(false)}
+        onSelect={(url) => {
+          setGifOpen(false);
+          if (add.isPending || uploading) return;
+          add.mutate({
+            body: text.trim(),
+            mediaUrl: url,
+            mediaType: "image/gif",
+            parentCommentId: replyTo?.id ?? null,
+          });
+        }}
+      />
     </div>
   );
 }
