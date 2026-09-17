@@ -141,7 +141,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                     {copy.title}
                   </span>
                   <div className="mt-8 flex flex-1 items-center gap-4">
-                    <p className="min-w-0 flex-1 text-pretty text-[22px] font-medium leading-[1.22] text-muted-foreground">
+                    <p className="min-w-0 flex-1 text-pretty text-[17px] font-medium leading-[1.3] text-muted-foreground">
                       {copy.message}
                     </p>
                     {copy.cta && (
@@ -149,7 +149,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                         onClick={goToCheckIn}
                         onTouchStart={onCtaTouchStart}
                         onTouchEnd={onCtaTouchEnd}
-                        className="h-14 shrink-0 rounded-full bg-pactara-purple px-8 text-[18px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
+                        className="h-12 shrink-0 rounded-full bg-pactara-purple px-6 text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
                       >
                         {copy.cta}
                       </Button>
