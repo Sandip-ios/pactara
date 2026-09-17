@@ -6,6 +6,7 @@ import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } 
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
+import GifPickerSheet from "@/components/GifPickerSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -32,6 +33,7 @@ function GroupChatPage() {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
+  const [gifOpen, setGifOpen] = useState(false);
 
   // Keep the active group in sync with the chat being viewed.
   useEffect(() => {
@@ -488,7 +490,8 @@ function GroupChatPage() {
 }
 
 function SignedImage({ path, className }: { path: string; className?: string }) {
-  const [url, setUrl] = useState<string | null>(null);
+  const isRemote = /^https?:\/\//.test(path);
+  const [url, setUrl] = useState<string | null>(isRemote ? path : null);
   useEffect(() => {
     let cancelled = false;
     supabase.storage
