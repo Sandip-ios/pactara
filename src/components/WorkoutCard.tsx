@@ -213,20 +213,20 @@ export function WorkoutCard({
               <div className="mt-1.5 text-[15px] text-neutral-500">
                 Add proof that you showed up before finishing.
               </div>
-              <button
+              <Button
                 onClick={() => recordProof(session.id)}
-                className="mt-5 w-full rounded-full py-3.5 text-[15px] font-bold text-white active:scale-[0.99]"
-                style={{ background: PURPLE }}
+                className="mt-5 h-12 w-full rounded-full bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
               >
                 Record proof
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => end.mutate(session.id)}
                 disabled={end.isPending}
-                className="mt-2 w-full rounded-full py-3.5 text-[14px] font-semibold text-neutral-500 disabled:opacity-60"
+                className="mt-2 h-12 w-full rounded-full text-[14px] font-semibold text-muted-foreground"
               >
                 End workout without completing
-              </button>
+              </Button>
             </div>
           </div>
         )}

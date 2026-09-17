@@ -189,8 +189,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                     Day {pace.dayNumber} of {pace.durationDays}
                   </span>
                   <span
-                    className="font-bold"
-                     className={pace.pacePct >= 100 ? "font-bold text-green-600" : pace.pacePct >= 80 ? "font-bold text-pactara-purple" : "font-bold text-orange-600"}
+                    className={pace.pacePct >= 100 ? "font-bold text-green-600" : pace.pacePct >= 80 ? "font-bold text-pactara-purple" : "font-bold text-orange-600"}
                   >
                     {pace.pacePct}% on pace
                   </span>
