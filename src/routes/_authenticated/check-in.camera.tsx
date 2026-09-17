@@ -562,6 +562,8 @@ function VideoRecordScreen() {
         playsInline
         muted
         onLoadedMetadata={() => setFrameReady(true)}
+        onCanPlay={() => setFrameReady(true)}
+        onPlaying={() => setFrameReady(true)}
         className="absolute inset-0 w-full h-full object-cover"
         style={{
           // Keep the preview hidden until the stream's frame size is known
