@@ -140,7 +140,7 @@ export function WorkoutCard({
 
   if (completed) {
     return (
-      <div className={embedded ? "flex min-h-[252px] flex-col items-center justify-center px-6 py-6 text-center" : "mx-4 mt-3 rounded-2xl bg-card px-6 py-6 text-center shadow-sm"}>
+      <div className={embedded ? "flex min-h-[166px] flex-col items-center justify-center px-5 py-5 text-center" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-5 text-center shadow-sm"}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
           <Check size={24} strokeWidth={3} className="text-green-600" />
         </div>
@@ -161,20 +161,20 @@ export function WorkoutCard({
     return (
       <>
         <div className={embedded ? "overflow-hidden" : "mx-4 mt-3 overflow-hidden rounded-2xl bg-card shadow-sm"}>
-          <div className="flex min-h-[252px] flex-col border-t-[3px] border-green-600 px-6 pb-5 pt-5">
+          <div className="flex min-h-[166px] flex-col border-t-[3px] border-green-600 px-5 pb-3 pt-4">
             <div className="flex items-center gap-2">
               <LiveDot />
               <span className="text-[13px] font-bold uppercase tracking-[0.16em] text-green-600">
                 Workout in progress
               </span>
             </div>
-            <div className="mt-3 flex-1 break-words text-pretty text-[22px] font-black leading-[1.18] text-card-foreground">
+            <div className="mt-2 flex-1 break-words text-pretty text-[20px] font-black leading-[1.18] text-card-foreground">
               {session.commitmentText || "Today's commitment"}
             </div>
-            <div className="mt-2 text-[14px] text-muted-foreground">
+            <div className="mt-1 text-[14px] text-muted-foreground">
               {elapsedLabel(session.startedAt) ?? "Started just now"}
             </div>
-            <div className="mt-5 flex items-center gap-2">
+            <div className="mt-3 flex items-center gap-2">
               <Button
                 onClick={() => recordProof(session.id)}
                 className="h-12 min-w-0 flex-1 rounded-full bg-pactara-purple text-[14px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.98]"
@@ -237,21 +237,23 @@ export function WorkoutCard({
   if (!showStart) return <>{fallback}</>;
 
   return (
-    <div className={embedded ? "flex min-h-[252px] flex-col px-6 pb-5 pt-6" : "mx-4 mt-3 rounded-2xl bg-card px-6 py-6 shadow-sm"}>
-      <div className="text-[14px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+    <div className={embedded ? "flex min-h-[166px] flex-col px-5 pb-3 pt-5" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-5 shadow-sm"}>
+      <div className="text-[13px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
         Today's commitment
       </div>
-      <div className="mt-5 flex-1 break-words text-pretty text-[25px] font-black leading-[1.12] text-card-foreground">
-        {data?.commitmentText}
+      <div className="mt-8 flex flex-1 items-center gap-4">
+        <div className="min-w-0 flex-1 break-words text-pretty text-[22px] font-black leading-[1.12] text-card-foreground">
+          {data?.commitmentText}
+        </div>
+        <Button
+          onClick={() => start.mutate()}
+          disabled={start.isPending}
+          className="h-14 shrink-0 rounded-full bg-pactara-purple px-8 text-[18px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
+        >
+          {start.isPending ? "Starting…" : "Start workout"}
+        </Button>
       </div>
-      <Button
-        onClick={() => start.mutate()}
-        disabled={start.isPending}
-        className="mt-7 h-14 w-full rounded-full bg-pactara-purple text-[17px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
-      >
-        {start.isPending ? "Starting…" : "Start workout"}
-      </Button>
-      <div className="mt-4 text-center text-[15px] leading-5 text-muted-foreground">
+      <div className="mt-5 text-center text-[15px] leading-5 text-muted-foreground">
         Your group gets a heads-up that you started.
       </div>
     </div>
