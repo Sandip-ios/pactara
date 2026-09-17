@@ -136,23 +136,25 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
             embedded
             fallback={
               <>
-                <div className="flex min-h-[252px] flex-col px-6 pb-5 pt-6">
-                  <span className="text-[14px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                <div className="flex min-h-[166px] flex-col px-5 pb-3 pt-5">
+                  <span className="text-[24px] font-black leading-none text-card-foreground">
                     {copy.title}
                   </span>
-                  <p className="mt-5 flex-1 text-pretty text-[25px] font-black leading-[1.12] text-card-foreground">
-                    {copy.message}
-                  </p>
-                  {copy.cta && (
-                    <Button
-                      onClick={goToCheckIn}
-                      onTouchStart={onCtaTouchStart}
-                      onTouchEnd={onCtaTouchEnd}
-                      className="mt-7 h-14 w-full rounded-full bg-pactara-purple text-[17px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
-                    >
-                      {copy.cta}
-                    </Button>
-                  )}
+                  <div className="mt-8 flex flex-1 items-center gap-4">
+                    <p className="min-w-0 flex-1 text-pretty text-[22px] font-medium leading-[1.22] text-muted-foreground">
+                      {copy.message}
+                    </p>
+                    {copy.cta && (
+                      <Button
+                        onClick={goToCheckIn}
+                        onTouchStart={onCtaTouchStart}
+                        onTouchEnd={onCtaTouchEnd}
+                        className="h-14 shrink-0 rounded-full bg-pactara-purple px-8 text-[18px] font-black text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
+                      >
+                        {copy.cta}
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </>
             }
@@ -165,8 +167,8 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
           style={{ maxHeight: index === 1 ? 400 : 0, visibility: index === 1 ? "visible" : "hidden" }}
           aria-hidden={index !== 1}
         >
-          <div className="min-h-[252px] px-6 pb-5 pt-6">
-            <span className="text-[14px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="min-h-[166px] px-5 pb-3 pt-5">
+            <span className="text-[24px] font-black leading-none text-card-foreground">
               Weekly snapshot
             </span>
             <div className="mt-8">
@@ -208,7 +210,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
       </div>
 
       {/* Carousel dots */}
-      <div className="flex items-center justify-center gap-2 pb-5 pt-0">
+      <div className="flex items-center justify-center gap-2 pb-4 pt-0">
         {Array.from({ length: SLIDES }).map((_, i) => (
           <Button
             key={i}
