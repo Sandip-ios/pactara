@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -26,10 +26,14 @@ export function WorkoutCard({
   groupId,
   groupSize,
   streak,
+  embedded = false,
+  fallback = null,
 }: {
   groupId: string | null;
   groupSize?: number;
   streak?: number;
+  embedded?: boolean;
+  fallback?: ReactNode;
 }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -138,7 +142,7 @@ export function WorkoutCard({
 
   if (completed) {
     return (
-      <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-5 text-center">
+      <div className={embedded ? "px-5 py-4 text-center" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-5 text-center"}>
         <div
           className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
           style={{ background: "#DCFCE7" }}
@@ -161,7 +165,7 @@ export function WorkoutCard({
   if (session) {
     return (
       <>
-        <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden">
+        <div className={embedded ? "overflow-hidden" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden"}>
           <div
             className="px-5 pt-4 pb-4"
             style={{ borderTop: `3px solid ${GREEN}` }}
@@ -240,10 +244,10 @@ export function WorkoutCard({
     );
   }
 
-  if (!showStart) return null;
+  if (!showStart) return <>{fallback}</>;
 
   return (
-    <div className="mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-4">
+    <div className={embedded ? "px-5 py-4" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-4"}>
       <div className="text-[12px] font-bold tracking-[0.14em] uppercase text-neutral-400">
         Today's commitment
       </div>

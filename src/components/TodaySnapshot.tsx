@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { WorkoutCard } from "@/components/WorkoutCard";
 
 const PURPLE = "#7C3AED";
 
@@ -18,6 +19,8 @@ type Props = {
     totalSessions: number;
     pacePct: number;
   } | null;
+  groupId: string | null;
+  groupSize?: number;
 };
 
 const COPY: Record<
@@ -46,7 +49,7 @@ type Stat = { label: string; value: string };
 
 
 
-export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Props) {
+export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupId, groupSize }: Props) {
   const navigate = useNavigate();
   const copy = COPY[state];
 
@@ -127,23 +130,33 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace }: Prop
           style={{ maxHeight: index === 0 ? 400 : 0, visibility: index === 0 ? "visible" : "hidden" }}
           aria-hidden={index !== 0}
         >
-          <div className="px-4 pt-4">
-            <span className="text-[15px] font-bold text-neutral-900">{copy.title}</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-4">
-            <p className="flex-1 text-[15px] leading-[1.35] text-neutral-700">{copy.message}</p>
-            {copy.cta && (
-              <button
-                onClick={goToCheckIn}
-                onTouchStart={onCtaTouchStart}
-                onTouchEnd={onCtaTouchEnd}
-                className="shrink-0 rounded-full px-4 py-2.5 text-[14px] font-bold text-white active:scale-[0.98]"
-                style={{ background: PURPLE }}
-              >
-                {copy.cta}
-              </button>
-            )}
-          </div>
+          <WorkoutCard
+            groupId={groupId}
+            groupSize={groupSize}
+            streak={streak}
+            embedded
+            fallback={
+              <>
+                <div className="px-4 pt-4">
+                  <span className="text-[15px] font-bold text-neutral-900">{copy.title}</span>
+                </div>
+                <div className="flex items-center gap-3 px-4 py-4">
+                  <p className="flex-1 text-[15px] leading-[1.35] text-neutral-700">{copy.message}</p>
+                  {copy.cta && (
+                    <button
+                      onClick={goToCheckIn}
+                      onTouchStart={onCtaTouchStart}
+                      onTouchEnd={onCtaTouchEnd}
+                      className="shrink-0 rounded-full px-4 py-2.5 text-[14px] font-bold text-white active:scale-[0.98]"
+                      style={{ background: PURPLE }}
+                    >
+                      {copy.cta}
+                    </button>
+                  )}
+                </div>
+              </>
+            }
+          />
         </div>
 
         {/* Slide 2 — Weekly snapshot */}
