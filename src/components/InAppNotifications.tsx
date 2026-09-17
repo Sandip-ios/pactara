@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
-import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Bell } from "lucide-react";
 import { isNative } from "@/lib/native";
@@ -14,9 +14,6 @@ const AUTO_DISMISS_MS = 4000;
  */
 export function InAppNotifications() {
   const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const pathRef = useRef(pathname);
-  pathRef.current = pathname;
 
   useEffect(() => {
     if (!isNative()) return;
@@ -33,9 +30,6 @@ export function InAppNotifications() {
           const title = n.title ?? "Pactara";
           const body = n.body ?? "";
           const url = (n.data as { url?: string } | undefined)?.url;
-
-          // Don't interrupt when the user is already looking at that screen.
-          if (url && url.split("?")[0] === pathRef.current) return;
 
           toast.custom(
             (id) => (

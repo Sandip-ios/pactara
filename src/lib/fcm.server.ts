@@ -85,6 +85,12 @@ export type FcmPayload = { title: string; body: string; url?: string };
 
 export type FcmSendResult = { sent: number; expired: string[] };
 
+export function isInvalidFcmToken(status: number, body: string): boolean {
+  if (status === 404 || status === 410 || /UNREGISTERED|NOT_FOUND/i.test(body)) return true;
+  if (status !== 400 || !/INVALID_ARGUMENT/i.test(body)) return false;
+  return /registration token|message\.token|fieldViolations[^]*token/i.test(body);
+}
+
 /**
  * Send one notification to a list of FCM device tokens.
  * Returns count sent and the list of tokens the server reported as invalid
@@ -145,11 +151,7 @@ export async function sendFcm(
       const text = await res.text();
       // UNREGISTERED (410) or NOT_FOUND (404) mean the token is dead; INVALID_ARGUMENT (400)
       // with an "invalid registration token" body also means prune.
-      if (
-        res.status === 404 ||
-        res.status === 410 ||
-        /UNREGISTERED|INVALID_ARGUMENT|NOT_FOUND/i.test(text)
-      ) {
+      if (isInvalidFcmToken(res.status, text)) {
         expired.push(token);
       } else {
         console.warn("[fcm] send failed", res.status, text.slice(0, 200));
@@ -157,6 +159,12 @@ export async function sendFcm(
     }),
   );
 
+  console.info("[fcm] delivery complete", {
+    requested: tokens.length,
+    sent,
+    expired: expired.length,
+    failed: tokens.length - sent - expired.length,
+  });
   return { sent, expired };
 }
 
