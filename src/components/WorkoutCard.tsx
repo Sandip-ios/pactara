@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Camera, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   getWorkoutState,
   startWorkout,
@@ -12,9 +13,6 @@ import {
 } from "@/lib/workouts.functions";
 import { elapsedLabel, LiveDot } from "@/components/groups/AccountabilityBits";
 import { trackWorkout } from "@/lib/workout-analytics";
-
-const PURPLE = "#7C3AED";
-const GREEN = "#16A34A";
 
 /**
  * The accountability moment between the commitment and the proof.
@@ -142,15 +140,12 @@ export function WorkoutCard({
 
   if (completed) {
     return (
-      <div className={embedded ? "px-5 py-4 text-center" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-5 text-center"}>
-        <div
-          className="mx-auto flex h-12 w-12 items-center justify-center rounded-full"
-          style={{ background: "#DCFCE7" }}
-        >
-          <Check size={24} strokeWidth={3} style={{ color: GREEN }} />
+      <div className={embedded ? "flex min-h-[214px] flex-col items-center justify-center px-5 py-5 text-center" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-5 text-center shadow-sm"}>
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+          <Check size={24} strokeWidth={3} className="text-green-600" />
         </div>
         <div className="mt-3 text-[18px] font-black tracking-tight">Workout complete</div>
-        <div className="mt-1 text-[14px] text-neutral-500">
+        <div className="mt-1 text-[14px] text-muted-foreground">
           You showed up. {completed.minutes} min.
         </div>
         {(streak ?? 0) > 0 && (
@@ -165,33 +160,29 @@ export function WorkoutCard({
   if (session) {
     return (
       <>
-        <div className={embedded ? "overflow-hidden" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm overflow-hidden"}>
-          <div
-            className="px-5 pt-4 pb-4"
-            style={{ borderTop: `3px solid ${GREEN}` }}
-          >
+        <div className={embedded ? "overflow-hidden" : "mx-4 mt-3 overflow-hidden rounded-2xl bg-card shadow-sm"}>
+          <div className="min-h-[214px] border-t-[3px] border-green-600 px-5 pb-4 pt-4">
             <div className="flex items-center gap-2">
               <LiveDot />
-              <span className="text-[12px] font-bold tracking-[0.14em] uppercase" style={{ color: GREEN }}>
+              <span className="text-[12px] font-bold uppercase tracking-[0.14em] text-green-600">
                 Workout in progress
               </span>
             </div>
-            <div className="mt-2 text-[17px] font-bold text-neutral-900">
+            <div className="mt-2 break-words text-[17px] font-bold leading-[1.35] text-card-foreground">
               {session.commitmentText || "Today's commitment"}
             </div>
-            <div className="mt-0.5 text-[13px] text-neutral-500">
+            <div className="mt-1 text-[13px] text-muted-foreground">
               {elapsedLabel(session.startedAt) ?? "Started just now"}
             </div>
             <div className="mt-4 flex items-center gap-2">
-              <button
+              <Button
                 onClick={() => recordProof(session.id)}
-                className="flex-1 flex items-center justify-center gap-1.5 rounded-full py-3 text-[14px] font-bold text-white active:scale-[0.98]"
-                style={{ background: PURPLE }}
+                className="h-12 min-w-0 flex-1 rounded-full bg-pactara-purple text-[14px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.98]"
               >
                 <Camera size={16} />
                 Record proof
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => {
                   trackWorkout("workout_finish_started", {
                     group_id: groupId,
@@ -200,11 +191,10 @@ export function WorkoutCard({
                   finish.mutate(session.id);
                 }}
                 disabled={finish.isPending}
-                className="flex-1 rounded-full py-3 text-[14px] font-bold disabled:opacity-60"
-                style={{ background: "#F3EEFF", color: PURPLE }}
+                className="h-12 min-w-0 flex-1 rounded-full bg-pactara-purple-soft px-3 text-[14px] font-bold text-pactara-purple shadow-none hover:bg-pactara-purple-soft active:scale-[0.98]"
               >
                 {finish.isPending ? "Checking…" : "Finish workout"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -223,20 +213,20 @@ export function WorkoutCard({
               <div className="mt-1.5 text-[15px] text-neutral-500">
                 Add proof that you showed up before finishing.
               </div>
-              <button
+              <Button
                 onClick={() => recordProof(session.id)}
-                className="mt-5 w-full rounded-full py-3.5 text-[15px] font-bold text-white active:scale-[0.99]"
-                style={{ background: PURPLE }}
+                className="mt-5 h-12 w-full rounded-full bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
               >
                 Record proof
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => end.mutate(session.id)}
                 disabled={end.isPending}
-                className="mt-2 w-full rounded-full py-3.5 text-[14px] font-semibold text-neutral-500 disabled:opacity-60"
+                className="mt-2 h-12 w-full rounded-full text-[14px] font-semibold text-muted-foreground"
               >
                 End workout without completing
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -247,22 +237,21 @@ export function WorkoutCard({
   if (!showStart) return <>{fallback}</>;
 
   return (
-    <div className={embedded ? "px-5 py-4" : "mx-4 mt-3 rounded-2xl bg-white shadow-sm px-5 py-4"}>
-      <div className="text-[12px] font-bold tracking-[0.14em] uppercase text-neutral-400">
+    <div className={embedded ? "flex min-h-[214px] flex-col px-5 pb-4 pt-5" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-4 shadow-sm"}>
+      <div className="text-[12px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         Today's commitment
       </div>
-      <div className="mt-1.5 text-[17px] font-bold text-neutral-900">
+      <div className="mt-3 flex-1 break-words text-pretty text-[20px] font-black leading-[1.28] text-card-foreground">
         {data?.commitmentText}
       </div>
-      <button
+      <Button
         onClick={() => start.mutate()}
         disabled={start.isPending}
-        className="mt-4 w-full rounded-full py-3.5 text-[15px] font-bold text-white active:scale-[0.99] disabled:opacity-60"
-        style={{ background: PURPLE }}
+        className="mt-5 h-12 w-full rounded-full bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
       >
         {start.isPending ? "Starting…" : "Start workout"}
-      </button>
-      <div className="mt-2 text-center text-[12px] text-neutral-400">
+      </Button>
+      <div className="mt-2.5 text-center text-[12px] leading-4 text-muted-foreground">
         Your group gets a heads-up that you started.
       </div>
     </div>
