@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
@@ -18,9 +18,11 @@ import {
   NudgeButton,
   PURPLE,
   PURPLE_DEEP,
+  elapsedLabel,
   formatTime,
   statusLabel,
 } from "@/components/groups/AccountabilityBits";
+import { WorkoutCheerSheet } from "@/components/groups/WorkoutCheerSheet";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   component: GroupDetailPage,
@@ -28,9 +30,19 @@ export const Route = createFileRoute("/_authenticated/groups/$groupId")({
 
 function GroupDetailPage() {
   const { groupId } = Route.useParams();
+  // A "started working out" push deep links to ?workout=<sessionId>.
+  const workout = useRouterState({
+    select: (s) => (s.location.search as { workout?: string }).workout,
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<"today" | "activity">("today");
+  const [cheerSessionId, setCheerSessionId] = useState<string | null>(null);
+
+  // A "started working out" push deep links straight to that session.
+  useEffect(() => {
+    if (workout) setCheerSessionId(workout);
+  }, [workout]);
 
   // Viewing a group makes it the active group, so a check-in started from here
   // posts to this group.
@@ -135,8 +147,24 @@ function GroupDetailPage() {
           })
         }
       >
-        {tab === "today" ? <TodayTab group={group} /> : <ActivityTab groupId={group.id} />}
+        {tab === "today" ? (
+          <TodayTab group={group} onCheer={setCheerSessionId} />
+        ) : (
+          <ActivityTab groupId={group.id} />
+        )}
       </PullToRefresh>
+
+      {cheerSessionId && (
+        <WorkoutCheerSheet
+          sessionId={cheerSessionId}
+          onClose={() => {
+            setCheerSessionId(null);
+            if (workout) {
+              navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -152,7 +180,7 @@ function DetailHeader({ title, onBack }: { title: string; onBack: () => void }) 
   );
 }
 
-function TodayTab({ group }: { group: GroupToday }) {
+function TodayTab({ group, onCheer }: { group: GroupToday; onCheer: (sessionId: string) => void }) {
   const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
   const waiting = group.members.filter((m) => m.status !== "done");
   const [confetti, setConfetti] = useState(false);
@@ -227,16 +255,25 @@ function TodayTab({ group }: { group: GroupToday }) {
 
       <div className="mx-4 rounded-3xl bg-white shadow-sm divide-y divide-neutral-100 overflow-hidden">
         {group.members.map((m) => (
-          <MemberStatusRow key={m.userId} groupId={group.id} member={m} />
+          <MemberStatusRow key={m.userId} groupId={group.id} member={m} onCheer={onCheer} />
         ))}
       </div>
     </div>
   );
 }
 
-function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberToday }) {
+function MemberStatusRow({
+  groupId,
+  member,
+  onCheer,
+}: {
+  groupId: string;
+  member: MemberToday;
+  onCheer: (sessionId: string) => void;
+}) {
   const time = formatTime(member.committedAt);
   const canNudge = !member.isYou && (member.status === "not_committed" || member.status === "committed" || member.status === "in_progress");
+  const liveWorkout = member.status === "working_out" && member.workoutSessionId;
 
   let secondary = statusLabel(member.status);
   if (member.status === "committed" && time) secondary = `Committed at ${time}`;
@@ -255,7 +292,7 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
           className="text-[13px] mt-0.5 truncate"
           style={{
             color:
-              member.status === "done"
+              member.status === "done" || member.status === "working_out"
                 ? "#16A34A"
                 : member.status === "committed"
                   ? "#D97706"
@@ -264,6 +301,11 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
         >
           {member.status === "done" ? "✓ Already checked in" : secondary}
         </div>
+        {member.status === "working_out" && (
+          <div className="text-[12px] text-neutral-400 mt-0.5">
+            {elapsedLabel(member.workoutStartedAt) ?? "Started just now"}
+          </div>
+        )}
         {member.status === "committed" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">⏳ Waiting to check in</div>
         )}
@@ -271,7 +313,17 @@ function MemberStatusRow({ groupId, member }: { groupId: string; member: MemberT
           <div className="text-[12px] text-neutral-400 mt-0.5">Tomorrow is a fresh start.</div>
         )}
       </div>
-      {canNudge && <NudgeButton groupId={groupId} member={member} variant="ghost" />}
+      {liveWorkout && !member.isYou ? (
+        <button
+          onClick={() => onCheer(member.workoutSessionId as string)}
+          className="rounded-full px-3.5 py-1.5 text-[13px] font-semibold"
+          style={{ background: "#DCFCE7", color: "#15803D" }}
+        >
+          Cheer
+        </button>
+      ) : (
+        canNudge && <NudgeButton groupId={groupId} member={member} variant="ghost" />
+      )}
     </div>
   );
 }

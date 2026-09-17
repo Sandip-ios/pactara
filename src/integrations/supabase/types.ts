@@ -424,30 +424,42 @@ export type Database = {
           daily_reminder_time: string
           email_enabled: boolean
           group_activity_enabled: boolean
+          group_milestones_enabled: boolean
           morning_ritual_reminder_enabled: boolean
+          nudges_enabled: boolean
           push_enabled: boolean
           updated_at: string
           user_id: string
+          workout_complete_enabled: boolean
+          workout_start_enabled: boolean
         }
         Insert: {
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
           email_enabled?: boolean
           group_activity_enabled?: boolean
+          group_milestones_enabled?: boolean
           morning_ritual_reminder_enabled?: boolean
+          nudges_enabled?: boolean
           push_enabled?: boolean
           updated_at?: string
           user_id: string
+          workout_complete_enabled?: boolean
+          workout_start_enabled?: boolean
         }
         Update: {
           daily_reminder_enabled?: boolean
           daily_reminder_time?: string
           email_enabled?: boolean
           group_activity_enabled?: boolean
+          group_milestones_enabled?: boolean
           morning_ritual_reminder_enabled?: boolean
+          nudges_enabled?: boolean
           push_enabled?: boolean
           updated_at?: string
           user_id?: string
+          workout_complete_enabled?: boolean
+          workout_start_enabled?: boolean
         }
         Relationships: []
       }
@@ -703,6 +715,114 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      workout_cheers: {
+        Row: {
+          created_at: string
+          emoji: string
+          group_id: string
+          id: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          group_id: string
+          id?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          group_id?: string
+          id?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_cheers_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_cheers_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_sessions: {
+        Row: {
+          commitment_text: string | null
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          group_id: string
+          id: string
+          local_date: string
+          post_id: string | null
+          proof_completed: boolean
+          start_notification_sent: boolean
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          commitment_text?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          group_id: string
+          id?: string
+          local_date: string
+          post_id?: string | null
+          proof_completed?: boolean
+          start_notification_sent?: boolean
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          commitment_text?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          group_id?: string
+          id?: string
+          local_date?: string
+          post_id?: string | null
+          proof_completed?: boolean
+          start_notification_sent?: boolean
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sessions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "daily_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
