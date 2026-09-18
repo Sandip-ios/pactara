@@ -15,7 +15,7 @@ const MILESTONE_COPY: Record<
 > = {
   3: {
     label: "3 DAY STREAK",
-    headline: "3 days. You showed up.",
+    headline: "3 days.\nYou showed up.",
     support: "You’re building something worth keeping.",
   },
   7: {
@@ -30,7 +30,7 @@ const MILESTONE_COPY: Record<
   },
   30: {
     label: "30 DAY STREAK",
-    headline: "30 days. That’s consistency.",
+    headline: "30 days.\nThat’s consistency.",
     support: "A month of doing what you said you would do.",
   },
 };
@@ -100,7 +100,7 @@ export function BadgeUnlockedModal({ badges, onClose }: BadgeUnlockedModalProps)
             <p className="text-[12px] font-bold tracking-[0.24em] text-pactara-purple">
               {copy.label}
             </p>
-            <h1 className="mt-3 text-[clamp(30px,8vw,40px)] font-black leading-[1.08]">
+            <h1 className="mt-3 whitespace-pre-line text-[clamp(30px,8vw,40px)] font-black leading-[1.08]">
               {copy.headline}
             </h1>
             <p className="mx-auto mt-3 max-w-[340px] text-[17px] leading-6 text-muted-foreground">
