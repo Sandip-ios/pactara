@@ -69,7 +69,10 @@ export function BadgeUnlockedModal({ badges, onClose }: BadgeUnlockedModalProps)
     >
       <div className="mx-auto flex min-h-full w-full max-w-[480px] flex-col px-5 pb-[max(env(safe-area-inset-bottom),20px)] pt-[calc(env(safe-area-inset-top)+14px)]">
         <header className="flex h-11 shrink-0 items-center justify-between">
-          <span className="text-[28px] font-black leading-none">pactara</span>
+          <span className="text-[24px] font-black tracking-tight leading-none">
+            <span className="text-pactara-purple">P</span>
+            <span>actara</span>
+          </span>
           <Button
             type="button"
             variant="secondary"
