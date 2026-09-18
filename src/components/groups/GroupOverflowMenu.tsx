@@ -159,6 +159,15 @@ export function GroupOverflowMenu({
               setQrOpen(true);
             }}
           />
+          <Divider />
+          <MenuButton
+            icon={<Target size={18} style={{ color: PURPLE }} />}
+            label="Edit my goal"
+            onClick={() => {
+              setMenuOpen(false);
+              navigate({ to: "/goal/$groupId", params: { groupId }, search: { edit: "1" } });
+            }}
+          />
           {isAdmin && (
             <>
               <Divider />
