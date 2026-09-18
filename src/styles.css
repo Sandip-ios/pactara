@@ -65,6 +65,18 @@
   --color-pactara-purple-foreground: var(--pactara-purple-foreground);
   --color-pactara-purple-soft: var(--pactara-purple-soft);
   --color-pactara-purple-deep: var(--pactara-purple-deep);
+  --color-streak-celebration: var(--streak-celebration);
+  --color-streak-control: var(--streak-control);
+  --color-streak-card: var(--streak-card);
+  --color-streak-card-border: var(--streak-card-border);
+  --color-streak-track: var(--streak-track);
+  --color-streak-upcoming: var(--streak-upcoming);
+  --color-streak-number: var(--streak-number);
+  --background-image-streak-cta: var(--streak-cta);
+  --drop-shadow-streak-flame: var(--streak-flame-shadow);
+  --shadow-streak-card: var(--streak-card-shadow);
+  --shadow-streak-day: var(--streak-day-shadow);
+  --shadow-streak-cta: var(--streak-cta-shadow);
 }
 
 :root {
@@ -107,6 +119,18 @@
   --pactara-purple-foreground: oklch(1 0 0);
   --pactara-purple-soft: oklch(0.96 0.03 290);
   --pactara-purple-deep: oklch(0.40 0.22 280);
+  --streak-celebration: oklch(0.985 0.012 310);
+  --streak-control: oklch(0.95 0.012 300);
+  --streak-card: oklch(1 0 0 / 82%);
+  --streak-card-border: oklch(0.91 0.025 290 / 70%);
+  --streak-track: oklch(0.90 0.018 290);
+  --streak-upcoming: oklch(0.93 0.014 285);
+  --streak-number: oklch(0.985 0.006 290);
+  --streak-cta: linear-gradient(115deg, oklch(0.46 0.24 282), oklch(0.58 0.27 293));
+  --streak-flame-shadow: 0 18px 18px oklch(0.50 0.20 290 / 18%);
+  --streak-card-shadow: 0 14px 40px oklch(0.38 0.07 285 / 7%);
+  --streak-day-shadow: 0 6px 14px oklch(0.50 0.22 285 / 24%);
+  --streak-cta-shadow: 0 14px 30px oklch(0.50 0.25 290 / 24%);
 }
 
 .dark {
