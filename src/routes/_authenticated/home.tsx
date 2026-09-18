@@ -313,6 +313,7 @@ function HomePage() {
               return (
                 k === "group-feed" ||
                 k === "pending-checkins" ||
+                 k === "group-member-streaks" ||
                 k === "my-groups" ||
                 k === "my-group-status" ||
                 k === "unread-chat-counts"
