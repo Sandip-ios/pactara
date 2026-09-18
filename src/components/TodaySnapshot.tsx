@@ -159,7 +159,7 @@ export function TodaySnapshot({
                     copy.cta ? "min-h-[166px] pb-3" : "pb-6"
                   }`}
                 >
-                  <span className="text-[24px] font-black leading-none text-card-foreground">
+                  <span className="text-[12px] font-black leading-none text-card-foreground">
                     {copy.title}
                   </span>
                   {copy.cta ? (
@@ -194,7 +194,7 @@ export function TodaySnapshot({
           aria-hidden={index !== 1}
         >
           <div className="min-h-[166px] px-5 pb-3 pt-5">
-            <span className="text-[24px] font-black leading-none text-card-foreground">
+            <span className="text-[12px] font-black leading-none text-card-foreground">
               Weekly snapshot
             </span>
             <div className="mt-8">
@@ -241,7 +241,7 @@ export function TodaySnapshot({
           aria-hidden={index !== 2}
         >
           <div className="px-5 pb-3 pt-5">
-            <span className="text-[24px] font-black leading-none text-card-foreground">
+            <span className="text-[12px] font-black leading-none text-card-foreground">
               Our goals
             </span>
             <div className="mt-5 max-h-[248px] overflow-y-auto overscroll-contain">
