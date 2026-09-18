@@ -204,6 +204,12 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       });
     }
 
+    // Backfill any milestone already reached but never recorded (e.g. streaks
+    // kept alive with a freeze).
+    if (isSelf) {
+      await awardBadgesForUser(supabase, targetId, groupId);
+    }
+
     const { data: badgeRows } = await supabase
       .from("earned_badges")
       .select("streak_days, earned_at")
