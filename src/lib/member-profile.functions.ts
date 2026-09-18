@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { awardBadgesForUser } from "./badges.functions";
 
 function ymd(d: Date) {
   return d.toISOString().slice(0, 10);
