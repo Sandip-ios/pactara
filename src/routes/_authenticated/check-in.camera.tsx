@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { X, HelpCircle, SwitchCamera } from "lucide-react";
+import { X, HelpCircle, SwitchCamera, Timer } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
@@ -58,6 +58,7 @@ function VideoRecordScreen() {
   const startedAtRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
   const autoStopRef = useRef<number | null>(null);
+  const countdownTimeoutRef = useRef<number | null>(null);
   const recordingRef = useRef(false);
 
   const [ready, setReady] = useState(false);
@@ -65,6 +66,8 @@ function VideoRecordScreen() {
   const [error, setError] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [timerDelay, setTimerDelay] = useState<0 | 3 | 5 | 10>(0);
+  const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
   // First-timers see the "for the best proof" sheet over the warming-up
   // camera, then tapping "Record now" (or closing it) drops them straight in.
   const [helpOpen, setHelpOpen] = useState(
@@ -347,6 +350,7 @@ function VideoRecordScreen() {
       cancelled = true;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
+      if (countdownTimeoutRef.current) window.clearTimeout(countdownTimeoutRef.current);
       if (recorderRef.current && recorderRef.current.state !== "inactive") {
         try { recorderRef.current.stop(); } catch { /* noop */ }
       }
@@ -429,7 +433,7 @@ function VideoRecordScreen() {
   };
 
   const startRecording = async () => {
-    if (recording) return;
+    if (recordingRef.current) return;
     setError(null);
 
     let stream = streamRef.current;
@@ -513,13 +517,48 @@ function VideoRecordScreen() {
 
   const onTapButton = () => {
     if (!recordingRef.current) {
-      startRecording();
+      if (countdownRemaining !== null) return;
+      if (timerDelay === 0) {
+        void startRecording();
+        return;
+      }
+
+      let remaining = timerDelay;
+      setCountdownRemaining(remaining);
+      const advanceCountdown = () => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          countdownTimeoutRef.current = null;
+          setCountdownRemaining(null);
+          void startRecording();
+          return;
+        }
+        setCountdownRemaining(remaining);
+        if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+          try { navigator.vibrate?.(20); } catch { /* noop */ }
+        }
+        countdownTimeoutRef.current = window.setTimeout(advanceCountdown, 1000);
+      };
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        try { navigator.vibrate?.(20); } catch { /* noop */ }
+      }
+      countdownTimeoutRef.current = window.setTimeout(advanceCountdown, 1000);
       return;
     }
     if (elapsed >= MIN_SECS) stopRecording();
   };
 
+  const cycleTimer = () => {
+    if (recording || countdownRemaining !== null) return;
+    setTimerDelay((current) => current === 0 ? 3 : current === 3 ? 5 : current === 5 ? 10 : 0);
+  };
+
   const cancel = () => {
+    if (countdownTimeoutRef.current) {
+      window.clearTimeout(countdownTimeoutRef.current);
+      countdownTimeoutRef.current = null;
+    }
+    setCountdownRemaining(null);
     if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
@@ -617,8 +656,22 @@ function VideoRecordScreen() {
         </button>
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={cycleTimer}
+            disabled={recording || countdownRemaining !== null}
+            className="relative h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center disabled:opacity-40"
+            aria-label={timerDelay === 0 ? "Turn on timer" : `${timerDelay} second timer selected`}
+          >
+            <Timer size={20} />
+            {timerDelay > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-white px-1 text-[9px] font-black leading-none text-black tabular-nums">
+                {timerDelay}
+              </span>
+            )}
+          </button>
+          <button
             onClick={switchCamera}
-            disabled={recording || switching}
+            disabled={recording || switching || countdownRemaining !== null}
             className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center disabled:opacity-40"
             aria-label="Switch camera"
           >
@@ -633,6 +686,16 @@ function VideoRecordScreen() {
           </button>
         </div>
       </div>
+
+      {timerDelay > 0 && !recording && (
+        <div
+          className="absolute left-5 top-[calc(env(safe-area-inset-top)+68px)] text-[72px] font-semibold leading-none text-white tabular-nums drop-shadow-lg"
+          aria-live="assertive"
+          aria-label={countdownRemaining === null ? `${timerDelay} second timer` : `${countdownRemaining}`}
+        >
+          {countdownRemaining ?? timerDelay}
+        </div>
+      )}
 
       {/* Bottom recording UI */}
       <div className="absolute inset-x-0 bottom-0 pb-[calc(env(safe-area-inset-bottom)+32px)] flex flex-col items-center gap-3">
@@ -671,7 +734,7 @@ function VideoRecordScreen() {
           onPointerUp={onCarouselPointerUp}
           onPointerCancel={onCarouselPointerUp}
         >
-          {ready && !error && !recording && LOOKS.map((l, i) => {
+          {ready && !error && !recording && countdownRemaining === null && LOOKS.map((l, i) => {
             // Fractional offset so circles glide with the finger.
             const offset = i - (lookIndex + dragOffset);
             const abs = Math.abs(offset);
@@ -736,16 +799,16 @@ function VideoRecordScreen() {
               if (draggedRef.current) return;
               onTapButton();
             }}
-            disabled={recording && !canStop}
-            aria-label={recording ? (canStop ? "Stop recording" : "Recording") : "Start recording"}
+            disabled={(recording && !canStop) || countdownRemaining !== null}
+            aria-label={recording ? (canStop ? "Stop recording" : "Recording") : countdownRemaining !== null ? `Recording starts in ${countdownRemaining}` : "Start recording"}
             className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors"
             style={{
               background: recording ? RED : "#FFFFFF",
               border: "2px solid rgba(255,255,255,0.9)",
               boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
-              opacity: recording && !canStop ? 0.9 : 1,
+              opacity: (recording && !canStop) || countdownRemaining !== null ? 0.9 : 1,
               touchAction: "none",
-              cursor: recording && !canStop ? "not-allowed" : "pointer",
+              cursor: (recording && !canStop) || countdownRemaining !== null ? "not-allowed" : "pointer",
             }}
           />
 
@@ -753,7 +816,7 @@ function VideoRecordScreen() {
         </div>
 
         {/* Active look name (below the carousel) */}
-        {ready && !error && !recording && (
+        {ready && !error && !recording && countdownRemaining === null && (
           <div
             className="px-3.5 py-1.5 rounded-full text-[13px] font-bold tracking-wide whitespace-nowrap"
             style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}
