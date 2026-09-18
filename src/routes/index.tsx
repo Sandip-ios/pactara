@@ -6,6 +6,7 @@ import { isNative } from "@/lib/native";
 import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
+import { hasCheckedInToday } from "@/lib/groups.functions";
 
 
 export const Route = createFileRoute("/")({
@@ -35,7 +36,16 @@ export const Route = createFileRoute("/")({
       }
     }
     const { data } = await supabase.auth.getUser();
-    if (data.user) throw redirect({ to: "/check-in" });
+    if (data.user) {
+      // Already checked in today → open Home; otherwise open the check-in flow.
+      let checkedIn = false;
+      try {
+        checkedIn = (await hasCheckedInToday()).checkedIn;
+      } catch {
+        // On any lookup failure, fall back to the check-in flow.
+      }
+      throw redirect({ to: checkedIn ? "/home" : "/check-in" });
+    }
   },
 
   head: () => ({
