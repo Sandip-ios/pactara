@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useRouter } from "@tanstack/react-router";
@@ -75,12 +75,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
   const firstName = name.split(" ")[0] || (isOwn ? "You" : "Member");
   const initial = (firstName || "U").slice(0, 1).toUpperCase();
 
-  const dayLine = useMemo(() => {
-    if (!data?.startDate || !data?.durationDays) return data?.groupName ?? "";
-    const start = new Date(data.startDate + "T00:00:00Z").getTime();
-    const day = Math.max(1, Math.floor((Date.now() - start) / 86400000) + 1);
-    return `${data.groupEmoji ?? ""} ${data.groupName ?? ""} · Day ${Math.min(day, data.durationDays)} of ${data.durationDays}`.trim();
-  }, [data?.startDate, data?.durationDays, data?.groupName, data?.groupEmoji]);
+  const goalLine = data?.personalGoal?.trim() || null;
 
   const openPicker = () => {
     if (uploading) return;
@@ -223,8 +218,8 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
           <div className="mt-4">
             <div className="text-[18px] font-bold truncate">{name || firstName}</div>
-            {dayLine && (
-              <div className="text-[13px] text-neutral-500 truncate mt-0.5">{dayLine}</div>
+            {goalLine && (
+              <div className="text-[13px] text-neutral-500 truncate mt-0.5">{goalLine}</div>
             )}
           </div>
 

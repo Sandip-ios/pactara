@@ -68,7 +68,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     // Groups the target belongs to (restricted to shared ones when viewing someone else)
     const { data: theirRows } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, personal_goal")
       .eq("user_id", targetId);
     const theirMemberships = (theirRows ?? []).filter((r) =>
       isSelf ? true : myGroupIds.includes(r.group_id as string),
@@ -90,6 +90,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const groupId = membership.group_id as string;
     const joinedAt = membership.joined_at as string;
+    const personalGoal = (membership.personal_goal as string | null) ?? null;
 
     const { data: group } = await supabase
       .from("groups")
@@ -106,7 +107,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: sharedMemberships } = await supabase
       .from("group_members")
-      .select("group_id, user_id, joined_at")
+      .select("group_id, user_id, joined_at, personal_goal")
       .in("group_id", sharedIds)
       .order("joined_at", { ascending: true });
 
@@ -279,6 +280,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       groupEmoji: (group as { emoji?: string } | null)?.emoji ?? null,
       durationDays: (group as { duration_days?: number } | null)?.duration_days ?? null,
       startDate: (group as { start_date?: string } | null)?.start_date ?? null,
+      personalGoal,
       sharedGroups: (sharedGroups ?? [])
         .map(
           (g: {
