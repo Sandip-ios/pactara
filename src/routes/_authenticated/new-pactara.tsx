@@ -6,11 +6,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { getProfileOverview } from "@/lib/profile.functions";
 import {
-  GOALS,
-  ICON_FOR_GOAL,
   PURPLE,
   PrimaryButton,
-  GoalStep,
   CompanyStep,
   GroupStep,
   CommitmentStep,
@@ -30,7 +27,6 @@ const TEXT_MUTED = "#6B6660";
 const TEXT = "#0A0A0A";
 
 type StepKey =
-  | "goal"
   | "company"
   | "group"
   | "commitment"
@@ -39,7 +35,6 @@ type StepKey =
   | "greeting";
 
 const ALL_STEPS: StepKey[] = [
-  "goal",
   "group",
   "commitment",
   "company",
@@ -82,8 +77,6 @@ function NewPactaraFlow() {
   const firstName = (profile?.name ?? "").trim().split(/\s+/)[0] ?? "";
   const [stepIdx, setStepIdx] = useState(0);
 
-  const [goal, setGoal] = useState<string | null>(null);
-  const [customGoalLabel, setCustomGoalLabel] = useState("");
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
@@ -112,22 +105,17 @@ function NewPactaraFlow() {
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
 
-  const goalLabel = useMemo(() => {
-    if (goal === "custom") return customGoalLabel.trim() || "your goal";
-    return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
-  }, [goal, customGoalLabel]);
-  const goalEmoji = goal ? ICON_FOR_GOAL[goal] : "🎯";
+  // Goals are personal to each member now, so the group is named neutrally.
+  const goalLabel = "Accountability";
+  const goalEmoji = "🔥";
 
   const ensureGroupName = () => {
-    if (!groupName && goal) {
-      const label = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
-      setGroupName(`${label} Crew`);
-    }
+    if (!groupName && firstName.trim()) setGroupName(`${firstName.trim()}'s Crew`);
   };
 
 
   const next = () => {
-    if (step === "goal") ensureGroupName();
+    if (step === "group") ensureGroupName();
     if (step === "invite") {
       navigate({ to: "/groups" });
       return;
@@ -155,18 +143,15 @@ function NewPactaraFlow() {
     try {
       const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
       const durationDays =
-        goal === "75-hard"
-          ? 75
-          : duration === "custom"
-            ? Math.max(1, Math.min(365, parseInt(customDays, 10) || 30))
-            : duration;
+        duration === "custom"
+          ? Math.max(1, Math.min(365, parseInt(customDays, 10) || 30))
+          : duration;
       await createGroupForUser({
         data: {
           id: pendingGroupId,
           name: finalGroupName,
           emoji: goalEmoji,
-          goal: goalLabel,
-          durationDays,
+            durationDays,
           frequency: "daily",
           daysPerWeek: 7,
 
@@ -186,9 +171,6 @@ function NewPactaraFlow() {
 
   const canContinue = (() => {
     switch (step) {
-      case "goal":
-        if (goal === "custom") return customGoalLabel.trim().length > 0;
-        return goal !== null;
       case "group":
         return groupName.trim().length > 0;
       case "commitment":
@@ -202,12 +184,7 @@ function NewPactaraFlow() {
 
   if (step === "company") return <CompanyStep onContinue={next} onBack={back} progress={progress} />;
   if (step === "greeting") {
-    const days =
-      goal === "75-hard"
-        ? 75
-        : duration === "custom"
-          ? parseInt(customDays, 10) || 30
-          : duration;
+    const days = duration === "custom" ? parseInt(customDays, 10) || 30 : duration;
     const frequencyLabel = "Every day";
     return (
       <>
@@ -267,14 +244,6 @@ function NewPactaraFlow() {
       </div>
 
       <div className="mt-10 flex-1 flex flex-col min-h-0 overflow-y-auto">
-        {step === "goal" && (
-          <GoalStep
-            goal={goal}
-            setGoal={setGoal}
-            customGoalLabel={customGoalLabel}
-            setCustomGoalLabel={setCustomGoalLabel}
-          />
-        )}
         {step === "group" && (
           <GroupStep
             groupName={groupName}
@@ -287,7 +256,7 @@ function NewPactaraFlow() {
         {step === "commitment" && (
           <CommitmentStep
             goalLabel={goalLabel.toLowerCase()}
-            goalId={goal}
+            goalId={null}
             duration={duration}
             setDuration={setDuration}
             customDays={customDays}
