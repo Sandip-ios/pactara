@@ -41,10 +41,8 @@ export function useStatusBarScrollToTop(enabled = true) {
     if (!enabled || typeof document === "undefined") return;
 
     const handleTap = (event: TouchEvent | MouseEvent) => {
-      const clientY =
-        "changedTouches" in event && event.changedTouches.length > 0
-          ? event.changedTouches[0].clientY
-          : event.clientY;
+      const touchY = "changedTouches" in event ? event.changedTouches[0]?.clientY : undefined;
+      const clientY = touchY ?? (event as MouseEvent).clientY;
 
       const safeTop = getSafeAreaTop();
       if (safeTop <= 0 || clientY > safeTop + 4) return;
