@@ -150,7 +150,6 @@ const ALL_STEPS: StepKey[] = [
   "name",
   "email",
   "photo",
-  "goal",
   "consistency",
   
   "commitment",
@@ -222,18 +221,13 @@ function SignupFlow() {
   });
 
 
-  const goalLabel = useMemo(() => {
-    if (invitedGroup?.goal) return invitedGroup.goal;
-    if (goal === "custom") return customGoalLabel.trim() || "your goal";
-    return GOALS.find((g) => g.id === goal)?.label ?? "your goal";
-  }, [goal, customGoalLabel, invitedGroup?.goal]);
-  const goalEmoji = invitedGroup?.emoji ?? (goal ? ICON_FOR_GOAL[goal] : "🎯");
+  // The group is just the accountability container now — goals are personal,
+  // so group naming no longer derives from a shared goal.
+  const goalLabel = invitedGroup?.goal ?? "Accountability";
+  const goalEmoji = invitedGroup?.emoji ?? "🔥";
 
   const ensureGroupName = () => {
-    if (!groupName && goal) {
-      const seed = goal === "custom" ? (customGoalLabel.trim() || "My") : GOALS.find((x) => x.id === goal)!.label;
-      setGroupName(`${seed} Crew`);
-    }
+    if (!groupName && firstName.trim()) setGroupName(`${firstName.trim()}'s Crew`);
   };
 
   const next = () => {
@@ -316,11 +310,9 @@ function SignupFlow() {
       } else {
         const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
         const durationDays =
-          goal === "75-hard"
-            ? 75
-            : duration === "custom"
-              ? Math.max(1, Math.min(365, parseInt(customDays, 10) || 30))
-              : duration;
+          duration === "custom"
+            ? Math.max(1, Math.min(365, parseInt(customDays, 10) || 30))
+            : duration;
         await createGroupForUser({
           data: {
             id: pendingGroupId,
@@ -357,9 +349,6 @@ function SignupFlow() {
         return /\S+@\S+\.\S+/.test(email);
       case "photo":
         return true;
-      case "goal":
-        if (goal === "custom") return customGoalLabel.trim().length > 0;
-        return goal !== null;
       case "group":
         return groupName.trim().length > 0;
       case "commitment":
@@ -386,11 +375,7 @@ function SignupFlow() {
   if (step === "greeting") {
     const days =
       invitedGroup?.durationDays ??
-      (goal === "75-hard"
-        ? 75
-        : duration === "custom"
-          ? parseInt(customDays, 10) || 30
-          : duration);
+      (duration === "custom" ? parseInt(customDays, 10) || 30 : duration);
     const frequencyLabel = "Every day";
 
     return (
@@ -462,14 +447,6 @@ function SignupFlow() {
         )}
         {step === "email" && <EmailStep firstName={firstName} email={email} setEmail={setEmail} />}
         {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} setPhotoFile={setPhotoFile} />}
-        {step === "goal" && (
-          <GoalStep
-            goal={goal}
-            setGoal={setGoal}
-            customGoalLabel={customGoalLabel}
-            setCustomGoalLabel={setCustomGoalLabel}
-          />
-        )}
 
 
         {step === "group" && (
@@ -484,7 +461,7 @@ function SignupFlow() {
         {step === "commitment" && (
           <CommitmentStep
             goalLabel={goalLabel.toLowerCase()}
-            goalId={goal}
+            goalId={null}
             duration={duration}
             setDuration={setDuration}
             customDays={customDays}
