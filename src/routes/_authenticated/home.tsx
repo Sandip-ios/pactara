@@ -409,6 +409,7 @@ function HomePage() {
               pace={paceData ?? null}
               groupId={selectedGroupId}
               groupSize={streaksData?.members?.length}
+              memberGoals={streaksData?.members}
             />
           </>
         );
