@@ -284,7 +284,7 @@ function JoinPage() {
       navigate(
         res?.status === "already_member"
           ? { to: "/groups/$groupId", params: { groupId }, replace: true }
-          : { to: "/pact/$groupId", params: { groupId } },
+          : { to: "/goal/$groupId", params: { groupId } },
       );
     } catch (e) {
       const message = e instanceof Error ? e.message : "Couldn't join the group";

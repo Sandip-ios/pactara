@@ -410,7 +410,7 @@ function SignupFlow() {
         mode="intro"
         onDismiss={() =>
           invitedGroupId
-            ? navigate({ to: "/pact/$groupId", params: { groupId: invitedGroupId } })
+            ? navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } })
             : navigate({ to: "/home" })
         }
       />
