@@ -99,6 +99,13 @@
       "when": 1789662492510,
       "tag": "0013_create_workout_sessions",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789769578720,
+      "tag": "0014_add_member_personal_goal",
+      "breakpoints": true
     }
   ]
 }

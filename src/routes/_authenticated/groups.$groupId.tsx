@@ -114,7 +114,7 @@ function GroupDetailPage() {
               {group.name}
             </div>
             <div className="text-white/75 text-[13px] mt-0.5 truncate">
-              {group.goal ? `${group.goal} · ` : ""}Day {group.dayNumber} of {group.durationDays}
+              Day {group.dayNumber} of {group.durationDays}
             </div>
           </div>
         </div>

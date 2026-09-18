@@ -174,7 +174,7 @@ function GroupAccountabilityCard({ group }: { group: GroupToday }) {
               {group.name}
             </span>
             <span className="block text-white/75 text-[12px] mt-0.5 truncate">
-              {group.goal ? `${group.goal} · ` : ""}Day {group.dayNumber} of {group.durationDays} · {freqLabel}
+              Day {group.dayNumber} of {group.durationDays} · {freqLabel}
             </span>
           </span>
         </button>

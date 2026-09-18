@@ -6,6 +6,7 @@ import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
 import { getPendingPact } from "@/lib/pact.functions";
+import { getPendingGoal } from "@/lib/member-goal.functions";
 import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
 import { isNative } from "@/lib/native";
 
@@ -39,15 +40,22 @@ function PactSplash() {
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const onPactRoute = pathname.startsWith("/pact/");
+  const onGoalRoute = pathname.startsWith("/goal/");
+  const onPactRoute = pathname.startsWith("/pact/") || onGoalRoute;
   const [pactChecked, setPactChecked] = useState(pactCheckResolved);
 
-  // Everyone must sign their group pact before using the app.
+  // Everyone sets a personal goal, then signs the group pact, before the app.
   useEffect(() => {
     if (onPactRoute) return;
     let cancelled = false;
     (async () => {
       try {
+        const goalRes = await getPendingGoal();
+        if (cancelled) return;
+        if (goalRes?.groupId) {
+          navigate({ to: "/goal/$groupId", params: { groupId: goalRes.groupId }, replace: true });
+          return;
+        }
         const res = await getPendingPact();
         if (cancelled) return;
         if (res?.groupId) {
@@ -77,6 +85,7 @@ function AuthLayout() {
     tabsHiddenByModal ||
     pathname.startsWith("/check-in/") ||
     pathname.startsWith("/pact/") ||
+    pathname.startsWith("/goal/") ||
     pathname === "/new-pactara" ||
     /^\/chat\/[^/]+/.test(pathname);
 
