@@ -68,7 +68,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     // Groups the target belongs to (restricted to shared ones when viewing someone else)
     const { data: theirRows } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, personal_goal")
       .eq("user_id", targetId);
     const theirMemberships = (theirRows ?? []).filter((r) =>
       isSelf ? true : myGroupIds.includes(r.group_id as string),
