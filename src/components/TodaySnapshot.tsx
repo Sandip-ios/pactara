@@ -136,7 +136,11 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
             embedded
             fallback={
               <>
-                <div className="flex min-h-[166px] flex-col px-5 pb-3 pt-5">
+                <div
+                  className={`flex flex-col px-5 pt-5 ${
+                    copy.cta ? "min-h-[166px] pb-3" : "pb-6"
+                  }`}
+                >
                   <span className="text-[24px] font-black leading-none text-card-foreground">
                     {copy.title}
                   </span>
