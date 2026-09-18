@@ -11,6 +11,7 @@ import {
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { syncAppBadge } from "@/lib/badge-client";
+import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -61,6 +62,7 @@ function KindGlyph({ kind }: { kind: NotificationItem["kind"] }) {
 }
 
 function NotificationsPage() {
+  useStatusBarScrollToTop();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [switcherOpen, setSwitcherOpen] = useState(false);

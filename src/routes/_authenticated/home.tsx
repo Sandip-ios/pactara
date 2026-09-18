@@ -21,6 +21,7 @@ import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
+import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -60,6 +61,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 });
 
 function HomePage() {
+  useStatusBarScrollToTop();
   const navigate = useNavigate();
   // Deep link from a notification: /home?post=<id>[&comments=1]
   const [search, setSearch] = useState<{ post?: string; comments?: boolean }>({});
