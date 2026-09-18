@@ -18,6 +18,7 @@ import {
   Target,
 } from "lucide-react";
 import { GroupQrSheet } from "@/components/groups/GroupQrSheet";
+import { EditGoalSheet } from "@/components/groups/EditGoalSheet";
 import { renameGroup, updateGroupCommitment, deleteGroup, leaveGroup } from "@/lib/groups.functions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -69,6 +70,7 @@ export function GroupOverflowMenu({
   const [commitmentOpen, setCommitmentOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [goalOpen, setGoalOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteErr, setDeleteErr] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export function GroupOverflowMenu({
             label="Edit my goal"
             onClick={() => {
               setMenuOpen(false);
-              navigate({ to: "/goal/$groupId", params: { groupId }, search: { edit: "1" } });
+              setGoalOpen(true);
             }}
           />
           {isAdmin && (
@@ -260,6 +262,7 @@ export function GroupOverflowMenu({
           setQrOpen(true);
         }}
       />
+      <EditGoalSheet open={goalOpen} onOpenChange={setGoalOpen} groupId={groupId} />
       <GroupQrSheet
         open={qrOpen}
         onOpenChange={setQrOpen}
