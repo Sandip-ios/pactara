@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { useState } from "react";
 import { Plus, Link as LinkIcon, ChevronRight } from "lucide-react";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/groups/")({
 });
 
 function GroupsOverview() {
+  useStatusBarScrollToTop();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({

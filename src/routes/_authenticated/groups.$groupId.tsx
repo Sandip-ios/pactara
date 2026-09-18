@@ -9,6 +9,7 @@ import { TimelineCard } from "@/components/TimelineCard";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
+import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { GroupOverflowMenu } from "@/components/groups/GroupOverflowMenu";
 import {
   BG,
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/groups/$groupId")({
 });
 
 function GroupDetailPage() {
+  useStatusBarScrollToTop();
   const { groupId } = Route.useParams();
   // A "started working out" push deep links to ?workout=<sessionId>.
   const workout = useRouterState({
