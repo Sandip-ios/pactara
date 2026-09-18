@@ -228,6 +228,37 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
   });
 
 /**
+ * Returns whether the current user has already completed at least one check-in
+ * today (across their groups, in their local timezone). Used on app launch to
+ * decide between opening Home and opening the check-in flow.
+ */
+export const hasCheckedInToday = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+
+    const { data: memberships, error: mErr } = await supabase
+      .from("group_members")
+      .select("group_id")
+      .eq("user_id", userId);
+    if (mErr) throw new Error(mErr.message);
+
+    const groupIds = (memberships ?? []).map((m) => m.group_id);
+    if (!groupIds.length) return { checkedIn: false, hasGroup: false };
+
+    const today = localDateFor(await getUserTimezone(supabase, userId));
+    const { data, error } = await supabase
+      .from("check_ins")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("checkin_date", today)
+      .in("group_id", groupIds)
+      .limit(1);
+    if (error) throw new Error(error.message);
+    return { checkedIn: (data ?? []).length > 0, hasGroup: true };
+  });
+
+/**
  * Lists all groups the current user is a member of, with member counts and
  * the user's role in each (admin/member).
  */
