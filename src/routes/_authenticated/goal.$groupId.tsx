@@ -26,7 +26,9 @@ const TRACK = "#EAE4F5";
 const TEXT_MUTED = "#6B6660";
 
 function GoalPage() {
-  useHideBottomTabs();
+  // Full-screen page: hide the tabs but keep the light canvas so the status
+  // bar area stays white with dark text.
+  useHideBottomTabs(true, false);
   const { groupId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -72,8 +74,8 @@ function GoalPage() {
       className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-white"
       style={{ fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A", paddingTop: 32 }}
     >
-      <div className="flex items-center gap-3">
-        {isEdit ? (
+      {isEdit && (
+        <div className="flex items-center">
           <button
             onClick={() => navigate({ to: "/groups/$groupId", params: { groupId } })}
             aria-label="Back"
@@ -81,13 +83,8 @@ function GoalPage() {
           >
             <ChevronLeft size={22} />
           </button>
-        ) : (
-          <span className="w-[22px] shrink-0" />
-        )}
-        <div className="flex-1 h-[5px] rounded-full overflow-hidden" style={{ background: TRACK }}>
-          <div className="h-full rounded-full" style={{ width: "80%", background: PURPLE }} />
         </div>
-      </div>
+      )}
 
       <div className="mt-8 flex-1 min-h-0 overflow-y-auto">
         <img
