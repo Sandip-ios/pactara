@@ -279,6 +279,8 @@ export type Database = {
           last_read_at: string
           pact_nudged_at: string | null
           pact_signed_at: string | null
+          personal_goal: string | null
+          personal_goal_set_at: string | null
           user_id: string
         }
         Insert: {
@@ -288,6 +290,8 @@ export type Database = {
           last_read_at?: string
           pact_nudged_at?: string | null
           pact_signed_at?: string | null
+          personal_goal?: string | null
+          personal_goal_set_at?: string | null
           user_id: string
         }
         Update: {
@@ -297,6 +301,8 @@ export type Database = {
           last_read_at?: string
           pact_nudged_at?: string | null
           pact_signed_at?: string | null
+          personal_goal?: string | null
+          personal_goal_set_at?: string | null
           user_id?: string
         }
         Relationships: [
