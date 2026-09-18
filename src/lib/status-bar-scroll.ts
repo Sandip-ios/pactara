@@ -18,54 +18,95 @@ function getSafeAreaTop(): number {
   return cachedSafeAreaTop;
 }
 
-function findScrollContainer(el: Element | null): HTMLElement | null {
-  let node: HTMLElement | null = el instanceof HTMLElement ? el : null;
-  while (node && node !== document.body) {
-    const overflowY = window.getComputedStyle(node).overflowY;
-    if ((overflowY === "auto" || overflowY === "scroll") && node.scrollHeight > node.clientHeight) {
-      return node;
-    }
-    node = node.parentElement;
+/**
+ * The visible page content lives inside `fixed inset-0 overflow-y-auto`
+ * containers, so find the tallest one that is actually scrolled down.
+ */
+function findPageScroller(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  const candidates = Array.from(
+    document.querySelectorAll<HTMLElement>(".overflow-y-auto, [data-scroll-root]"),
+  );
+  let best: HTMLElement | null = null;
+  for (const el of candidates) {
+    if (el.scrollTop <= 0) continue;
+    if (el.scrollHeight <= el.clientHeight + 1) continue;
+    if (!best || el.clientHeight > best.clientHeight) best = el;
   }
-  return null;
+  return best;
+}
+
+function scrollPageToTop() {
+  const scroller = findPageScroller();
+  if (scroller) scroller.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 /**
- * iOS only scrolls the *document* to the top when the status bar is tapped.
- * Pages that scroll inside a `fixed inset-0 overflow-y-auto` container never
- * get that behavior, so we listen for taps inside the status-bar band and
- * scroll the container under the tap to the top ourselves.
+ * iOS delivers a status-bar tap to the WKWebView's own scroll view, not to the
+ * DOM — no touch/click event ever reaches JavaScript. The webview only reacts
+ * when the *document* itself can scroll, which our `fixed inset-0` pages never
+ * do.
+ *
+ * So we keep the document scrollable by a couple of pixels and park it at that
+ * offset. A status-bar tap then makes the webview scroll the document back to
+ * 0, which fires a `scroll` event we can observe: that's our signal to scroll
+ * the real page container to the top and re-park the document.
  */
 export function useStatusBarScrollToTop(enabled = true) {
   useEffect(() => {
     if (!enabled || typeof document === "undefined") return;
+    const safeTop = getSafeAreaTop();
+    // No notch (desktop preview / non-iOS): nothing to hook into.
+    if (safeTop <= 0) return;
 
-    const handleTap = (event: TouchEvent | MouseEvent) => {
-      const touchY = "changedTouches" in event ? event.changedTouches[0]?.clientY : undefined;
-      const clientY = touchY ?? (event as MouseEvent).clientY;
+    const PARK = 2;
+    const root = document.documentElement;
+    const previousMinHeight = document.body.style.minHeight;
+    // Make the document scrollable by exactly PARK px.
+    document.body.style.minHeight = `calc(100dvh - env(safe-area-inset-top) + ${PARK}px)`;
 
-      const safeTop = getSafeAreaTop();
-      if (safeTop <= 0 || clientY > safeTop + 4) return;
+    let parking = false;
+    const park = () => {
+      parking = true;
+      window.scrollTo(0, PARK);
+      window.setTimeout(() => {
+        parking = false;
+      }, 50);
+    };
+    park();
 
-      const target = event.target instanceof Element ? event.target : null;
-      // Never hijack taps on interactive elements that happen to sit near the top.
-      if (target?.closest("button, a, input, textarea, select, [role='button'], [data-no-status-bar-scroll]")) {
-        return;
-      }
-
-      const container = findScrollContainer(target);
-      if (container) {
-        container.scrollTo({ top: 0, behavior: "smooth" });
-      } else {
-        window.scrollTo({ top: 0, behavior: "smooth" });
+    const onScroll = () => {
+      if (parking) return;
+      if (window.scrollY < PARK) {
+        scrollPageToTop();
+        park();
       }
     };
 
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    // Fallback for environments where the tap does reach the DOM.
+    const handleTap = (event: TouchEvent) => {
+      const clientY = event.changedTouches[0]?.clientY;
+      if (clientY === undefined || clientY > safeTop + 4) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        target?.closest(
+          "button, a, input, textarea, select, [role='button'], [data-no-status-bar-scroll]",
+        )
+      ) {
+        return;
+      }
+      scrollPageToTop();
+    };
     document.addEventListener("touchend", handleTap, { capture: true, passive: true });
-    document.addEventListener("click", handleTap, { capture: true });
+
     return () => {
+      window.removeEventListener("scroll", onScroll);
       document.removeEventListener("touchend", handleTap, { capture: true });
-      document.removeEventListener("click", handleTap, { capture: true });
+      document.body.style.minHeight = previousMinHeight;
+      root.scrollTop = 0;
+      window.scrollTo(0, 0);
     };
   }, [enabled]);
 }
