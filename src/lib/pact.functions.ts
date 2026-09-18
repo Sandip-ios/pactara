@@ -43,7 +43,7 @@ export const getPact = createServerFn({ method: "GET" })
 
     const { data: members, error: mErr } = await supabaseAdmin
       .from("group_members")
-      .select("user_id, joined_at, pact_signed_at")
+      .select("user_id, joined_at, pact_signed_at, personal_goal")
       .eq("group_id", data.groupId)
       .order("joined_at", { ascending: true });
     if (mErr) throw new Error(mErr.message);
@@ -92,7 +92,8 @@ export const getPact = createServerFn({ method: "GET" })
       groupId: group.id as string,
       name: group.name as string,
       emoji: (group.emoji as string) ?? "🔥",
-      goal: ((group as { goal?: string | null }).goal ?? null) as string | null,
+      goal: ((rows.find((m) => m.user_id === userId) as { personal_goal?: string | null } | undefined)
+        ?.personal_goal ?? null) as string | null,
       durationDays: ((group as { duration_days?: number | null }).duration_days ?? 30) as number,
       frequency: ((group as { frequency?: string | null }).frequency ?? "daily") as string,
       daysPerWeek: ((group as { days_per_week?: number | null }).days_per_week ?? 7) as number,
