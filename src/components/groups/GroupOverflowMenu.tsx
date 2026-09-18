@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   MoreHorizontal,
@@ -14,6 +15,7 @@ import {
   MessageCircle,
   Share2,
   QrCode,
+  Target,
 } from "lucide-react";
 import { GroupQrSheet } from "@/components/groups/GroupQrSheet";
 import { renameGroup, updateGroupCommitment, deleteGroup, leaveGroup } from "@/lib/groups.functions";
@@ -61,6 +63,7 @@ export function GroupOverflowMenu({
   onDeleted?: () => void;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
