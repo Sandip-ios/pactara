@@ -38,7 +38,17 @@ export async function awardBadgesForUser(
   const dates = ((rows ?? []) as { checkin_date: string }[]).map(
     (r) => r.checkin_date,
   );
-  const bestOverall = bestStreakFromDates(dates);
+  // Streak freezes keep a streak alive, so they count toward badge milestones
+  // exactly as they do for the streak shown on Home and the profile.
+  const { data: freezeRows } = await supabase
+    .from("streak_freezes_used")
+    .select("freeze_date")
+    .eq("user_id", userId)
+    .eq("group_id", groupId);
+  const frozen = ((freezeRows ?? []) as { freeze_date: string }[]).map(
+    (r) => r.freeze_date,
+  );
+  const bestOverall = bestStreakFromDates([...dates, ...frozen]);
 
   const { data: existing } = await supabase
     .from("earned_badges")

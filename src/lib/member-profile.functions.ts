@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { awardBadgesForUser } from "./badges.functions";
 
 function ymd(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -202,6 +203,12 @@ export const getMemberProfile = createServerFn({ method: "GET" })
           date: row.checkin_date,
         });
       });
+    }
+
+    // Backfill any milestone already reached but never recorded (e.g. streaks
+    // kept alive with a freeze).
+    if (isSelf) {
+      await awardBadgesForUser(supabase, targetId, groupId);
     }
 
     const { data: badgeRows } = await supabase
