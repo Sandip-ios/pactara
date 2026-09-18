@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { Button } from "@/components/ui/button";
+import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 
 export type SnapshotState = "ritual" | "check-in" | "done";
 
@@ -20,6 +21,14 @@ type Props = {
   } | null;
   groupId: string | null;
   groupSize?: number;
+  memberGoals?: {
+    userId: string;
+    name: string;
+    avatarUrl: string | null;
+    avatarColor: string;
+    isYou: boolean;
+    personalGoal: string | null;
+  }[];
 };
 
 const COPY: Record<
@@ -48,7 +57,16 @@ type Stat = { label: string; value: string };
 
 
 
-export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupId, groupSize }: Props) {
+export function TodaySnapshot({
+  state,
+  week,
+  streak,
+  longestStreak,
+  pace,
+  groupId,
+  groupSize,
+  memberGoals = [],
+}: Props) {
   const navigate = useNavigate();
   const copy = COPY[state];
 
@@ -62,7 +80,7 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
   // time instead, and only when the touch didn't move (not a scroll/swipe).
   const ctaTouch = useRef<{ x: number; y: number } | null>(null);
 
-  const SLIDES = 2;
+  const SLIDES = 3;
 
   const goToCheckIn = () => navigate({ to: "/check-in" });
 
@@ -212,6 +230,57 @@ export function TodaySnapshot({ state, week, streak, longestStreak, pace, groupI
                 </div>
               </div>
             )}
+            </div>
+          </div>
+        </div>
+
+        {/* Slide 3 — Personal goals */}
+        <div
+          className="w-full shrink-0 overflow-hidden"
+          style={{ maxHeight: index === 2 ? 400 : 0, visibility: index === 2 ? "visible" : "hidden" }}
+          aria-hidden={index !== 2}
+        >
+          <div className="px-5 pb-3 pt-5">
+            <span className="text-[24px] font-black leading-none text-card-foreground">
+              Our goals
+            </span>
+            <div className="mt-5 max-h-[248px] overflow-y-auto overscroll-contain">
+              {memberGoals.map((member) => {
+                const initials = member.name
+                  .split(" ")
+                  .map((part) => part[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase();
+
+                return (
+                  <MemberProfileLink
+                    key={member.userId}
+                    userId={member.userId}
+                    isYou={member.isYou}
+                    className="flex items-center gap-3 border-b border-border/60 py-3 first:pt-0 last:border-b-0 last:pb-0"
+                  >
+                    <span
+                      className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[13px] font-bold text-primary-foreground"
+                      style={{ backgroundColor: member.avatarColor }}
+                    >
+                      {member.avatarUrl ? (
+                        <img src={member.avatarUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        initials
+                      )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-bold text-card-foreground">
+                        {member.isYou ? "You" : member.name}
+                      </span>
+                      <span className="mt-0.5 block text-pretty text-[14px] font-medium leading-[1.3] text-muted-foreground">
+                        {member.personalGoal ?? "Choosing a goal"}
+                      </span>
+                    </span>
+                  </MemberProfileLink>
+                );
+              })}
             </div>
           </div>
         </div>

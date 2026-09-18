@@ -683,6 +683,7 @@ export type GroupMemberStreak = {
   avatarUrl: string | null;
   avatarColor: string;
   isYou: boolean;
+  personalGoal: string | null;
   streak: number;
   longestStreak: number;
 };
@@ -724,11 +725,18 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
 
     const { data: members } = await supabase
       .from("group_members")
-      .select("user_id, joined_at")
+      .select("user_id, joined_at, personal_goal")
       .eq("group_id", groupId)
       .order("joined_at", { ascending: true });
     const memberIds = (members ?? []).map((m) => m.user_id as string);
     if (memberIds.length === 0) return { members: [] };
+
+    const goalByUser = new Map(
+      (members ?? []).map((member) => [
+        member.user_id as string,
+        ((member as { personal_goal?: string | null }).personal_goal ?? null) as string | null,
+      ]),
+    );
 
     const [profRes, ciRes, freezeRes] = await Promise.all([
       supabase
@@ -815,6 +823,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
           avatarUrl: await signAvatar(supabase, prof?.avatarPath ?? null),
           avatarColor: prof?.avatarColor ?? "#7C3AED",
           isYou: id === userId,
+          personalGoal: goalByUser.get(id) ?? null,
           streak: computeStreak(daysByUser.get(id) ?? new Set()),
           longestStreak: computeLongestStreak(daysByUser.get(id) ?? new Set()),
         };
