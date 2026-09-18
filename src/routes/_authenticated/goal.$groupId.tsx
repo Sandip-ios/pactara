@@ -22,7 +22,6 @@ export const Route = createFileRoute("/_authenticated/goal/$groupId")({
 });
 
 const PURPLE = "#7C3AED";
-const TRACK = "#EAE4F5";
 const TEXT_MUTED = "#6B6660";
 
 function GoalPage() {
