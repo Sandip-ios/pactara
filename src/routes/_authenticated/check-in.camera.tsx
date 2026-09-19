@@ -60,11 +60,14 @@ function VideoRecordScreen() {
   const autoStopRef = useRef<number | null>(null);
   const countdownTimeoutRef = useRef<number | null>(null);
   const recordingRef = useRef(false);
+  const startingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const [ready, setReady] = useState(false);
   const [frameReady, setFrameReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
+  const [starting, setStarting] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [timerDelay, setTimerDelay] = useState<0 | 3 | 5 | 10>(0);
   const [countdownRemaining, setCountdownRemaining] = useState<number | null>(null);
@@ -356,6 +359,7 @@ function VideoRecordScreen() {
     })();
     return () => {
       cancelled = true;
+      mountedRef.current = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
       if (countdownTimeoutRef.current) window.clearTimeout(countdownTimeoutRef.current);
@@ -441,20 +445,61 @@ function VideoRecordScreen() {
   };
 
   const startRecording = async () => {
-    if (recordingRef.current) return;
+    if (recordingRef.current || startingRef.current) return;
+    // Lock synchronously before any camera readiness await. Without this, the
+    // countdown clears first and a second tap can create another recorder,
+    // causing both recorders to share and corrupt the same chunk buffer.
+    startingRef.current = true;
+    setStarting(true);
     setError(null);
 
     let stream = streamRef.current;
     if (!streamIsLive(stream)) {
       stopStream();
       stream = await requestStream(facingMode);
-      if (!stream) return;
+      if (!stream) {
+        startingRef.current = false;
+        setStarting(false);
+        return;
+      }
       attachStream(stream);
     }
 
     if (!stream) {
+      startingRef.current = false;
+      setStarting(false);
       setError("Camera unavailable.");
       return;
+    }
+
+    // A timer starts recording from a delayed callback. On iOS the preview can
+    // become paused while that callback waits, which leaves MediaRecorder with
+    // no video frames. Resume it and wait for a drawable frame before starting.
+    const preview = videoRef.current;
+    if (preview) {
+      try {
+        await preview.play();
+      } catch {
+        startingRef.current = false;
+        setStarting(false);
+        setError("The camera paused before recording. Tap record to try again.");
+        return;
+      }
+      if (preview.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+        const frameAvailable = await new Promise<boolean>((resolve) => {
+          const timeout = window.setTimeout(() => resolve(false), 1500);
+          preview.addEventListener("canplay", () => {
+            window.clearTimeout(timeout);
+            resolve(true);
+          }, { once: true });
+        });
+        if (!frameAvailable || !mountedRef.current) {
+          startingRef.current = false;
+          setStarting(false);
+          setError("The camera wasn't ready. Tap record to try again.");
+          return;
+        }
+      }
     }
 
     // Bake the selected look into the recording by drawing the camera frames
@@ -469,6 +514,8 @@ function VideoRecordScreen() {
     } catch {
       baked.cleanup();
       bakeCleanupRef.current = null;
+      startingRef.current = false;
+      setStarting(false);
       setError("Recording isn't supported on this browser.");
       return;
     }
@@ -476,13 +523,27 @@ function VideoRecordScreen() {
     rec.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
     };
+    rec.onerror = () => {
+      recordingRef.current = false;
+      setRecording(false);
+      bakeCleanupRef.current?.();
+      bakeCleanupRef.current = null;
+      setError("The video couldn't be recorded. Tap record to try again.");
+    };
     rec.onstop = () => {
       const type = rec.mimeType || "video/webm";
       const blob = new Blob(chunksRef.current, { type });
       chunksRef.current = [];
       bakeCleanupRef.current?.();
       bakeCleanupRef.current = null;
-      if (blob.size > 0) setCheckInPhoto(blob);
+      recorderRef.current = null;
+      if (blob.size === 0) {
+        recordingRef.current = false;
+        setRecording(false);
+        setError("The video wasn't saved. Tap record to try again.");
+        return;
+      }
+      setCheckInPhoto(blob);
       stopStream();
       navigate({ to: "/check-in/notes" });
     };
@@ -490,13 +551,27 @@ function VideoRecordScreen() {
     startedAtRef.current = Date.now();
     setElapsed(0);
     recordingRef.current = true;
+    startingRef.current = false;
+    setStarting(false);
     setRecording(true);
     // Ask for regular fragments instead of leaving the whole recording in
     // Safari's encoder buffer. Some iOS versions otherwise finalize only the
     // first ~15-second MP4 fragment even though the recording UI reaches 60s.
     // MediaRecorder guarantees that all fragments from one recording form a
     // playable Blob when concatenated in order.
-    rec.start(1000);
+    try {
+      rec.start(1000);
+    } catch {
+      recordingRef.current = false;
+      startingRef.current = false;
+      setRecording(false);
+      setStarting(false);
+      recorderRef.current = null;
+      baked.cleanup();
+      bakeCleanupRef.current = null;
+      setError("The video couldn't start recording. Tap record to try again.");
+      return;
+    }
     rafRef.current = requestAnimationFrame(tick);
     autoStopRef.current = window.setTimeout(() => {
       stopRecording();
@@ -516,15 +591,17 @@ function VideoRecordScreen() {
     setRecording(false);
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") {
-      try {
-        rec.requestData();
-        rec.stop();
-      } catch { /* noop */ }
+      // Safari can reject requestData while still accepting stop. Keep these
+      // separate so a fragment-flush error never prevents finalization.
+      try { rec.requestData(); } catch { /* stop still finalizes the video */ }
+      try { rec.stop(); } catch {
+        setError("The video couldn't be saved. Tap record to try again.");
+      }
     }
   };
 
   const onTapButton = () => {
-    if (!recordingRef.current) {
+    if (!recordingRef.current && !startingRef.current) {
       if (countdownRemaining !== null) return;
       if (timerDelay === 0) {
         void startRecording();
@@ -837,16 +914,16 @@ function VideoRecordScreen() {
               if (draggedRef.current) return;
               onTapButton();
             }}
-            disabled={(recording && !canStop) || countdownRemaining !== null}
-            aria-label={recording ? (canStop ? "Stop recording" : "Recording") : countdownRemaining !== null ? `Recording starts in ${countdownRemaining}` : "Start recording"}
+            disabled={starting || (recording && !canStop) || countdownRemaining !== null}
+            aria-label={starting ? "Starting recording" : recording ? (canStop ? "Stop recording" : "Recording") : countdownRemaining !== null ? `Recording starts in ${countdownRemaining}` : "Start recording"}
             className="relative z-10 h-20 w-20 rounded-full flex items-center justify-center transition-colors"
             style={{
               background: recording ? RED : "#FFFFFF",
               border: "2px solid rgba(255,255,255,0.9)",
               boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
-              opacity: (recording && !canStop) || countdownRemaining !== null ? 0.9 : 1,
+              opacity: starting || (recording && !canStop) || countdownRemaining !== null ? 0.9 : 1,
               touchAction: "none",
-              cursor: (recording && !canStop) || countdownRemaining !== null ? "not-allowed" : "pointer",
+              cursor: starting || (recording && !canStop) || countdownRemaining !== null ? "not-allowed" : "pointer",
             }}
           />
 
