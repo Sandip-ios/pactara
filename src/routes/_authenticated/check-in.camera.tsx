@@ -60,6 +60,7 @@ function VideoRecordScreen() {
   const autoStopRef = useRef<number | null>(null);
   const countdownTimeoutRef = useRef<number | null>(null);
   const recordingRef = useRef(false);
+  const mountedRef = useRef(true);
 
   const [ready, setReady] = useState(false);
   const [frameReady, setFrameReady] = useState(false);
@@ -356,6 +357,7 @@ function VideoRecordScreen() {
     })();
     return () => {
       cancelled = true;
+      mountedRef.current = false;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       if (autoStopRef.current) window.clearTimeout(autoStopRef.current);
       if (countdownTimeoutRef.current) window.clearTimeout(countdownTimeoutRef.current);
@@ -457,6 +459,32 @@ function VideoRecordScreen() {
       return;
     }
 
+    // A timer starts recording from a delayed callback. On iOS the preview can
+    // become paused while that callback waits, which leaves MediaRecorder with
+    // no video frames. Resume it and wait for a drawable frame before starting.
+    const preview = videoRef.current;
+    if (preview) {
+      try {
+        await preview.play();
+      } catch {
+        setError("The camera paused before recording. Tap record to try again.");
+        return;
+      }
+      if (preview.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+        const frameAvailable = await new Promise<boolean>((resolve) => {
+          const timeout = window.setTimeout(() => resolve(false), 1500);
+          preview.addEventListener("canplay", () => {
+            window.clearTimeout(timeout);
+            resolve(true);
+          }, { once: true });
+        });
+        if (!frameAvailable || !mountedRef.current) {
+          setError("The camera wasn't ready. Tap record to try again.");
+          return;
+        }
+      }
+    }
+
     // Bake the selected look into the recording by drawing the camera frames
     // through a filtered canvas and recording that canvas instead.
     const baked = buildBakedStream(stream, lookRef.current);
@@ -476,13 +504,27 @@ function VideoRecordScreen() {
     rec.ondataavailable = (e) => {
       if (e.data && e.data.size > 0) chunksRef.current.push(e.data);
     };
+    rec.onerror = () => {
+      recordingRef.current = false;
+      setRecording(false);
+      bakeCleanupRef.current?.();
+      bakeCleanupRef.current = null;
+      setError("The video couldn't be recorded. Tap record to try again.");
+    };
     rec.onstop = () => {
       const type = rec.mimeType || "video/webm";
       const blob = new Blob(chunksRef.current, { type });
       chunksRef.current = [];
       bakeCleanupRef.current?.();
       bakeCleanupRef.current = null;
-      if (blob.size > 0) setCheckInPhoto(blob);
+      recorderRef.current = null;
+      if (blob.size === 0) {
+        recordingRef.current = false;
+        setRecording(false);
+        setError("The video wasn't saved. Tap record to try again.");
+        return;
+      }
+      setCheckInPhoto(blob);
       stopStream();
       navigate({ to: "/check-in/notes" });
     };
@@ -496,7 +538,17 @@ function VideoRecordScreen() {
     // first ~15-second MP4 fragment even though the recording UI reaches 60s.
     // MediaRecorder guarantees that all fragments from one recording form a
     // playable Blob when concatenated in order.
-    rec.start(1000);
+    try {
+      rec.start(1000);
+    } catch {
+      recordingRef.current = false;
+      setRecording(false);
+      recorderRef.current = null;
+      baked.cleanup();
+      bakeCleanupRef.current = null;
+      setError("The video couldn't start recording. Tap record to try again.");
+      return;
+    }
     rafRef.current = requestAnimationFrame(tick);
     autoStopRef.current = window.setTimeout(() => {
       stopRecording();
@@ -516,10 +568,12 @@ function VideoRecordScreen() {
     setRecording(false);
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") {
-      try {
-        rec.requestData();
-        rec.stop();
-      } catch { /* noop */ }
+      // Safari can reject requestData while still accepting stop. Keep these
+      // separate so a fragment-flush error never prevents finalization.
+      try { rec.requestData(); } catch { /* stop still finalizes the video */ }
+      try { rec.stop(); } catch {
+        setError("The video couldn't be saved. Tap record to try again.");
+      }
     }
   };
 
