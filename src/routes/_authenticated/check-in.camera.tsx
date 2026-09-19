@@ -73,6 +73,14 @@ function VideoRecordScreen() {
   const [helpOpen, setHelpOpen] = useState(
     () => typeof localStorage === "undefined" || localStorage.getItem("howto-record-seen") !== "1",
   );
+  // One-time "new: timer" popover pointing at the timer control.
+  const [showTimerTip, setShowTimerTip] = useState(
+    () => typeof localStorage === "undefined" || localStorage.getItem("camera-timer-tip-seen") !== "1",
+  );
+  const dismissTimerTip = () => {
+    if (typeof localStorage !== "undefined") localStorage.setItem("camera-timer-tip-seen", "1");
+    setShowTimerTip(false);
+  };
   const [facingMode, setFacingMode] = useState<"environment" | "user">("user");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -550,6 +558,7 @@ function VideoRecordScreen() {
 
   const cycleTimer = () => {
     if (recording || countdownRemaining !== null) return;
+    dismissTimerTip();
     setTimerDelay((current) => current === 0 ? 3 : current === 3 ? 5 : current === 5 ? 10 : 0);
   };
 
