@@ -76,11 +76,14 @@ export function splitFeedIntoTimelineCards(items: FeedItem[]): FeedItem[] {
     return newest;
   };
 
+  // Day first: a card belonging to a more recent day always ranks higher, even
+  // when it only holds synthetic nodes. Within one day, rank by newest real
+  // activity so empty/missed cards settle below genuine posts.
   return Array.from(grouped.values()).sort((a, b) => {
+    if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
     const ra = recency(a);
     const rb = recency(b);
     if (ra !== rb) return rb - ra;
-    if (a.localDate !== b.localDate) return a.localDate < b.localDate ? 1 : -1;
     return 0;
   });
 }
