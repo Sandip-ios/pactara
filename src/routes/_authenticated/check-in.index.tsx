@@ -339,7 +339,7 @@ function MorningRitual({
           What are you committing to today?
         </h1>
         <p className="mt-2 text-[15px] text-neutral-500">
-          Make it specific. Check in while you're doing it, not after.
+          Make it specific. Check in while you're doing it.
         </p>
       </div>
 
