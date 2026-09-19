@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
+import { requestAppStoreReview } from "@/lib/app-review";
 import { listMyGroups } from "@/lib/groups.functions";
 import { AllGroupsToggle } from "./check-in.index";
 
@@ -188,6 +189,10 @@ function NotesPage() {
     // dedicated BadgeUnlockedModal after this share sheet closes.
     setShareData(null);
     finalizeAndExit();
+    // Ask for an App Store review shortly after a successful check-in.
+    setTimeout(() => {
+      void requestAppStoreReview();
+    }, 1500);
   };
 
   const handleShareWin = async () => {
