@@ -151,8 +151,18 @@ function NotesPage() {
       let photoUrl: string | undefined;
       const photo = getCheckInPhoto();
       if (photo) {
-        const path = await uploadCheckInPhoto(photo.blob);
-        if (path) photoUrl = path;
+        try {
+          photoUrl = await uploadCheckInPhoto(photo.blob);
+        } catch {
+          // Never post without the media the user captured — keep it and let
+          // them retry once they have a better connection.
+          setSubmitError(
+            photo.blob.type.startsWith("video/")
+              ? "Your video couldn't upload — your connection looks weak. Tap Share to try again."
+              : "Your photo couldn't upload — your connection looks weak. Tap Share to try again.",
+          );
+          return;
+        }
       }
       const result = await mutation.mutateAsync({
         note: note || undefined,
