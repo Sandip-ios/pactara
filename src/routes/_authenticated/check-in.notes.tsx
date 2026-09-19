@@ -56,30 +56,40 @@ async function resolveGroupId(userId: string): Promise<string | null> {
   return membership?.group_id ?? null;
 }
 
-async function uploadCheckInPhoto(blob: Blob): Promise<string | null> {
-  try {
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-    if (!userId) return null;
-    const groupId = await resolveGroupId(userId);
-    if (!groupId) return null;
-    const mime = blob.type || "image/jpeg";
-    const ext = mime.startsWith("video/")
-      ? (mime.split("/")[1]?.split(";")[0] || "mp4").replace("quicktime", "mov")
-      : (mime.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
-    const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const { error } = await supabase.storage
-      .from("chat-photos")
-      .upload(path, blob, { contentType: mime, upsert: false });
-    if (error) {
-      console.error("photo upload failed", error);
-      return null;
+async function uploadCheckInPhotoOnce(blob: Blob): Promise<string> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) throw new Error("You're signed out. Sign in and try again.");
+  const groupId = await resolveGroupId(userId);
+  if (!groupId) throw new Error("Couldn't find your group. Try again.");
+  const mime = blob.type || "image/jpeg";
+  const ext = mime.startsWith("video/")
+    ? (mime.split("/")[1]?.split(";")[0] || "mp4").replace("quicktime", "mov")
+    : (mime.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
+  const path = `${groupId}/${userId}-checkin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const { error } = await supabase.storage
+    .from("chat-photos")
+    .upload(path, blob, { contentType: mime, upsert: false });
+  if (error) throw error;
+  return path;
+}
+
+/**
+ * Uploads with retries. On a weak connection the upload can fail; we must NOT
+ * post a media-less check-in in that case — the user would lose their video.
+ */
+async function uploadCheckInPhoto(blob: Blob): Promise<string> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await uploadCheckInPhotoOnce(blob);
+    } catch (e) {
+      lastError = e;
+      console.error(`photo upload failed (attempt ${attempt + 1})`, e);
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
     }
-    return path;
-  } catch (e) {
-    console.error("photo upload error", e);
-    return null;
   }
+  throw lastError instanceof Error ? lastError : new Error("upload failed");
 }
 
 function NotesPage() {
