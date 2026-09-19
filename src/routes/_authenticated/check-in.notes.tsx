@@ -14,6 +14,9 @@ import { AllGroupsToggle } from "./check-in.index";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
+const MEDIA_UPLOAD_TIMEOUT_MS = 45_000;
+const POST_TIMEOUT_MS = 20_000;
+const CELEBRATION_TIMEOUT_MS = 8_000;
 
 
 const ACTIVITIES = [
@@ -74,22 +77,27 @@ async function uploadCheckInPhotoOnce(blob: Blob): Promise<string> {
   return path;
 }
 
-/**
- * Uploads with retries. On a weak connection the upload can fail; we must NOT
- * post a media-less check-in in that case — the user would lose their video.
- */
-async function uploadCheckInPhoto(blob: Blob): Promise<string> {
-  let lastError: unknown;
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    try {
-      return await uploadCheckInPhotoOnce(blob);
-    } catch (e) {
-      lastError = e;
-      console.error(`photo upload failed (attempt ${attempt + 1})`, e);
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
-    }
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
-  throw lastError instanceof Error ? lastError : new Error("upload failed");
+}
+
+/** Never post a media-less check-in when a weak connection stalls the upload. */
+async function uploadCheckInPhoto(blob: Blob): Promise<string> {
+  return withTimeout(
+    uploadCheckInPhotoOnce(blob),
+    MEDIA_UPLOAD_TIMEOUT_MS,
+    "Media upload timed out",
+  );
 }
 
 function NotesPage() {
@@ -153,7 +161,8 @@ function NotesPage() {
       if (photo) {
         try {
           photoUrl = await uploadCheckInPhoto(photo.blob);
-        } catch {
+        } catch (error) {
+          console.error("check-in media upload failed", error);
           // Never post without the media the user captured — keep it and let
           // them retry once they have a better connection.
           setSubmitError(
@@ -164,13 +173,17 @@ function NotesPage() {
           return;
         }
       }
-      const result = await mutation.mutateAsync({
-        note: note || undefined,
-        activity: activity || undefined,
-        photoUrl,
-        groupId: activeGroupId,
-        groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
-      });
+      const result = await withTimeout(
+        mutation.mutateAsync({
+          note: note || undefined,
+          activity: activity || undefined,
+          photoUrl,
+          groupId: activeGroupId,
+          groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
+        }),
+        POST_TIMEOUT_MS,
+        "Posting timed out. Please try again.",
+      );
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
 
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
@@ -189,11 +202,11 @@ function NotesPage() {
         return;
       }
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
-      const celebration = await getCelebrationFn({ data: { groupId: activeGroupId } }).catch(() => ({
-        streakCount: 1,
-        groupName: "Your group",
-        teammates: [],
-      }));
+      const celebration = await withTimeout(
+        getCelebrationFn({ data: { groupId: activeGroupId } }),
+        CELEBRATION_TIMEOUT_MS,
+        "Celebration loading timed out",
+      ).catch(() => ({ streakCount: 1, groupName: "Your group", teammates: [] }));
       setShareData({ photoUrl: photoForShare, celebration, newBadges });
     } catch (err) {
       console.error("check-in submit failed", err);
