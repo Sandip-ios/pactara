@@ -73,6 +73,14 @@ function VideoRecordScreen() {
   const [helpOpen, setHelpOpen] = useState(
     () => typeof localStorage === "undefined" || localStorage.getItem("howto-record-seen") !== "1",
   );
+  // One-time "new: timer" popover pointing at the timer control.
+  const [showTimerTip, setShowTimerTip] = useState(
+    () => typeof localStorage === "undefined" || localStorage.getItem("camera-timer-tip-seen") !== "1",
+  );
+  const dismissTimerTip = () => {
+    if (typeof localStorage !== "undefined") localStorage.setItem("camera-timer-tip-seen", "1");
+    setShowTimerTip(false);
+  };
   const [facingMode, setFacingMode] = useState<"environment" | "user">("user");
   const [switching, setSwitching] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -550,6 +558,7 @@ function VideoRecordScreen() {
 
   const cycleTimer = () => {
     if (recording || countdownRemaining !== null) return;
+    dismissTimerTip();
     setTimerDelay((current) => current === 0 ? 3 : current === 3 ? 5 : current === 5 ? 10 : 0);
   };
 
@@ -694,6 +703,35 @@ function VideoRecordScreen() {
           aria-label={countdownRemaining === null ? `${timerDelay} second timer` : `${countdownRemaining}`}
         >
           {countdownRemaining ?? timerDelay}
+        </div>
+      )}
+
+      {/* One-time popover pointing at the timer control */}
+      {showTimerTip && ready && !error && !recording && !helpOpen && countdownRemaining === null && (
+        <div
+          className="absolute z-50"
+          style={{ top: "calc(env(safe-area-inset-top) + 76px)", right: 16 }}
+        >
+          <div className="relative">
+            {/* Caret pointing up at the timer button (centered ~132px from the right edge) */}
+            <div className="absolute -top-[7px] right-[109px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-white" />
+            <button
+              type="button"
+              onClick={dismissTimerTip}
+              className="relative block max-w-[248px] rounded-2xl bg-white px-4 py-3 text-left shadow-xl active:opacity-90"
+              aria-label="Dismiss timer tip"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide" style={{ background: "#F3EEFF", color: PURPLE }}>
+                  New
+                </span>
+                <span className="text-[13px] font-bold text-[#111827] leading-tight">Time your videos</span>
+              </div>
+              <div className="mt-1 text-[12px] text-[#6B7280] leading-snug">
+                We just added a timer — tap it to count down 3, 5, or 10 seconds before recording starts.
+              </div>
+            </button>
+          </div>
         </div>
       )}
 
