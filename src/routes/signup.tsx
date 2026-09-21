@@ -433,11 +433,14 @@ function SignupFlow() {
       <TrialEndedPaywall
         firstName={firstName}
         mode="intro"
-        onDismiss={() =>
-          invitedGroupId
-            ? navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } })
-            : navigate({ to: "/home" })
-        }
+        onDismiss={() => {
+          clearSignupResume();
+          if (invitedGroupId) {
+            navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } });
+          } else {
+            navigate({ to: "/home" });
+          }
+        }}
       />
     );
   }
