@@ -192,10 +192,15 @@ function SignupFlow() {
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
+  // Someone who closed the app part-way through (after their account existed)
+  // comes back to the same screen rather than restarting or landing on Home.
+  const [resume] = useState(() => getSignupResume());
   // Reserved up-front so invite links point at the group's join screen even
   // though the group row is only created when signup finishes.
-  const [pendingGroupId] = useState(() =>
-    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined,
+  const [pendingGroupId] = useState(
+    () =>
+      resume?.groupId ??
+      (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined),
   );
 
   // Locked in at mount so the flow doesn't change shape mid-signup, and so the
@@ -209,6 +214,7 @@ function SignupFlow() {
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
+
 
   // Invited users join an existing group, so the summary screen must reflect
   // that group's real goal/duration rather than the creation-flow defaults.
