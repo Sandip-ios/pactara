@@ -253,7 +253,25 @@ function SignupFlow() {
 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
-  const [provisioned, setProvisioned] = useState(false);
+  const [provisioned, setProvisioned] = useState(Boolean(resume));
+
+  // Restore the saved position once, on mount.
+  useEffect(() => {
+    if (!resume) return;
+    const idx = STEPS.indexOf(resume.step as StepKey);
+    if (idx > 0) setStepIdx(idx);
+    if (resume.firstName) setFirstName((v) => v || resume.firstName!);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the saved position current for every screen that comes after the
+  // account has been created.
+  useEffect(() => {
+    if (!provisioned || !step) return;
+    if (step === "paywall") return;
+    saveSignupResume({ step, firstName, groupId: invitedGroupId ?? pendingGroupId });
+  }, [provisioned, step, firstName, invitedGroupId, pendingGroupId]);
+
 
   // Creates the account and the group up-front (right after the password step)
   // so invite links handed out on the next screen point at a live group.
