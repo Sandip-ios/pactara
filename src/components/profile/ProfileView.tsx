@@ -57,10 +57,15 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
     return localStorage.getItem("active-group-id");
   });
 
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ["member-profile", userId, selectedGroupId],
     queryFn: () => getMemberProfile({ data: { userId, groupId: selectedGroupId } }),
   });
+
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+  useEffect(() => {
+    setAvatarLoaded(false);
+  }, [data?.avatarUrl]);
 
   useEffect(() => {
     if (isOwn && data?.groupId && typeof localStorage !== "undefined") {
@@ -189,10 +194,21 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
                 onClick={isOwn ? openPicker : undefined}
                 aria-label={isOwn ? "Change photo" : firstName}
                 className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
-                style={{ background: data?.avatarColor || PURPLE }}
+                style={{
+                  background:
+                    isPending || (data?.avatarUrl && !avatarLoaded)
+                      ? "hsl(var(--muted))"
+                      : data?.avatarColor || PURPLE,
+                }}
               >
-                {data?.avatarUrl ? (
-                  <img src={data.avatarUrl} alt={firstName} className="h-full w-full object-cover" />
+                {isPending ? null : data?.avatarUrl ? (
+                  <img
+                    src={data.avatarUrl}
+                    alt={firstName}
+                    onLoad={() => setAvatarLoaded(true)}
+                    onError={() => setAvatarLoaded(true)}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   initial
                 )}
