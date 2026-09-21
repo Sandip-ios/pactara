@@ -201,6 +201,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
         firstName,
         avatarUrl,
         group: null,
+        joinedAt: null as string | null,
       };
     }
 
@@ -224,6 +225,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
       firstName,
       avatarUrl,
       group: group ?? null,
+      joinedAt: membership.joined_at,
     };
   });
 
