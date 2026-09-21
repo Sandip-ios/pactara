@@ -313,6 +313,18 @@ function SignupFlow() {
       if (!token) throw new Error("Couldn't start your session. Please try again.");
       await setMyName({ data: { name: fullName } });
 
+      // Save the device timezone immediately: without it the profile stays on
+      // UTC and the feed can mark a brand-new member's morning as "missed".
+      try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (tz) {
+          const { saveMyTimezone } = await import("@/lib/daily-posts.functions");
+          await saveMyTimezone({ data: { timezone: tz } });
+        }
+      } catch (err) {
+        console.error("Timezone save during signup failed", err);
+      }
+
       if (photoFile && session?.user) {
         try {
           const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase();
