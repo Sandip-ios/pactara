@@ -435,10 +435,14 @@ function SignupFlow() {
         mode="intro"
         onDismiss={() => {
           clearSignupResume();
-          if (invitedGroupId) {
-            navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } });
+          // Go straight to the personal goal screen for the group they just
+          // joined/created — routing through /home first made the home page
+          // flash before the gate redirected.
+          const goalGroupId = invitedGroupId ?? pendingGroupId;
+          if (goalGroupId) {
+            navigate({ to: "/goal/$groupId", params: { groupId: goalGroupId }, replace: true });
           } else {
-            navigate({ to: "/home" });
+            navigate({ to: "/home", replace: true });
           }
         }}
       />
