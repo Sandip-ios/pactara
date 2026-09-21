@@ -348,16 +348,8 @@ function HomePage() {
               className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 text-left shadow-xl active:opacity-90"
               aria-label="Dismiss tip"
             >
-              <div className="flex items-center gap-1.5">
-                <span
-                  className="rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide"
-                  style={{ background: "rgba(124, 93, 250, 0.22)", color: "#C9B8FF" }}
-                >
-                  Welcome
-                </span>
-                <span className="text-[13px] font-bold leading-tight text-white">
-                  New here?
-                </span>
+              <div className="text-[13px] font-bold leading-tight text-white">
+                New here?
               </div>
               <div className="mt-1 text-[12px] leading-snug text-white/65">
                 Tap “How Pactara works” for a quick tour — check-ins, streaks,
