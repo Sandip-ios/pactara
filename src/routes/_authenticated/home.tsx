@@ -204,6 +204,30 @@ function HomePage() {
     return () => clearTimeout(t);
   }, []);
 
+  // One-time "How Pactara works" popover pointing at the header button.
+  // Only new members (joined within the last 21 days) see it; long-time
+  // users get permanently marked as seen so it never appears for them.
+  const [showHowItWorksTip, setShowHowItWorksTip] = useState(false);
+  const dismissHowItWorksTip = () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("how-pactara-works-tip-seen", "1");
+    }
+    setShowHowItWorksTip(false);
+  };
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    if (localStorage.getItem("how-pactara-works-tip-seen") === "1") return;
+    if (!status) return;
+    const joinedAt = status.joinedAt ? new Date(status.joinedAt).getTime() : 0;
+    const isNewMember = joinedAt > Date.now() - 21 * 24 * 60 * 60 * 1000;
+    if (!isNewMember) {
+      localStorage.setItem("how-pactara-works-tip-seen", "1");
+      return;
+    }
+    const t = setTimeout(() => setShowHowItWorksTip(true), 900);
+    return () => clearTimeout(t);
+  }, [status]);
+
   const queryClient = useQueryClient();
   const postThoughtFn = useServerFn(postThought);
   const thoughtMutation = useMutation({
@@ -282,7 +306,10 @@ function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowOnboarding(true)}
+            onClick={() => {
+              dismissHowItWorksTip();
+              setShowOnboarding(true);
+            }}
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
             style={{ background: "#EDE6FE", color: PURPLE }}
           >
