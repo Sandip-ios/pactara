@@ -7,6 +7,7 @@ import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pen
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
 import { hasCheckedInToday } from "@/lib/groups.functions";
+import { getSignupResume } from "@/lib/signup-resume";
 
 
 export const Route = createFileRoute("/")({
@@ -37,6 +38,9 @@ export const Route = createFileRoute("/")({
     }
     const { data } = await supabase.auth.getUser();
     if (data.user) {
+      // Left signup part-way (e.g. on the invite screen) → pick up where they
+      // stopped instead of dropping them into the app.
+      if (getSignupResume()) throw redirect({ to: "/signup" });
       // Already checked in today → open Home; otherwise open the check-in flow.
       let checkedIn = false;
       try {

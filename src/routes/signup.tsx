@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+import { clearSignupResume, getSignupResume, saveSignupResume } from "@/lib/signup-resume";
 
 
 /**
@@ -191,10 +192,15 @@ function SignupFlow() {
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [invitedFriends, setInvitedFriends] = useState<string[]>([]);
+  // Someone who closed the app part-way through (after their account existed)
+  // comes back to the same screen rather than restarting or landing on Home.
+  const [resume] = useState(() => getSignupResume());
   // Reserved up-front so invite links point at the group's join screen even
   // though the group row is only created when signup finishes.
-  const [pendingGroupId] = useState(() =>
-    typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined,
+  const [pendingGroupId] = useState(
+    () =>
+      resume?.groupId ??
+      (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : undefined),
   );
 
   // Locked in at mount so the flow doesn't change shape mid-signup, and so the
@@ -208,6 +214,7 @@ function SignupFlow() {
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
+
 
   // Invited users join an existing group, so the summary screen must reflect
   // that group's real goal/duration rather than the creation-flow defaults.
@@ -246,7 +253,25 @@ function SignupFlow() {
 
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
-  const [provisioned, setProvisioned] = useState(false);
+  const [provisioned, setProvisioned] = useState(Boolean(resume));
+
+  // Restore the saved position once, on mount.
+  useEffect(() => {
+    if (!resume) return;
+    const idx = STEPS.indexOf(resume.step as StepKey);
+    if (idx > 0) setStepIdx(idx);
+    if (resume.firstName) setFirstName((v) => v || resume.firstName!);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the saved position current for every screen that comes after the
+  // account has been created.
+  useEffect(() => {
+    if (!provisioned || !step) return;
+    if (step === "paywall") return;
+    saveSignupResume({ step, firstName, groupId: invitedGroupId ?? pendingGroupId });
+  }, [provisioned, step, firstName, invitedGroupId, pendingGroupId]);
+
 
   // Creates the account and the group up-front (right after the password step)
   // so invite links handed out on the next screen point at a live group.
@@ -408,11 +433,14 @@ function SignupFlow() {
       <TrialEndedPaywall
         firstName={firstName}
         mode="intro"
-        onDismiss={() =>
-          invitedGroupId
-            ? navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } })
-            : navigate({ to: "/home" })
-        }
+        onDismiss={() => {
+          clearSignupResume();
+          if (invitedGroupId) {
+            navigate({ to: "/goal/$groupId", params: { groupId: invitedGroupId } });
+          } else {
+            navigate({ to: "/home" });
+          }
+        }}
       />
     );
   }
