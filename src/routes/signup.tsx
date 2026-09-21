@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import { getPendingInvite, clearPendingInvite } from "@/lib/pending-invite";
+import { clearSignupResume, getSignupResume, saveSignupResume } from "@/lib/signup-resume";
 
 
 /**
