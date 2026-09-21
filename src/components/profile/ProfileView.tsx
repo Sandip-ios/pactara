@@ -57,10 +57,15 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
     return localStorage.getItem("active-group-id");
   });
 
-  const { data } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: ["member-profile", userId, selectedGroupId],
     queryFn: () => getMemberProfile({ data: { userId, groupId: selectedGroupId } }),
   });
+
+  const [avatarLoaded, setAvatarLoaded] = useState(false);
+  useEffect(() => {
+    setAvatarLoaded(false);
+  }, [data?.avatarUrl]);
 
   useEffect(() => {
     if (isOwn && data?.groupId && typeof localStorage !== "undefined") {
