@@ -37,6 +37,9 @@ export const Route = createFileRoute("/")({
     }
     const { data } = await supabase.auth.getUser();
     if (data.user) {
+      // Left signup part-way (e.g. on the invite screen) → pick up where they
+      // stopped instead of dropping them into the app.
+      if (getSignupResume()) throw redirect({ to: "/signup" });
       // Already checked in today → open Home; otherwise open the check-in flow.
       let checkedIn = false;
       try {
