@@ -7,6 +7,7 @@ import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pen
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
 import { hasCheckedInToday } from "@/lib/groups.functions";
+import { getSignupResume } from "@/lib/signup-resume";
 
 
 export const Route = createFileRoute("/")({
