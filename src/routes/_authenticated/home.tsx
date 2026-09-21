@@ -352,7 +352,8 @@ function HomePage() {
                 New here?
               </div>
               <div className="mt-1 text-[12px] leading-snug text-white/65">
-                Tap for a quick tour.
+                Tap to see how Pactara works — and how to get the most out of
+                it.
               </div>
             </button>
           </div>
