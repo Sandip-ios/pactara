@@ -204,6 +204,30 @@ function HomePage() {
     return () => clearTimeout(t);
   }, []);
 
+  // One-time "How Pactara works" popover pointing at the header button.
+  // Only new members (joined within the last 21 days) see it; long-time
+  // users get permanently marked as seen so it never appears for them.
+  const [showHowItWorksTip, setShowHowItWorksTip] = useState(false);
+  const dismissHowItWorksTip = () => {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("how-pactara-works-tip-seen", "1");
+    }
+    setShowHowItWorksTip(false);
+  };
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return;
+    if (localStorage.getItem("how-pactara-works-tip-seen") === "1") return;
+    if (!status) return;
+    const joinedAt = status.joinedAt ? new Date(status.joinedAt).getTime() : 0;
+    const isNewMember = joinedAt > Date.now() - 21 * 24 * 60 * 60 * 1000;
+    if (!isNewMember) {
+      localStorage.setItem("how-pactara-works-tip-seen", "1");
+      return;
+    }
+    const t = setTimeout(() => setShowHowItWorksTip(true), 900);
+    return () => clearTimeout(t);
+  }, [status]);
+
   const queryClient = useQueryClient();
   const postThoughtFn = useServerFn(postThought);
   const thoughtMutation = useMutation({
@@ -282,7 +306,10 @@ function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setShowOnboarding(true)}
+            onClick={() => {
+              dismissHowItWorksTip();
+              setShowOnboarding(true);
+            }}
             className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
             style={{ background: "#EDE6FE", color: PURPLE }}
           >
@@ -305,6 +332,42 @@ function HomePage() {
         </div>
 
       </header>
+
+      {/* One-time popover pointing at the "How Pactara works" button */}
+      {showHowItWorksTip && (
+        <div
+          className="fixed inset-x-0 z-40 flex justify-end pr-4"
+          style={{ top: "calc(env(safe-area-inset-top) + 58px)" }}
+        >
+          <div className="relative">
+            {/* Caret pointing up at the header button */}
+            <div className="absolute -top-[7px] right-[145px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-white" />
+            <button
+              type="button"
+              onClick={dismissHowItWorksTip}
+              className="relative block max-w-[248px] rounded-2xl bg-white px-4 py-3 text-left shadow-xl active:opacity-90"
+              aria-label="Dismiss tip"
+            >
+              <div className="flex items-center gap-1.5">
+                <span
+                  className="rounded-full px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wide"
+                  style={{ background: "#F3EEFF", color: PURPLE }}
+                >
+                  Welcome
+                </span>
+                <span className="text-[13px] font-bold leading-tight text-[#111827]">
+                  New here?
+                </span>
+              </div>
+              <div className="mt-1 text-[12px] leading-snug text-[#6B7280]">
+                Tap “How Pactara works” for a quick tour — check-ins, streaks,
+                and how your group keeps you accountable.
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       <PullToRefresh
         onRefresh={() =>
           queryClient.invalidateQueries({
