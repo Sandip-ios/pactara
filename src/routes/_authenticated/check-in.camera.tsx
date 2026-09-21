@@ -385,6 +385,74 @@ function VideoRecordScreen() {
     setSwitching(false);
   };
 
+  // When iOS sends the app to the background it suspends (and often ends) the
+  // camera tracks. Coming back, the <video> stays paused and no frame event
+  // ever fires, so the loading spinner would hang forever. On resume we
+  // re-play the preview and, if the tracks are dead, acquire a fresh stream.
+  useEffect(() => {
+    let recovering = false;
+
+    const recover = async () => {
+      if (recovering || recording || switching || document.hidden) return;
+      recovering = true;
+      try {
+        const stream = streamRef.current;
+        if (stream && streamIsLive(stream)) {
+          const video = videoRef.current;
+          if (video) {
+            if (video.srcObject !== stream) video.srcObject = stream;
+            try {
+              await video.play();
+            } catch {
+              /* noop */
+            }
+            if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+              setFrameReady(true);
+              setReady(true);
+              recovering = false;
+              return;
+            }
+          }
+          // Give the existing stream a beat to produce a frame before we
+          // tear it down and ask for a new one.
+          await new Promise((r) => window.setTimeout(r, 900));
+          if (document.hidden || recording) {
+            recovering = false;
+            return;
+          }
+          if (videoRef.current && videoRef.current.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            setFrameReady(true);
+            setReady(true);
+            recovering = false;
+            return;
+          }
+        }
+        // Stream is gone or stalled — restart it.
+        stopStream();
+        setReady(false);
+        setFrameReady(false);
+        const fresh = await requestStream(facingMode);
+        if (fresh) attachStream(fresh);
+      } finally {
+        recovering = false;
+      }
+    };
+
+    const onVisible = () => {
+      if (!document.hidden) void recover();
+    };
+
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("pageshow", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("pageshow", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facingMode, recording, switching]);
+
   // Draws the live camera frames through a filtered canvas so the selected
   // look is permanently part of the saved video, not just the preview.
   const buildBakedStream = (src: MediaStream, css: string): { stream: MediaStream; cleanup: () => void } => {
