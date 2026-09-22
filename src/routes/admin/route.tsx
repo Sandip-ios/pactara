@@ -98,7 +98,7 @@ function AdminLayout() {
   return (
     <AdminContext.Provider value={{ range, compare, data: query.data }}>
       <div className="min-h-screen bg-background text-foreground">
-        <div className="mx-auto flex max-w-[1500px]">
+        <div className="flex w-full">
           <Sidebar />
           <div className="min-w-0 flex-1">
             <TopBar
@@ -110,7 +110,7 @@ function AdminLayout() {
               refreshing={query.isFetching}
               onRefresh={() => query.refetch()}
             />
-            <main className="px-5 pb-20 pt-6 lg:px-8">
+            <main className="mx-auto w-full max-w-[1240px] px-5 pb-20 pt-6 lg:px-8">
               <Outlet />
             </main>
           </div>
