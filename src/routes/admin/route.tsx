@@ -98,7 +98,7 @@ function AdminLayout() {
   return (
     <AdminContext.Provider value={{ range, compare, data: query.data }}>
       <div className="min-h-screen bg-background text-foreground">
-        <div className="mx-auto flex max-w-[1500px]">
+        <div className="flex w-full">
           <Sidebar />
           <div className="min-w-0 flex-1">
             <TopBar
