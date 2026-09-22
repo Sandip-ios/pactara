@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell, X } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
@@ -346,19 +346,22 @@ function HomePage() {
             <div className="relative">
               {/* Caret pointing up at the header button */}
               <div className="absolute -top-[7px] right-[145px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-[#1B1A21]" />
-              <button
-                type="button"
-                onClick={dismissHowItWorksTip}
-                className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 text-left shadow-xl active:opacity-90"
-                aria-label="Dismiss tip"
-              >
+              <div className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 pr-9 text-left shadow-xl">
+                <button
+                  type="button"
+                  onClick={dismissHowItWorksTip}
+                  aria-label="Dismiss"
+                  className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/10 text-white/70 active:opacity-70"
+                >
+                  <X size={13} strokeWidth={2.5} />
+                </button>
                 <div className="text-[13px] font-bold leading-tight text-white">
                   New here?
                 </div>
                 <div className="mt-1 text-[12px] leading-snug text-white/65">
                   Start here to get the most out of Pactara.
                 </div>
-              </button>
+              </div>
             </div>
           </div>,
           document.body,
