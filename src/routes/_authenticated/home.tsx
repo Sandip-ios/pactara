@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
@@ -333,31 +334,35 @@ function HomePage() {
 
       </header>
 
-      {/* One-time popover pointing at the "How Pactara works" button */}
-      {showHowItWorksTip && (
-        <div
-          className="fixed inset-x-0 z-40 flex justify-end pr-4"
-          style={{ top: "calc(env(safe-area-inset-top) + 58px)" }}
-        >
-          <div className="relative">
-            {/* Caret pointing up at the header button */}
-            <div className="absolute -top-[7px] right-[145px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-[#1B1A21]" />
-            <button
-              type="button"
-              onClick={dismissHowItWorksTip}
-              className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 text-left shadow-xl active:opacity-90"
-              aria-label="Dismiss tip"
-            >
-              <div className="text-[13px] font-bold leading-tight text-white">
-                New here?
-              </div>
-              <div className="mt-1 text-[12px] leading-snug text-white/65">
-                Start here to get the most out of Pactara.
-              </div>
-            </button>
-          </div>
-        </div>
-      )}
+      {/* One-time popover pointing at the "How Pactara works" button.
+          Portaled to document.body so it stays fixed on screen instead of
+          drifting with the page's scroll container on iOS. */}
+      {showHowItWorksTip &&
+        createPortal(
+          <div
+            className="fixed inset-x-0 z-40 flex justify-end pr-4"
+            style={{ top: "calc(env(safe-area-inset-top) + 58px)" }}
+          >
+            <div className="relative">
+              {/* Caret pointing up at the header button */}
+              <div className="absolute -top-[7px] right-[145px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-[#1B1A21]" />
+              <button
+                type="button"
+                onClick={dismissHowItWorksTip}
+                className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 text-left shadow-xl active:opacity-90"
+                aria-label="Dismiss tip"
+              >
+                <div className="text-[13px] font-bold leading-tight text-white">
+                  New here?
+                </div>
+                <div className="mt-1 text-[12px] leading-snug text-white/65">
+                  Start here to get the most out of Pactara.
+                </div>
+              </button>
+            </div>
+          </div>,
+          document.body,
+        )}
 
       <PullToRefresh
         onRefresh={() =>
