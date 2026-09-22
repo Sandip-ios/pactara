@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_events: {
+        Row: {
+          app_version: string | null
+          event: string
+          id: string
+          occurred_at: string
+          platform: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          event: string
+          id?: string
+          occurred_at?: string
+          platform?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          event?: string
+          id?: string
+          occurred_at?: string
+          platform?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      app_store_daily: {
+        Row: {
+          fetched_at: string
+          report_date: string
+          units: number
+          updates: number
+        }
+        Insert: {
+          fetched_at?: string
+          report_date: string
+          units?: number
+          updates?: number
+        }
+        Update: {
+          fetched_at?: string
+          report_date?: string
+          units?: number
+          updates?: number
+        }
+        Relationships: []
+      }
       check_ins: {
         Row: {
           activity: string | null
