@@ -2,6 +2,8 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "@tanstack/react-router";
 import posthog from "posthog-js";
 import { supabase } from "@/integrations/supabase/client";
+import { recordAppOpen } from "@/lib/admin/analytics.functions";
+import { isNative } from "@/lib/native";
 
 
 const POSTHOG_KEY = "phc_tzge9caFkSUQFm2wmShenqMqLWKoytNvzfkjdJsdjeLw";
@@ -40,12 +42,42 @@ export function PostHogProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
+  // Records app opens for the founder dashboard. One open per 30 minutes of
+  // foreground activity, so a quick tab switch doesn't inflate the number.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const KEY = "last-app-open-recorded";
+    const platform = isNative() ? "native" : "web";
+
+    const track = async () => {
+      const last = Number(localStorage.getItem(KEY) || 0);
+      if (Date.now() - last < 30 * 60 * 1000) return;
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) return;
+      localStorage.setItem(KEY, String(Date.now()));
+      try {
+        await recordAppOpen({ data: { platform } });
+      } catch {
+        // analytics must never break the app
+      }
+    };
+
+    void track();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void track();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, []);
+
   useEffect(() => {
     const unsub = router.subscribe("onResolved", () => {
       if (initialized) posthog.capture("$pageview");
     });
     return () => unsub();
   }, [router]);
+
+
 
   return <>{children}</>;
 }

@@ -1,8 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { useAdmin } from "@/lib/admin/context";
-import { BarList, CohortTable, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
-import { cn } from "@/lib/utils";
+import {
+  BarList,
+  CohortTable,
+  EmptyNote,
+  InsightCallout,
+  PageHeader,
+  Panel,
+  StatTile,
+} from "@/components/admin/kit";
 
 export const Route = createFileRoute("/admin/retention")({
   head: () => ({
@@ -14,99 +20,91 @@ export const Route = createFileRoute("/admin/retention")({
   component: RetentionPage,
 });
 
+const COLUMNS = ["D1", "D3", "D7", "D14", "D30"];
+
 function RetentionPage() {
   const { data } = useAdmin();
-  const [mode, setMode] = useState<"engagement" | "core">("engagement");
-  const rows = mode === "engagement" ? data.cohorts : data.coreCohorts;
-
-  const p0 = data.retentionByPartners[0].d30;
-  const p3 = data.retentionByPartners[3].d30;
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Retention"
-        subtitle="Returning is not enough — retention here means doing something accountable."
-      />
+      <PageHeader title="Retention" subtitle="Who comes back, and for how long." />
 
-      <div className="inline-flex rounded-full bg-muted p-1">
-        {(
-          [
-            ["engagement", "Engagement retention"],
-            ["core", "Core retention"],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setMode(id)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-semibold transition",
-              mode === id
-                ? "bg-pactara-purple text-pactara-purple-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <p className="-mt-4 text-sm text-muted-foreground">
-        {mode === "engagement"
-          ? "Engagement retention: the user returned and did at least one accountability action — commitment, check-in, nudge, comment or reaction."
-          : "Core retention: the user completed at least one commitment or check-in."}
-      </p>
-
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        {[
-          ["D1", 0.54],
-          ["D3", 0.43],
-          ["D7", 0.34],
-          ["D14", 0.26],
-          ["D30", 0.19],
-          ["Weekly", 0.38],
-        ].map(([label, v]) => {
-          const value = mode === "engagement" ? (v as number) : (v as number) * 0.72;
-          return (
-            <StatTile key={label as string} label={`${label} retention`} value={`${Math.round(value * 100)}%`} />
-          );
-        })}
-      </div>
-
-      <Panel title="Cohort retention" description="Rows are signup weeks; darker means stronger retention.">
-        <CohortTable rows={rows} columns={["D1", "D3", "D7", "D14", "D30"]} />
+      <Panel title="Coming back" description="Two definitions, side by side.">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] text-sm">
+            <thead>
+              <tr className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <th className="py-2 text-left">Day</th>
+                <th className="py-2 text-left">Opened the app</th>
+                <th className="py-2 text-left">Actually checked in</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.retentionSummary.map((r) => (
+                <tr key={r.label} className="border-t border-border/50">
+                  <td className="py-2.5 font-semibold">{r.label}</td>
+                  <td className="py-2.5">{Math.round(r.engagement * 100)}%</td>
+                  <td className="py-2.5 font-bold text-pactara-purple">{Math.round(r.core * 100)}%</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-4 text-sm text-muted-foreground">
+          The second column is the honest one. It only counts people who completed a proof check-in.
+        </p>
       </Panel>
 
-      <Panel
-        title="Retention by group activity"
-        description="The most important comparison in Pactara: does the social layer change behaviour?"
-      >
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <p className="mb-3 text-sm font-semibold">D30 retention by number of active partners</p>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel title="Retention by signup week" description="Any activity in the app.">
+          {data.cohorts.length ? (
+            <CohortTable rows={data.cohorts} columns={COLUMNS} />
+          ) : (
+            <EmptyNote>Not enough signup history yet.</EmptyNote>
+          )}
+        </Panel>
+        <Panel title="Check-in retention by signup week" description="Proof check-ins only.">
+          {data.coreCohorts.length ? (
+            <CohortTable rows={data.coreCohorts} columns={COLUMNS} />
+          ) : (
+            <EmptyNote>Not enough signup history yet.</EmptyNote>
+          )}
+        </Panel>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Panel title="Does having partners help?" description="Retention split by how many people are in the group.">
+          {data.retentionByPartners.length ? (
             <BarList
-              items={data.retentionByPartners.map((p) => ({
-                label: p.label,
-                value: p.d30,
-                note: `${p.users} users`,
+              items={data.retentionByPartners.map((r) => ({
+                label: r.label,
+                value: r.d30,
+                note: `${r.users} people · D7 ${Math.round(r.d7 * 100)}%`,
               }))}
             />
+          ) : (
+            <EmptyNote>Not enough people to split this yet.</EmptyNote>
+          )}
+        </Panel>
+
+        <Panel title="How long people stay">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <StatTile label="Average active days" value={`${data.lifetime.avgActiveDays}`} />
+            <StatTile label="Median active days" value={`${data.lifetime.medianActiveDays}`} />
           </div>
-          <div className="space-y-4">
-            <InsightCallout tone="good" title="Insight">
-              Users with 3+ active accountability partners retain {Math.round((p3 / p0) * 10) / 10}x better at D30
-              than users without an active partner. This is observational — group-joiners may differ from
-              non-joiners — but the size of the gap makes getting a second active member the highest-leverage
-              onboarding goal.
-            </InsightCallout>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <StatTile label="By group size" value="4–6 members retain best" sub="2-person groups fail on absence" />
-              <StatTile label="By commitments/week" value="5+ → 2.7x D30" />
-              <StatTile label="By nudges received" value="1+ nudge → +14 pts D7" />
-              <StatTile label="By group-complete days" value="3+ → 2.1x D30" />
-            </div>
-          </div>
-        </div>
-      </Panel>
+          <p className="mt-5 mb-2 text-sm font-semibold">Groups still going</p>
+          {data.lifetime.groupSurvival.length ? (
+            <BarList items={data.lifetime.groupSurvival} />
+          ) : (
+            <EmptyNote>No groups old enough to measure.</EmptyNote>
+          )}
+        </Panel>
+      </div>
+
+      <InsightCallout title="How to read this">
+        A strong first week with a weak fourth week means the first challenge ends badly. A weak first week means
+        people never understood what to do.
+      </InsightCallout>
     </div>
   );
 }

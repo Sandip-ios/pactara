@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import { useAdmin } from "@/lib/admin/context";
-import { BarList, FunnelView, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
-import { cn } from "@/lib/utils";
+import {
+  BarList,
+  EmptyNote,
+  FunnelView,
+  InsightCallout,
+  PageHeader,
+  Panel,
+  StatTile,
+} from "@/components/admin/kit";
+import { pct } from "@/lib/admin/analytics-data";
 
 export const Route = createFileRoute("/admin/funnel")({
   head: () => ({
@@ -14,97 +21,110 @@ export const Route = createFileRoute("/admin/funnel")({
   component: FunnelPage,
 });
 
-const SEGMENTS = [
-  "All new users",
-  "Organic",
-  "Paid acquisition",
-  "Invite / referral",
-  "Creator campaign",
-  "App Store",
-  "iOS 18",
-  "United States",
-  "Group size 3+",
-];
-
 function FunnelPage() {
   const { data } = useAdmin();
-  const [segment, setSegment] = useState(SEGMENTS[0]);
+  const stages = data.funnel;
 
-  // Biggest leak
-  let leak = { from: data.funnel[0], to: data.funnel[1], pct: 0, lost: 0 };
-  for (let i = 1; i < data.funnel.length; i++) {
-    const lost = data.funnel[i - 1].users - data.funnel[i].users;
-    const pct = lost / data.funnel[i - 1].users;
-    if (pct > leak.pct) leak = { from: data.funnel[i - 1], to: data.funnel[i], pct, lost };
+  let leak: { from: string; to: string; pct: number; lost: number } | null = null;
+  for (let i = 1; i < stages.length; i++) {
+    const lost = stages[i - 1].users - stages[i].users;
+    const p = pct(lost, stages[i - 1].users);
+    if (!leak || p > leak.pct) leak = { from: stages[i - 1].label, to: stages[i].label, pct: p, lost };
   }
 
-  const acct = data.funnel[1].users;
-  const group = data.funnel[2].users;
-  const commit = data.funnel[4].users;
-  const checkin = data.funnel[5].users;
+  const byId = Object.fromEntries(stages.map((s) => [s.id, s.users]));
+  const acct = byId.account ?? 0;
 
   return (
     <div className="space-y-8">
-      <PageHeader title="Launch funnel" subtitle="Where people are lost between install and paying." />
-
-      <div className="flex flex-wrap gap-2">
-        {SEGMENTS.map((s) => (
-          <button
-            key={s}
-            onClick={() => setSegment(s)}
-            className={cn(
-              "rounded-full border px-3 py-1.5 text-sm font-semibold transition",
-              segment === s
-                ? "border-pactara-purple bg-pactara-purple text-pactara-purple-foreground"
-                : "border-border/60 text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {s}
-          </button>
-        ))}
-      </div>
+      <PageHeader
+        title="Onboarding funnel"
+        subtitle="How far people get between downloading Pactara and checking in for real."
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title={`Funnel — ${segment}`}>
-          <FunnelView stages={data.funnel} />
+        <Panel title="Every step" description="Counts are people who signed up in the selected period.">
+          <FunnelView stages={stages} />
         </Panel>
 
         <div className="space-y-6">
-          <Panel title="Biggest funnel leak">
-            <InsightCallout tone="bad" title="Largest point of friction">
-              {leak.from.label} → {leak.to.label}: {leak.lost.toLocaleString()} users lost,{" "}
-              {Math.round(leak.pct * 100)}% drop-off.
-            </InsightCallout>
-            <p className="mt-4 text-sm font-semibold">Possible things to investigate</p>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              <li>· Onboarding clarity — is it obvious a group is required?</li>
-              <li>· Group creation friction (naming, duration, frequency steps)</li>
-              <li>· Invite flow: share sheet, deferred deep link, App Store handoff</li>
-              <li>· Whether solo users are given a path to an existing active group</li>
-            </ul>
+          <Panel title="Biggest drop-off">
+            {leak && leak.lost > 0 ? (
+              <>
+                <InsightCallout tone="bad" title="Largest point of friction">
+                  {leak.from} → {leak.to}: {leak.lost.toLocaleString()} people lost,{" "}
+                  {Math.round(leak.pct * 100)}% drop-off.
+                </InsightCallout>
+                <p className="mt-4 text-sm font-semibold">Worth investigating</p>
+                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+                  <li>· Is it obvious a group is required?</li>
+                  <li>· Friction in group setup (name, duration)</li>
+                  <li>· Invite flow: share sheet, deep link, App Store handoff</li>
+                  <li>· Whether solo people get a path into an existing group</li>
+                </ul>
+              </>
+            ) : (
+              <EmptyNote>Not enough signups in this period to spot a drop-off.</EmptyNote>
+            )}
           </Panel>
 
           <Panel title="Activation">
             <div className="grid gap-3 sm:grid-cols-2">
-              <StatTile label="Signup → Group" value={`${Math.round((group / acct) * 100)}%`} />
-              <StatTile label="Group → Commitment" value={`${Math.round((commit / group) * 100)}%`} />
-              <StatTile label="Commitment → Check-in" value={`${Math.round((checkin / commit) * 100)}%`} />
+              <StatTile
+                label="Account → group"
+                value={`${Math.round(pct(byId.group ?? 0, acct) * 100)}%`}
+              />
+              <StatTile
+                label="Group → goal set"
+                value={`${Math.round(pct(byId.goal ?? 0, byId.group ?? 0) * 100)}%`}
+              />
+              <StatTile
+                label="Goal → pact signed"
+                value={`${Math.round(pct(byId.pact ?? 0, byId.goal ?? 0) * 100)}%`}
+              />
               <StatTile
                 label="Overall activation"
-                value={`${Math.round((checkin / acct) * 100)}%`}
+                value={`${Math.round(pct(byId.checkin ?? 0, acct) * 100)}%`}
                 sub="account → first proof check-in"
               />
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              Median time from signup to first successful check-in:{" "}
-              <span className="font-bold text-foreground">14 hours</span>
-            </p>
-            <div className="mt-4">
-              <BarList items={data.timeToActivation.map((d) => ({ label: d.label, value: d.value }))} />
+            <div className="mt-5">
+              <p className="mb-2 text-sm font-semibold">Time from signup to first check-in</p>
+              {data.timeToActivation.length ? (
+                <BarList items={data.timeToActivation} format="number" />
+              ) : (
+                <EmptyNote>No activated signups in this period.</EmptyNote>
+              )}
             </div>
           </Panel>
         </div>
       </div>
+
+      <Panel title="Downloads and signups" description="Where the top of the funnel comes from.">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatTile
+            label="App Store downloads"
+            value={data.acquisition.hasAppStore ? data.acquisition.downloadsTotal.toLocaleString() : "Not connected"}
+          />
+          <StatTile label="New accounts" value={data.acquisition.signupsTotal.toLocaleString()} />
+          <StatTile
+            label="Download → account"
+            value={
+              data.acquisition.downloadToSignup === null
+                ? "—"
+                : `${Math.round(data.acquisition.downloadToSignup * 100)}%`
+            }
+          />
+        </div>
+        {!data.acquisition.hasAppStore && (
+          <div className="mt-4">
+            <InsightCallout title="Download numbers">
+              Download counts need an App Store Connect connection. Everything else on this page already uses
+              real data.
+            </InsightCallout>
+          </div>
+        )}
+      </Panel>
     </div>
   );
 }
