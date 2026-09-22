@@ -224,13 +224,14 @@ export function StatTile({
 }
 
 export function FunnelView({ stages }: { stages: FunnelStage[] }) {
-  const top = stages[0].users;
+  if (!stages.length) return <EmptyNote>No data for this period yet.</EmptyNote>;
+  const top = Math.max(stages[0].users, 1);
   return (
     <div className="space-y-1">
       {stages.map((stage, i) => {
         const prev = i === 0 ? null : stages[i - 1];
         const dropCount = prev ? prev.users - stage.users : 0;
-        const dropPct = prev ? dropCount / prev.users : 0;
+        const dropPct = prev && prev.users > 0 ? dropCount / prev.users : 0;
         const severe = dropPct >= 0.2;
         return (
           <div key={stage.id}>
