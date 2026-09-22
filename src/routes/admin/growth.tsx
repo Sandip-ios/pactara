@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import { BarList, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { useAdmin } from "@/lib/admin/context";
+import { BarList, EmptyNote, InsightCallout, PageHeader, Panel, StatTile } from "@/components/admin/kit";
 
 export const Route = createFileRoute("/admin/growth")({
   head: () => ({
@@ -12,79 +13,77 @@ export const Route = createFileRoute("/admin/growth")({
   component: GrowthPage,
 });
 
-const LOOP = [
-  "User creates a group",
-  "Invites friends",
-  "Friends join",
-  "Friends create groups",
-  "Friends invite others",
-];
-
 function GrowthPage() {
+  const { data } = useAdmin();
+  const g = data.growth;
+
   return (
     <div className="space-y-8">
-      <PageHeader title="Growth" subtitle="Invites are Pactara's growth engine — and its weakest link." />
+      <PageHeader title="Growth" subtitle="How new people arrive and how many friends they bring." />
 
-      <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        <StatTile label="Invites sent" value="2,431" />
-        <StatTile label="Unique inviters" value="642" />
-        <StatTile
-          label="Invite acceptance rate"
-          value="48%"
-          sub="down from 63%"
-          def={{
-            what: "Share of valid invites that resulted in a joined group.",
-            formula: "Accepted invites ÷ valid invites sent",
-            why: "Every accepted invite adds an active partner, the strongest retention driver in the product.",
-            interpret: "A drop here caps growth and retention at the same time — investigate before spending on ads.",
-          }}
-        />
-        <StatTile label="Invites per active user" value="2.0" />
-        <StatTile label="New users from invitations" value="1,167" />
-        <StatTile label="Groups created through invitations" value="212" />
-        <StatTile label="Avg invitations per new group" value="3.4" />
-        <StatTile label="New activated users per activated user" value="0.72" sub="viral factor" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile label="New accounts" value={data.acquisition.signupsTotal.toLocaleString()} />
+        <StatTile label="Group creators" value={g.creators.toLocaleString()} />
+        <StatTile label="Partners per creator" value={g.avgPartnersPerCreator.toFixed(1)} />
+        <StatTile label="Joined someone else's group" value={g.joinedNotCreated.toLocaleString()} />
       </div>
 
+      <Panel title="New accounts over time">
+        {data.acquisition.signups.length ? (
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data.acquisition.signups} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
+                <defs>
+                  <linearGradient id="signupFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#7C3AED" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#7C3AED" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                <XAxis dataKey="date" tickLine={false} axisLine={false} fontSize={12} />
+                <YAxis tickLine={false} axisLine={false} fontSize={12} allowDecimals={false} />
+                <Tooltip />
+                <Area type="monotone" dataKey="value" name="New accounts" stroke="#7C3AED" strokeWidth={2} fill="url(#signupFill)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <EmptyNote>No signups in this period.</EmptyNote>
+        )}
+      </Panel>
+
       <div className="grid gap-6 lg:grid-cols-2">
-        <Panel title="Where invites break">
-          <BarList
-            items={[
-              { label: "Invite sent", value: 2431, note: "100%" },
-              { label: "Invite link opened", value: 1604, note: "66%" },
-              { label: "App installed / opened", value: 1289, note: "53%" },
-              { label: "Joined the group", value: 1167, note: "48%" },
-            ]}
-            format="number"
-          />
-          <InsightCallout tone="bad" title="Biggest growth leak">
-            34% of invites are never opened, and another 13% stall between opening the link and joining. The
-            App Store handoff and the invited-user onboarding are the two places to look first.
-          </InsightCallout>
+        <Panel title="Invite journey" description="From creating a group to having real partners in it.">
+          {g.inviteFunnel.length ? (
+            <BarList items={g.inviteFunnel} />
+          ) : (
+            <EmptyNote>No groups created in this period.</EmptyNote>
+          )}
         </Panel>
 
-        <Panel title="Viral loop">
-          <ol className="space-y-2">
-            {LOOP.map((step, i) => (
-              <li key={step} className="flex items-center gap-3">
-                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-pactara-purple text-xs font-black text-pactara-purple-foreground">
-                  {i + 1}
-                </span>
-                <span className="flex-1 rounded-2xl bg-pactara-purple-soft/60 px-4 py-2.5 text-sm font-semibold">
-                  {step}
-                </span>
-                {i < LOOP.length - 1 && <ArrowRight className="size-4 text-muted-foreground" />}
-              </li>
-            ))}
-          </ol>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <StatTile label="Invites per activated user" value="3.8" />
-            <StatTile label="Activated users generated" value="0.72 each" />
+        <Panel title="How often people open Pactara">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <StatTile
+              label="Opens per active person / day"
+              value={data.engagement.hasOpenData ? data.engagement.opensPerActiveUser.toFixed(1) : "—"}
+            />
+            <StatTile label="Stickiness" value={`${Math.round(data.engagement.stickiness * 100)}%`} sub="daily ÷ monthly" />
           </div>
-          <p className="mt-3 text-sm text-muted-foreground">
-            A viral factor below 1.0 means invites slow your acquisition cost but do not grow the app on their
-            own. Lifting acceptance from 48% back to 63% would push this to roughly 0.95.
-          </p>
+          {data.engagement.hasOpenData ? (
+            <div className="mt-5">
+              <p className="mb-2 text-sm font-semibold">Busiest hours</p>
+              <BarList
+                items={data.engagement.hourly.map((h) => ({ label: h.hour, value: h.opens }))}
+                format="number"
+              />
+            </div>
+          ) : (
+            <div className="mt-5">
+              <InsightCallout title="Just started counting">
+                Open tracking begins from today, so this fills in over the next few days.
+              </InsightCallout>
+            </div>
+          )}
         </Panel>
       </div>
     </div>
