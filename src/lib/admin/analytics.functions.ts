@@ -921,16 +921,12 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
 
 /** Records an app open. Fire-and-forget from the client. */
 export const recordAppOpen = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: { platform?: string }) => input)
-  .handler(async ({ data }) => {
-    const { requireSupabaseAuthSession } = await import("./session.server");
-    const userId = await requireSupabaseAuthSession();
-    if (!userId) return { ok: false };
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    await (supabaseAdmin as unknown as {
-      from: (t: string) => { insert: (v: Record<string, unknown>) => Promise<unknown> };
-    })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await supabase
       .from("app_events")
-      .insert({ user_id: userId, event: "app_open", platform: data.platform ?? "web" });
+      .insert({ user_id: userId, event: "app_open", platform: data.platform ?? "web" } as never);
     return { ok: true };
   });
