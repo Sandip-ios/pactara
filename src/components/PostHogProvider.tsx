@@ -2,6 +2,8 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "@tanstack/react-router";
 import posthog from "posthog-js";
 import { supabase } from "@/integrations/supabase/client";
+import { recordAppOpen } from "@/lib/admin/analytics.functions";
+import { isNative } from "@/lib/native";
 
 
 const POSTHOG_KEY = "phc_tzge9caFkSUQFm2wmShenqMqLWKoytNvzfkjdJsdjeLw";
