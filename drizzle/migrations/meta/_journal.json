@@ -106,6 +106,13 @@
       "when": 1789769578720,
       "tag": "0014_add_member_personal_goal",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1790111324141,
+      "tag": "0015_founder_analytics_tables_and_rls_hardening",
+      "breakpoints": true
     }
   ]
 }

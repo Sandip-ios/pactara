@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   Filter,
@@ -11,11 +12,12 @@ import {
   Database,
   Settings,
   ShieldCheck,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buildAnalytics, RANGE_LABELS, type RangeKey } from "@/lib/admin/analytics-data";
+import { RANGE_LABELS, type RangeKey } from "@/lib/admin/analytics-data";
+import { getFounderAnalytics } from "@/lib/admin/analytics.functions";
 import { AdminContext } from "@/lib/admin/context";
-import { DemoBadge } from "@/components/admin/kit";
 
 export const Route = createFileRoute("/admin")({
   ssr: false,
@@ -37,19 +39,64 @@ const NAV = [
   { to: "/admin/accountability", label: "Accountability", icon: HeartHandshake },
   { to: "/admin/growth", label: "Growth", icon: Sprout },
   { to: "/admin/revenue", label: "Revenue", icon: CreditCard },
-  { to: "/admin/events", label: "Events / Data", icon: Database },
+  { to: "/admin/events", label: "Data sources", icon: Database },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
 
-const RANGES: RangeKey[] = ["today", "7d", "30d", "90d", "custom"];
+const RANGES: RangeKey[] = ["today", "7d", "30d", "90d", "all"];
+const KEY_STORAGE = "pactara-founder-key";
+
+function useDashboardKey() {
+  const [key, setKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const fromUrl = new URLSearchParams(window.location.search).get("key");
+    if (fromUrl) {
+      localStorage.setItem(KEY_STORAGE, fromUrl);
+      setKey(fromUrl);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("key");
+      window.history.replaceState({}, "", url.toString());
+      return;
+    }
+    setKey(localStorage.getItem(KEY_STORAGE));
+  }, []);
+
+  return key;
+}
 
 function AdminLayout() {
   const [range, setRange] = useState<RangeKey>("30d");
   const [compare, setCompare] = useState(true);
-  const data = useMemo(() => buildAnalytics(range, compare), [range, compare]);
+  const key = useDashboardKey();
+
+  const query = useQuery({
+    queryKey: ["founder-analytics", range, key],
+    enabled: !!key,
+    staleTime: 60_000,
+    retry: false,
+    queryFn: () => getFounderAnalytics({ data: { key: key as string, range } }),
+  });
+
+  if (!key) return <LockedScreen />;
+
+  if (query.isError) {
+    return (
+      <LockedScreen
+        message="That link is not valid any more. Open the dashboard again with your private link."
+        onReset={() => {
+          localStorage.removeItem(KEY_STORAGE);
+          window.location.href = "/admin";
+        }}
+      />
+    );
+  }
+
+  if (!query.data) return <LoadingScreen />;
 
   return (
-    <AdminContext.Provider value={{ range, compare, data }}>
+    <AdminContext.Provider value={{ range, compare, data: query.data }}>
       <div className="min-h-screen bg-background text-foreground">
         <div className="mx-auto flex max-w-[1500px]">
           <Sidebar />
@@ -59,6 +106,9 @@ function AdminLayout() {
               setRange={setRange}
               compare={compare}
               setCompare={setCompare}
+              updatedAt={query.data.generatedAt}
+              refreshing={query.isFetching}
+              onRefresh={() => query.refetch()}
             />
             <main className="px-5 pb-20 pt-6 lg:px-8">
               <Outlet />
@@ -67,6 +117,39 @@ function AdminLayout() {
         </div>
       </div>
     </AdminContext.Provider>
+  );
+}
+
+function LoadingScreen() {
+  return (
+    <div className="grid min-h-screen place-items-center bg-background">
+      <div className="flex items-center gap-3 text-sm font-semibold text-muted-foreground">
+        <RefreshCw className="size-4 animate-spin" />
+        Crunching Pactara's numbers…
+      </div>
+    </div>
+  );
+}
+
+function LockedScreen({ message, onReset }: { message?: string; onReset?: () => void }) {
+  return (
+    <div className="grid min-h-screen place-items-center bg-background px-6">
+      <div className="max-w-sm text-center">
+        <ShieldCheck className="mx-auto size-8 text-pactara-purple" />
+        <h1 className="mt-4 text-xl font-black tracking-tight">Private dashboard</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {message ?? "This page is only reachable with your private link."}
+        </p>
+        {onReset && (
+          <button
+            onClick={onReset}
+            className="mt-5 rounded-full bg-pactara-purple px-4 py-2 text-sm font-bold text-pactara-purple-foreground"
+          >
+            Start over
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -108,11 +191,17 @@ function TopBar({
   setRange,
   compare,
   setCompare,
+  updatedAt,
+  refreshing,
+  onRefresh,
 }: {
   range: RangeKey;
   setRange: (r: RangeKey) => void;
   compare: boolean;
   setCompare: (c: boolean) => void;
+  updatedAt: string;
+  refreshing: boolean;
+  onRefresh: () => void;
 }) {
   return (
     <header className="sticky top-0 z-20 border-b border-border/60 bg-background/85 px-5 py-3 backdrop-blur lg:px-8">
@@ -143,8 +232,17 @@ function TopBar({
           />
           Compare to previous period
         </label>
-        <div className="ml-auto">
-          <DemoBadge />
+        <div className="ml-auto flex items-center gap-3">
+          <span className="hidden text-xs text-muted-foreground sm:inline">
+            Updated {new Date(updatedAt).toLocaleTimeString()}
+          </span>
+          <button
+            onClick={onRefresh}
+            className="flex items-center gap-1.5 rounded-full border border-border/60 px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
+          >
+            <RefreshCw className={cn("size-3.5", refreshing && "animate-spin")} />
+            Refresh
+          </button>
         </div>
       </div>
     </header>

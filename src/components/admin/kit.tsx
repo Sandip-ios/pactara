@@ -224,13 +224,14 @@ export function StatTile({
 }
 
 export function FunnelView({ stages }: { stages: FunnelStage[] }) {
-  const top = stages[0].users;
+  if (!stages.length) return <EmptyNote>No data for this period yet.</EmptyNote>;
+  const top = Math.max(stages[0].users, 1);
   return (
     <div className="space-y-1">
       {stages.map((stage, i) => {
         const prev = i === 0 ? null : stages[i - 1];
         const dropCount = prev ? prev.users - stage.users : 0;
-        const dropPct = prev ? dropCount / prev.users : 0;
+        const dropPct = prev && prev.users > 0 ? dropCount / prev.users : 0;
         const severe = dropPct >= 0.2;
         return (
           <div key={stage.id}>
@@ -369,10 +370,16 @@ export function BarList({
   );
 }
 
-export function DemoBadge() {
+export function EmptyNote({ children }: { children: ReactNode }) {
   return (
-    <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-800 ring-1 ring-inset ring-amber-200">
-      Demo data
+    <p className="rounded-2xl bg-muted/60 px-4 py-6 text-center text-sm text-muted-foreground">{children}</p>
+  );
+}
+
+export function LiveBadge() {
+  return (
+    <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-800 ring-1 ring-inset ring-emerald-200">
+      Live data
     </span>
   );
 }
