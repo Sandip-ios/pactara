@@ -223,6 +223,67 @@ export function StatTile({
   );
 }
 
+export function FunnelStepChart({ stages }: { stages: FunnelStage[] }) {
+  if (stages.length < 2) return <EmptyNote>Not enough steps to compare yet.</EmptyNote>;
+  const steps = stages.slice(1).map((stage, i) => {
+    const prev = stages[i];
+    const entered = prev.users;
+    const kept = Math.min(stage.users, entered);
+    const conversion = entered > 0 ? kept / entered : 0;
+    return {
+      id: stage.id,
+      from: prev.label,
+      to: stage.label,
+      entered,
+      kept,
+      lost: Math.max(0, entered - stage.users),
+      conversion,
+    };
+  });
+  const worst = steps.reduce((a, b) => (b.conversion < a.conversion ? b : a), steps[0]);
+
+  return (
+    <div className="space-y-4">
+      {steps.map((s) => {
+        const isWorst = s.id === worst.id && s.lost > 0;
+        const width = Math.max(2, Math.round(s.conversion * 100));
+        return (
+          <div key={s.id}>
+            <div className="flex items-baseline justify-between gap-3">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {s.from} <span className="text-muted-foreground">→</span> {s.to}
+              </p>
+              <p
+                className={cn(
+                  "shrink-0 text-sm font-black tabular-nums",
+                  isWorst ? "text-rose-600" : "text-foreground",
+                )}
+              >
+                {Math.round(s.conversion * 100)}%
+              </p>
+            </div>
+            <div className="mt-1.5 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className={cn(
+                  "h-full rounded-full",
+                  isWorst
+                    ? "bg-rose-500"
+                    : "bg-linear-to-r from-pactara-purple to-pactara-purple-deep",
+                )}
+                style={{ width: `${width}%` }}
+              />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {s.kept.toLocaleString()} of {s.entered.toLocaleString()} continued
+              {s.lost > 0 && ` · ${s.lost.toLocaleString()} lost here`}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function FunnelView({ stages }: { stages: FunnelStage[] }) {
   if (!stages.length) return <EmptyNote>No data for this period yet.</EmptyNote>;
   const top = Math.max(stages[0].users, 1);
