@@ -44,9 +44,18 @@ function FunnelPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <Panel title="Every step" description="Counts are people who signed up in the selected period.">
-          <FunnelView stages={stages} />
-        </Panel>
+        <div className="space-y-6">
+          <Panel
+            title="Step-by-step conversion"
+            description="How many people who reached a step went on to the next one. The weakest step is highlighted."
+          >
+            <FunnelStepChart stages={stages} />
+          </Panel>
+
+          <Panel title="Every step" description="Counts are people who signed up in the selected period.">
+            <FunnelView stages={stages} />
+          </Panel>
+        </div>
 
         <div className="space-y-6">
           <Panel title="Biggest drop-off">
