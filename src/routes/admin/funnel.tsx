@@ -130,8 +130,14 @@ function FunnelPage() {
         </div>
       </div>
 
-      <Panel title="Post-onboarding activation" description="Durable milestones after signup, shown separately from onboarding screens.">
-        <FunnelView stages={data.activationFunnel} />
+      <Panel
+        title="Post-onboarding milestones"
+        description="Independent all-time outcomes from existing records. These are not treated as consecutive signup steps."
+      >
+        <BarList
+          items={data.activationFunnel.map((stage) => ({ label: stage.label, value: stage.users }))}
+          format="number"
+        />
       </Panel>
 
       <Panel title="Downloads and signups" description="Where the top of the funnel comes from.">
