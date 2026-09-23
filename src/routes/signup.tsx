@@ -380,7 +380,9 @@ function SignupFlow() {
       }
       const journey = getOnboardingJourney(onboardingPath);
       if (journey) {
-        await recordAuthenticatedStep({ data: { ...journey, step: "account_created" } });
+        await recordAuthenticatedStep({ data: { ...journey, step: "account_created" } }).catch(
+          () => undefined,
+        );
       }
       setProvisioned(true);
       setFinishing(false);

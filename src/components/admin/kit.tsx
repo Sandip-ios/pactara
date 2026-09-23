@@ -291,7 +291,7 @@ export function FunnelView({ stages }: { stages: FunnelStage[] }) {
     <div className="space-y-1">
       {stages.map((stage, i) => {
         const prev = i === 0 ? null : stages[i - 1];
-        const dropCount = prev ? prev.users - stage.users : 0;
+        const dropCount = prev ? Math.max(0, prev.users - stage.users) : 0;
         const dropPct = prev && prev.users > 0 ? dropCount / prev.users : 0;
         const severe = dropPct >= 0.2;
         return (
