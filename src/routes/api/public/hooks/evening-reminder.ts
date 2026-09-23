@@ -116,7 +116,56 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           console.warn("[evening-reminder] pact nudge failed", err);
         }
 
-        return Response.json({ ok: true, due: due.length, sent, pactNudged });
+        // Solo-group reminder: owners still alone in their group get up to two
+        // nudges (1 day and 3 days after creating it), at 5pm their local time.
+        let soloNudged = 0;
+        try {
+          const { data: groups } = await supabaseAdmin
+            .from("groups")
+            .select("id, name, owner_id, created_at, solo_nudge_count")
+            .lt("solo_nudge_count", 2)
+            .lt("created_at", new Date(now.getTime() - 24 * 3600 * 1000).toISOString())
+            .gt("created_at", new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString())
+            .limit(500);
+          const candidates = (groups ?? []).filter((g) => {
+            const ageDays = (now.getTime() - new Date(g.created_at).getTime()) / 86400000;
+            return g.solo_nudge_count === 0 ? ageDays >= 1 : ageDays >= 3;
+          });
+          if (candidates.length) {
+            const { data: members } = await supabaseAdmin
+              .from("group_members")
+              .select("group_id")
+              .in("group_id", candidates.map((g) => g.id));
+            const counts = new Map<string, number>();
+            for (const m of members ?? []) counts.set(m.group_id, (counts.get(m.group_id) ?? 0) + 1);
+            const solo = candidates.filter((g) => (counts.get(g.id) ?? 0) <= 1);
+            const { data: ownerProfiles } = await supabaseAdmin
+              .from("profiles")
+              .select("id, timezone")
+              .in("id", solo.map((g) => g.owner_id));
+            const ownerTz = new Map((ownerProfiles ?? []).map((p) => [p.id, p.timezone || "UTC"]));
+            for (const g of solo) {
+              if (localHourFor(ownerTz.get(g.owner_id) ?? "UTC", now) !== 17) continue;
+              const first = g.solo_nudge_count === 0;
+              await pushToUsers([g.owner_id], {
+                title: first ? "Pactara works better together" : "Still flying solo?",
+                body: first
+                  ? `Invite a friend to ${g.name} so someone's counting on you.`
+                  : `Share your invite link or QR code — one friend is all ${g.name} needs.`,
+                url: `/groups/${g.id}`,
+              });
+              await supabaseAdmin
+                .from("groups")
+                .update({ solo_nudge_count: g.solo_nudge_count + 1, solo_nudged_at: now.toISOString() })
+                .eq("id", g.id);
+              soloNudged++;
+            }
+          }
+        } catch (err) {
+          console.warn("[evening-reminder] solo nudge failed", err);
+        }
+
+        return Response.json({ ok: true, due: due.length, sent, pactNudged, soloNudged });
       },
     },
   },
