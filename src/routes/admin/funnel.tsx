@@ -3,6 +3,7 @@ import { useAdmin } from "@/lib/admin/context";
 import {
   BarList,
   EmptyNote,
+  FunnelStepChart,
   FunnelView,
   InsightCallout,
   PageHeader,
