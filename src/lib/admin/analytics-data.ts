@@ -90,7 +90,12 @@ export type Analytics = {
   northStar: { value: number; wau: number; share: number; change: number; spark: number[] };
 
   metrics: Metric[];
-  funnel: FunnelStage[];
+  onboarding: {
+    trackingStartedAt: string | null;
+    creator: FunnelStage[];
+    invitee: FunnelStage[];
+  };
+  activationFunnel: FunnelStage[];
 
   acquisition: {
     hasAppStore: boolean;

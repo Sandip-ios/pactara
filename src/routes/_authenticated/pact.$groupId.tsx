@@ -6,6 +6,8 @@ import { Check, ChevronRight, Users, CalendarDays } from "lucide-react";
 import { getPact, signPact, DEFAULT_PACT_LINES } from "@/lib/pact.functions";
 import { hapticLight, hapticMedium } from "@/lib/native";
 import ConfettiBurst from "@/components/ConfettiBurst";
+import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
+import { clearOnboardingJourney, readOnboardingJourney } from "@/lib/onboarding-analytics";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
@@ -44,6 +46,7 @@ function PactPage() {
   const queryClient = useQueryClient();
   const fetchPact = useServerFn(getPact);
   const sign = useServerFn(signPact);
+  const recordOnboardingStep = useServerFn(recordAuthenticatedOnboardingStep);
 
   const { data, isLoading } = useQuery({
     queryKey: ["pact", groupId],
@@ -54,6 +57,12 @@ function PactPage() {
   const [signing, setSigning] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const journey = readOnboardingJourney();
+    if (!journey) return;
+    void recordOnboardingStep({ data: { ...journey, step: "pact" } }).catch(() => undefined);
+  }, [recordOnboardingStep]);
 
   useEffect(() => {
     if (data?.hasSigned) setSigned(true);
@@ -72,6 +81,11 @@ function PactPage() {
     setError(null);
     try {
       await sign({ data: { groupId } });
+      const journey = readOnboardingJourney();
+      if (journey) {
+        await recordOnboardingStep({ data: { ...journey, step: "pact" } }).catch(() => undefined);
+        clearOnboardingJourney();
+      }
       void hapticMedium();
       setSigned(true);
       await queryClient.invalidateQueries({ queryKey: ["pact", groupId] });

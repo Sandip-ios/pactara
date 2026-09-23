@@ -113,6 +113,13 @@
       "when": 1790111324141,
       "tag": "0015_founder_analytics_tables_and_rls_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1790128489821,
+      "tag": "0016_add_onboarding_step_events",
+      "breakpoints": true
     }
   ]
 }

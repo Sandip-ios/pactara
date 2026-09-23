@@ -102,6 +102,7 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
       subsRes,
       reactionsRes,
       commentsRes,
+      onboardingRes,
     ] = await Promise.all([
       db.from("profiles").select("id, created_at"),
       db.from("group_members").select("user_id, group_id, joined_at, personal_goal, pact_signed_at, pact_nudged_at"),
@@ -116,6 +117,7 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
       db.from("subscriptions").select("user_id, is_active, period_type, created_at, expires_at, last_event_type"),
       db.from("post_reactions").select("user_id, created_at"),
       db.from("post_comments").select("user_id, created_at"),
+      db.from("onboarding_step_events").select("journey_id, user_id, path, step, occurred_at"),
     ]);
 
     const profiles = profilesRes.data ?? [];
@@ -129,6 +131,7 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
     const subs = subsRes.data ?? [];
     const reactions = reactionsRes.data ?? [];
     const comments = commentsRes.data ?? [];
+    const onboardingEvents = onboardingRes.data ?? [];
 
     /* -------------------------------------------------- activity indexes */
 
@@ -642,17 +645,72 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
     const subscribers = new Set(subs.filter((s) => bool(s, "is_active")).map((s) => str(s, "user_id"))).size;
     const totalDownloads = storeRows.reduce((a, b) => a + num(b, "units"), 0);
 
-    const funnel = [
-      ...(totalDownloads > 0
-        ? [{ id: "download", label: "App downloaded", users: totalDownloads, note: "App Store" }]
-        : []),
+    const onboardingLabels: Record<string, string> = {
+      name: "Name",
+      email: "Email",
+      photo: "Profile photo",
+      consistency: "Consistency intro",
+      duration: "Challenge duration",
+      group_name: "Group name",
+      social_proof: "Member stories",
+      password: "Password",
+      account_created: "Account created",
+      invite_friends: "Invite friends",
+      notifications: "Notifications",
+      greeting: "You're in",
+      paywall: "Paywall",
+      personal_goal: "Personal goal",
+      pact: "Pact",
+    };
+    const creatorSteps = [
+      "name", "email", "photo", "consistency", "duration", "group_name", "social_proof",
+      "password", "account_created", "invite_friends", "notifications", "greeting", "paywall",
+      "personal_goal", "pact",
+    ];
+    const inviteeSteps = [
+      "name", "email", "photo", "consistency", "social_proof", "password", "account_created",
+      "notifications", "greeting", "paywall", "personal_goal", "pact",
+    ];
+    const trackedJourneys = new Set(
+      onboardingEvents
+        .filter((e) => str(e, "step") === "name" && inRange(dayKey(str(e, "occurred_at"))))
+        .map((e) => str(e, "journey_id")),
+    );
+    const buildOnboardingFunnel = (path: string, steps: string[]) => {
+      const pathJourneys = new Set(
+        onboardingEvents
+          .filter((e) => str(e, "path") === path && trackedJourneys.has(str(e, "journey_id")))
+          .map((e) => str(e, "journey_id")),
+      );
+      return steps.map((step) => ({
+        id: step,
+        label: onboardingLabels[step] ?? step,
+        users: new Set(
+          onboardingEvents
+            .filter(
+              (e) =>
+                str(e, "path") === path &&
+                str(e, "step") === step &&
+                pathJourneys.has(str(e, "journey_id")),
+            )
+            .map((e) => str(e, "journey_id")),
+        ).size,
+      }));
+    };
+    const trackedTimes = onboardingEvents.map((e) => str(e, "occurred_at")).filter(Boolean).sort();
+    const onboarding = {
+      trackingStartedAt: trackedTimes[0] ?? null,
+      creator: buildOnboardingFunnel("creator", creatorSteps),
+      invitee: buildOnboardingFunnel("invitee", inviteeSteps),
+    };
+    const activationFunnel = [
       { id: "account", label: "Account created", users: accountsAll },
-      { id: "group", label: "In a group", users: inAGroup },
-      { id: "partner", label: "Group has another member", users: withPartner },
+      { id: "group", label: "Joined a group", users: inAGroup },
       { id: "goal", label: "Personal goal set", users: goalUsers },
       { id: "pact", label: "Pact signed", users: signedUsers },
       { id: "checkin", label: "First check-in", users: firstCheckIn },
-      { id: "repeat", label: "Checked in twice", users: repeatCheckIn },
+      { id: "repeat", label: "Second check-in", users: repeatCheckIn },
+      { id: "partner", label: "Group gained another member", users: withPartner },
       { id: "paid", label: "Active subscriber", users: subscribers },
     ];
 
@@ -847,7 +905,8 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
         spark: northStarSpark,
       },
       metrics,
-      funnel,
+      onboarding,
+      activationFunnel,
       acquisition: {
         hasAppStore: totalDownloads > 0,
         downloads: downloadSeries,

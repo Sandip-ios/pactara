@@ -535,6 +535,33 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_step_events: {
+        Row: {
+          id: string
+          journey_id: string
+          occurred_at: string
+          path: string
+          step: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          journey_id: string
+          occurred_at?: string
+          path: string
+          step: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          journey_id?: string
+          occurred_at?: string
+          path?: string
+          step?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           body: string

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useAdmin } from "@/lib/admin/context";
 import {
   BarList,
@@ -24,7 +25,8 @@ export const Route = createFileRoute("/admin/funnel")({
 
 function FunnelPage() {
   const { data } = useAdmin();
-  const stages = data.funnel;
+  const [path, setPath] = useState<"creator" | "invitee">("creator");
+  const stages = data.onboarding[path];
 
   let leak: { from: string; to: string; pct: number; lost: number } | null = null;
   for (let i = 1; i < stages.length; i++) {
@@ -33,15 +35,36 @@ function FunnelPage() {
     if (!leak || p > leak.pct) leak = { from: stages[i - 1].label, to: stages[i].label, pct: p, lost };
   }
 
-  const byId = Object.fromEntries(stages.map((s) => [s.id, s.users]));
+  const byId = Object.fromEntries(data.activationFunnel.map((s) => [s.id, s.users]));
   const acct = byId.account ?? 0;
 
   return (
     <div className="space-y-8">
       <PageHeader
         title="Onboarding funnel"
-        subtitle="How far people get between downloading Pactara and checking in for real."
+        subtitle="Where people stop during Pactara’s actual signup flow."
       />
+
+      <div className="inline-flex rounded-xl bg-muted p-1" aria-label="Onboarding path">
+        {(["creator", "invitee"] as const).map((item) => (
+          <button
+            key={item}
+            type="button"
+            onClick={() => setPath(item)}
+            className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize transition ${
+              path === item ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+            }`}
+          >
+            {item === "creator" ? "Creates a group" : "Joins by invite"}
+          </button>
+        ))}
+      </div>
+
+      {!data.onboarding.trackingStartedAt && (
+        <InsightCallout title="Tracking starts now">
+          Exact screen-by-screen data will appear as new people begin signup after this update.
+        </InsightCallout>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
@@ -52,7 +75,7 @@ function FunnelPage() {
             <FunnelStepChart stages={stages} />
           </Panel>
 
-          <Panel title="Every step" description="Counts are people who signed up in the selected period.">
+          <Panel title="Every onboarding screen" description="Counts are unique signup journeys started in the selected period.">
             <FunnelView stages={stages} />
           </Panel>
         </div>
@@ -66,12 +89,9 @@ function FunnelPage() {
                   {Math.round(leak.pct * 100)}% drop-off.
                 </InsightCallout>
                 <p className="mt-4 text-sm font-semibold">Worth investigating</p>
-                <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-                  <li>· Is it obvious a group is required?</li>
-                  <li>· Friction in group setup (name, duration)</li>
-                  <li>· Invite flow: share sheet, deep link, App Store handoff</li>
-                  <li>· Whether solo people get a path into an existing group</li>
-                </ul>
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Review the screen’s copy, required action, and any permission prompt at this transition.
+                </p>
               </>
             ) : (
               <EmptyNote>Not enough signups in this period to spot a drop-off.</EmptyNote>
@@ -109,6 +129,16 @@ function FunnelPage() {
           </Panel>
         </div>
       </div>
+
+      <Panel
+        title="Post-onboarding milestones"
+        description="Independent all-time outcomes from existing records. These are not treated as consecutive signup steps."
+      >
+        <BarList
+          items={data.activationFunnel.map((stage) => ({ label: stage.label, value: stage.users }))}
+          format="number"
+        />
+      </Panel>
 
       <Panel title="Downloads and signups" description="Where the top of the funnel comes from.">
         <div className="grid gap-3 sm:grid-cols-3">

@@ -79,6 +79,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { setAvatarPath } from "@/lib/profile.functions";
 import {
+  recordAnonymousOnboardingStep,
+  recordAuthenticatedOnboardingStep,
+} from "@/lib/onboarding-analytics.functions";
+import { getOnboardingJourney, signupStepToAnalytics } from "@/lib/onboarding-analytics";
+import {
   clearContactsCache,
   getContactsAccess,
   loadContacts,
@@ -175,6 +180,8 @@ const INVITED_SKIP: StepKey[] = ["goal", "commitment", "group", "invite"];
 
 function SignupFlow() {
   const navigate = useNavigate();
+  const recordAnonymousStep = useServerFn(recordAnonymousOnboardingStep);
+  const recordAuthenticatedStep = useServerFn(recordAuthenticatedOnboardingStep);
   const [stepIdx, setStepIdx] = useState(0);
 
 
@@ -207,6 +214,7 @@ function SignupFlow() {
   // summary screen still knows the group after the pending invite is consumed.
   const [invitedGroupId] = useState<string | null>(() => getPendingInvite());
   const isInvited = Boolean(invitedGroupId);
+  const onboardingPath = isInvited ? "invitee" : "creator";
   const STEPS = useMemo(
     () => (isInvited ? ALL_STEPS.filter((s) => !INVITED_SKIP.includes(s)) : ALL_STEPS),
     [isInvited],
@@ -254,6 +262,14 @@ function SignupFlow() {
   const [finishing, setFinishing] = useState(false);
   const [finishError, setFinishError] = useState<string | null>(null);
   const [provisioned, setProvisioned] = useState(Boolean(resume));
+
+  useEffect(() => {
+    const analyticsStep = signupStepToAnalytics(step);
+    const journey = getOnboardingJourney(onboardingPath);
+    if (!analyticsStep || !journey) return;
+    const record = provisioned ? recordAuthenticatedStep : recordAnonymousStep;
+    void record({ data: { ...journey, step: analyticsStep } }).catch(() => undefined);
+  }, [onboardingPath, provisioned, recordAnonymousStep, recordAuthenticatedStep, step]);
 
   // Restore the saved position once, on mount.
   useEffect(() => {
@@ -361,6 +377,12 @@ function SignupFlow() {
 
           },
         });
+      }
+      const journey = getOnboardingJourney(onboardingPath);
+      if (journey) {
+        await recordAuthenticatedStep({ data: { ...journey, step: "account_created" } }).catch(
+          () => undefined,
+        );
       }
       setProvisioned(true);
       setFinishing(false);
