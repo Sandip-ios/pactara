@@ -6,6 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getMemberGoal, setMemberGoal, GOAL_MAX, GOAL_SUGGESTIONS } from "@/lib/member-goal.functions";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import targetImg from "@/assets/goal-target.png";
+import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
+import { readOnboardingJourney } from "@/lib/onboarding-analytics";
 
 export const Route = createFileRoute("/_authenticated/goal/$groupId")({
   component: GoalPage,
@@ -36,6 +38,7 @@ function GoalPage() {
 
   const fetchGoal = useServerFn(getMemberGoal);
   const saveGoal = useServerFn(setMemberGoal);
+  const recordOnboardingStep = useServerFn(recordAuthenticatedOnboardingStep);
   const { data } = useQuery({
     queryKey: ["member-goal", groupId],
     queryFn: () => fetchGoal({ data: { groupId } }),
@@ -44,6 +47,13 @@ function GoalPage() {
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isEdit) return;
+    const journey = readOnboardingJourney();
+    if (!journey) return;
+    void recordOnboardingStep({ data: { ...journey, step: "personal_goal" } }).catch(() => undefined);
+  }, [isEdit, recordOnboardingStep]);
 
   useEffect(() => {
     if (data?.goal) setText((t) => (t ? t : data.goal ?? ""));

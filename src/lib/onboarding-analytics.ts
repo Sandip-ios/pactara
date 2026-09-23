@@ -18,6 +18,19 @@ export function getOnboardingJourney(path?: OnboardingPath) {
   } satisfies { journeyId: string; path: OnboardingPath };
 }
 
+export function readOnboardingJourney() {
+  if (typeof localStorage === "undefined") return null;
+  const journeyId = localStorage.getItem(JOURNEY_KEY);
+  if (!journeyId) return null;
+  return getOnboardingJourney();
+}
+
+export function clearOnboardingJourney() {
+  if (typeof localStorage === "undefined") return;
+  localStorage.removeItem(JOURNEY_KEY);
+  localStorage.removeItem(PATH_KEY);
+}
+
 export function signupStepToAnalytics(step: string): OnboardingStep | null {
   const map: Record<string, OnboardingStep> = {
     name: "name",
