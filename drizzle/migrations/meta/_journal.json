@@ -120,6 +120,13 @@
       "when": 1790128489821,
       "tag": "0016_add_onboarding_step_events",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1790189798015,
+      "tag": "0017_add_solo_group_nudge",
+      "breakpoints": true
     }
   ]
 }

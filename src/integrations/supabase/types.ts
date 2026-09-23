@@ -410,6 +410,8 @@ export type Database = {
           name: string
           owner_id: string
           pact_promise: string | null
+          solo_nudge_count: number
+          solo_nudged_at: string | null
           start_date: string
         }
         Insert: {
@@ -423,6 +425,8 @@ export type Database = {
           name: string
           owner_id: string
           pact_promise?: string | null
+          solo_nudge_count?: number
+          solo_nudged_at?: string | null
           start_date?: string
         }
         Update: {
@@ -436,6 +440,8 @@ export type Database = {
           name?: string
           owner_id?: string
           pact_promise?: string | null
+          solo_nudge_count?: number
+          solo_nudged_at?: string | null
           start_date?: string
         }
         Relationships: []
