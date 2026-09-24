@@ -221,14 +221,18 @@ function PartnerPage() {
               style={{ animation: "partner-burst 1100ms ease-out 1 forwards" }}
             />
           )}
-          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-pactara-purple/10 px-3.5 py-1.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
-            <span className="h-1.5 w-1.5 rounded-full bg-pactara-purple animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-pactara-purple">Match found</span>
-          </div>
-          <h1 className="mt-3 text-[34px] font-bold tracking-tight leading-[1.05] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
-            You've got a partner
+          <h1
+            className="mt-4 text-[46px] font-bold leading-none tracking-tight bg-gradient-to-r from-pactara-purple to-pactara-purple-deep bg-clip-text text-transparent"
+            style={{ fontFamily: "'Caveat', cursive" }}
+          >
+            <span className="motion-safe:inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-500">
+              It's a Match!
+            </span>
           </h1>
-          <p className="mt-2 text-[16px]" style={{ color: MUTED }}>
+          <p className="mt-3 text-[17px] font-semibold motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700" style={{ animationDelay: "120ms", animationFillMode: "both" }}>
+            You've got a partner
+          </p>
+          <p className="mt-1 text-[15px] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700" style={{ color: MUTED, animationDelay: "200ms", animationFillMode: "both" }}>
             Meet the person showing up with you.
           </p>
 
