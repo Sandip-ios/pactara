@@ -36,7 +36,6 @@ export const Route = createFileRoute("/_authenticated/partner")({
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
-const PURPLE_SOFT = "#F3EEFF";
 const MUTED = "#6B6660";
 const LABEL = "#8A8580";
 
