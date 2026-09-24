@@ -597,7 +597,7 @@ function SignupFlow() {
         background: "#FFFFFF",
         fontFamily: "Inter, system-ui, sans-serif",
         color: TEXT,
-        paddingTop: 32,
+        paddingTop: "calc(env(safe-area-inset-top, 0px) + 24px)",
         // Pin to the visible area so iOS scrolling the page on input focus
         // can't push the header under the status bar or the button under the keyboard.
         top: stageViewport.height ? stageViewport.offsetTop : 0,
