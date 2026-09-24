@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, ChevronLeft, Handshake } from "lucide-react";
 import partnerHero from "@/assets/partner-hero.jpg";
-import { clearSignupResume, getSignupResume } from "@/lib/signup-resume";
+import { clearSignupResume, getSignupResume, saveSignupResume } from "@/lib/signup-resume";
 import {
   acceptPartnership,
   findPartner,
@@ -92,6 +92,7 @@ function PartnerPage() {
     // Fresh from signup: return to the last onboarding screen (notifications).
     const resume = getSignupResume();
     if (resume?.method === "partner") {
+      saveSignupResume({ ...resume, onPartner: false });
       navigate({ to: "/signup", replace: true });
       return;
     }
