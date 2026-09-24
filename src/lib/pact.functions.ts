@@ -186,9 +186,11 @@ export const getPendingPact = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("group_members")
-      .select("group_id, joined_at, pact_signed_at")
+      .select("group_id, joined_at, pact_signed_at, groups!inner(kind)")
       .eq("user_id", userId)
       .is("pact_signed_at", null)
+      // Personal spaces for people waiting on a partner don't need a pact.
+      .neq("groups.kind", "solo")
       .order("joined_at", { ascending: true })
       .limit(1);
     if (error) throw new Error(error.message);
