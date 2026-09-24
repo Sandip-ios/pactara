@@ -444,12 +444,7 @@ function PartnerPage() {
         <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-pactara-purple/5 blur-3xl" />
         <div className="pointer-events-none absolute -left-12 top-1/2 h-32 w-32 rounded-full bg-pactara-purple-deep/5 blur-2xl" />
         <div className="flex flex-1 flex-col justify-center">
-          <div className="inline-flex self-start rounded-full bg-pactara-purple/10 px-3 py-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-pactara-purple">
-              Partner matching
-            </span>
-          </div>
-          <h1 className="mt-4 max-w-[330px] text-[32px] font-bold leading-[1.1] tracking-tight text-foreground">
+          <h1 className="max-w-[330px] text-[32px] font-bold leading-[1.1] tracking-tight text-foreground">
             Find an <span className="text-pactara-purple">accountability</span> partner
           </h1>
           <p className="mt-3 max-w-[320px] text-[17px] font-medium leading-relaxed text-muted-foreground">
