@@ -17,7 +17,6 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as DebugPartnerRouteImport } from './routes/debug-partner'
 import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -102,11 +101,6 @@ const LoginRoute = LoginRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DebugPartnerRoute = DebugPartnerRouteImport.update({
-  id: '/debug-partner',
-  path: '/debug-partner',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BadgePreviewRoute = BadgePreviewRouteImport.update({
@@ -359,7 +353,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
-  '/debug-partner': typeof DebugPartnerRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -413,7 +406,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/badge-preview': typeof BadgePreviewRoute
-  '/debug-partner': typeof DebugPartnerRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -470,7 +462,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
-  '/debug-partner': typeof DebugPartnerRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -527,7 +518,6 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/badge-preview'
-    | '/debug-partner'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -581,7 +571,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/badge-preview'
-    | '/debug-partner'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -637,7 +626,6 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin'
     | '/badge-preview'
-    | '/debug-partner'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -694,7 +682,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BadgePreviewRoute: typeof BadgePreviewRoute
-  DebugPartnerRoute: typeof DebugPartnerRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaywallPreviewRoute: typeof PaywallPreviewRoute
@@ -772,13 +759,6 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/debug-partner': {
-      id: '/debug-partner'
-      path: '/debug-partner'
-      fullPath: '/debug-partner'
-      preLoaderRoute: typeof DebugPartnerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/badge-preview': {
@@ -1187,7 +1167,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   BadgePreviewRoute: BadgePreviewRoute,
-  DebugPartnerRoute: DebugPartnerRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaywallPreviewRoute: PaywallPreviewRoute,
