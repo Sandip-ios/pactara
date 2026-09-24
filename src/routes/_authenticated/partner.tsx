@@ -399,6 +399,7 @@ function PartnerPage() {
         </div>
 
         <Footer error={error}>
+          <PrimaryButton label="Keep using Pactara" onClick={goHome} />
           <TextButton
             label="Invite someone instead"
             onClick={() =>
