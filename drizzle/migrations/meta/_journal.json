@@ -134,6 +134,13 @@
       "when": 1790227240304,
       "tag": "0018_accountability_partners",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1790271090049,
+      "tag": "0019_merge_solo_into_partner",
+      "breakpoints": true
     }
   ]
 }

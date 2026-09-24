@@ -1045,6 +1045,10 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      merge_solo_into_partner: {
+        Args: { _solo: string; _target: string; _user: string }
+        Returns: undefined
+      }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
     }
     Enums: {
