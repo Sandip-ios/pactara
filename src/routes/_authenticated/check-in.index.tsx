@@ -165,20 +165,28 @@ function GroupSwitcher({
   groups,
   selectedGroupId,
   onSelect,
+  partnerState,
 }: {
   groups: SwitcherGroup[];
   selectedGroupId: string | null;
   onSelect: (id: string) => void;
+  partnerState?: PartnerState;
 }) {
   const [open, setOpen] = useState(false);
   const active = groups.find((g) => g.id === selectedGroupId) ?? groups[0];
   if (!active) return null;
+  const displayName = (g: SwitcherGroup) => {
+    const rel = relationForGroup(g.id, partnerState);
+    return { emoji: rel?.emoji ?? g.emoji, name: rel?.name ?? g.name };
+  };
+  const activeDisplay = displayName(active);
+  const sheetGroups = groups.map((g) => ({ ...g, ...displayName(g) }));
   if (groups.length < 2) {
     return (
       <div className="px-6 pt-safe-6">
         <div className="flex items-center gap-1.5 font-bold text-neutral-900">
-          {active.emoji && <span>{active.emoji}</span>}
-          <span className="truncate max-w-[220px]">{active.name}</span>
+          {activeDisplay.emoji && <span>{activeDisplay.emoji}</span>}
+          <span className="truncate max-w-[220px]">{activeDisplay.name}</span>
         </div>
       </div>
     );
@@ -190,14 +198,14 @@ function GroupSwitcher({
         onClick={() => setOpen(true)}
         className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
       >
-        {active.emoji && <span>{active.emoji}</span>}
-        <span className="truncate max-w-[200px]">{active.name}</span>
+        {activeDisplay.emoji && <span>{activeDisplay.emoji}</span>}
+        <span className="truncate max-w-[200px]">{activeDisplay.name}</span>
         <ChevronDown size={16} className="text-neutral-500" />
       </button>
       <GroupSwitcherSheet
         open={open}
         onClose={() => setOpen(false)}
-        groups={groups}
+        groups={sheetGroups}
         selectedGroupId={selectedGroupId}
         onSelect={onSelect}
       />
