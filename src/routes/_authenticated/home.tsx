@@ -24,6 +24,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
+import { getPartnerState } from "@/lib/partners.functions";
+import { useServerFn as usePartnerServerFn } from "@tanstack/react-start";
+import { useQuery as usePartnerQuery } from "@tanstack/react-query";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -112,6 +115,22 @@ function HomePage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const fetchPartnerState = usePartnerServerFn(getPartnerState);
+  const { data: partnerState } = usePartnerQuery({ queryKey: ["partner-state"], queryFn: () => fetchPartnerState(), staleTime: 30_000 });
+  // Home label reflects the accountability relationship, not the group's stored name.
+  const relationFor = (groupId: string | null | undefined) => {
+    const ps = partnerState;
+    if (!ps || !groupId) return null;
+    const p = ps.partnership;
+    const first = p?.partner.name.split(" ")[0];
+    if (p && (groupId === p.groupId || groupId === ps.soloGroupId)) {
+      return p.iAccepted && p.partnerAccepted && groupId === p.groupId
+        ? { kind: "partner" as const, emoji: "🔥", name: `You + ${first}` }
+        : { kind: "partner" as const, emoji: "🤝", name: `You + ${first}` };
+    }
+    if (groupId === ps.soloGroupId) return { kind: "solo" as const, emoji: "🎯", name: "My 90-Day Pact" };
+    return null;
+  };
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
@@ -405,6 +424,9 @@ function HomePage() {
           dayNumber = Math.min(duration, Math.max(1, diffDays + 1));
         }
         const hasMultiple = myGroups.length > 1;
+        const rel = relationFor(activeGroup?.id);
+        const label = rel?.name ?? activeGroup?.name;
+        const icon = rel?.emoji ?? activeGroup?.emoji;
         return (
           <div className="px-6 pt-4 pb-3 border-b border-neutral-200 flex items-center justify-between text-[15px]">
             {hasMultiple ? (
@@ -413,8 +435,8 @@ function HomePage() {
                   onClick={() => setSwitcherOpen(true)}
                   className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
                 >
-                  {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
-                  <span className="truncate max-w-[200px]">{activeGroup?.name ?? "Group"}</span>
+                  {icon && <span>{icon}</span>}
+                  <span className="truncate max-w-[200px]">{label ?? "Group"}</span>
                   <ChevronDown size={16} className="text-neutral-500" />
                 </button>
                 <GroupSwitcherSheet
@@ -427,8 +449,8 @@ function HomePage() {
               </>
             ) : (
               <div className="flex items-center gap-1.5 font-bold text-neutral-900">
-                {activeGroup?.emoji && <span>{activeGroup.emoji}</span>}
-                <span className="truncate max-w-[220px]">{activeGroup?.name ?? ""}</span>
+                {icon && <span>{icon}</span>}
+                <span className="truncate max-w-[220px]">{label ?? ""}</span>
               </div>
             )}
             <span className="text-neutral-400 text-[13px]">Day {dayNumber} of {duration}</span>
@@ -468,6 +490,14 @@ function HomePage() {
           <>
             <TodaySnapshot
               state={state}
+              ritualMessage={(() => {
+                const k = relationFor(selectedGroupId)?.kind;
+                return k === "solo"
+                  ? "Set your commitment for today."
+                  : k === "partner"
+                    ? "Set your commitment for today so your partner knows the plan."
+                    : undefined;
+              })()}
               week={week}
               streak={myStreak}
               longestStreak={myLongest}
@@ -618,9 +648,13 @@ function HomePage() {
               <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
                 <MessageSquare size={24} style={{ color: PURPLE }} />
               </div>
-              <div className="text-[16px] font-bold">Your feed is empty</div>
+              <div className="text-[16px] font-bold">
+                {relationFor(selectedGroupId)?.kind === "solo" ? "Your feed starts with you." : "Your feed is empty"}
+              </div>
               <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
-                Share what's on your mind or check in to start your streak.
+                {relationFor(selectedGroupId)?.kind === "solo"
+                  ? "Make today's commitment and check in while we find your accountability partner."
+                  : "Share what's on your mind or check in to start your streak."}
               </div>
             </div>
           );
