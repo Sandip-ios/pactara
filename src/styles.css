@@ -77,6 +77,8 @@
   --shadow-streak-card: var(--streak-card-shadow);
   --shadow-streak-day: var(--streak-day-shadow);
   --shadow-streak-cta: var(--streak-cta-shadow);
+  --shadow-partner-icon: var(--partner-icon-shadow);
+  --shadow-partner-cta: var(--partner-cta-shadow);
 }
 
 :root {
@@ -131,6 +133,8 @@
   --streak-card-shadow: 0 14px 40px oklch(0.38 0.07 285 / 7%);
   --streak-day-shadow: 0 6px 14px oklch(0.50 0.22 285 / 24%);
   --streak-cta-shadow: 0 14px 30px oklch(0.50 0.25 290 / 24%);
+  --partner-icon-shadow: 0 18px 40px -12px oklch(0.48 0.24 282 / 38%);
+  --partner-cta-shadow: 0 14px 28px -12px oklch(0.48 0.24 282 / 42%);
 }
 
 .dark {

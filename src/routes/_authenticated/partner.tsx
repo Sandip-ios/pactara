@@ -13,6 +13,7 @@ import {
 } from "@/lib/partners.functions";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/partner")({
   validateSearch: (s: Record<string, unknown>) => ({
@@ -266,15 +267,14 @@ function PartnerPage() {
   // Not searching yet.
   return (
     <Shell onBack={goHome}>
-      <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <span
-          className="h-20 w-20 rounded-3xl flex items-center justify-center"
-          style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
-        >
-          <Handshake size={34} color="white" />
+      <div className="flex flex-1 flex-col items-center justify-center px-4 pb-2 text-center">
+        <span className="flex h-24 w-24 items-center justify-center rounded-3xl bg-linear-to-br from-pactara-purple to-pactara-purple-deep text-pactara-purple-foreground shadow-partner-icon motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500">
+          <Handshake aria-hidden="true" size={42} strokeWidth={1.9} />
         </span>
-        <h1 className="mt-7 text-[34px] font-bold tracking-tight leading-[1.05]">Find an accountability partner</h1>
-        <p className="mt-3 text-[16px] leading-[1.45] max-w-[320px]" style={{ color: MUTED }}>
+        <h1 className="mt-10 max-w-[330px] text-[32px] font-bold leading-[1.1] text-foreground">
+          Find an accountability partner
+        </h1>
+        <p className="mt-4 max-w-[300px] text-[17px] font-medium leading-relaxed text-muted-foreground">
           We'll pair you with someone who's ready to show up too.
         </p>
       </div>
@@ -287,15 +287,19 @@ function PartnerPage() {
 
 function Shell({ children, onBack }: { children: React.ReactNode; onBack?: () => void }) {
   return (
-    <div
-      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-white"
-      style={{ fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A", paddingTop: "calc(env(safe-area-inset-top) + 16px)" }}
-    >
-      <div className="h-8 flex items-center">
+    <div className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-background pt-safe-4 text-foreground">
+      <div className="h-10 flex items-center">
         {onBack && (
-          <button onClick={onBack} aria-label="Back" className="-ml-1 p-1">
-            <ChevronLeft size={22} />
-          </button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            aria-label="Back"
+            className="-ml-1 h-10 w-10 rounded-full bg-muted/70 text-foreground active:scale-95"
+          >
+            <ChevronLeft size={22} strokeWidth={2.5} />
+          </Button>
         )}
       </div>
       {children}
@@ -318,14 +322,14 @@ function Footer({ children, error }: { children: React.ReactNode; error: string 
 
 function PrimaryButton({ label, onClick, disabled }: { label: string; onClick: () => void; disabled?: boolean }) {
   return (
-    <button
+    <Button
+      type="button"
       onClick={onClick}
       disabled={disabled}
-      className="w-full rounded-full py-4 text-white text-[16px] font-semibold transition-opacity disabled:opacity-60"
-      style={{ background: PURPLE, boxShadow: `0 10px 30px -12px ${PURPLE}` }}
+      className="h-14 w-full rounded-2xl bg-pactara-purple text-[16px] font-semibold text-pactara-purple-foreground shadow-partner-cta transition-[transform,background-color,opacity] hover:bg-pactara-purple-deep active:scale-[0.98] disabled:opacity-60"
     >
       {label}
-    </button>
+    </Button>
   );
 }
 
