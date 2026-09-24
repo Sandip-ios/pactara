@@ -39,7 +39,7 @@ export function PartnerBanner() {
       </span>
       <span className="flex-1 min-w-0">
         <span className="block text-[15px] font-bold text-foreground truncate">{title}</span>
-        <span className="block text-[13px] text-muted-foreground truncate">{body}</span>
+        <span className="block text-[13px] leading-snug text-muted-foreground line-clamp-2">{body}</span>
       </span>
       <ChevronRight size={18} className="text-muted-foreground" />
     </button>

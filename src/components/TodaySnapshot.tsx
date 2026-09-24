@@ -66,9 +66,10 @@ export function TodaySnapshot({
   groupId,
   groupSize,
   memberGoals = [],
-}: Props) {
+  ritualMessage,
+}: Props & { ritualMessage?: string }) {
   const navigate = useNavigate();
-  const copy = COPY[state];
+  const copy = state === "ritual" && ritualMessage ? { ...COPY[state], message: ritualMessage } : COPY[state];
 
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
