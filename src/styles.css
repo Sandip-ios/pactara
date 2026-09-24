@@ -292,3 +292,18 @@ body [class*="min-h-[100dvh]"] {
   35% { opacity: 0.85; }
   100% { opacity: 0; }
 }
+@keyframes partner-avatar-left {
+  0% { transform: translateX(-84px) rotate(-10deg) scale(0.7); opacity: 0; }
+  62% { transform: translateX(8px) rotate(2deg) scale(1.04); opacity: 1; }
+  100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
+}
+@keyframes partner-avatar-right {
+  0% { transform: translateX(84px) rotate(10deg) scale(0.7); opacity: 0; }
+  62% { transform: translateX(-8px) rotate(-2deg) scale(1.04); opacity: 1; }
+  100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
+}
+@keyframes partner-link-pop {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  65% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}

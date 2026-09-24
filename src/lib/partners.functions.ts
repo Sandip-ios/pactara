@@ -12,6 +12,7 @@ export type PartnerPerson = {
 export type PartnerState = {
   status: "none" | "waiting" | "pending" | "active";
   released: boolean;
+  me: PartnerPerson;
   myGoal: string | null;
   soloGroupId: string | null;
   partnership: null | {
@@ -55,14 +56,15 @@ export const getPartnerState = createServerFn({ method: "GET" })
     const srv = await import("./partners.server");
     await srv.expireStaleMatches();
 
-    const [{ data: queue }, current, myGoal] = await Promise.all([
+    const [{ data: queue }, current, me] = await Promise.all([
       supabaseAdmin.from("partner_queue").select("*").eq("user_id", userId).maybeSingle(),
       srv.currentPartnership(userId),
-      srv.latestGoal(userId),
+      person(userId),
     ]);
 
     const base = {
-      myGoal,
+      me,
+      myGoal: me.goal,
       soloGroupId: (queue?.solo_group_id as string | null) ?? null,
       released: ((queue?.released_count as number | undefined) ?? 0) > 0,
     };
