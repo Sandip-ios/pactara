@@ -84,6 +84,12 @@ function PartnerPage() {
   };
 
   const goHome = () => navigate({ to: "/home", replace: true });
+  // The intro screen is a pure decision point — back returns to wherever
+  // the user came from, falling back to Home when there's no history.
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) router.history.back();
+    else goHome();
+  };
   const soloGroupId = solo ?? data?.soloGroupId ?? null;
 
   const onFind = () =>
@@ -277,7 +283,7 @@ function PartnerPage() {
         />
         <div className="absolute inset-0 bg-linear-to-b from-pactara-purple/20 via-transparent to-background" />
         <button
-          onClick={goHome}
+          onClick={goBack}
           aria-label="Back"
           className="absolute left-5 top-12 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/80 text-pactara-purple-deep shadow-sm backdrop-blur-md active:scale-95"
         >
