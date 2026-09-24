@@ -210,6 +210,7 @@ function SignupFlow() {
   const recordAnonymousStep = useServerFn(recordAnonymousOnboardingStep);
   const recordAuthenticatedStep = useServerFn(recordAuthenticatedOnboardingStep);
   const [stepIdx, setStepIdx] = useState(0);
+  const keyboardInset = useKeyboardInset();
 
 
   const [firstName, setFirstName] = useState("");
