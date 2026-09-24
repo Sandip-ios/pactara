@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, Handshake } from "lucide-react";
+import { ArrowRight, ChevronLeft, Handshake } from "lucide-react";
+import partnerHero from "@/assets/partner-hero.jpg";
 import {
   acceptPartnership,
   findPartner,
