@@ -5,6 +5,8 @@ export type SignupResume = {
   firstName?: string;
   groupId?: string;
   method?: "people" | "partner";
+  // Sitting on the partner intro screen (signup finished, search not started).
+  onPartner?: boolean;
 };
 
 /**
