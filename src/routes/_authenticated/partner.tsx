@@ -222,7 +222,7 @@ function PartnerPage() {
             />
           )}
           <h1
-            className="mt-4 text-[46px] font-bold leading-none tracking-tight bg-gradient-to-r from-pactara-purple to-pactara-purple-deep bg-clip-text text-transparent"
+            className="mt-4 w-full whitespace-nowrap px-2 text-[clamp(34px,10.5vw,44px)] font-bold leading-[1.1] tracking-tight bg-gradient-to-r from-pactara-purple to-pactara-purple-deep bg-clip-text text-transparent"
             style={{ fontFamily: "'Caveat', cursive" }}
           >
             <span className="motion-safe:inline-block motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-50 motion-safe:duration-500">
@@ -665,7 +665,7 @@ function Avatar({ person, size, className = "" }: { person: PartnerPerson; size:
 function GoalCard({ label, goal, mine }: { label: string; goal: string | null; mine?: boolean }) {
   return (
     <div
-      className="rounded-2xl p-4"
+      className="flex h-full flex-col rounded-2xl p-4"
       style={{ background: mine ? "#FBF9FF" : "#F5F3F0", border: mine ? "1px solid #EADDFF" : "1px solid transparent" }}
     >
       <div className="text-[12px] font-bold tracking-[0.14em]" style={{ color: LABEL }}>
