@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronRight, Users, CalendarDays } from "lucide-react";
-import { getPact, signPact, DEFAULT_PACT_LINES } from "@/lib/pact.functions";
+import { getPact, signPact, DEFAULT_PACT_LINES, PARTNER_PACT_LINES } from "@/lib/pact.functions";
 import { hapticLight, hapticMedium } from "@/lib/native";
 import ConfettiBurst from "@/components/ConfettiBurst";
 import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
@@ -74,10 +74,12 @@ function PactPage() {
 
   const lines = useMemo(() => {
     const custom = data?.promise?.trim();
-    return custom ? [custom, ...DEFAULT_PACT_LINES] : DEFAULT_PACT_LINES;
-  }, [data?.promise]);
+    const standardLines = data?.isPartner ? PARTNER_PACT_LINES : DEFAULT_PACT_LINES;
+    return custom ? [custom, ...standardLines] : standardLines;
+  }, [data?.isPartner, data?.promise]);
 
   const me = data?.members.find((m) => m.isMe) ?? null;
+  const partner = data?.isPartner ? data.members.find((m) => !m.isMe) ?? null : null;
 
   const doSign = async () => {
     if (signing || signed) return;
@@ -136,8 +138,12 @@ function PactPage() {
         </h1>
         <p className="text-[15px] mt-2 opacity-90 leading-snug">
           {signed
-            ? "Your name is on it. Here's who else is in."
-            : "Make a promise to yourself and the people counting on you."}
+            ? data?.isPartner
+              ? `Your name is on it. Now it's ${partner?.name ?? "your partner"}'s turn.`
+              : "Your name is on it. Here's who else is in."
+            : data?.isPartner
+              ? "Make a promise to yourself and your accountability partner."
+              : "Make a promise to yourself and the people counting on you."}
         </p>
       </div>
 
@@ -173,7 +179,7 @@ function PactPage() {
             <Stat
               icon={<Users size={15} style={{ color: PURPLE }} />}
               value={data ? `${data.memberCount}` : "—"}
-              label={data && data.memberCount === 1 ? "member" : "members"}
+              label={data?.isPartner ? "partners" : data && data.memberCount === 1 ? "member" : "members"}
             />
           </div>
 
@@ -183,7 +189,9 @@ function PactPage() {
               <div className="text-[13px] text-neutral-500 leading-snug">
                 {data.memberCount === 1
                   ? "You're the first one in"
-                  : `${data.memberCount} people are making this pact together`}
+                  : data.isPartner
+                    ? `You and ${partner?.name ?? "your partner"} are making this pact together`
+                    : `${data.memberCount} people are making this pact together`}
               </div>
             </div>
           )}
@@ -257,7 +265,9 @@ function PactPage() {
             </div>
             {data && data.signedCount < data.memberCount && (
               <p className="text-[13px] text-neutral-500 mt-4 leading-snug">
-                We'll let you know as the rest of the group signs.
+                {data.isPartner
+                  ? `We'll let you know when ${partner?.name ?? "your partner"} signs.`
+                  : "We'll let you know as the rest of the group signs."}
               </p>
             )}
           </div>
@@ -281,7 +291,7 @@ function PactPage() {
             className="w-full h-14 rounded-2xl text-white text-[16px] font-bold flex items-center justify-center gap-2"
             style={{ background: PURPLE }}
           >
-            Enter the group <ChevronRight size={18} />
+            {data?.isPartner ? "Start the pact" : "Enter the group"} <ChevronRight size={18} />
           </button>
         ) : (
           <>
