@@ -23,5 +23,14 @@ export const getRouter = () => {
     defaultPreloadStaleTime: 30_000,
   });
 
+  // Remember the previous in-app screen so "back" can avoid auth pages.
+  if (typeof window !== "undefined") {
+    router.subscribe("onResolved", ({ fromLocation, toLocation }) => {
+      if (fromLocation && fromLocation.pathname !== toLocation.pathname) {
+        sessionStorage.setItem("pactara:prev-path", fromLocation.pathname);
+      }
+    });
+  }
+
   return router;
 };

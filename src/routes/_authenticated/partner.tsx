@@ -88,7 +88,10 @@ function PartnerPage() {
   // The intro screen is a pure decision point — back returns to wherever
   // the user came from, falling back to Home when there's no history.
   const goBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) router.history.back();
+    const prev = typeof window !== "undefined" ? sessionStorage.getItem("pactara:prev-path") : null;
+    const isAuthOrOnboarding =
+      !prev || /^\/(login|signin|sign-in|auth|signup|welcome|reset|forgot|onboarding)?(\/|$)/.test(prev);
+    if (!isAuthOrOnboarding && window.history.length > 1) router.history.back();
     else goHome();
   };
   const soloGroupId = solo ?? data?.soloGroupId ?? null;
