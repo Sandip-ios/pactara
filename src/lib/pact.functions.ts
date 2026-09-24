@@ -8,6 +8,13 @@ export const DEFAULT_PACT_LINES = [
   "I'll show up for the people counting on me.",
 ];
 
+export const PARTNER_PACT_LINES = [
+  "I'll tell my partner what I'm doing each day.",
+  "I'll capture proof while I'm doing it, not after.",
+  "If I slip, I'll be honest instead of going quiet.",
+  "I'll show up for my partner, and for myself.",
+];
+
 type PactMember = {
   id: string;
   name: string;
