@@ -76,6 +76,15 @@ function AuthLayout() {
 
   const showPactSplash = !onPactRoute && !pactChecked;
 
+  // New members see the intro offer once, after the pact / partner screens.
+  const [introPaywall, setIntroPaywall] = useState(false);
+  useEffect(() => {
+    if (onPactRoute || pathname === "/partner" || !pactChecked) return;
+    if (typeof localStorage !== "undefined" && localStorage.getItem("show-intro-paywall") === "1") {
+      setIntroPaywall(true);
+    }
+  }, [pathname, onPactRoute, pactChecked]);
+
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
     areBottomTabsHidden,
@@ -86,6 +95,7 @@ function AuthLayout() {
     pathname.startsWith("/check-in/") ||
     pathname.startsWith("/pact/") ||
     pathname.startsWith("/goal/") ||
+    pathname === "/partner" ||
     pathname === "/new-pactara" ||
     /^\/chat\/[^/]+/.test(pathname);
 
@@ -165,6 +175,16 @@ function AuthLayout() {
       <Outlet />
       {showPactSplash && <PactSplash />}
       {!hideTabs && !showPactSplash && <BottomTabs />}
+      {introPaywall && !(trialState?.expired) && (
+        <TrialEndedPaywall
+          firstName={trialState?.firstName ?? null}
+          mode="intro"
+          onDismiss={() => {
+            localStorage.removeItem("show-intro-paywall");
+            setIntroPaywall(false);
+          }}
+        />
+      )}
       {trialState && !trialState.loading && trialState.expired && (
         <TrialEndedPaywall firstName={trialState.firstName} daysActive={trialState.daysActive} />
       )}
