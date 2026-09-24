@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -42,6 +42,7 @@ const LABEL = "#8A8580";
 function PartnerPage() {
   useHideBottomTabs(true, false);
   const navigate = useNavigate();
+  const router = useRouter();
   const { solo } = Route.useSearch();
   const queryClient = useQueryClient();
   const fetchState = useServerFn(getPartnerState);
