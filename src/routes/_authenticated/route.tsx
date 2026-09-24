@@ -7,6 +7,7 @@ import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
 import { getPendingPact } from "@/lib/pact.functions";
 import { getPendingGoal } from "@/lib/member-goal.functions";
+import { getPartnerState } from "@/lib/partners.functions";
 import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
 import { isNative } from "@/lib/native";
 
@@ -25,6 +26,8 @@ export const Route = createFileRoute("/_authenticated")({
 // Once the pact check has resolved in this session we never show the splash
 // again — later navigations re-check silently in the background.
 let pactCheckResolved = false;
+// Checked once per app launch so users can still leave the match screen.
+let matchCheckDone = false;
 
 function PactSplash() {
   return (
@@ -61,6 +64,16 @@ function AuthLayout() {
         if (res?.groupId) {
           navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });
           return;
+        }
+        // App reopened with a match waiting for this user → show the match.
+        if (!matchCheckDone && pathname !== "/partner") {
+          matchCheckDone = true;
+          const ps = await getPartnerState();
+          if (cancelled) return;
+          if (ps?.status === "pending" && ps.partnership && !ps.partnership.iAccepted) {
+            navigate({ to: "/partner", search: { solo: undefined }, replace: true });
+            return;
+          }
         }
       } catch {
         /* ignore — never block the app on this check */
