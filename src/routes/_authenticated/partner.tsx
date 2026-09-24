@@ -403,7 +403,7 @@ function PartnerPage() {
             label="Invite someone instead"
             onClick={() =>
               soloGroupId
-                ? navigate({ to: "/groups/$groupId", params: { groupId: soloGroupId } })
+                ? navigate({ to: "/groups", search: { invite: soloGroupId } })
                 : navigate({ to: "/new-pactara" })
             }
           />
