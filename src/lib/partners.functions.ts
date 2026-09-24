@@ -86,10 +86,10 @@ export const getPartnerState = createServerFn({ method: "GET" })
               .from("group_members")
               .select("user_id")
               .eq("group_id", current.group_id as string)
-              .eq("user_id", partnerId)
-              .maybeSingle()
+              .in("user_id", [partnerId, userId])
+              .then((r) => ({ data: (r.data ?? []).length === 2 ? true : null }))
           : Promise.resolve({ data: null })
-        : Promise.resolve({ data: { user_id: partnerId } }),
+        : Promise.resolve({ data: true }),
     ]);
     if (!partnerProfile || !memberCheck.data) {
       await supabaseAdmin
@@ -98,7 +98,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
         .eq("id", current.id);
       await supabaseAdmin
         .from("partner_queue")
-        .update({ status: "ended", matched_at: null })
+        .update({ status: "removed", matched_at: null })
         .eq("user_id", userId);
       await srv.trackPartnerEvent(userId, "partner_relationship_ended", {
         partnership_id: current.id,
