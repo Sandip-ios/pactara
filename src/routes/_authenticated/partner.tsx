@@ -332,7 +332,22 @@ function PartnerPage() {
   );
 }
 
-function Shell({ children, onBack }: { children: React.ReactNode; onBack?: () => void }) {
+function Shell({
+  children,
+  onBack,
+  flush,
+}: {
+  children: React.ReactNode;
+  onBack?: () => void;
+  flush?: boolean;
+}) {
+  if (flush) {
+    return (
+      <div className="h-[100dvh] w-full flex flex-col overflow-hidden bg-background text-foreground">
+        {children}
+      </div>
+    );
+  }
   return (
     <div
       className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-background text-foreground"
