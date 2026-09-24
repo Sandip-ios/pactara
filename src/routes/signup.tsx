@@ -660,18 +660,7 @@ function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string
       <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
         What do you want Pactara to help you stay accountable to?
       </p>
-      <textarea
-        value={goal}
-        onChange={(e) => setGoal(e.target.value.slice(0, GOAL_MAX))}
-        rows={3}
-        placeholder="Work out 4 times a week"
-        className="mt-7 w-full rounded-2xl p-4 text-[16px] leading-snug outline-none resize-none"
-        style={{ background: INPUT_BG, border: `1.5px solid ${goal ? PURPLE : "transparent"}` }}
-      />
-      <div className="mt-1.5 text-right text-[12px]" style={{ color: TEXT_MUTED }}>
-        {goal.length}/{GOAL_MAX}
-      </div>
-      <div className="mt-2 flex flex-wrap gap-2">
+      <div className="mt-5 flex flex-wrap gap-2">
         {GOAL_SUGGESTIONS.map((s) => (
           <button
             key={s.label}
@@ -683,6 +672,17 @@ function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string
             {s.emoji} {s.label}
           </button>
         ))}
+      </div>
+      <textarea
+        value={goal}
+        onChange={(e) => setGoal(e.target.value.slice(0, GOAL_MAX))}
+        rows={3}
+        placeholder="Work out 4 times a week"
+        className="mt-7 w-full rounded-2xl p-4 text-[16px] leading-snug outline-none resize-none"
+        style={{ background: INPUT_BG, border: `1.5px solid ${goal ? PURPLE : "transparent"}` }}
+      />
+      <div className="mt-1.5 text-right text-[12px]" style={{ color: TEXT_MUTED }}>
+        {goal.length}/{GOAL_MAX}
       </div>
     </div>
   );
