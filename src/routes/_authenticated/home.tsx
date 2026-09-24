@@ -117,20 +117,8 @@ function HomePage() {
   const myGroups = groupsData?.groups ?? [];
   const fetchPartnerState = usePartnerServerFn(getPartnerState);
   const { data: partnerState } = usePartnerQuery({ queryKey: ["partner-state"], queryFn: () => fetchPartnerState(), staleTime: 30_000 });
-  // Home label reflects the accountability relationship, not the group's stored name.
-  const relationFor = (groupId: string | null | undefined) => {
-    const ps = partnerState;
-    if (!ps || !groupId) return null;
-    const p = ps.partnership;
-    const first = p?.partner.name.split(" ")[0];
-    if (p && (groupId === p.groupId || groupId === ps.soloGroupId)) {
-      return p.iAccepted && p.partnerAccepted && groupId === p.groupId
-        ? { kind: "partner" as const, emoji: "🔥", name: `You + ${first}` }
-        : { kind: "partner" as const, emoji: "🤝", name: `You + ${first}` };
-    }
-    if (groupId === ps.soloGroupId) return { kind: "solo" as const, emoji: "🎯", name: "My 90-Day Pact" };
-    return null;
-  };
+  // Label reflects the accountability relationship, not the group's stored name.
+  const relationFor = (groupId: string | null | undefined) => relationForGroup(groupId, partnerState);
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
