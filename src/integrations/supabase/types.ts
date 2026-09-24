@@ -21,6 +21,7 @@ export type Database = {
           id: string
           occurred_at: string
           platform: string
+          properties: Json | null
           user_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           platform?: string
+          properties?: Json | null
           user_id: string
         }
         Update: {
@@ -37,6 +39,7 @@ export type Database = {
           id?: string
           occurred_at?: string
           platform?: string
+          properties?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -407,6 +410,7 @@ export type Database = {
           frequency: string
           goal: string | null
           id: string
+          kind: string
           name: string
           owner_id: string
           pact_promise: string | null
@@ -422,6 +426,7 @@ export type Database = {
           frequency?: string
           goal?: string | null
           id?: string
+          kind?: string
           name: string
           owner_id: string
           pact_promise?: string | null
@@ -437,6 +442,7 @@ export type Database = {
           frequency?: string
           goal?: string | null
           id?: string
+          kind?: string
           name?: string
           owner_id?: string
           pact_promise?: string | null
@@ -567,6 +573,118 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      partner_queue: {
+        Row: {
+          entered_at: string
+          goal: string | null
+          id: string
+          matched_at: string | null
+          recent_activity_at: string
+          released_count: number
+          reliability_score_internal: number
+          solo_group_id: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          entered_at?: string
+          goal?: string | null
+          id?: string
+          matched_at?: string | null
+          recent_activity_at?: string
+          released_count?: number
+          reliability_score_internal?: number
+          solo_group_id?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          entered_at?: string
+          goal?: string | null
+          id?: string
+          matched_at?: string | null
+          recent_activity_at?: string
+          released_count?: number
+          reliability_score_internal?: number
+          solo_group_id?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_queue_solo_group_id_fkey"
+            columns: ["solo_group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partnerships: {
+        Row: {
+          created_at: string
+          duration_days: number
+          ended_at: string | null
+          ended_by: string | null
+          ended_reason: string | null
+          expires_at: string
+          group_id: string | null
+          id: string
+          matched_at: string
+          shared_streak: number
+          started_at: string | null
+          status: string
+          user_1_accepted_at: string | null
+          user_1_id: string
+          user_2_accepted_at: string | null
+          user_2_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_days?: number
+          ended_at?: string | null
+          ended_by?: string | null
+          ended_reason?: string | null
+          expires_at?: string
+          group_id?: string | null
+          id?: string
+          matched_at?: string
+          shared_streak?: number
+          started_at?: string | null
+          status?: string
+          user_1_accepted_at?: string | null
+          user_1_id: string
+          user_2_accepted_at?: string | null
+          user_2_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_days?: number
+          ended_at?: string | null
+          ended_by?: string | null
+          ended_reason?: string | null
+          expires_at?: string
+          group_id?: string | null
+          id?: string
+          matched_at?: string
+          shared_streak?: number
+          started_at?: string | null
+          status?: string
+          user_1_accepted_at?: string | null
+          user_1_id?: string
+          user_2_accepted_at?: string | null
+          user_2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partnerships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_comments: {
         Row: {
