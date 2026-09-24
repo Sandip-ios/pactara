@@ -81,6 +81,11 @@ function PactPage() {
     setError(null);
     try {
       await sign({ data: { groupId } });
+      if (data?.isPartner) {
+        void import("@/lib/partners.functions")
+          .then((m) => m.trackPartnerScreen({ data: { event: "partner_pact_completed" } }))
+          .catch(() => undefined);
+      }
       const journey = readOnboardingJourney();
       if (journey) {
         await recordOnboardingStep({ data: { ...journey, step: "pact" } }).catch(() => undefined);
