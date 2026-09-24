@@ -267,21 +267,67 @@ function PartnerPage() {
 
   // Not searching yet.
   return (
-    <Shell onBack={goHome}>
-      <div className="flex flex-1 flex-col items-center justify-center px-4 pb-2 text-center">
-        <span className="flex h-24 w-24 items-center justify-center rounded-3xl bg-linear-to-br from-pactara-purple to-pactara-purple-deep text-pactara-purple-foreground shadow-partner-icon motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500">
-          <Handshake aria-hidden="true" size={42} strokeWidth={1.9} />
-        </span>
-        <h1 className="mt-10 max-w-[330px] text-[32px] font-bold leading-[1.1] text-foreground">
-          Find an accountability partner
-        </h1>
-        <p className="mt-4 max-w-[300px] text-[17px] font-medium leading-relaxed text-muted-foreground">
-          We'll pair you with someone who's ready to show up too.
-        </p>
+    <Shell flush>
+      {/* Hero imagery */}
+      <div className="relative h-[52%] w-full shrink-0 overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
+        <img
+          src={partnerHero}
+          alt="Two workout partners walking together, fist bumping after a session"
+          className="h-full w-full object-cover object-top"
+        />
+        <div className="absolute inset-0 bg-linear-to-b from-pactara-purple/20 via-transparent to-background" />
+        <button
+          onClick={goHome}
+          aria-label="Back"
+          className="absolute left-5 top-12 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-white/50 bg-white/80 text-pactara-purple-deep shadow-sm backdrop-blur-md active:scale-95"
+        >
+          <ChevronLeft size={20} strokeWidth={2.5} />
+        </button>
+        <div className="absolute bottom-5 left-6 z-10 flex items-center gap-3 rounded-2xl border border-white/50 bg-white/90 px-4 py-2.5 shadow-xl backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
+          <div className="flex -space-x-2">
+            <div className="h-6 w-6 rounded-full bg-linear-to-br from-pactara-purple to-pactara-purple-deep ring-2 ring-white shadow-sm" />
+            <div className="h-6 w-6 rounded-full bg-pactara-purple-deep ring-2 ring-white shadow-sm" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-pactara-purple-deep">
+            90-day partnership
+          </span>
+        </div>
       </div>
-      <Footer error={error}>
-        <PrimaryButton label={busy ? "Finding your partner…" : "Find me a partner"} onClick={onFind} disabled={busy} />
-      </Footer>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-1 flex-col px-6 pb-8 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
+        <div className="pointer-events-none absolute -bottom-20 -right-20 h-64 w-64 rounded-full bg-pactara-purple/5 blur-3xl" />
+        <div className="pointer-events-none absolute -left-12 top-1/2 h-32 w-32 rounded-full bg-pactara-purple-deep/5 blur-2xl" />
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="inline-flex self-start rounded-full bg-pactara-purple/10 px-3 py-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-pactara-purple">
+              Partner matching
+            </span>
+          </div>
+          <h1 className="mt-4 max-w-[330px] text-[32px] font-bold leading-[1.1] tracking-tight text-foreground">
+            Find an <span className="text-pactara-purple">accountability</span> partner
+          </h1>
+          <p className="mt-3 max-w-[320px] text-[17px] font-medium leading-relaxed text-muted-foreground">
+            We'll pair you with someone who's ready to show up too. Different goals, same commitment.
+          </p>
+        </div>
+        <div className="pt-4 flex flex-col items-center gap-3">
+          {error && (
+            <div className="w-full rounded-xl bg-red-50 text-red-700 px-4 py-3 text-[14px]" role="alert">
+              {error}
+            </div>
+          )}
+          <Button
+            type="button"
+            onClick={onFind}
+            disabled={busy}
+            className="h-14 w-full rounded-[24px] bg-pactara-purple text-[16px] font-bold text-pactara-purple-foreground shadow-partner-cta transition-[transform,background-color,opacity] hover:bg-pactara-purple-deep active:scale-[0.98] disabled:opacity-60"
+          >
+            {busy ? "Finding your partner…" : "Find me a partner"}
+            <ArrowRight size={20} strokeWidth={3} aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
     </Shell>
   );
 }
