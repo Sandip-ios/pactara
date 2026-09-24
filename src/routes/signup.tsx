@@ -66,7 +66,9 @@ import {
   EyeOff,
   Plus,
   Star,
-  
+  Users,
+  Handshake,
+
   X,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -78,6 +80,7 @@ import { createGroupForUser, setMyName, getGroupPreview } from "@/lib/groups.fun
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { setAvatarPath } from "@/lib/profile.functions";
+import { GOAL_MAX, GOAL_SUGGESTIONS } from "@/lib/member-goal.functions";
 import {
   recordAnonymousOnboardingStep,
   recordAuthenticatedOnboardingStep,
@@ -150,27 +153,24 @@ type StepKey =
   | "notify"
   | "password"
   | "greeting"
-  | "paywall";
+  | "paywall"
+  | "personalGoal"
+  | "method";
 
-const ALL_STEPS: StepKey[] = [
-  "name",
-  "email",
-  "photo",
-  "consistency",
-  
-  "commitment",
-  "group",
-  "company",
-  "password",
-  "invite",
-  "notify",
-  "greeting",
-  "paywall",
-];
+type Method = "people" | "partner";
 
-// People arriving from an invite link are joining an existing group, so they
-// skip the group-creation and invite-friends steps entirely.
-const INVITED_SKIP: StepKey[] = ["goal", "commitment", "group", "invite"];
+// Shared by everyone: who you are and what you're working toward.
+const SHARED_STEPS: StepKey[] = ["name", "email", "photo", "consistency", "personalGoal"];
+
+function stepsFor(isInvited: boolean, method: Method | null): StepKey[] {
+  // Invite-link arrivals are joining an existing group, so they skip the
+  // accountability choice and all group setup.
+  if (isInvited) return [...SHARED_STEPS, "company", "password", "notify", "greeting"];
+  if (method === "people")
+    return [...SHARED_STEPS, "method", "commitment", "group", "company", "password", "invite", "notify", "greeting"];
+  if (method === "partner") return [...SHARED_STEPS, "method", "company", "password", "notify"];
+  return [...SHARED_STEPS, "method"];
+}
 
 
 
@@ -192,6 +192,7 @@ function SignupFlow() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [goal, setGoal] = useState<string | null>(null);
   const [customGoalLabel, setCustomGoalLabel] = useState("");
+  const [personalGoal, setPersonalGoal] = useState("");
   
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
@@ -202,6 +203,9 @@ function SignupFlow() {
   // Someone who closed the app part-way through (after their account existed)
   // comes back to the same screen rather than restarting or landing on Home.
   const [resume] = useState(() => getSignupResume());
+  const [method, setMethod] = useState<Method | null>(() =>
+    resume?.method === "people" || resume?.method === "partner" ? resume.method : null,
+  );
   // Reserved up-front so invite links point at the group's join screen even
   // though the group row is only created when signup finishes.
   const [pendingGroupId] = useState(
@@ -215,10 +219,7 @@ function SignupFlow() {
   const [invitedGroupId] = useState<string | null>(() => getPendingInvite());
   const isInvited = Boolean(invitedGroupId);
   const onboardingPath = isInvited ? "invitee" : "creator";
-  const STEPS = useMemo(
-    () => (isInvited ? ALL_STEPS.filter((s) => !INVITED_SKIP.includes(s)) : ALL_STEPS),
-    [isInvited],
-  );
+  const STEPS = useMemo(() => stepsFor(isInvited, method), [isInvited, method]);
 
   const step = STEPS[stepIdx];
   const progress = ((stepIdx + 1) / STEPS.length) * 100;
@@ -249,6 +250,10 @@ function SignupFlow() {
     if (step === "goal") ensureGroupName();
     if (step === "password") {
       void provision();
+      return;
+    }
+    if (method === "partner" && stepIdx === STEPS.length - 1) {
+      goToPartner();
       return;
     }
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
@@ -285,8 +290,23 @@ function SignupFlow() {
   useEffect(() => {
     if (!provisioned || !step) return;
     if (step === "paywall") return;
-    saveSignupResume({ step, firstName, groupId: invitedGroupId ?? pendingGroupId });
-  }, [provisioned, step, firstName, invitedGroupId, pendingGroupId]);
+    saveSignupResume({ step, firstName, groupId: invitedGroupId ?? pendingGroupId, method: method ?? undefined });
+  }, [provisioned, step, firstName, invitedGroupId, pendingGroupId, method]);
+
+  const chooseMethod = (m: Method) => {
+    setMethod(m);
+    setStepIdx(SHARED_STEPS.length + 1);
+  };
+
+  // Partner seekers finish signup on the matching screen.
+  const goToPartner = () => {
+    clearSignupResume();
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("show-intro-paywall", "1");
+      if (pendingGroupId) localStorage.setItem("active-group-id", pendingGroupId);
+    }
+    navigate({ to: "/partner", search: { solo: pendingGroupId }, replace: true });
+  };
 
 
   // Creates the account and the group up-front (right after the password step)
@@ -354,13 +374,31 @@ function SignupFlow() {
         }
       }
       const pendingInvite = getPendingInvite();
+      let goalGroupId: string | null | undefined = null;
       if (pendingInvite) {
+        goalGroupId = pendingInvite;
         const { joinGroupById } = await import("@/lib/groups.functions");
         await joinGroupById({ data: { groupId: pendingInvite } });
         clearPendingInvite();
         if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", pendingInvite);
 
+      } else if (method === "partner") {
+        // A personal space so they can check in and build a streak while a
+        // partner is found. The partnership itself gets its own space later.
+        await createGroupForUser({
+          data: {
+            id: pendingGroupId,
+            name: `${firstName.trim() || "My"}'s Pactara`,
+            emoji: "🎯",
+            durationDays: 90,
+            frequency: "daily",
+            daysPerWeek: 7,
+            kind: "solo",
+          },
+        });
+        goalGroupId = pendingGroupId;
       } else {
+        goalGroupId = pendingGroupId;
         const finalGroupName = groupName.trim() || `${goalLabel} Crew`;
         const durationDays =
           duration === "custom"
@@ -378,6 +416,26 @@ function SignupFlow() {
           },
         });
       }
+      // The goal was written before the account existed; it belongs to this
+      // person's own membership, never to the group as a whole.
+      if (goalGroupId && personalGoal.trim()) {
+        try {
+          const { setMemberGoal } = await import("@/lib/member-goal.functions");
+          await setMemberGoal({ data: { groupId: goalGroupId, goal: personalGoal.trim() } });
+        } catch (err) {
+          console.error("Saving personal goal during signup failed", err);
+        }
+      }
+      if (method) {
+        const { trackPartnerScreen } = await import("@/lib/partners.functions");
+        for (const event of [
+          "accountability_method_viewed",
+          "accountability_method_selected",
+          method === "partner" ? "find_partner_selected" : "bring_my_people_selected",
+        ]) {
+          await trackPartnerScreen({ data: { event } }).catch(() => undefined);
+        }
+      }
       const journey = getOnboardingJourney(onboardingPath);
       if (journey) {
         await recordAuthenticatedStep({ data: { ...journey, step: "account_created" } }).catch(
@@ -394,9 +452,14 @@ function SignupFlow() {
     }
   };
 
+  // Summary → pact. The intro paywall shows once they're inside the app.
   const finish = () => {
     if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
-    setStepIdx(STEPS.indexOf("paywall"));
+    if (typeof localStorage !== "undefined") localStorage.setItem("show-intro-paywall", "1");
+    clearSignupResume();
+    const groupId = invitedGroupId ?? pendingGroupId;
+    if (groupId) navigate({ to: "/pact/$groupId", params: { groupId }, replace: true });
+    else navigate({ to: "/home", replace: true });
   };
 
 
@@ -408,6 +471,8 @@ function SignupFlow() {
         return /\S+@\S+\.\S+/.test(email);
       case "photo":
         return true;
+      case "personalGoal":
+        return personalGoal.trim().length > 0;
       case "group":
         return groupName.trim().length > 0;
       case "commitment":
@@ -445,6 +510,9 @@ function SignupFlow() {
           goalLabel={goalLabel}
           goalEmoji={goalEmoji}
           frequencyLabel={frequencyLabel}
+          groupName={invitedGroup?.name ?? (groupName.trim() || `${goalLabel} Crew`)}
+          memberCount={isInvited ? (invitedGroup?.memberCount ?? 0) + 1 : 1}
+          personalGoal={personalGoal.trim()}
           onContinue={finish}
           onBack={back}
         />
@@ -513,6 +581,8 @@ function SignupFlow() {
         )}
         {step === "email" && <EmailStep firstName={firstName} email={email} setEmail={setEmail} />}
         {step === "photo" && <PhotoStep photo={photo} setPhoto={setPhoto} setPhotoFile={setPhotoFile} />}
+        {step === "personalGoal" && <PersonalGoalStep goal={personalGoal} setGoal={setPersonalGoal} />}
+        {step === "method" && <MethodStep onChoose={chooseMethod} />}
 
 
         {step === "group" && (
@@ -560,7 +630,7 @@ function SignupFlow() {
               Skip for now
             </button>
           </>
-        ) : step === "notify" ? null : (
+        ) : step === "notify" || step === "method" ? null : (
           <PrimaryButton
             disabled={!canContinue || (step === "password" && finishing)}
             onClick={next}
@@ -577,6 +647,81 @@ function SignupFlow() {
       )}
     </div>
 
+  );
+}
+
+/* ------------ Step: Personal goal ------------ */
+function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string) => void }) {
+  return (
+    <div>
+      <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your goal?</h1>
+      <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
+        What do you want Pactara to help you stay accountable to?
+      </p>
+      <textarea
+        value={goal}
+        onChange={(e) => setGoal(e.target.value.slice(0, GOAL_MAX))}
+        rows={3}
+        placeholder="Work out 4 times a week"
+        className="mt-7 w-full rounded-2xl p-4 text-[16px] leading-snug outline-none resize-none"
+        style={{ background: INPUT_BG, border: `1.5px solid ${goal ? PURPLE : "transparent"}` }}
+      />
+      <div className="mt-1.5 text-right text-[12px]" style={{ color: TEXT_MUTED }}>
+        {goal.length}/{GOAL_MAX}
+      </div>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {GOAL_SUGGESTIONS.map((s) => (
+          <button
+            key={s.label}
+            type="button"
+            onClick={() => setGoal(s.label)}
+            className="rounded-full px-3.5 py-2 text-[14px] font-medium"
+            style={{ background: PURPLE_SOFT, color: "#4C1D95" }}
+          >
+            {s.emoji} {s.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ------------ Step: Choose accountability ------------ */
+function MethodStep({ onChoose }: { onChoose: (m: Method) => void }) {
+  const options: { id: Method; icon: ReactNode; title: string; text: string }[] = [
+    { id: "people", icon: <Users size={26} color="white" strokeWidth={2.2} />, title: "Bring my people", text: "Create a group with people you already know." },
+    { id: "partner", icon: <Handshake size={26} color="white" strokeWidth={2.2} />, title: "Find me a partner", text: "We'll match you with someone who wants accountability too." },
+  ];
+  return (
+    <div>
+      <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">How do you want to stay accountable?</h1>
+      <p className="mt-3 text-[16px]" style={{ color: TEXT_MUTED }}>
+        Choose what works best for you.
+      </p>
+      <div className="mt-8 flex flex-col gap-4">
+        {options.map((o) => (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChoose(o.id)}
+            className="w-full rounded-3xl bg-white p-5 flex items-center gap-4 text-left active:scale-[0.99] transition"
+            style={{ border: `1.5px solid ${PURPLE_BORDER}`, boxShadow: "0 10px 30px -18px rgba(124,58,237,0.45)" }}
+          >
+            <span
+              className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
+              style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
+            >
+              {o.icon}
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[19px] font-bold">{o.title}</span>
+              <span className="mt-1 block text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>{o.text}</span>
+            </span>
+            <ArrowRight size={20} color={PURPLE} />
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -2228,12 +2373,18 @@ export function GreetingStep({
   frequencyLabel,
   onContinue,
   onBack,
+  groupName,
+  memberCount,
+  personalGoal,
 }: {
   firstName: string;
   days: number;
   goalLabel: string;
   goalEmoji: string;
   frequencyLabel: string;
+  groupName?: string;
+  memberCount?: number;
+  personalGoal?: string;
   onContinue: () => void;
   onBack: () => void;
 }) {
@@ -2279,8 +2430,8 @@ export function GreetingStep({
           <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
             <span className="text-[22px]">{goalEmoji}</span>
             <div className="flex-1">
-              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Challenge</div>
-              <div className="text-[15px] font-semibold">{goalLabel}</div>
+              <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>{groupName ? "Group" : "Challenge"}</div>
+              <div className="text-[15px] font-semibold">{groupName ?? goalLabel}</div>
             </div>
           </div>
           <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
@@ -2297,6 +2448,24 @@ export function GreetingStep({
               <div className="text-[15px] font-semibold">{frequencyLabel}</div>
             </div>
           </div>
+          {typeof memberCount === "number" && (
+            <div className="rounded-2xl bg-white p-4 flex items-center gap-3">
+              <Users size={20} style={{ color: PURPLE }} />
+              <div className="flex-1">
+                <div className="text-[12px] uppercase tracking-wide" style={{ color: LABEL }}>Members</div>
+                <div className="text-[15px] font-semibold">{memberCount} {memberCount === 1 ? "member" : "members"}</div>
+              </div>
+            </div>
+          )}
+          {personalGoal ? (
+            <div className="rounded-2xl p-4 flex items-start gap-3" style={{ background: "#FBF9FF", border: "1px solid #EADDFF" }}>
+              <span className="text-[20px] leading-none">🎯</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: LABEL }}>Your goal</div>
+                <div className="mt-1 text-[15px] font-semibold break-words">{personalGoal}</div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
