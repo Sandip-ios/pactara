@@ -236,7 +236,7 @@ function PartnerPage() {
   // In line for a partner.
   if (data.status === "waiting") {
     return (
-      <Shell onBack={goHome}>
+      <Shell>
         <div className="flex-1 flex flex-col items-center justify-center text-center">
           <div className="relative h-24 w-24 flex items-center justify-center">
             <span className="absolute inset-0 rounded-full animate-ping" style={{ background: PURPLE_SOFT }} />
