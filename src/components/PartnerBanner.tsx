@@ -26,6 +26,9 @@ export function PartnerBanner() {
   } else if (data.status === "active" && p?.partnerInactive) {
     title = `${p.partner.name} hasn't been active lately`;
     body = "Want us to find you another partner?";
+  } else if (data.status === "none" && data.partnerLeft) {
+    title = "Ready for a new partner?";
+    body = "Your last partner is no longer in your pact. Find someone new.";
   }
   if (!title) return null;
 

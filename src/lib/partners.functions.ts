@@ -12,6 +12,8 @@ export type PartnerPerson = {
 export type PartnerState = {
   status: "none" | "waiting" | "pending" | "active";
   released: boolean;
+  /** Previous partner deleted their account or left; offer a new search. */
+  partnerLeft: boolean;
   me: PartnerPerson;
   myGoal: string | null;
   soloGroupId: string | null;
@@ -70,11 +72,54 @@ export const getPartnerState = createServerFn({ method: "GET" })
     };
 
     if (!current) {
-      return { ...base, status: queue?.status === "waiting" ? "waiting" : "none", partnership: null };
+      let partnerLeft = false;
+      if (queue?.status !== "waiting") {
+        const { data: last } = await supabaseAdmin
+          .from("partnerships")
+          .select("ended_reason, ended_by")
+          .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        partnerLeft = last?.ended_reason === "partner_left" && last?.ended_by === userId;
+      }
+      return { ...base, partnerLeft, status: queue?.status === "waiting" ? "waiting" : "none", partnership: null };
     }
 
     const iAmOne = current.user_1_id === userId;
     const partnerId = (iAmOne ? current.user_2_id : current.user_1_id) as string;
+
+    // If the partner deleted their account or left the shared pact, end the
+    // match so this person can start a fresh search.
+    const [{ data: partnerProfile }, memberCheck] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id").eq("id", partnerId).maybeSingle(),
+      current.status === "active"
+        ? current.group_id
+          ? supabaseAdmin
+              .from("group_members")
+              .select("user_id")
+              .eq("group_id", current.group_id as string)
+              .in("user_id", [partnerId, userId])
+              .then((r) => ({ data: (r.data ?? []).length === 2 ? true : null }))
+          : Promise.resolve({ data: null })
+        : Promise.resolve({ data: true }),
+    ]);
+    if (!partnerProfile || !memberCheck.data) {
+      await supabaseAdmin
+        .from("partnerships")
+        .update({ status: "ended", ended_at: new Date().toISOString(), ended_reason: "partner_left", ended_by: userId })
+        .eq("id", current.id);
+      await supabaseAdmin
+        .from("partner_queue")
+        .update({ status: "removed", matched_at: null })
+        .eq("user_id", userId);
+      await srv.trackPartnerEvent(userId, "partner_relationship_ended", {
+        partnership_id: current.id,
+        reason: "partner_left",
+      });
+      return { ...base, partnerLeft: true, status: "none", partnership: null };
+    }
+
     const partner = await person(partnerId);
 
     let partnerInactive = false;
@@ -95,6 +140,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
 
     return {
       ...base,
+      partnerLeft: false,
       status: current.status === "active" ? "active" : "pending",
       partnership: {
         id: current.id as string,
