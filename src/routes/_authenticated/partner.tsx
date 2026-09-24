@@ -213,45 +213,66 @@ function PartnerPage() {
       <Shell onBack={goHome}>
         {justMatched && <ConfettiBurst durationMs={2200} />}
         {matching && <MatchingOverlay locked={matching === "locked"} />}
-        <div className="relative flex-1 overflow-y-auto flex flex-col items-center text-center">
+        <div className="relative flex-1 min-h-0 overflow-y-auto flex flex-col items-center text-center pb-2">
           {justMatched && (
             <span
               aria-hidden
-              className="pointer-events-none absolute left-1/2 top-32 h-48 w-48 rounded-full bg-pactara-purple/25 blur-3xl"
+              className="pointer-events-none absolute left-1/2 top-52 h-56 w-56 rounded-full bg-pactara-purple/25 blur-3xl"
               style={{ animation: "partner-burst 1100ms ease-out 1 forwards" }}
             />
           )}
-          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-pactara-purple/10 px-3.5 py-1.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-pactara-purple/10 px-3.5 py-1.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
             <span className="h-1.5 w-1.5 rounded-full bg-pactara-purple animate-pulse" />
             <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-pactara-purple">Match found</span>
           </div>
-          <h1 className="mt-4 text-[34px] font-bold tracking-tight leading-[1.05] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
+          <h1 className="mt-3 text-[34px] font-bold tracking-tight leading-[1.05] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
             You've got a partner
           </h1>
-          <p className="mt-2 text-[17px]" style={{ color: MUTED }}>
-            Meet {p.partner.name}.
+          <p className="mt-2 text-[16px]" style={{ color: MUTED }}>
+            Meet the person showing up with you.
           </p>
-          <div
-            className="mt-6"
-            style={justMatched ? { animation: "partner-pop 750ms cubic-bezier(0.34,1.56,0.64,1) 1" } : undefined}
-          >
-            <Avatar person={p.partner} size={104} />
+
+          <div className="relative mt-7 h-40 w-full max-w-[330px]" aria-label={`You and ${p.partner.name}`}>
+            <span aria-hidden className="absolute left-1/2 top-[58px] h-8 w-20 -translate-x-1/2 rounded-full bg-pactara-purple/15 blur-xl" />
+            <div
+              className="absolute left-[9%] top-0 z-10 flex flex-col items-center"
+              style={justMatched ? { animation: "partner-avatar-left 800ms cubic-bezier(0.34,1.56,0.64,1) 1" } : undefined}
+            >
+              <Avatar person={data.me} size={126} className="ring-[5px] ring-background shadow-xl" />
+              <span className="mt-2 rounded-full bg-foreground px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-background">You</span>
+            </div>
+            <div
+              className="absolute right-[9%] top-0 z-20 flex flex-col items-center"
+              style={justMatched ? { animation: "partner-avatar-right 800ms cubic-bezier(0.34,1.56,0.64,1) 1" } : undefined}
+            >
+              <Avatar person={p.partner} size={126} className="ring-[5px] ring-background shadow-xl" />
+              <span className="mt-2 rounded-full bg-pactara-purple px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-pactara-purple-foreground">
+                {p.partner.name}
+              </span>
+            </div>
+            <span
+              aria-hidden
+              className="absolute left-1/2 top-[48px] z-30 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-background bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-lg"
+              style={justMatched ? { animation: "partner-link-pop 900ms cubic-bezier(0.34,1.56,0.64,1) 350ms both" } : undefined}
+            >
+              +
+            </span>
           </div>
-          <div className="mt-7 w-full flex flex-col gap-2 text-left">
+          <div className="mt-5 grid w-full grid-cols-2 gap-2 text-left">
             <div
               className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700"
               style={{ animationDelay: "150ms", animationFillMode: "both" }}
             >
-              <GoalCard label={`${p.partner.name.toUpperCase()}'S GOAL`} goal={p.partner.goal} />
+              <GoalCard label="YOUR GOAL" goal={data.myGoal} mine />
             </div>
             <div
               className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700"
               style={{ animationDelay: "280ms", animationFillMode: "both" }}
             >
-              <GoalCard label="YOUR GOAL" goal={data.myGoal} mine />
+              <GoalCard label={`${p.partner.name.toUpperCase()}'S GOAL`} goal={p.partner.goal} />
             </div>
           </div>
-          <p className="mt-6 text-[17px] font-semibold">{p.durationDays} days of showing up together.</p>
+          <p className="mt-5 text-[17px] font-semibold">{p.durationDays} days of showing up together.</p>
           <p className="mt-1 text-[15px]" style={{ color: MUTED }}>
             Different goals. Same commitment.
           </p>
