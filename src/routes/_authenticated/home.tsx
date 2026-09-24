@@ -23,6 +23,7 @@ import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
+import { PartnerBanner } from "@/components/PartnerBanner";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -333,6 +334,7 @@ function HomePage() {
         </div>
 
       </header>
+      <PartnerBanner />
 
       {/* One-time popover pointing at the "How Pactara works" button.
           Portaled to document.body so it stays fixed on screen instead of

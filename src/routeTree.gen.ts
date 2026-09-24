@@ -33,6 +33,7 @@ import { Route as AdminEventsRouteImport } from './routes/admin/events'
 import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
+import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -179,6 +180,11 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
 const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
   id: '/plan',
   path: '/plan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPartnerRoute = AuthenticatedPartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -359,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -411,6 +418,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -466,6 +474,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/partner': typeof AuthenticatedPartnerRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
@@ -521,6 +530,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/new-pactara'
     | '/notifications'
+    | '/partner'
     | '/plan'
     | '/profile'
     | '/admin/accountability'
@@ -573,6 +583,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/new-pactara'
     | '/notifications'
+    | '/partner'
     | '/plan'
     | '/profile'
     | '/admin/accountability'
@@ -627,6 +638,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
     | '/_authenticated/notifications'
+    | '/_authenticated/partner'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
     | '/admin/accountability'
@@ -861,6 +873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlanRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/partner': {
+      id: '/_authenticated/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof AuthenticatedPartnerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/notifications': {
       id: '/_authenticated/notifications'
       path: '/notifications'
@@ -1064,6 +1083,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
@@ -1087,6 +1107,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedPartnerRoute: AuthenticatedPartnerRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedAccountSettingsEmailRoute:
