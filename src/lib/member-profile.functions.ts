@@ -74,19 +74,22 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       isSelf ? true : myGroupIds.includes(r.group_id as string),
     );
 
-    if (theirMemberships.length === 0) {
+    // Your own profile must still load (name, photo) when you aren't in any group yet.
+    const noGroups = theirMemberships.length === 0;
+    if (noGroups && !isSelf) {
       throw new Error("You don't share a group with this member.");
     }
 
-    const membership =
-      (data.groupId
-        ? theirMemberships.find((m) => m.group_id === data.groupId)
-        : null) ??
-      [...theirMemberships].sort(
-        (a, b) =>
-          new Date(b.joined_at as string).getTime() -
-          new Date(a.joined_at as string).getTime(),
-      )[0];
+    const membership = noGroups
+      ? { group_id: "00000000-0000-0000-0000-000000000000", joined_at: new Date().toISOString(), personal_goal: null }
+      : ((data.groupId
+          ? theirMemberships.find((m) => m.group_id === data.groupId)
+          : null) ??
+        [...theirMemberships].sort(
+          (a, b) =>
+            new Date(b.joined_at as string).getTime() -
+            new Date(a.joined_at as string).getTime(),
+        )[0]);
 
     const groupId = membership.group_id as string;
     const joinedAt = membership.joined_at as string;
