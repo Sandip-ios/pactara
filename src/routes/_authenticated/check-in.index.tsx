@@ -221,6 +221,12 @@ function CheckInRouter() {
     queryFn: () => getStatus({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
+  const fetchPartnerState = useServerFn(getPartnerState);
+  const { data: partnerState } = useQuery({
+    queryKey: ["partner-state"],
+    queryFn: () => fetchPartnerState(),
+    staleTime: 30_000,
+  });
   const [localPosted, setLocalPosted] = useState<string | null>(null);
 
   if (isLoading || !data) {
@@ -234,6 +240,7 @@ function CheckInRouter() {
       groups={groups}
       selectedGroupId={selectedGroupId}
       onSelect={setSelectedGroupId}
+      partnerState={partnerState}
     />
   );
   return showRitual ? (
