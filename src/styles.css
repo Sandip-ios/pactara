@@ -263,3 +263,32 @@ body [class*="min-h-[100dvh]"] {
 @utility pt-safe-6 {
   padding-top: calc(env(safe-area-inset-top) + 1.5rem);
 }
+
+/* Partner matching screen: live radar search + match reveal */
+@keyframes partner-radar {
+  0% { transform: scale(0.45); opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@keyframes partner-orbit {
+  from { transform: rotate(0turn) translateX(var(--orbit-r, 80px)) rotate(0turn); }
+  to { transform: rotate(1turn) translateX(var(--orbit-r, 80px)) rotate(-1turn); }
+}
+@keyframes partner-shimmer {
+  0% { transform: translateX(-130%); }
+  100% { transform: translateX(340%); }
+}
+@keyframes partner-pop {
+  0% { transform: scale(0.2); opacity: 0; }
+  55% { transform: scale(1.12); opacity: 1; }
+  75% { transform: scale(0.96); }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes partner-burst {
+  0% { transform: translate(-50%, -50%) scale(0.35); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+@keyframes partner-flash {
+  0% { opacity: 0; }
+  35% { opacity: 0.85; }
+  100% { opacity: 0; }
+}

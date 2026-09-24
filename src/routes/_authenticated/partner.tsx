@@ -40,6 +40,30 @@ const PURPLE_SOFT = "#F3EEFF";
 const MUTED = "#6B6660";
 const LABEL = "#8A8580";
 
+const SEARCH_STEPS = [
+  "Scanning for someone ready…",
+  "Checking today's queue…",
+  "Reaching out to your person…",
+];
+
+/** Candidates orbiting the search on the waiting screen. */
+const ORBITERS = [
+  { radius: 104, duration: 9, delay: 0, size: 12, color: "#7C3AED" },
+  { radius: 104, duration: 9, delay: -3, size: 10, color: "#A78BFA" },
+  { radius: 104, duration: 9, delay: -6, size: 9, color: "#DDD6FE" },
+  { radius: 76, duration: 6.5, delay: 0, size: 8, color: "#C4B5FD" },
+  { radius: 76, duration: 6.5, delay: -3.25, size: 7, color: "#8B5CF6" },
+];
+
+/** Faster orbit for the full-screen matching takeover. */
+const FAST_ORBITERS = [
+  { radius: 104, duration: 3.2, delay: 0, size: 12, color: "#7C3AED" },
+  { radius: 104, duration: 3.2, delay: -1.1, size: 10, color: "#A78BFA" },
+  { radius: 104, duration: 3.2, delay: -2.2, size: 9, color: "#DDD6FE" },
+  { radius: 76, duration: 2.3, delay: 0, size: 8, color: "#C4B5FD" },
+  { radius: 76, duration: 2.3, delay: -1.15, size: 7, color: "#8B5CF6" },
+];
+
 function PartnerPage() {
   useHideBottomTabs(true, false);
   const navigate = useNavigate();
@@ -54,6 +78,8 @@ function PartnerPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justMatched, setJustMatched] = useState(false);
+  const [matching, setMatching] = useState<null | "searching" | "locked">(null);
+  const [step, setStep] = useState(0);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["partner-state"],
@@ -69,6 +95,27 @@ function PartnerPage() {
       void track({ data: { event: "partner_match_viewed", partnershipId: p.id } }).catch(() => undefined);
     }
   }, [data, track]);
+
+  useEffect(() => {
+    const t = setInterval(() => setStep((s) => (s + 1) % SEARCH_STEPS.length), 2400);
+    return () => clearInterval(t);
+  }, []);
+
+  // A match that lands while the user is on the waiting screen still gets the
+  // dramatic reveal — same as an instant match right after tapping the button.
+  const prevStatus = useRef<string | null>(null);
+  useEffect(() => {
+    const before = prevStatus.current;
+    prevStatus.current = data?.status ?? null;
+    if (
+      data?.status === "pending" &&
+      data.partnership &&
+      !data.partnership.iAccepted &&
+      (before === "waiting" || before === "none")
+    ) {
+      setJustMatched(true);
+    }
+  }, [data]);
 
   const run = async (fn: () => Promise<unknown>) => {
     if (busy) return;
@@ -104,12 +151,35 @@ function PartnerPage() {
   };
   const soloGroupId = solo ?? data?.soloGroupId ?? null;
 
-  const onFind = () =>
-    run(async () => {
+  // Tapping "Find me a partner" takes over the whole screen: a live matching
+  // sequence plays, then it jumps straight to the reveal (or the waiting
+  // radar if no one is in line yet). The overlay holds for a beat so the
+  // moment reads even when the match resolves instantly.
+  const onFind = async () => {
+    if (busy || matching) return;
+    setBusy(true);
+    setError(null);
+    setMatching("searching");
+    const minTheatrics = new Promise((r) => setTimeout(r, 1900));
+    try {
       clearSignupResume();
       const res = await search({ data: { soloGroupId } });
-      if (res.matched) setJustMatched(true);
-    });
+      if (res.matched) {
+        setMatching("locked");
+        setJustMatched(true);
+        await minTheatrics;
+      } else {
+        await minTheatrics;
+      }
+      await refetch();
+      await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
+    } finally {
+      setMatching(null);
+      setBusy(false);
+    }
+  };
 
   const onAccept = () =>
     run(async () => {
@@ -136,21 +206,50 @@ function PartnerPage() {
 
   const p = data.partnership;
 
-  // Match found, waiting on this person.
+  // Match found, waiting on this person — snap in with a reveal the moment
+  // the match lands (instant match or a poll picking one up mid-search).
   if (data.status === "pending" && p && !p.iAccepted) {
     return (
       <Shell onBack={goHome}>
         {justMatched && <ConfettiBurst durationMs={2200} />}
-        <div className="flex-1 overflow-y-auto flex flex-col items-center text-center">
-          <div className="mt-4 text-[48px] leading-none">🔥</div>
-          <h1 className="mt-4 text-[34px] font-bold tracking-tight leading-[1.05]">You've got a partner</h1>
+        {matching && <MatchingOverlay locked={matching === "locked"} />}
+        <div className="relative flex-1 overflow-y-auto flex flex-col items-center text-center">
+          {justMatched && (
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-32 h-48 w-48 rounded-full bg-pactara-purple/25 blur-3xl"
+              style={{ animation: "partner-burst 1100ms ease-out 1 forwards" }}
+            />
+          )}
+          <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-pactara-purple/10 px-3.5 py-1.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2 motion-safe:duration-500">
+            <span className="h-1.5 w-1.5 rounded-full bg-pactara-purple animate-pulse" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-pactara-purple">Match found</span>
+          </div>
+          <h1 className="mt-4 text-[34px] font-bold tracking-tight leading-[1.05] motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
+            You've got a partner
+          </h1>
           <p className="mt-2 text-[17px]" style={{ color: MUTED }}>
             Meet {p.partner.name}.
           </p>
-          <Avatar person={p.partner} size={104} className="mt-6" />
+          <div
+            className="mt-6"
+            style={justMatched ? { animation: "partner-pop 750ms cubic-bezier(0.34,1.56,0.64,1) 1" } : undefined}
+          >
+            <Avatar person={p.partner} size={104} />
+          </div>
           <div className="mt-7 w-full flex flex-col gap-2 text-left">
-            <GoalCard label={`${p.partner.name.toUpperCase()}'S GOAL`} goal={p.partner.goal} />
-            <GoalCard label="YOUR GOAL" goal={data.myGoal} mine />
+            <div
+              className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700"
+              style={{ animationDelay: "150ms", animationFillMode: "both" }}
+            >
+              <GoalCard label={`${p.partner.name.toUpperCase()}'S GOAL`} goal={p.partner.goal} />
+            </div>
+            <div
+              className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700"
+              style={{ animationDelay: "280ms", animationFillMode: "both" }}
+            >
+              <GoalCard label="YOUR GOAL" goal={data.myGoal} mine />
+            </div>
           </div>
           <p className="mt-6 text-[17px] font-semibold">{p.durationDays} days of showing up together.</p>
           <p className="mt-1 text-[15px]" style={{ color: MUTED }}>
@@ -234,40 +333,73 @@ function PartnerPage() {
     );
   }
 
-  // In line for a partner.
+  // In line for a partner — a live matching animation, not a static wait.
   if (data.status === "waiting") {
     return (
       <Shell>
+        {matching && <MatchingOverlay locked={matching === "locked"} />}
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <div className="relative h-24 w-24 flex items-center justify-center">
-            <span className="absolute inset-0 rounded-full animate-ping" style={{ background: PURPLE_SOFT }} />
+          <div className="relative h-64 w-64 flex items-center justify-center">
+            {/* Radar sweep rings radiating from the search */}
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="absolute h-28 w-28 rounded-full border-2 border-pactara-purple/35"
+                style={{ animation: `partner-radar 3s ease-out ${i}s infinite` }}
+              />
+            ))}
+            <span aria-hidden className="absolute h-40 w-40 rounded-full bg-pactara-purple/10 blur-2xl" />
+            {/* Candidate partners being scanned, orbiting the search */}
+            {ORBITERS.map((o, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="absolute"
+                style={
+                  {
+                    "--orbit-r": `${o.radius}px`,
+                    animation: `partner-orbit ${o.duration}s linear ${o.delay}s infinite`,
+                  } as React.CSSProperties
+                }
+              >
+                <span
+                  className="block rounded-full shadow-md"
+                  style={{ width: o.size, height: o.size, background: o.color }}
+                />
+              </span>
+            ))}
             <span
-              className="relative h-20 w-20 rounded-full flex items-center justify-center"
+              className="relative h-24 w-24 rounded-full flex items-center justify-center shadow-partner-icon"
               style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
             >
-              <Handshake size={34} color="white" />
+              <Handshake size={38} color="white" strokeWidth={2} />
             </span>
           </div>
-          <h1 className="mt-7 text-[32px] font-bold tracking-tight leading-tight">
+          <h1 className="mt-8 text-[30px] font-bold tracking-tight leading-tight">
             {data.released ? "We're still finding your person" : "We're finding your person"}
           </h1>
-          <p className="mt-3 text-[16px] leading-[1.45] max-w-[320px]" style={{ color: MUTED }}>
-            {data.released
-              ? "We'll let you know when your next match is ready."
-              : "You're in line for an accountability partner. We'll let you know as soon as someone's ready to show up with you."}
+          <p
+            key={step}
+            className="mt-3 h-5 text-[15px] font-medium motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
+            style={{ color: MUTED }}
+          >
+            {data.released ? "We'll let you know when your next match is ready." : SEARCH_STEPS[step]}
           </p>
+          <div className="relative mt-5 h-1 w-44 overflow-hidden rounded-full bg-pactara-purple/10">
+            <span
+              aria-hidden
+              className="absolute inset-y-0 w-1/3 rounded-full bg-linear-to-r from-transparent via-pactara-purple to-transparent"
+              style={{ animation: "partner-shimmer 1.8s ease-in-out infinite" }}
+            />
+          </div>
           <div
-            className="mt-6 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold"
+            className="mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold"
             style={{ background: PURPLE_SOFT, color: PURPLE_DEEP }}
           >
             <span className="h-2 w-2 rounded-full animate-pulse" style={{ background: PURPLE }} />
             Partner search active
           </div>
-          {data.myGoal && (
-            <div className="mt-6 w-full text-left">
-              <GoalCard label="YOUR GOAL" goal={data.myGoal} mine />
-            </div>
-          )}
         </div>
         <Footer error={error}>
           <PrimaryButton label="Continue" onClick={goHome} />
@@ -287,6 +419,7 @@ function PartnerPage() {
   // Not searching yet.
   return (
     <Shell flush>
+      {matching && <MatchingOverlay locked={matching === "locked"} />}
       {/* Hero imagery */}
       <div className="relative h-[52%] w-full shrink-0 overflow-hidden motion-safe:animate-in motion-safe:fade-in motion-safe:duration-700">
         <img
@@ -345,6 +478,75 @@ function PartnerPage() {
         </div>
       </div>
     </Shell>
+  );
+}
+
+/**
+ * Full-screen takeover right after "Find me a partner": the search spins up
+ * live — fast radar rings, candidates racing past — and when a match locks
+ * in, a quick flash hands off to the reveal.
+ */
+function MatchingOverlay({ locked }: { locked: boolean }) {
+  const [flash, setFlash] = useState(false);
+  useEffect(() => {
+    if (!locked) return;
+    const t = setTimeout(() => setFlash(true), 250);
+    return () => clearTimeout(t);
+  }, [locked]);
+
+  return (
+    <div className="fixed inset-0 z-[110] bg-background flex flex-col items-center justify-center text-center motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      <div className="relative h-64 w-64 flex items-center justify-center">
+        {[0, 1, 2].map((i) => (
+          <span
+            key={i}
+            aria-hidden
+            className="absolute h-28 w-28 rounded-full border-2 border-pactara-purple/40"
+            style={{ animation: `partner-radar 1.6s ease-out ${i * 0.5}s infinite` }}
+          />
+        ))}
+        <span aria-hidden className="absolute h-40 w-40 rounded-full bg-pactara-purple/15 blur-2xl" />
+        {FAST_ORBITERS.map((o, i) => (
+          <span
+            key={i}
+            aria-hidden
+            className="absolute"
+            style={
+              {
+                "--orbit-r": `${o.radius}px`,
+                animation: `partner-orbit ${o.duration}s linear ${o.delay}s infinite`,
+              } as React.CSSProperties
+            }
+          >
+            <span className="block rounded-full shadow-md" style={{ width: o.size, height: o.size, background: o.color }} />
+          </span>
+        ))}
+        <span
+          className="relative h-24 w-24 rounded-full flex items-center justify-center shadow-partner-icon"
+          style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
+        >
+          <Handshake size={38} color="white" strokeWidth={2} />
+        </span>
+      </div>
+      <h2 className="mt-8 text-[28px] font-bold tracking-tight leading-tight">Matching you right now</h2>
+      <p className="mt-2 text-[15px] font-medium" style={{ color: MUTED }}>
+        Hold on — this only takes a moment.
+      </p>
+      <div className="relative mt-6 h-1 w-44 overflow-hidden rounded-full bg-pactara-purple/10">
+        <span
+          aria-hidden
+          className="absolute inset-y-0 w-1/3 rounded-full bg-linear-to-r from-transparent via-pactara-purple to-transparent"
+          style={{ animation: "partner-shimmer 1.1s ease-in-out infinite" }}
+        />
+      </div>
+      {locked && flash && (
+        <span
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-10 bg-white"
+          style={{ animation: "partner-flash 600ms ease-out 1 forwards" }}
+        />
+      )}
+    </div>
   );
 }
 
