@@ -211,6 +211,7 @@ function SignupFlow() {
   const recordAuthenticatedStep = useServerFn(recordAuthenticatedOnboardingStep);
   const [stepIdx, setStepIdx] = useState(0);
   const keyboardInset = useKeyboardInset();
+  const stageViewport = useVisualViewport();
 
 
   const [firstName, setFirstName] = useState("");
@@ -591,8 +592,18 @@ function SignupFlow() {
 
   return (
     <div
-      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden"
-      style={{ background: "#FFFFFF", fontFamily: "Inter, system-ui, sans-serif", color: TEXT, paddingTop: 32 }}
+      className="fixed left-0 right-0 w-full flex flex-col px-6 pb-8 overflow-hidden"
+      style={{
+        background: "#FFFFFF",
+        fontFamily: "Inter, system-ui, sans-serif",
+        color: TEXT,
+        paddingTop: 32,
+        // Pin to the visible area so iOS scrolling the page on input focus
+        // can't push the header under the status bar or the button under the keyboard.
+        top: stageViewport.height ? stageViewport.offsetTop : 0,
+        height: stageViewport.height ? stageViewport.height : "100dvh",
+        paddingBottom: keyboardInset > 0 ? 12 : undefined,
+      }}
     >
       {/* Progress bar */}
       <div className="flex items-center gap-3">
@@ -654,8 +665,7 @@ function SignupFlow() {
       <div
         className="flex flex-col items-center gap-3 pt-6"
         style={{
-          paddingBottom: keyboardInset > 0 ? keyboardInset + 12 : 0,
-          transition: "padding-bottom 0.2s ease-out",
+          paddingBottom: 0,
         }}
       >
         {step === "photo" && !photo ? (
