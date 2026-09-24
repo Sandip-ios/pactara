@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
 import GifPickerSheet from "@/components/GifPickerSheet";
 import { Button } from "@/components/ui/button";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -55,6 +57,7 @@ function GroupChatPage() {
     queryKey: ["group-chat", groupId],
     queryFn: () => getGroupChat({ data: { groupId } }),
   });
+  const { data: partnerState } = usePartnerState();
 
   const send = useMutation({
     mutationFn: ({ body, imageUrl }: { body: string; imageUrl?: string }) =>
@@ -172,6 +175,9 @@ function GroupChatPage() {
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
   const group = data?.group;
+  const relation = relationForGroup(groupId, partnerState);
+  const displayName = relation?.name ?? group?.name ?? "";
+  const displayEmoji = relation?.emoji ?? group?.emoji ?? "💬";
   const messages = data?.messages ?? [];
   const currentUserId = data?.currentUserId;
   const members = data?.members ?? [];
@@ -263,8 +269,8 @@ function GroupChatPage() {
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 text-[17px] font-bold">
-            <span>{group?.emoji ?? "💬"}</span>
-            <span className="truncate">{group?.name ?? " "}</span>
+             <span>{displayEmoji}</span>
+             <span className="truncate">{displayName || " "}</span>
           </div>
           <div className="mt-0.5 text-[13px] text-neutral-500">
             {members.length} {members.length === 1 ? "member" : "members"}
@@ -285,7 +291,7 @@ function GroupChatPage() {
             </div>
             <div className="text-[20px] font-bold">No messages yet</div>
             <div className="text-[14px] text-neutral-500 mt-1 text-center">
-              Be the first to say something to {group?.emoji} {group?.name}!
+               Be the first to say something to {displayEmoji} {displayName}!
             </div>
           </div>
         ) : (

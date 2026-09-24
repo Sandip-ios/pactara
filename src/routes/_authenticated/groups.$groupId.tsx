@@ -24,6 +24,8 @@ import {
   statusLabel,
 } from "@/components/groups/AccountabilityBits";
 import { WorkoutCheerSheet } from "@/components/groups/WorkoutCheerSheet";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
   component: GroupDetailPage,
@@ -62,6 +64,7 @@ function GroupDetailPage() {
   });
 
   const group = data?.groups.find((g) => g.id === groupId);
+  const { data: partnerState } = usePartnerState();
 
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
@@ -77,6 +80,9 @@ function GroupDetailPage() {
       </div>
     );
   }
+  const relation = relationForGroup(group.id, partnerState);
+  const displayName = relation?.name ?? group.name;
+  const displayEmoji = relation?.emoji ?? group.emoji;
 
   return (
     <div
@@ -98,8 +104,8 @@ function GroupDetailPage() {
           <div className="flex-1" />
           <GroupOverflowMenu
             groupId={group.id}
-            groupName={group.name}
-            emoji={group.emoji}
+             groupName={displayName}
+             emoji={displayEmoji}
             isAdmin={group.isAdmin}
             duration={group.durationDays}
             frequency={group.frequency}
@@ -108,10 +114,10 @@ function GroupDetailPage() {
           />
         </div>
         <div className="mt-3 flex items-center gap-3">
-          <span className="text-[30px] leading-none">{group.emoji}</span>
+           <span className="text-[30px] leading-none">{displayEmoji}</span>
           <div className="min-w-0">
             <div className="text-white text-[24px] font-black tracking-tight leading-tight truncate">
-              {group.name}
+               {displayName}
             </div>
             <div className="text-white/75 text-[13px] mt-0.5 truncate">
               Day {group.dayNumber} of {group.durationDays}
@@ -150,7 +156,7 @@ function GroupDetailPage() {
         }
       >
         {tab === "today" ? (
-          <TodayTab group={group} onCheer={setCheerSessionId} />
+           <TodayTab group={group} displayName={displayName} onCheer={setCheerSessionId} />
         ) : (
           <ActivityTab groupId={group.id} />
         )}
@@ -182,7 +188,7 @@ function DetailHeader({ title, onBack }: { title: string; onBack: () => void }) 
   );
 }
 
-function TodayTab({ group, onCheer }: { group: GroupToday; onCheer: (sessionId: string) => void }) {
+function TodayTab({ group, displayName, onCheer }: { group: GroupToday; displayName: string; onCheer: (sessionId: string) => void }) {
   const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
   const waiting = group.members.filter((m) => m.status !== "done");
   const [confetti, setConfetti] = useState(false);
@@ -214,7 +220,7 @@ function TodayTab({ group, onCheer }: { group: GroupToday; onCheer: (sessionId: 
         >
           <div className="text-[34px] leading-none">🎉</div>
           <div className="mt-3 text-[13px] font-bold tracking-[0.16em] uppercase text-white/80">
-            {group.name} showed up
+             {displayName} showed up
           </div>
           <div className="mt-1.5 text-[26px] font-black tracking-tight">
             {group.doneCount} of {group.memberCount} completed today

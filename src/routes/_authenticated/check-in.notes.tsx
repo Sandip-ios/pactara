@@ -11,6 +11,8 @@ import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 import { requestAppStoreReview } from "@/lib/app-review";
 import { listMyGroups } from "@/lib/groups.functions";
 import { AllGroupsToggle } from "./check-in.index";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -114,10 +116,21 @@ function NotesPage() {
     staleTime: 60_000,
   });
   const myGroups = groupsData?.groups ?? [];
+  const { data: partnerState } = usePartnerState();
   const activeGroupName = (() => {
     const id = getActiveGroupId();
     const g = myGroups.find((x) => (x.id as string) === id) ?? myGroups[0];
-    return g ? `${g.emoji ? `${g.emoji} ` : ""}${g.name}` : null;
+    if (!g) return null;
+    const relation = relationForGroup(g.id as string, partnerState);
+    const emoji = relation?.emoji ?? g.emoji;
+    return `${emoji ? `${emoji} ` : ""}${relation?.name ?? g.name}`;
+  })();
+  const celebrationGroupName = (() => {
+    const id = getActiveGroupId();
+    const group = myGroups.find((g) => (g.id as string) === id) ?? myGroups[0];
+    if (!group) return null;
+    const relation = relationForGroup(group.id as string, partnerState);
+    return relation?.name ?? group.name;
   })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -380,7 +393,7 @@ function NotesPage() {
           open
           userPhoto={shareData.photoUrl}
           streakCount={shareData.celebration.streakCount}
-          groupName={shareData.celebration.groupName}
+          groupName={celebrationGroupName ?? shareData.celebration.groupName}
           teammates={shareData.celebration.teammates}
           newBadges={shareData.newBadges}
           onShare={handleShareWin}

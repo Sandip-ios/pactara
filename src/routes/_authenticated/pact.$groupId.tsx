@@ -8,6 +8,8 @@ import { hapticLight, hapticMedium } from "@/lib/native";
 import ConfettiBurst from "@/components/ConfettiBurst";
 import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
 import { clearOnboardingJourney, readOnboardingJourney } from "@/lib/onboarding-analytics";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
@@ -52,6 +54,8 @@ function PactPage() {
     queryKey: ["pact", groupId],
     queryFn: () => fetchPact({ data: { groupId } }),
   });
+  const { data: partnerState } = usePartnerState();
+  const relation = relationForGroup(groupId, partnerState);
 
   const [signed, setSigned] = useState(false);
   const [signing, setSigning] = useState(false);
@@ -152,7 +156,7 @@ function PactPage() {
             </div>
             <div className="min-w-0">
               <div className="text-[19px] font-black leading-tight truncate">
-                {isLoading ? "Loading…" : data?.name}
+                {isLoading ? "Loading…" : relation?.name ?? data?.name}
               </div>
               {data?.goal && (
                 <div className="text-[13px] text-neutral-500 truncate">🎯 {data.goal}</div>
@@ -296,8 +300,8 @@ function PactPage() {
 
       {showSuccess && data && (
         <PactSuccess
-          groupName={data.name}
-          emoji={data.emoji ?? "🔥"}
+          groupName={relation?.name ?? data.name}
+          emoji={relation?.emoji ?? data.emoji ?? "🔥"}
           signedCount={data.signedCount}
           memberCount={data.memberCount}
           durationDays={data.durationDays}

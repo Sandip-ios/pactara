@@ -8,6 +8,8 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import targetImg from "@/assets/goal-target.png";
 import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
 import { readOnboardingJourney } from "@/lib/onboarding-analytics";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 export const Route = createFileRoute("/_authenticated/goal/$groupId")({
   component: GoalPage,
@@ -43,6 +45,8 @@ function GoalPage() {
     queryKey: ["member-goal", groupId],
     queryFn: () => fetchGoal({ data: { groupId } }),
   });
+  const { data: partnerState } = usePartnerState();
+  const displayName = relationForGroup(groupId, partnerState)?.name ?? data?.groupName;
 
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -107,7 +111,7 @@ function GoalPage() {
 
         <h1 className="mt-5 text-[30px] font-black leading-[1.1] tracking-tight">What's your goal?</h1>
         <p className="mt-2 text-[15px] leading-snug" style={{ color: TEXT_MUTED }}>
-          This is yours — not the group's. {data?.groupName ? `Everyone in ${data.groupName} sets their own.` : ""}
+          This is yours — not the group's. {displayName ? `Everyone in ${displayName} sets their own.` : ""}
         </p>
 
         <div className="mt-5">

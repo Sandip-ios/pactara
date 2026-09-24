@@ -27,6 +27,8 @@ import { MediaLightbox } from "@/components/MediaLightbox";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -75,6 +77,12 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
   const groups = data?.sharedGroups ?? [];
   const activeGroup = groups.find((g) => g.id === data?.groupId) ?? null;
+  const { data: partnerState } = usePartnerState();
+  const displayGroups = groups.map((group) => {
+    const relation = relationForGroup(group.id, partnerState);
+    return { ...group, name: relation?.name ?? group.name, emoji: relation?.emoji ?? group.emoji };
+  });
+  const activeDisplay = displayGroups.find((g) => g.id === activeGroup?.id) ?? null;
 
   const name = data?.name || "";
   const firstName = name.split(" ")[0] || (isOwn ? "You" : "Member");
@@ -156,23 +164,23 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
               onClick={() => setGroupPickerOpen(true)}
               className="flex items-center gap-1.5 max-w-[220px] active:opacity-70"
             >
-              {activeGroup.emoji && (
-                <span className="text-[16px] leading-none">{activeGroup.emoji}</span>
+               {activeDisplay?.emoji && (
+                 <span className="text-[16px] leading-none">{activeDisplay.emoji}</span>
               )}
-              <span className="text-[17px] font-bold truncate">{activeGroup.name}</span>
+               <span className="text-[17px] font-bold truncate">{activeDisplay?.name}</span>
               <ChevronDown size={16} className="text-neutral-400 shrink-0" />
             </button>
             <GroupSwitcherSheet
               open={groupPickerOpen}
               onClose={() => setGroupPickerOpen(false)}
-              groups={groups}
+               groups={displayGroups}
               selectedGroupId={data?.groupId ?? null}
               onSelect={(id) => setSelectedGroupId(id)}
             />
           </div>
         ) : (
           <div className="text-[17px] font-bold truncate text-center justify-self-center">
-            {activeGroup?.name ?? (isOwn ? "Profile" : firstName)}
+             {activeDisplay?.name ?? (isOwn ? "Profile" : firstName)}
           </div>
         )}
         <div />

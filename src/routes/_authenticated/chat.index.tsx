@@ -3,6 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listMyGroups } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -26,6 +28,7 @@ function ChatPage() {
   });
 
   const groups = data?.groups ?? [];
+  const { data: partnerState } = usePartnerState();
   const counts = unread?.counts ?? {};
 
   return (
@@ -60,6 +63,9 @@ function ChatPage() {
 
       <ul>
         {groups.map((g) => {
+          const relation = relationForGroup(g.id, partnerState);
+          const displayName = relation?.name ?? g.name;
+          const displayEmoji = relation?.emoji ?? g.emoji;
           const n = counts[g.id] ?? 0;
           const hasUnread = n > 0;
           return (
@@ -98,8 +104,8 @@ function ChatPage() {
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-2 text-[17px] text-neutral-900">
-                    <span className="text-[18px]">{g.emoji}</span>
-                    <span className={`truncate ${hasUnread ? "font-black" : "font-bold"}`}>{g.name}</span>
+                     <span className="text-[18px]">{displayEmoji}</span>
+                     <span className={`truncate ${hasUnread ? "font-black" : "font-bold"}`}>{displayName}</span>
                   </span>
                   <span
                     className={`block text-[14px] truncate mt-0.5 ${

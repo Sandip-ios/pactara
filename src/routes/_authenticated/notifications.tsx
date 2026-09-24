@@ -12,6 +12,8 @@ import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { syncAppBadge } from "@/lib/badge-client";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -73,6 +75,11 @@ function NotificationsPage() {
     staleTime: 60_000,
   });
   const groups = groupsData?.groups ?? [];
+  const { data: partnerState } = usePartnerState();
+  const displayFor = (groupId: string, name: string, emoji?: string | null) => {
+    const relation = relationForGroup(groupId, partnerState);
+    return { name: relation?.name ?? name, emoji: relation?.emoji ?? emoji ?? "" };
+  };
 
   // Default to every group so nothing from a second group is hidden.
   const [selectedGroupId, setSelectedGroupId] = useState<string>(() => {
@@ -176,7 +183,10 @@ function NotificationsPage() {
               {selectedGroupId === "all"
                 ? "All groups"
                 : selected
-                  ? `${selected.emoji} ${selected.name}`
+                   ? (() => {
+                       const display = displayFor(selected.id, selected.name, selected.emoji);
+                       return `${display.emoji} ${display.name}`;
+                     })()
                   : "Select a group"}
             </span>
             <ChevronDown size={14} />
@@ -210,13 +220,13 @@ function NotificationsPage() {
           </div>
         )}
 
-        <Section title="Last 7 days" items={recent} onOpen={open} showGroup={showGroupLabel} />
-        <Section title="Last 30 days" items={older} onOpen={open} showGroup={showGroupLabel} />
+        <Section title="Last 7 days" items={recent} onOpen={open} showGroup={showGroupLabel} groupLabel={(n) => displayFor(n.groupId, n.groupName).name} />
+        <Section title="Last 30 days" items={older} onOpen={open} showGroup={showGroupLabel} groupLabel={(n) => displayFor(n.groupId, n.groupName).name} />
       </PullToRefresh>
 
       <GroupSwitcherSheet
         open={switcherOpen}
-        groups={groups}
+        groups={groups.map((g) => ({ ...g, ...displayFor(g.id, g.name, g.emoji) }))}
         selectedGroupId={selectedGroupId}
         allowAll
         onSelect={(id) => {
@@ -238,11 +248,13 @@ function Section({
   items,
   onOpen,
   showGroup = false,
+  groupLabel,
 }: {
   title: string;
   items: NotificationItem[];
   onOpen: (item: NotificationItem) => void;
   showGroup?: boolean;
+  groupLabel: (item: NotificationItem) => string;
 }) {
   if (items.length === 0) return null;
   return (
@@ -282,7 +294,7 @@ function Section({
                   {n.text}
                 </span>
                 <span className="block text-[12px] text-neutral-400 mt-0.5">
-                  {showGroup && n.groupName ? `${n.groupName} · ` : ""}
+                   {showGroup && n.groupName ? `${groupLabel(n)} · ` : ""}
                   {timeAgo(n.createdAt)}
                 </span>
               </span>
