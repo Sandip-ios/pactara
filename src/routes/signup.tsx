@@ -49,6 +49,33 @@ function useVisualViewport(): { height: number; offsetTop: number } {
   return state;
 }
 
+/**
+ * Height of the on-screen keyboard (or anything else shrinking the visual
+ * viewport from the bottom). Used to lift footers above the keyboard so the
+ * primary button stays tappable without dismissing it.
+ */
+function useKeyboardInset(): number {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const bottom = vv ? window.innerHeight - vv.height - vv.offsetTop : 0;
+      setInset(Math.max(0, Math.round(bottom)));
+    };
+    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  return inset;
+}
+
 
 import {
   ArrowRight,
