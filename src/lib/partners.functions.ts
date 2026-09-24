@@ -199,6 +199,19 @@ export const acceptPartnership = createServerFn({ method: "POST" })
     if (mErr) throw new Error(mErr.message);
     await supabaseAdmin.from("partnerships").update({ group_id: group.id }).eq("id", p.id);
 
+    // Fold each person's solo waiting pact into the partnership so it
+    // doesn't linger as a second group. Their history moves with them.
+    const { data: queues } = await supabaseAdmin
+      .from("partner_queue")
+      .select("user_id, solo_group_id")
+      .in("user_id", [u1, u2]);
+    for (const q of queues ?? []) {
+      if (!q.solo_group_id) continue;
+      await supabaseAdmin
+        .rpc("merge_solo_into_partner", { _user: q.user_id, _solo: q.solo_group_id, _target: group.id })
+        .then(() => undefined, () => undefined);
+    }
+
     for (const uid of [u1, u2]) {
       await srv.trackPartnerEvent(uid, "partner_match_both_accepted", { partnership_id: p.id });
       await srv.trackPartnerEvent(uid, "partner_relationship_started", { partnership_id: p.id });
