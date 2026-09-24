@@ -103,7 +103,11 @@ function PactPage() {
   };
 
   const enterGroup = () => {
-    if (typeof localStorage !== "undefined") localStorage.setItem("active-group-id", groupId);
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", groupId);
+      // Intro offer shows once, right after the pact.
+      localStorage.setItem("show-intro-paywall", "1");
+    }
     navigate({ to: "/home" });
   };
 

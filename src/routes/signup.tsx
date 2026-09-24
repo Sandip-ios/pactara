@@ -304,7 +304,8 @@ function SignupFlow() {
   const goToPartner = () => {
     clearSignupResume();
     if (typeof localStorage !== "undefined") {
-      localStorage.setItem("show-intro-paywall", "1");
+      // The intro offer shows after the pact is signed (set on the pact
+      // screen), not before — partner seekers haven't made a pact yet.
       if (pendingGroupId) localStorage.setItem("active-group-id", pendingGroupId);
     }
     navigate({ to: "/partner", search: { solo: pendingGroupId }, replace: true });
