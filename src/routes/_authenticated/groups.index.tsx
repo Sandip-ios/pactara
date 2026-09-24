@@ -20,7 +20,7 @@ import {
 } from "@/components/groups/AccountabilityBits";
 
 export const Route = createFileRoute("/_authenticated/groups/")({
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (s: Record<string, unknown>): { invite?: string } => ({
     invite: typeof s.invite === "string" && s.invite ? s.invite : undefined,
   }),
   component: GroupsOverview,
