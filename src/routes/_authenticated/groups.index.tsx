@@ -180,6 +180,24 @@ function GroupsOverview() {
           ))}
         </div>
       </PullToRefresh>
+
+      {inviteSheet && (
+        <ShareInviteDrawer
+          open
+          onOpenChange={(o) => {
+            if (!o) setInviteSheet(null);
+          }}
+          groupName={inviteSheet.groupName}
+          inviteLink={inviteLinkFor(inviteSheet.groupId)}
+          shareText="Accept your invite to my Pactara group!"
+          copied={inviteCopied}
+          onCopy={() => {
+            navigator.clipboard.writeText(inviteLinkFor(inviteSheet.groupId)).catch(() => {});
+            setInviteCopied(true);
+            setTimeout(() => setInviteCopied(false), 1800);
+          }}
+        />
+      )}
     </div>
   );
 }
