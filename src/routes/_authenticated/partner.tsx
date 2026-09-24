@@ -301,11 +301,7 @@ function PartnerPage() {
         >
           <ChevronLeft size={20} strokeWidth={2.5} />
         </button>
-        <div className="absolute bottom-5 left-6 z-10 flex items-center gap-3 rounded-2xl border border-white/50 bg-white/90 px-4 py-2.5 shadow-xl backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
-          <div className="flex -space-x-2">
-            <div className="h-6 w-6 rounded-full bg-linear-to-br from-pactara-purple to-pactara-purple-deep ring-2 ring-white shadow-sm" />
-            <div className="h-6 w-6 rounded-full bg-pactara-purple-deep ring-2 ring-white shadow-sm" />
-          </div>
+        <div className="absolute bottom-5 left-6 z-10 flex items-center gap-2 rounded-2xl border border-white/50 bg-white/90 px-4 py-2.5 shadow-xl backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-3 motion-safe:duration-700">
           <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-pactara-purple-deep">
             90-day partnership
           </span>
@@ -339,10 +335,11 @@ function PartnerPage() {
             type="button"
             onClick={onFind}
             disabled={busy}
-            className="h-14 w-full rounded-[24px] bg-pactara-purple text-[16px] font-bold text-pactara-purple-foreground shadow-partner-cta transition-[transform,background-color,opacity] hover:bg-pactara-purple-deep active:scale-[0.98] disabled:opacity-60"
+            className="h-14 w-full rounded-2xl text-[16px] font-semibold text-white shadow-partner-cta transition-transform active:scale-[0.98] disabled:opacity-60 hover:opacity-90"
+            style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
           >
             {busy ? "Finding your partner…" : "Find me a partner"}
-            <ArrowRight size={20} strokeWidth={3} aria-hidden="true" />
+            <ArrowRight size={20} strokeWidth={2.5} aria-hidden="true" />
           </Button>
         </div>
       </div>
