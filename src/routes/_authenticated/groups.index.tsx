@@ -7,6 +7,8 @@ import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { GroupOverflowMenu, inviteLinkFor, ShareInviteDrawer } from "@/components/groups/GroupOverflowMenu";
 import { PendingInvitesRow } from "@/components/groups/PendingInvitesRow";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 import {
   BG,
   GroupStreakChip,
@@ -37,6 +39,7 @@ function GroupsOverview() {
     refetchOnWindowFocus: true,
     staleTime: 30_000,
   });
+  const { data: partnerState } = usePartnerState();
 
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinUrl, setJoinUrl] = useState("");
@@ -175,9 +178,17 @@ function GroupsOverview() {
 
         <div className="mt-4 space-y-3">
           {groups.length === 0 && <EmptyGroups />}
-          {groups.map((g) => (
-            <GroupAccountabilityCard key={g.id} group={g} />
-          ))}
+          {groups.map((g) => {
+            const relation = relationForGroup(g.id, partnerState);
+            return (
+              <GroupAccountabilityCard
+                key={g.id}
+                group={g}
+                displayName={relation?.name ?? g.name}
+                displayEmoji={relation?.emoji ?? g.emoji}
+              />
+            );
+          })}
         </div>
       </PullToRefresh>
 
@@ -202,7 +213,15 @@ function GroupsOverview() {
   );
 }
 
-function GroupAccountabilityCard({ group }: { group: GroupToday }) {
+function GroupAccountabilityCard({
+  group,
+  displayName,
+  displayEmoji,
+}: {
+  group: GroupToday;
+  displayName: string;
+  displayEmoji: string;
+}) {
   const navigate = useNavigate();
   const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
   const waiting = group.members.filter((m) => m.status !== "done");
@@ -220,10 +239,10 @@ function GroupAccountabilityCard({ group }: { group: GroupToday }) {
         style={{ background: `linear-gradient(160deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
       >
         <button onClick={open} className="flex-1 min-w-0 flex items-center gap-3 text-left">
-          <span className="text-[24px] leading-none">{group.emoji}</span>
+           <span className="text-[24px] leading-none">{displayEmoji}</span>
           <span className="min-w-0">
             <span className="block text-white text-[18px] font-bold leading-tight truncate">
-              {group.name}
+               {displayName}
             </span>
             <span className="block text-white/75 text-[12px] mt-0.5 truncate">
               Day {group.dayNumber} of {group.durationDays} · {freqLabel}
@@ -232,8 +251,8 @@ function GroupAccountabilityCard({ group }: { group: GroupToday }) {
         </button>
         <GroupOverflowMenu
           groupId={group.id}
-          groupName={group.name}
-          emoji={group.emoji}
+           groupName={displayName}
+           emoji={displayEmoji}
           isAdmin={group.isAdmin}
           duration={group.durationDays}
           frequency={group.frequency}
