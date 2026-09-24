@@ -222,7 +222,9 @@ function SignupFlow() {
   const STEPS = useMemo(() => stepsFor(isInvited, method), [isInvited, method]);
 
   const step = STEPS[stepIdx];
-  const progress = ((stepIdx + 1) / STEPS.length) * 100;
+  // Before a path is chosen, measure progress against the longer path.
+  const progressTotal = !isInvited && !method ? stepsFor(false, "people").length : STEPS.length;
+  const progress = ((stepIdx + 1) / progressTotal) * 100;
 
 
   // Invited users join an existing group, so the summary screen must reflect
