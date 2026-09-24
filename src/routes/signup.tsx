@@ -49,6 +49,33 @@ function useVisualViewport(): { height: number; offsetTop: number } {
   return state;
 }
 
+/**
+ * Height of the on-screen keyboard (or anything else shrinking the visual
+ * viewport from the bottom). Used to lift footers above the keyboard so the
+ * primary button stays tappable without dismissing it.
+ */
+function useKeyboardInset(): number {
+  const [inset, setInset] = useState(0);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const bottom = vv ? window.innerHeight - vv.height - vv.offsetTop : 0;
+      setInset(Math.max(0, Math.round(bottom)));
+    };
+    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+  return inset;
+}
+
 
 import {
   ArrowRight,
@@ -183,6 +210,7 @@ function SignupFlow() {
   const recordAnonymousStep = useServerFn(recordAnonymousOnboardingStep);
   const recordAuthenticatedStep = useServerFn(recordAuthenticatedOnboardingStep);
   const [stepIdx, setStepIdx] = useState(0);
+  const keyboardInset = useKeyboardInset();
 
 
   const [firstName, setFirstName] = useState("");
@@ -622,8 +650,14 @@ function SignupFlow() {
         )}
       </div>
 
-      {/* Footer actions */}
-      <div className="flex flex-col items-center gap-3 pt-6">
+      {/* Footer actions — lifts above the on-screen keyboard */}
+      <div
+        className="flex flex-col items-center gap-3 pt-6"
+        style={{
+          paddingBottom: keyboardInset > 0 ? keyboardInset + 12 : 0,
+          transition: "padding-bottom 0.2s ease-out",
+        }}
+      >
         {step === "photo" && !photo ? (
           <>
             <PrimaryButton
