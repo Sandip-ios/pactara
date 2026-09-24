@@ -75,6 +75,38 @@ export const getPartnerState = createServerFn({ method: "GET" })
 
     const iAmOne = current.user_1_id === userId;
     const partnerId = (iAmOne ? current.user_2_id : current.user_1_id) as string;
+
+    // If the partner deleted their account or left the shared pact, end the
+    // match so this person can start a fresh search.
+    const [{ data: partnerProfile }, memberCheck] = await Promise.all([
+      supabaseAdmin.from("profiles").select("id").eq("id", partnerId).maybeSingle(),
+      current.status === "active"
+        ? current.group_id
+          ? supabaseAdmin
+              .from("group_members")
+              .select("user_id")
+              .eq("group_id", current.group_id as string)
+              .eq("user_id", partnerId)
+              .maybeSingle()
+          : Promise.resolve({ data: null })
+        : Promise.resolve({ data: { user_id: partnerId } }),
+    ]);
+    if (!partnerProfile || !memberCheck.data) {
+      await supabaseAdmin
+        .from("partnerships")
+        .update({ status: "ended", ended_at: new Date().toISOString(), ended_reason: "partner_left" })
+        .eq("id", current.id);
+      await supabaseAdmin
+        .from("partner_queue")
+        .update({ status: "ended", matched_at: null })
+        .eq("user_id", userId);
+      await srv.trackPartnerEvent(userId, "partner_relationship_ended", {
+        partnership_id: current.id,
+        reason: "partner_left",
+      });
+      return { ...base, status: "none", partnership: null };
+    }
+
     const partner = await person(partnerId);
 
     let partnerInactive = false;
