@@ -10,6 +10,8 @@ import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { clearCheckInStream } from "@/lib/checkin-stream-store";
 
 import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
+import { getPartnerState, type PartnerState } from "@/lib/partners.functions";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";

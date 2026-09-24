@@ -24,6 +24,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
+import { relationForGroup } from "@/lib/group-display";
 import { getPartnerState } from "@/lib/partners.functions";
 import { useServerFn as usePartnerServerFn } from "@tanstack/react-start";
 import { useQuery as usePartnerQuery } from "@tanstack/react-query";
