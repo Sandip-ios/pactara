@@ -390,8 +390,8 @@ function PartnerPage() {
               <Handshake size={38} color="white" strokeWidth={2} />
             </span>
           </div>
-          <h1 className="mt-8 text-[30px] font-bold tracking-tight leading-tight">
-            {data.released ? "We're still finding your person" : "We're finding your person"}
+          <h1 className="mt-8 max-w-[300px] text-[28px] font-bold tracking-tight leading-tight">
+            Finding your accountability partner
           </h1>
           <p className="mt-3 max-w-[280px] text-[16px]" style={{ color: MUTED }}>
             We're looking for someone who's ready to show up with you.
