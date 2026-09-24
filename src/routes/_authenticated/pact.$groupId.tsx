@@ -81,6 +81,11 @@ function PactPage() {
     setError(null);
     try {
       await sign({ data: { groupId } });
+      if (data?.isPartner) {
+        void import("@/lib/partners.functions")
+          .then((m) => m.trackPartnerScreen({ data: { event: "partner_pact_completed" } }))
+          .catch(() => undefined);
+      }
       const journey = readOnboardingJourney();
       if (journey) {
         await recordOnboardingStep({ data: { ...journey, step: "pact" } }).catch(() => undefined);
@@ -292,6 +297,7 @@ function PactPage() {
           signedCount={data.signedCount}
           memberCount={data.memberCount}
           durationDays={data.durationDays}
+          isPartner={data.isPartner}
           members={data.members}
           onDone={enterGroup}
         />
@@ -367,6 +373,7 @@ function PactSuccess({
   signedCount,
   memberCount,
   durationDays,
+  isPartner = false,
   members,
   onDone,
 }: {
@@ -375,6 +382,7 @@ function PactSuccess({
   signedCount: number;
   memberCount: number;
   durationDays: number;
+  isPartner?: boolean;
   members: PactMember[];
   onDone: () => void;
 }) {
@@ -412,10 +420,12 @@ function PactSuccess({
             THE PACT IS MADE
           </div>
           <div className="mt-2 text-[28px] font-black text-white leading-tight animate-in fade-in duration-500">
-            Everyone's in.
+            {isPartner ? "You're both in." : "Everyone's in."}
           </div>
           <div className="mt-4 text-[15px] text-white/80 animate-in fade-in duration-700">
-            {memberCount} {memberCount === 1 ? "person" : "people"} · {durationDays} days
+            {isPartner
+              ? `${durationDays} days of showing up together.`
+              : `${memberCount} ${memberCount === 1 ? "person" : "people"} · ${durationDays} days`}
           </div>
           <div className="mt-2 text-[15px] font-semibold text-white/90 animate-in fade-in duration-700">
             Now show up.

@@ -45,6 +45,7 @@ export function signupStepToAnalytics(step: string): OnboardingStep | null {
     notify: "notifications",
     greeting: "greeting",
     paywall: "paywall",
+    personalGoal: "personal_goal",
   };
   return map[step] ?? null;
 }

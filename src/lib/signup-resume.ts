@@ -4,6 +4,7 @@ export type SignupResume = {
   step: string;
   firstName?: string;
   groupId?: string;
+  method?: "people" | "partner";
 };
 
 /**

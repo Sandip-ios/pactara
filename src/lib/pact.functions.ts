@@ -35,7 +35,7 @@ export const getPact = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, start_date, pact_promise")
+      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, start_date, pact_promise, kind")
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -99,6 +99,7 @@ export const getPact = createServerFn({ method: "GET" })
       daysPerWeek: ((group as { days_per_week?: number | null }).days_per_week ?? 7) as number,
       startDate: ((group as { start_date?: string | null }).start_date ?? null) as string | null,
       promise: ((group as { pact_promise?: string | null }).pact_promise ?? null) as string | null,
+      isPartner: (group as { kind?: string | null }).kind === "partner",
       isOwner: group.owner_id === userId,
       hasSigned: Boolean(me?.signed),
       signedCount: list.filter((m) => m.signed).length,
@@ -186,9 +187,11 @@ export const getPendingPact = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("group_members")
-      .select("group_id, joined_at, pact_signed_at")
+      .select("group_id, joined_at, pact_signed_at, groups!inner(kind)")
       .eq("user_id", userId)
       .is("pact_signed_at", null)
+      // Personal spaces for people waiting on a partner don't need a pact.
+      .neq("groups.kind", "solo")
       .order("joined_at", { ascending: true })
       .limit(1);
     if (error) throw new Error(error.message);

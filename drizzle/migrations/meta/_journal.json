@@ -127,6 +127,13 @@
       "when": 1790189798015,
       "tag": "0017_add_solo_group_nudge",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1790227240304,
+      "tag": "0018_accountability_partners",
+      "breakpoints": true
     }
   ]
 }
