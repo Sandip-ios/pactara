@@ -30,6 +30,7 @@ function GroupsOverview() {
   useStatusBarScrollToTop();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { invite: inviteGroupId } = Route.useSearch();
   const { data, isLoading } = useQuery({
     queryKey: ["groups-today"],
     queryFn: () => getGroupsToday(),
@@ -39,6 +40,36 @@ function GroupsOverview() {
 
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinUrl, setJoinUrl] = useState("");
+  const [inviteSheet, setInviteSheet] = useState<{ groupId: string; groupName: string } | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
+  const inviteHandled = useRef(false);
+
+  // Arriving with ?invite=<groupId> (e.g. from "Invite someone instead" on the
+  // partner screen) opens the invite share for that group, then clears the param.
+  useEffect(() => {
+    if (!inviteGroupId || inviteHandled.current || !data) return;
+    inviteHandled.current = true;
+    navigate({ to: "/groups", search: {}, replace: true });
+    const group = data.groups.find((g) => g.id === inviteGroupId) ?? data.groups[0];
+    if (!group) return;
+    const shareText = "Accept your invite to my Pactara group!";
+    const link = inviteLinkFor(group.id);
+    let canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
+    if (canNativeShare) {
+      try {
+        canNativeShare = window.self === window.top;
+      } catch {
+        canNativeShare = false;
+      }
+    }
+    if (canNativeShare) {
+      navigator.share({ title: shareText, text: shareText, url: link }).catch(() =>
+        setInviteSheet({ groupId: group.id, groupName: group.name }),
+      );
+    } else {
+      setInviteSheet({ groupId: group.id, groupName: group.name });
+    }
+  }, [inviteGroupId, data, navigate]);
 
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
