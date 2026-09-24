@@ -66,7 +66,8 @@ export function TodaySnapshot({
   groupId,
   groupSize,
   memberGoals = [],
-}: Props) {
+  ritualMessage,
+}: Props & { ritualMessage?: string }) {
   const navigate = useNavigate();
   const copy = state === "ritual" && ritualMessage ? { ...COPY[state], message: ritualMessage } : COPY[state];
 
