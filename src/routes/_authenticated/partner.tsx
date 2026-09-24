@@ -393,19 +393,12 @@ function PartnerPage() {
           <h1 className="mt-8 text-[30px] font-bold tracking-tight leading-tight">
             {data.released ? "We're still finding your person" : "We're finding your person"}
           </h1>
-          <div className="mt-6 h-1 w-44 overflow-hidden rounded-full bg-pactara-purple/10">
-            <div className="relative h-full w-full">
-              <span
-                aria-hidden
-                className="absolute inset-y-0 w-1/3 rounded-full bg-linear-to-r from-transparent via-pactara-purple to-transparent"
-                style={{ animation: "partner-shimmer 1.8s ease-in-out infinite" }}
-              />
-            </div>
-          </div>
+          <p className="mt-3 max-w-[280px] text-[16px]" style={{ color: MUTED }}>
+            We're looking for someone who's ready to show up with you.
+          </p>
         </div>
 
         <Footer error={error}>
-          <PrimaryButton label="Continue" onClick={goHome} />
           <TextButton
             label="Invite someone instead"
             onClick={() =>
