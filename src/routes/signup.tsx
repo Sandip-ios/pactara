@@ -691,8 +691,8 @@ function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string
 /* ------------ Step: Choose accountability ------------ */
 function MethodStep({ onChoose }: { onChoose: (m: Method) => void }) {
   const options: { id: Method; icon: ReactNode; title: string; text: string }[] = [
-    { id: "people", icon: <Users size={26} color="white" strokeWidth={2.2} />, title: "Bring my people", text: "Create a group with people you already know." },
-    { id: "partner", icon: <Handshake size={26} color="white" strokeWidth={2.2} />, title: "Find me a partner", text: "We'll match you with someone who wants accountability too." },
+    { id: "people", icon: <Users size={24} color={PURPLE} strokeWidth={2} />, title: "Bring my people", text: "Create a group with people you already know." },
+    { id: "partner", icon: <Handshake size={24} color={PURPLE} strokeWidth={2} />, title: "Find me a partner", text: "We'll match you with someone who wants accountability too." },
   ];
   return (
     <div>
@@ -706,20 +706,17 @@ function MethodStep({ onChoose }: { onChoose: (m: Method) => void }) {
             key={o.id}
             type="button"
             onClick={() => onChoose(o.id)}
-            className="w-full rounded-3xl bg-white p-5 flex items-center gap-4 text-left active:scale-[0.99] transition"
-            style={{ border: `1.5px solid ${PURPLE_BORDER}`, boxShadow: "0 10px 30px -18px rgba(124,58,237,0.45)" }}
+            className="w-full rounded-2xl bg-white p-5 flex items-center text-left transition-all duration-200 active:scale-[0.98] hover:border-[#7C3AED]"
+            style={{ border: "1px solid #DDDDDD", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
           >
-            <span
-              className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0"
-              style={{ background: `linear-gradient(180deg, ${PURPLE} 0%, ${PURPLE_DEEP} 100%)` }}
-            >
+            <span className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 mr-4" style={{ background: "#F5F3FF" }}>
               {o.icon}
             </span>
-            <span className="flex-1 min-w-0">
-              <span className="block text-[19px] font-bold">{o.title}</span>
-              <span className="mt-1 block text-[14px] leading-[1.4]" style={{ color: TEXT_MUTED }}>{o.text}</span>
+            <span className="flex-1 min-w-0 pr-2">
+              <span className="block text-[17px] font-semibold leading-tight" style={{ color: "#222222" }}>{o.title}</span>
+              <span className="mt-1 block text-[14px] leading-tight" style={{ color: "#717171" }}>{o.text}</span>
             </span>
-            <ArrowRight size={20} color={PURPLE} />
+            <ArrowRight size={18} color={PURPLE} strokeWidth={2.5} className="ml-2 shrink-0" />
           </button>
         ))}
       </div>
