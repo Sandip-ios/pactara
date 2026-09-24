@@ -402,8 +402,8 @@ function PartnerPage() {
               />
             </div>
           </div>
-
         </div>
+
         <Footer error={error}>
           <PrimaryButton label="Continue" onClick={goHome} />
           <TextButton
