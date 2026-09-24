@@ -41,7 +41,7 @@ export const Route = createFileRoute("/")({
       // Left signup part-way (e.g. on the invite screen) → pick up where they
       // stopped instead of dropping them into the app.
       const resume = getSignupResume();
-      if (resume?.onPartner) throw redirect({ to: "/partner" });
+      if (resume?.onPartner) throw redirect({ to: "/partner", search: { solo: resume.groupId } });
       if (resume) throw redirect({ to: "/signup" });
       // Already checked in today → open Home; otherwise open the check-in flow.
       let checkedIn = false;
