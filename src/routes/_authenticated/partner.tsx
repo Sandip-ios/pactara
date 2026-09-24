@@ -36,15 +36,9 @@ export const Route = createFileRoute("/_authenticated/partner")({
 
 const PURPLE = "#7C3AED";
 const PURPLE_DEEP = "#5B21B6";
-const PURPLE_SOFT = "#F3EEFF";
 const MUTED = "#6B6660";
 const LABEL = "#8A8580";
 
-const SEARCH_STEPS = [
-  "Scanning for someone ready…",
-  "Checking today's queue…",
-  "Reaching out to your person…",
-];
 
 /** Candidates orbiting the search on the waiting screen. */
 const ORBITERS = [
@@ -79,7 +73,6 @@ function PartnerPage() {
   const [error, setError] = useState<string | null>(null);
   const [justMatched, setJustMatched] = useState(false);
   const [matching, setMatching] = useState<null | "searching" | "locked">(null);
-  const [step, setStep] = useState(0);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["partner-state"],
@@ -96,10 +89,6 @@ function PartnerPage() {
     }
   }, [data, track]);
 
-  useEffect(() => {
-    const t = setInterval(() => setStep((s) => (s + 1) % SEARCH_STEPS.length), 2400);
-    return () => clearInterval(t);
-  }, []);
 
   // A match that lands while the user is on the waiting screen still gets the
   // dramatic reveal — same as an instant match right after tapping the button.
@@ -404,28 +393,17 @@ function PartnerPage() {
           <h1 className="mt-8 text-[30px] font-bold tracking-tight leading-tight">
             {data.released ? "We're still finding your person" : "We're finding your person"}
           </h1>
-          <p
-            key={step}
-            className="mt-3 h-5 text-[15px] font-medium motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500"
-            style={{ color: MUTED }}
-          >
-            {data.released ? "We'll let you know when your next match is ready." : SEARCH_STEPS[step]}
-          </p>
-          <div className="relative mt-5 h-1 w-44 overflow-hidden rounded-full bg-pactara-purple/10">
-            <span
-              aria-hidden
-              className="absolute inset-y-0 w-1/3 rounded-full bg-linear-to-r from-transparent via-pactara-purple to-transparent"
-              style={{ animation: "partner-shimmer 1.8s ease-in-out infinite" }}
-            />
-          </div>
-          <div
-            className="mt-5 inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold"
-            style={{ background: PURPLE_SOFT, color: PURPLE_DEEP }}
-          >
-            <span className="h-2 w-2 rounded-full animate-pulse" style={{ background: PURPLE }} />
-            Partner search active
+          <div className="mt-6 h-1 w-44 overflow-hidden rounded-full bg-pactara-purple/10">
+            <div className="relative h-full w-full">
+              <span
+                aria-hidden
+                className="absolute inset-y-0 w-1/3 rounded-full bg-linear-to-r from-transparent via-pactara-purple to-transparent"
+                style={{ animation: "partner-shimmer 1.8s ease-in-out infinite" }}
+              />
+            </div>
           </div>
         </div>
+
         <Footer error={error}>
           <PrimaryButton label="Continue" onClick={goHome} />
           <TextButton
