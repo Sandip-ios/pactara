@@ -12,6 +12,8 @@ export type PartnerPerson = {
 export type PartnerState = {
   status: "none" | "waiting" | "pending" | "active";
   released: boolean;
+  /** Previous partner deleted their account or left; offer a new search. */
+  partnerLeft: boolean;
   me: PartnerPerson;
   myGoal: string | null;
   soloGroupId: string | null;
@@ -70,7 +72,18 @@ export const getPartnerState = createServerFn({ method: "GET" })
     };
 
     if (!current) {
-      return { ...base, status: queue?.status === "waiting" ? "waiting" : "none", partnership: null };
+      let partnerLeft = false;
+      if (queue?.status !== "waiting") {
+        const { data: last } = await supabaseAdmin
+          .from("partnerships")
+          .select("ended_reason, ended_by")
+          .or(`user_1_id.eq.${userId},user_2_id.eq.${userId}`)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        partnerLeft = last?.ended_reason === "partner_left" && last?.ended_by === userId;
+      }
+      return { ...base, partnerLeft, status: queue?.status === "waiting" ? "waiting" : "none", partnership: null };
     }
 
     const iAmOne = current.user_1_id === userId;
@@ -94,7 +107,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
     if (!partnerProfile || !memberCheck.data) {
       await supabaseAdmin
         .from("partnerships")
-        .update({ status: "ended", ended_at: new Date().toISOString(), ended_reason: "partner_left" })
+        .update({ status: "ended", ended_at: new Date().toISOString(), ended_reason: "partner_left", ended_by: userId })
         .eq("id", current.id);
       await supabaseAdmin
         .from("partner_queue")
@@ -104,7 +117,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
         partnership_id: current.id,
         reason: "partner_left",
       });
-      return { ...base, status: "none", partnership: null };
+      return { ...base, partnerLeft: true, status: "none", partnership: null };
     }
 
     const partner = await person(partnerId);
@@ -127,6 +140,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
 
     return {
       ...base,
+      partnerLeft: false,
       status: current.status === "active" ? "active" : "pending",
       partnership: {
         id: current.id as string,
