@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ArrowRight, ChevronLeft, Handshake } from "lucide-react";
 import partnerHero from "@/assets/partner-hero.jpg";
+import { clearSignupResume, getSignupResume } from "@/lib/signup-resume";
 import {
   acceptPartnership,
   findPartner,
@@ -88,6 +89,12 @@ function PartnerPage() {
   // The intro screen is a pure decision point — back returns to wherever
   // the user came from, falling back to Home when there's no history.
   const goBack = () => {
+    // Fresh from signup: return to the last onboarding screen (notifications).
+    const resume = getSignupResume();
+    if (resume?.method === "partner") {
+      navigate({ to: "/signup", replace: true });
+      return;
+    }
     const prev = typeof window !== "undefined" ? sessionStorage.getItem("pactara:prev-path") : null;
     const isAuthOrOnboarding =
       !prev || /^\/(login|signin|sign-in|auth|signup|welcome|reset|forgot|onboarding)?(\/|$)/.test(prev);
@@ -98,6 +105,7 @@ function PartnerPage() {
 
   const onFind = () =>
     run(async () => {
+      clearSignupResume();
       const res = await search({ data: { soloGroupId } });
       if (res.matched) setJustMatched(true);
     });

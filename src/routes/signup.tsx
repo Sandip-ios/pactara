@@ -302,7 +302,9 @@ function SignupFlow() {
 
   // Partner seekers finish signup on the matching screen.
   const goToPartner = () => {
-    clearSignupResume();
+    // Keep the resume point on the notifications step so "back" on the
+    // partner intro returns here; cleared once the search starts.
+    saveSignupResume({ step: "notify", firstName, groupId: pendingGroupId, method: "partner" });
     if (typeof localStorage !== "undefined") {
       // The intro offer shows after the pact is signed (set on the pact
       // screen), not before — partner seekers haven't made a pact yet.
