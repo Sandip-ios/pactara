@@ -15,14 +15,14 @@ export function PartnerBanner() {
   let title: string | null = null;
   let body = "";
   if (data.status === "waiting") {
-    title = "Partner search active";
-    body = "We'll let you know as soon as someone's ready.";
+    title = "Finding your partner";
+    body = "We'll let you know the moment we find someone.";
   } else if (data.status === "pending" && p && !p.iAccepted) {
     title = "You've got a partner 🔥";
     body = `Meet ${p.partner.name}.`;
   } else if (data.status === "pending" && p) {
     title = `Waiting for ${p.partner.name}`;
-    body = "You're in. We'll tell you when they are.";
+    body = "You're in. We'll let you know when they accept.";
   } else if (data.status === "active" && p?.partnerInactive) {
     title = `${p.partner.name} hasn't been active lately`;
     body = "Want us to find you another partner?";
