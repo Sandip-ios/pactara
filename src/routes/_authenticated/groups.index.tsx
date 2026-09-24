@@ -55,6 +55,8 @@ function GroupsOverview() {
     navigate({ to: "/groups", search: {}, replace: true });
     const group = data.groups.find((g) => g.id === inviteGroupId) ?? data.groups[0];
     if (!group) return;
+    const relation = relationForGroup(group.id, partnerState);
+    const groupName = relation?.name ?? group.name;
     const shareText = "Accept your invite to my Pactara group!";
     const link = inviteLinkFor(group.id);
     let canNativeShare = typeof navigator !== "undefined" && "share" in navigator;
@@ -67,12 +69,12 @@ function GroupsOverview() {
     }
     if (canNativeShare) {
       navigator.share({ title: shareText, text: shareText, url: link }).catch(() =>
-        setInviteSheet({ groupId: group.id, groupName: group.name }),
+        setInviteSheet({ groupId: group.id, groupName }),
       );
     } else {
-      setInviteSheet({ groupId: group.id, groupName: group.name });
+      setInviteSheet({ groupId: group.id, groupName });
     }
-  }, [inviteGroupId, data, navigate]);
+  }, [inviteGroupId, data, navigate, partnerState]);
 
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;

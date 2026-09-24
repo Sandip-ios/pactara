@@ -125,6 +125,13 @@ function NotesPage() {
     const emoji = relation?.emoji ?? g.emoji;
     return `${emoji ? `${emoji} ` : ""}${relation?.name ?? g.name}`;
   })();
+  const celebrationGroupName = (() => {
+    const id = getActiveGroupId();
+    const group = myGroups.find((g) => (g.id as string) === id) ?? myGroups[0];
+    if (!group) return null;
+    const relation = relationForGroup(group.id as string, partnerState);
+    return relation?.name ?? group.name;
+  })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -386,7 +393,7 @@ function NotesPage() {
           open
           userPhoto={shareData.photoUrl}
           streakCount={shareData.celebration.streakCount}
-          groupName={shareData.celebration.groupName}
+          groupName={celebrationGroupName ?? shareData.celebration.groupName}
           teammates={shareData.celebration.teammates}
           newBadges={shareData.newBadges}
           onShare={handleShareWin}

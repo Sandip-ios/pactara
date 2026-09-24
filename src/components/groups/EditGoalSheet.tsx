@@ -14,6 +14,8 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
 const TEXT_MUTED = "#6B6660";
@@ -37,6 +39,8 @@ export function EditGoalSheet({
     queryFn: () => fetchGoal({ data: { groupId } }),
     enabled: open,
   });
+  const { data: partnerState } = usePartnerState();
+  const displayName = relationForGroup(groupId, partnerState)?.name ?? data?.groupName;
 
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -77,7 +81,7 @@ export function EditGoalSheet({
           <DrawerTitle className="text-[20px] font-bold">Edit my goal</DrawerTitle>
           <DrawerDescription>
             This is yours — not the group's.
-            {data?.groupName ? ` Everyone in ${data.groupName} sets their own.` : ""}
+            {displayName ? ` Everyone in ${displayName} sets their own.` : ""}
           </DrawerDescription>
         </DrawerHeader>
 
