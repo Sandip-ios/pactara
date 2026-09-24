@@ -243,13 +243,6 @@ function PartnerPage() {
                 {p.partner.name}
               </span>
             </div>
-            <span
-              aria-hidden
-              className="absolute left-1/2 top-[48px] z-30 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full border-[3px] border-background bg-pactara-purple text-[15px] font-bold text-pactara-purple-foreground shadow-lg"
-              style={justMatched ? { animation: "partner-link-pop 900ms cubic-bezier(0.34,1.56,0.64,1) 350ms both" } : undefined}
-            >
-              +
-            </span>
           </div>
           <div className="mt-5 grid w-full grid-cols-2 gap-2 text-left">
             <div
