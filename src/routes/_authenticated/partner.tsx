@@ -287,19 +287,15 @@ function PartnerPage() {
 
 function Shell({ children, onBack }: { children: React.ReactNode; onBack?: () => void }) {
   return (
-    <div className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-background pt-safe-4 text-foreground">
-      <div className="h-10 flex items-center">
+    <div
+      className="h-[100dvh] w-full flex flex-col px-6 pb-8 overflow-hidden bg-background text-foreground"
+      style={{ paddingTop: 32 }}
+    >
+      <div className="flex items-center">
         {onBack && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onBack}
-            aria-label="Back"
-            className="-ml-1 h-10 w-10 rounded-full bg-muted/70 text-foreground active:scale-95"
-          >
-            <ChevronLeft size={22} strokeWidth={2.5} />
-          </Button>
+          <button onClick={onBack} aria-label="Back" className="-ml-1 p-1 shrink-0">
+            <ChevronLeft size={22} />
+          </button>
         )}
       </div>
       {children}
