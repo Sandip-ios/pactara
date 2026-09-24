@@ -357,6 +357,14 @@ function SignupFlow() {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
       // Sign up (or sign in if the account already exists for this email).
       let session = (await supabase.auth.getSession()).data.session;
+      // A stored session can belong to a deleted account; verify it's still real.
+      if (session) {
+        const { data: u, error: uErr } = await supabase.auth.getUser();
+        if (uErr || !u.user) {
+          await supabase.auth.signOut({ scope: "local" });
+          session = null;
+        }
+      }
       if (!session) {
         const { data, error } = await supabase.auth.signUp({
           email: email.trim(),
