@@ -211,7 +211,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     // Backfill any milestone already reached but never recorded (e.g. streaks
     // kept alive with a freeze).
-    if (isSelf) {
+    if (isSelf && !noGroups) {
       await awardBadgesForUser(supabase, targetId, groupId);
     }
 
