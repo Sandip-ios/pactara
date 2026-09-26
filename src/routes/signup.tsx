@@ -334,6 +334,7 @@ function SignupFlow() {
     // Keep the resume point on the notifications step so "back" on the
     // partner intro returns here; cleared once the search starts.
     saveSignupResume({ step: "notify", firstName, groupId: pendingGroupId, method: "partner", onPartner: true });
+    if (typeof sessionStorage !== "undefined") sessionStorage.setItem("show-welcome", "1");
     if (typeof localStorage !== "undefined") {
       // The intro offer shows after the pact is signed (set on the pact
       // screen), not before — partner seekers haven't made a pact yet.
