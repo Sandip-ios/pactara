@@ -244,7 +244,9 @@ function HomePage() {
       localStorage.setItem("how-pactara-works-tip-seen", "1");
       return;
     }
-    const t = setTimeout(() => setShowHowItWorksTip(true), 900);
+    const t = setTimeout(() => {
+      if (localStorage.getItem("how-pactara-works-tip-seen") !== "1") setShowHowItWorksTip(true);
+    }, 900);
     return () => clearTimeout(t);
   }, [status]);
 
