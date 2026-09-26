@@ -235,6 +235,8 @@ function HomePage() {
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
     if (localStorage.getItem("how-pactara-works-tip-seen") === "1") return;
+    // The full guide is about to open for a new signup; don't show its tooltip over it.
+    if (sessionStorage.getItem("show-welcome") === "1") return;
     if (!status) return;
     const joinedAt = status.joinedAt ? new Date(status.joinedAt).getTime() : 0;
     const isNewMember = joinedAt > Date.now() - 21 * 24 * 60 * 60 * 1000;
