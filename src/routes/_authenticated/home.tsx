@@ -216,6 +216,7 @@ function HomePage() {
   // One-time preview of the milestone celebration on the next app open.
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
+    if (sessionStorage.getItem("show-welcome") === "1") return;
     if (localStorage.getItem("badge-celebration-preview-shown") === "1") return;
     localStorage.setItem("badge-celebration-preview-shown", "1");
     const t = setTimeout(() => setPendingBadges((p) => p ?? [7]), 600);
