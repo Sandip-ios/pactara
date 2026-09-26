@@ -13,7 +13,6 @@ import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type Ti
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
-import { WelcomeSheet } from "@/components/WelcomeSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { TimelineCard } from "@/components/TimelineCard";
 import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
@@ -64,6 +63,16 @@ const BG = "#F5F2EE";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
+  head: () => ({
+    meta: [
+      { title: "Home · Pactara" },
+      { name: "description", content: "Your daily commitments, check-ins, and accountability group on Pactara." },
+      { property: "og:title", content: "Home · Pactara" },
+      { property: "og:description", content: "Your daily commitments, check-ins, and accountability group on Pactara." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function HomePage() {
@@ -170,7 +179,6 @@ function HomePage() {
 
 
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
   
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState("");
@@ -208,6 +216,7 @@ function HomePage() {
   // One-time preview of the milestone celebration on the next app open.
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
+    if (sessionStorage.getItem("show-welcome") === "1") return;
     if (localStorage.getItem("badge-celebration-preview-shown") === "1") return;
     localStorage.setItem("badge-celebration-preview-shown", "1");
     const t = setTimeout(() => setPendingBadges((p) => p ?? [7]), 600);
@@ -227,6 +236,8 @@ function HomePage() {
   useEffect(() => {
     if (typeof localStorage === "undefined") return;
     if (localStorage.getItem("how-pactara-works-tip-seen") === "1") return;
+    // The full guide is about to open for a new signup; don't show its tooltip over it.
+    if (sessionStorage.getItem("show-welcome") === "1") return;
     if (!status) return;
     const joinedAt = status.joinedAt ? new Date(status.joinedAt).getTime() : 0;
     const isNewMember = joinedAt > Date.now() - 21 * 24 * 60 * 60 * 1000;
@@ -234,7 +245,9 @@ function HomePage() {
       localStorage.setItem("how-pactara-works-tip-seen", "1");
       return;
     }
-    const t = setTimeout(() => setShowHowItWorksTip(true), 900);
+    const t = setTimeout(() => {
+      if (localStorage.getItem("how-pactara-works-tip-seen") !== "1") setShowHowItWorksTip(true);
+    }, 900);
     return () => clearTimeout(t);
   }, [status]);
 
@@ -294,9 +307,10 @@ function HomePage() {
   useEffect(() => {
     if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
       sessionStorage.removeItem("show-welcome");
-      setShowWelcome(true);
+      dismissHowItWorksTip();
+      setShowOnboarding(true);
     }
-  }, [status, navigate]);
+  }, [status]);
 
   const dismissOnboarding = () => {
     setShowOnboarding(false);
@@ -674,9 +688,6 @@ function HomePage() {
 
       </PullToRefresh>
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
-      {showWelcome && (
-        <WelcomeSheet firstName={firstName} onClose={() => setShowWelcome(false)} />
-      )}
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
       )}
