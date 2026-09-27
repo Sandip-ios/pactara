@@ -159,6 +159,12 @@ export async function searchForPartner(userId: string, opts: { goal?: string | n
   for (const c of candidates ?? []) {
     if (avoid.has(c.user_id as string)) continue;
     if (await currentPartnership(c.user_id as string)) continue;
+    // Skip leftover queue rows from deleted accounts.
+    const { data: alive } = await db.from("profiles").select("id").eq("id", c.user_id as string).maybeSingle();
+    if (!alive) {
+      await db.from("partner_queue").update({ status: "removed" }).eq("id", c.id);
+      continue;
+    }
     const { data: claimed } = await db
       .from("partner_queue")
       .update({ status: "matched", matched_at: now.toISOString() })

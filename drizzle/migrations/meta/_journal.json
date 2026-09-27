@@ -148,6 +148,13 @@
       "when": 1790525226087,
       "tag": "0020_account_deletions_log",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1790525436448,
+      "tag": "0021_remove_queue_on_profile_delete",
+      "breakpoints": true
     }
   ]
 }
