@@ -262,6 +262,13 @@ export const deleteMyAccount = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(userId);
+    await (supabaseAdmin as any).from("account_deletions").upsert({
+      user_id: userId,
+      email: u?.user?.email ?? null,
+      source: "in_app",
+      deleted_at: new Date().toISOString(),
+    });
     const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
     if (error) throw new Error(error.message);
     return { ok: true };
