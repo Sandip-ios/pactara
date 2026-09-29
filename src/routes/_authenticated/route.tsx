@@ -91,19 +91,6 @@ function AuthLayout() {
 
   // New members see the intro offer once, after the pact / partner screens.
   const [introPaywall, setIntroPaywall] = useState(false);
-  useEffect(() => {
-    if (onPactRoute || pathname === "/partner" || !pactChecked) return;
-    // Wait for the subscription check — never show the intro offer to someone
-    // who already has an active membership.
-    if (trialState === null || trialState.loading) return;
-    if (trialState.subscribed) {
-      try { localStorage.removeItem("show-intro-paywall"); } catch { /* ignore */ }
-      return;
-    }
-    if (typeof localStorage !== "undefined" && localStorage.getItem("show-intro-paywall") === "1") {
-      setIntroPaywall(true);
-    }
-  }, [pathname, onPactRoute, pactChecked, trialState]);
 
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
