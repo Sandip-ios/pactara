@@ -114,10 +114,11 @@ function AuthLayout() {
 
   const [trialState, setTrialState] = useState<{
     expired: boolean;
+    subscribed: boolean;
     firstName: string | null;
     daysActive: number;
     loading: boolean;
-  } | null>({ expired: false, firstName: null, daysActive: 0, loading: true });
+  } | null>({ expired: false, subscribed: false, firstName: null, daysActive: 0, loading: true });
 
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +126,7 @@ function AuthLayout() {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
       if (!userId) {
-        if (!cancelled) setTrialState({ expired: false, firstName: null, daysActive: 0, loading: false });
+        if (!cancelled) setTrialState({ expired: false, subscribed: false, firstName: null, daysActive: 0, loading: false });
         return;
       }
       const { data: profile } = await supabase
@@ -175,7 +176,7 @@ function AuthLayout() {
       const expired = forced || (!subscribed && now - created > TRIAL_DAYS * 86400000);
 
       const firstName = (profile?.name || auth.user?.user_metadata?.name || "").split(" ")[0] || null;
-      setTrialState({ expired, firstName, daysActive, loading: false });
+      setTrialState({ expired, subscribed, firstName, daysActive, loading: false });
     })();
     return () => {
       cancelled = true;
