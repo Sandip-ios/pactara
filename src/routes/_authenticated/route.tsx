@@ -114,6 +114,20 @@ function AuthLayout() {
     loading: boolean;
   } | null>({ expired: false, subscribed: false, firstName: null, daysActive: 0, loading: true });
 
+  // Show the one-time intro paywall (queued by signup) once we're inside the
+  // app — but never to someone who already has an active membership.
+  useEffect(() => {
+    if (onPactRoute || pathname === "/partner" || !pactChecked) return;
+    if (trialState === null || trialState.loading) return; // wait for the subscription check
+    if (trialState.subscribed) {
+      try { localStorage.removeItem("show-intro-paywall"); } catch { /* ignore */ }
+      return;
+    }
+    if (typeof localStorage !== "undefined" && localStorage.getItem("show-intro-paywall") === "1") {
+      setIntroPaywall(true);
+    }
+  }, [pathname, onPactRoute, pactChecked, trialState]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
