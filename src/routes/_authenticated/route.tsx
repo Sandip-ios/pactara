@@ -91,12 +91,6 @@ function AuthLayout() {
 
   // New members see the intro offer once, after the pact / partner screens.
   const [introPaywall, setIntroPaywall] = useState(false);
-  useEffect(() => {
-    if (onPactRoute || pathname === "/partner" || !pactChecked) return;
-    if (typeof localStorage !== "undefined" && localStorage.getItem("show-intro-paywall") === "1") {
-      setIntroPaywall(true);
-    }
-  }, [pathname, onPactRoute, pactChecked]);
 
   const tabsHiddenByModal = useSyncExternalStore(
     subscribeBottomTabsHidden,
@@ -114,10 +108,25 @@ function AuthLayout() {
 
   const [trialState, setTrialState] = useState<{
     expired: boolean;
+    subscribed: boolean;
     firstName: string | null;
     daysActive: number;
     loading: boolean;
-  } | null>({ expired: false, firstName: null, daysActive: 0, loading: true });
+  } | null>({ expired: false, subscribed: false, firstName: null, daysActive: 0, loading: true });
+
+  // Show the one-time intro paywall (queued by signup) once we're inside the
+  // app — but never to someone who already has an active membership.
+  useEffect(() => {
+    if (onPactRoute || pathname === "/partner" || !pactChecked) return;
+    if (trialState === null || trialState.loading) return; // wait for the subscription check
+    if (trialState.subscribed) {
+      try { localStorage.removeItem("show-intro-paywall"); } catch { /* ignore */ }
+      return;
+    }
+    if (typeof localStorage !== "undefined" && localStorage.getItem("show-intro-paywall") === "1") {
+      setIntroPaywall(true);
+    }
+  }, [pathname, onPactRoute, pactChecked, trialState]);
 
   useEffect(() => {
     let cancelled = false;
@@ -125,7 +134,7 @@ function AuthLayout() {
       const { data: auth } = await supabase.auth.getUser();
       const userId = auth.user?.id;
       if (!userId) {
-        if (!cancelled) setTrialState({ expired: false, firstName: null, daysActive: 0, loading: false });
+        if (!cancelled) setTrialState({ expired: false, subscribed: false, firstName: null, daysActive: 0, loading: false });
         return;
       }
       const { data: profile } = await supabase
@@ -175,7 +184,7 @@ function AuthLayout() {
       const expired = forced || (!subscribed && now - created > TRIAL_DAYS * 86400000);
 
       const firstName = (profile?.name || auth.user?.user_metadata?.name || "").split(" ")[0] || null;
-      setTrialState({ expired, firstName, daysActive, loading: false });
+      setTrialState({ expired, subscribed, firstName, daysActive, loading: false });
     })();
     return () => {
       cancelled = true;
