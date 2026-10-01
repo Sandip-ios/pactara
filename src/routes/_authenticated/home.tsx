@@ -309,8 +309,22 @@ function HomePage() {
     if (status && typeof sessionStorage !== "undefined" && sessionStorage.getItem("show-welcome") === "1") {
       sessionStorage.removeItem("show-welcome");
       dismissHowItWorksTip();
+      setOnboardingStep(0);
       setShowOnboarding(true);
     }
+  }, [status]);
+
+  // After a member posts their first morning commitment and returns Home,
+  // reopen the guide on step 2 ("Check in with proof") so they know what's next.
+  useEffect(() => {
+    if (!status || typeof sessionStorage === "undefined") return;
+    if (sessionStorage.getItem("morning-ritual-done") !== "1") return;
+    sessionStorage.removeItem("morning-ritual-done");
+    if (typeof localStorage !== "undefined" && localStorage.getItem("commitment-next-step-shown") === "1") return;
+    if (typeof localStorage !== "undefined") localStorage.setItem("commitment-next-step-shown", "1");
+    dismissHowItWorksTip();
+    setOnboardingStep(1);
+    setShowOnboarding(true);
   }, [status]);
 
   const dismissOnboarding = () => {
