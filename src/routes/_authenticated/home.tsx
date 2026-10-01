@@ -179,6 +179,7 @@ function HomePage() {
 
 
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingStep, setOnboardingStep] = useState(0);
   
   const [composerOpen, setComposerOpen] = useState(false);
   const [composerText, setComposerText] = useState("");
