@@ -702,7 +702,7 @@ function HomePage() {
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
 
       </PullToRefresh>
-      {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} />}
+      {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} initialStep={onboardingStep} />}
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
       )}
