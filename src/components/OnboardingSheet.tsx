@@ -3,15 +3,15 @@ import { X } from "lucide-react";
 import proofAsset from "@/assets/proof.jpg.asset.json";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 
-type Props = { firstName: string; onClose: () => void };
+type Props = { firstName: string; onClose: () => void; initialStep?: number };
 
 const SERIF = 'Georgia, "Times New Roman", serif';
 const INK = "#1A1B2A";
 const PURPLE = "#7C3AED";
 
-export function OnboardingSheet({ firstName: _firstName, onClose }: Props) {
+export function OnboardingSheet({ firstName: _firstName, onClose, initialStep = 0 }: Props) {
   useHideBottomTabs();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(initialStep);
   const total = 3;
   const isLast = step === total - 1;
 
