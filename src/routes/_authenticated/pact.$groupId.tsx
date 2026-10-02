@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/pact/$groupId")({
     <div className="min-h-[100dvh] flex items-center justify-center px-6 text-center bg-white">
       <div>
         <div className="text-[18px] font-bold mb-2">We couldn't load this pact</div>
-        <div className="text-[14px] text-neutral-500">{error.message}</div>
+        <div className="text-[14px] text-neutral-500">{(error as Error).message}</div>
       </div>
     </div>
   ),
