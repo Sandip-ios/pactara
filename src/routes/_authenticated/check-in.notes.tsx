@@ -6,7 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCheckInCelebrationData, recordCheckIn, type CelebrationData } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 
-import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
+import { clearCheckInPhoto, getCheckInPhoto, setCheckInPhotoBlob } from "@/lib/checkin-photo-store";
+import { saveCheckInDraft, loadCheckInDraft, clearCheckInDraft } from "@/lib/checkin-draft-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 import { requestAppStoreReview } from "@/lib/app-review";
 import { listMyGroups } from "@/lib/groups.functions";
@@ -134,8 +135,32 @@ function NotesPage() {
   })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+
   useEffect(() => {
-    setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
+    const existing = getCheckInPhoto();
+    if (existing) {
+      setPhotoPreview(existing.previewUrl);
+      return;
+    }
+    // No fresh capture — restore a saved draft (media survives app restarts
+    // via IndexedDB, unlike the in-memory photo store).
+    let cancelled = false;
+    void loadCheckInDraft().then((draft) => {
+      if (cancelled || !draft) return;
+      if (draft.blob) {
+        setCheckInPhotoBlob(draft.blob);
+        setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
+      }
+      setNote(draft.note ?? "");
+      setActivity(draft.activity ?? null);
+      setAllGroups(draft.allGroups ?? false);
+      setDraftRestored(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   type ShareState = { photoUrl: string | null; celebration: CelebrationData; newBadges: number[] };
@@ -180,8 +205,8 @@ function NotesPage() {
           // them retry once they have a better connection.
           setSubmitError(
             photo.blob.type.startsWith("video/")
-              ? "Your video couldn't upload — your connection looks weak. Tap Share to try again."
-              : "Your photo couldn't upload — your connection looks weak. Tap Share to try again.",
+              ? "Your video couldn't upload — your connection looks weak. Try again, or save it as a draft and share it later."
+              : "Your photo couldn't upload — your connection looks weak. Try again, or save it as a draft and share it later.",
           );
           return;
         }
@@ -209,6 +234,9 @@ function NotesPage() {
         sessionStorage.setItem("pending-badge-announce", JSON.stringify(newBadges));
       }
 
+      // Posted — any saved draft for this check-in is no longer needed.
+      void clearCheckInDraft();
+
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
       if (hide && newBadges.length === 0) {
         finalizeAndExit();
@@ -223,9 +251,37 @@ function NotesPage() {
       setShareData({ photoUrl: photoForShare, celebration, newBadges });
     } catch (err) {
       console.error("check-in submit failed", err);
-      setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
+      setSubmitError(
+        "Couldn't post your check-in — your connection looks weak. Try again, or save it as a draft and share it later.",
+      );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      const photo = getCheckInPhoto();
+      const ok = await saveCheckInDraft({
+        note,
+        activity,
+        groupId: getActiveGroupId(),
+        allGroups,
+        blob: photo?.blob ?? null,
+        isVideo: photo ? photo.blob.type.startsWith("video/") : false,
+      });
+      if (ok) {
+        // The draft now owns the blob; drop the in-memory copy and go home,
+        // where a draft card lets them resume when they're back online.
+        clearCheckInPhoto();
+        navigate({ to: "/home" });
+      } else {
+        setSubmitError("Couldn't save the draft on this device. Please try sharing again.");
+      }
+    } finally {
+      setSavingDraft(false);
     }
   };
 
@@ -373,6 +429,11 @@ function NotesPage() {
         className="fixed inset-x-0 px-4 z-50"
         style={{ bottom: "24px" }}
       >
+        {draftRestored && !submitError && (
+          <div className="mb-2 rounded-lg bg-purple-50 px-3 py-2 text-[13px] text-center" style={{ color: PURPLE }}>
+            Draft restored — tap Share when you're back online.
+          </div>
+        )}
         {submitError && (
           <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-600 text-center">
             {submitError}
@@ -380,12 +441,22 @@ function NotesPage() {
         )}
         <button
           onClick={submit}
-          disabled={isBusy}
+          disabled={isBusy || savingDraft}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE }}
         >
           {isBusy ? "Sharing…" : allGroups && myGroups.length > 1 ? "Share to all groups" : "Share"}
         </button>
+        {submitError && (
+          <button
+            onClick={saveDraft}
+            disabled={isBusy || savingDraft}
+            className="mt-2 w-full rounded-2xl py-4 text-[16px] font-semibold disabled:opacity-60"
+            style={{ background: "#EDE6FE", color: PURPLE }}
+          >
+            {savingDraft ? "Saving…" : "Save as draft"}
+          </button>
+        )}
       </div>
 
       {shareData && (

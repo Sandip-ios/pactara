@@ -20,6 +20,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
+import { loadCheckInDraft, clearCheckInDraft, type CheckInDraft } from "@/lib/checkin-draft-store";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
@@ -190,6 +191,19 @@ function HomePage() {
   const [uploading, setUploading] = useState(false);
   const [pendingBadges, setPendingBadges] = useState<number[] | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [checkInDraft, setCheckInDraft] = useState<CheckInDraft | null>(null);
+
+  // Surface a saved check-in draft (from a failed share on weak connectivity)
+  // so the member can resume it once they're back online.
+  useEffect(() => {
+    let cancelled = false;
+    void loadCheckInDraft().then((draft) => {
+      if (!cancelled && draft) setCheckInDraft(draft);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof sessionStorage === "undefined") return;
@@ -530,6 +544,44 @@ function HomePage() {
 
 
 
+
+      {checkInDraft && (
+        <div className="mx-4 mt-3 rounded-2xl bg-white ring-1 ring-neutral-200 p-4 flex items-center gap-3">
+          <div
+            className="h-11 w-11 shrink-0 rounded-xl flex items-center justify-center text-[20px]"
+            style={{ background: "#EDE6FE" }}
+          >
+            {checkInDraft.isVideo ? "🎬" : "📸"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-bold text-neutral-900">Draft check-in</div>
+            <div className="text-[13px] text-neutral-500 truncate">
+              {checkInDraft.note
+                ? checkInDraft.note
+                : checkInDraft.isVideo
+                  ? "Your video is saved — share it when you're back online."
+                  : "Your photo is saved — share it when you're back online."}
+            </div>
+          </div>
+          <button
+            onClick={() => navigate({ to: "/check-in/notes" })}
+            className="shrink-0 rounded-full px-4 py-2 text-white text-[14px] font-semibold"
+            style={{ background: PURPLE }}
+          >
+            Resume
+          </button>
+          <button
+            onClick={() => {
+              void clearCheckInDraft();
+              setCheckInDraft(null);
+            }}
+            aria-label="Discard draft"
+            className="shrink-0 h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
 
       {!composerOpen ? (
         <div className="mx-4 mt-3 p-3 flex items-center gap-[10px]">
