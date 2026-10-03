@@ -429,6 +429,11 @@ function NotesPage() {
         className="fixed inset-x-0 px-4 z-50"
         style={{ bottom: "24px" }}
       >
+        {draftRestored && !submitError && (
+          <div className="mb-2 rounded-lg bg-purple-50 px-3 py-2 text-[13px] text-center" style={{ color: PURPLE }}>
+            Draft restored — tap Share when you're back online.
+          </div>
+        )}
         {submitError && (
           <div className="mb-2 rounded-lg bg-red-50 px-3 py-2 text-[13px] text-red-600 text-center">
             {submitError}
@@ -436,12 +441,22 @@ function NotesPage() {
         )}
         <button
           onClick={submit}
-          disabled={isBusy}
+          disabled={isBusy || savingDraft}
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE }}
         >
           {isBusy ? "Sharing…" : allGroups && myGroups.length > 1 ? "Share to all groups" : "Share"}
         </button>
+        {submitError && (
+          <button
+            onClick={saveDraft}
+            disabled={isBusy || savingDraft}
+            className="mt-2 w-full rounded-2xl py-4 text-[16px] font-semibold disabled:opacity-60"
+            style={{ background: "#EDE6FE", color: PURPLE }}
+          >
+            {savingDraft ? "Saving…" : "Save as draft"}
+          </button>
+        )}
       </div>
 
       {shareData && (
