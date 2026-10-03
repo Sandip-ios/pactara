@@ -234,6 +234,9 @@ function NotesPage() {
         sessionStorage.setItem("pending-badge-announce", JSON.stringify(newBadges));
       }
 
+      // Posted — any saved draft for this check-in is no longer needed.
+      void clearCheckInDraft();
+
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
       if (hide && newBadges.length === 0) {
         finalizeAndExit();
@@ -248,9 +251,37 @@ function NotesPage() {
       setShareData({ photoUrl: photoForShare, celebration, newBadges });
     } catch (err) {
       console.error("check-in submit failed", err);
-      setSubmitError(err instanceof Error ? err.message : "Couldn't post your check-in. Please try again.");
+      setSubmitError(
+        "Couldn't post your check-in — your connection looks weak. Try again, or save it as a draft and share it later.",
+      );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const saveDraft = async () => {
+    if (savingDraft) return;
+    setSavingDraft(true);
+    try {
+      const photo = getCheckInPhoto();
+      const ok = await saveCheckInDraft({
+        note,
+        activity,
+        groupId: getActiveGroupId(),
+        allGroups,
+        blob: photo?.blob ?? null,
+        isVideo: photo ? photo.blob.type.startsWith("video/") : false,
+      });
+      if (ok) {
+        // The draft now owns the blob; drop the in-memory copy and go home,
+        // where a draft card lets them resume when they're back online.
+        clearCheckInPhoto();
+        navigate({ to: "/home" });
+      } else {
+        setSubmitError("Couldn't save the draft on this device. Please try sharing again.");
+      }
+    } finally {
+      setSavingDraft(false);
     }
   };
 
