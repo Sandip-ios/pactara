@@ -6,7 +6,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { getCheckInCelebrationData, recordCheckIn, type CelebrationData } from "@/lib/daily-posts.functions";
 import { supabase } from "@/integrations/supabase/client";
 
-import { clearCheckInPhoto, getCheckInPhoto } from "@/lib/checkin-photo-store";
+import { clearCheckInPhoto, getCheckInPhoto, setCheckInPhotoBlob } from "@/lib/checkin-photo-store";
+import { saveCheckInDraft, loadCheckInDraft, clearCheckInDraft } from "@/lib/checkin-draft-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
 import { requestAppStoreReview } from "@/lib/app-review";
 import { listMyGroups } from "@/lib/groups.functions";
