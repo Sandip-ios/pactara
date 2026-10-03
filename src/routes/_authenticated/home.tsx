@@ -20,6 +20,7 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
+import { loadCheckInDraft, clearCheckInDraft, type CheckInDraft } from "@/lib/checkin-draft-store";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
@@ -190,6 +191,19 @@ function HomePage() {
   const [uploading, setUploading] = useState(false);
   const [pendingBadges, setPendingBadges] = useState<number[] | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [checkInDraft, setCheckInDraft] = useState<CheckInDraft | null>(null);
+
+  // Surface a saved check-in draft (from a failed share on weak connectivity)
+  // so the member can resume it once they're back online.
+  useEffect(() => {
+    let cancelled = false;
+    void loadCheckInDraft().then((draft) => {
+      if (!cancelled && draft) setCheckInDraft(draft);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof sessionStorage === "undefined") return;
