@@ -545,6 +545,44 @@ function HomePage() {
 
 
 
+      {checkInDraft && (
+        <div className="mx-4 mt-3 rounded-2xl bg-white ring-1 ring-neutral-200 p-4 flex items-center gap-3">
+          <div
+            className="h-11 w-11 shrink-0 rounded-xl flex items-center justify-center text-[20px]"
+            style={{ background: "#EDE6FE" }}
+          >
+            {checkInDraft.isVideo ? "🎬" : "📸"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-bold text-neutral-900">Draft check-in</div>
+            <div className="text-[13px] text-neutral-500 truncate">
+              {checkInDraft.note
+                ? checkInDraft.note
+                : checkInDraft.isVideo
+                  ? "Your video is saved — share it when you're back online."
+                  : "Your photo is saved — share it when you're back online."}
+            </div>
+          </div>
+          <button
+            onClick={() => navigate({ to: "/check-in/notes" })}
+            className="shrink-0 rounded-full px-4 py-2 text-white text-[14px] font-semibold"
+            style={{ background: PURPLE }}
+          >
+            Resume
+          </button>
+          <button
+            onClick={() => {
+              void clearCheckInDraft();
+              setCheckInDraft(null);
+            }}
+            aria-label="Discard draft"
+            className="shrink-0 h-8 w-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500"
+          >
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
       {!composerOpen ? (
         <div className="mx-4 mt-3 p-3 flex items-center gap-[10px]">
           <div className="h-11 w-11 rounded-full flex items-center justify-center text-white font-bold overflow-hidden" style={{ background: PURPLE }}>
