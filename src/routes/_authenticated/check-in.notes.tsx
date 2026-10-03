@@ -135,8 +135,32 @@ function NotesPage() {
   })();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [draftRestored, setDraftRestored] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
+
   useEffect(() => {
-    setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
+    const existing = getCheckInPhoto();
+    if (existing) {
+      setPhotoPreview(existing.previewUrl);
+      return;
+    }
+    // No fresh capture — restore a saved draft (media survives app restarts
+    // via IndexedDB, unlike the in-memory photo store).
+    let cancelled = false;
+    void loadCheckInDraft().then((draft) => {
+      if (cancelled || !draft) return;
+      if (draft.blob) {
+        setCheckInPhotoBlob(draft.blob);
+        setPhotoPreview(getCheckInPhoto()?.previewUrl ?? null);
+      }
+      setNote(draft.note ?? "");
+      setActivity(draft.activity ?? null);
+      setAllGroups(draft.allGroups ?? false);
+      setDraftRestored(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   type ShareState = { photoUrl: string | null; celebration: CelebrationData; newBadges: number[] };
@@ -181,8 +205,8 @@ function NotesPage() {
           // them retry once they have a better connection.
           setSubmitError(
             photo.blob.type.startsWith("video/")
-              ? "Your video couldn't upload — your connection looks weak. Tap Share to try again."
-              : "Your photo couldn't upload — your connection looks weak. Tap Share to try again.",
+              ? "Your video couldn't upload — your connection looks weak. Try again, or save it as a draft and share it later."
+              : "Your photo couldn't upload — your connection looks weak. Try again, or save it as a draft and share it later.",
           );
           return;
         }
