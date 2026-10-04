@@ -176,6 +176,10 @@ function NewPactaraFlow() {
 
         },
       });
+      const goal = personalGoal.trim();
+      if (pendingGroupId && goal) {
+        await setMemberGoal({ data: { groupId: pendingGroupId, goal } });
+      }
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
       // Group now exists — move on to inviting people into it.
       setStepIdx(STEPS.indexOf("invite"));
