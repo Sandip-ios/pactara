@@ -80,6 +80,22 @@ function NewPactaraFlow() {
   const firstName = (profile?.name ?? "").trim().split(/\s+/)[0] ?? "";
   const [stepIdx, setStepIdx] = useState(0);
 
+  const [personalGoal, setPersonalGoal] = useState("");
+  const [goalPrefilled, setGoalPrefilled] = useState(false);
+  const getLatestGoal = useServerFn(getLatestMemberGoal);
+  const { data: latestGoal } = useQuery({
+    queryKey: ["latest-member-goal"],
+    queryFn: () => getLatestGoal(),
+    staleTime: 60_000,
+  });
+  useEffect(() => {
+    const goal = latestGoal?.goal?.trim();
+    if (goal && !goalPrefilled) {
+      setPersonalGoal(goal);
+      setGoalPrefilled(true);
+    }
+  }, [latestGoal, goalPrefilled]);
+
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
   const [customDays, setCustomDays] = useState("");
