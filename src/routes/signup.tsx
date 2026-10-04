@@ -709,7 +709,7 @@ function SignupFlow() {
 }
 
 /* ------------ Step: Personal goal ------------ */
-function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string) => void }) {
+export function PersonalGoalStep({ goal, setGoal }: { goal: string; setGoal: (v: string) => void }) {
   return (
     <div>
       <h1 className="text-[40px] font-bold tracking-tight leading-[1.05]">What's your goal?</h1>

@@ -14,9 +14,10 @@ import {
   InviteStep,
   NotifyStep,
   GreetingStep,
-  
+  PersonalGoalStep,
 } from "@/routes/signup";
 import { createGroupForUser } from "@/lib/groups.functions";
+import { getLatestMemberGoal, setMemberGoal } from "@/lib/member-goal.functions";
 
 export const Route = createFileRoute("/_authenticated/new-pactara")({
   component: NewPactaraFlow,
@@ -30,6 +31,7 @@ type StepKey =
   | "company"
   | "group"
   | "commitment"
+  | "goal"
   | "invite"
   | "notify"
   | "greeting";
@@ -39,6 +41,7 @@ const ALL_STEPS: StepKey[] = [
   "commitment",
   "company",
   "notify",
+  "goal",
   "greeting",
   "invite",
 ];
@@ -76,6 +79,22 @@ function NewPactaraFlow() {
   });
   const firstName = (profile?.name ?? "").trim().split(/\s+/)[0] ?? "";
   const [stepIdx, setStepIdx] = useState(0);
+
+  const [personalGoal, setPersonalGoal] = useState("");
+  const [goalPrefilled, setGoalPrefilled] = useState(false);
+  const getLatestGoal = useServerFn(getLatestMemberGoal);
+  const { data: latestGoal } = useQuery({
+    queryKey: ["latest-member-goal"],
+    queryFn: () => getLatestGoal(),
+    staleTime: 60_000,
+  });
+  useEffect(() => {
+    const goal = latestGoal?.goal?.trim();
+    if (goal && !goalPrefilled) {
+      setPersonalGoal(goal);
+      setGoalPrefilled(true);
+    }
+  }, [latestGoal, goalPrefilled]);
 
   const [groupName, setGroupName] = useState("");
   const [duration, setDuration] = useState<30 | 60 | 90 | "custom">(30);
@@ -157,6 +176,10 @@ function NewPactaraFlow() {
 
         },
       });
+      const goal = personalGoal.trim();
+      if (pendingGroupId && goal) {
+        await setMemberGoal({ data: { groupId: pendingGroupId, goal } });
+      }
       await queryClient.invalidateQueries({ queryKey: ["my-groups"] });
       // Group now exists — move on to inviting people into it.
       setStepIdx(STEPS.indexOf("invite"));
@@ -175,6 +198,8 @@ function NewPactaraFlow() {
         return groupName.trim().length > 0;
       case "commitment":
         return duration !== "custom" || customDays.trim().length > 0;
+      case "goal":
+        return personalGoal.trim().length > 0;
       case "invite":
         return invitedFriends.length >= 2;
       default:
@@ -193,6 +218,7 @@ function NewPactaraFlow() {
           days={days}
           goalLabel={goalLabel}
           goalEmoji={goalEmoji}
+          personalGoal={personalGoal.trim()}
           frequencyLabel={frequencyLabel}
           onContinue={finish}
           onBack={back}
@@ -273,6 +299,9 @@ function NewPactaraFlow() {
           />
         )}
         {step === "notify" && <NotifyStep onAllow={next} />}
+        {step === "goal" && (
+          <PersonalGoalStep goal={personalGoal} setGoal={setPersonalGoal} />
+        )}
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-6">
