@@ -74,6 +74,25 @@ export const setMemberGoal = createServerFn({ method: "POST" })
     return { ok: true, goal: data.goal };
   });
 
+/** The current user's most recently set personal goal, across any group. */
+export const getLatestMemberGoal = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data, error } = await supabaseAdmin
+      .from("group_members")
+      .select("personal_goal, personal_goal_set_at")
+      .eq("user_id", userId)
+      .not("personal_goal", "is", null)
+      .order("personal_goal_set_at", { ascending: false, nullsFirst: false })
+      .limit(1);
+    if (error) throw new Error(error.message);
+
+    return { goal: ((data ?? [])[0]?.personal_goal as string | undefined) ?? null };
+  });
+
 /**
  * First group the current user has joined without writing a personal goal.
  * Used to gate the app the same way the pact does.
