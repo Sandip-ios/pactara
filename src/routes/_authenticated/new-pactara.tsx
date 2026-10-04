@@ -14,9 +14,10 @@ import {
   InviteStep,
   NotifyStep,
   GreetingStep,
-  
+  PersonalGoalStep,
 } from "@/routes/signup";
 import { createGroupForUser } from "@/lib/groups.functions";
+import { getLatestMemberGoal, setMemberGoal } from "@/lib/member-goal.functions";
 
 export const Route = createFileRoute("/_authenticated/new-pactara")({
   component: NewPactaraFlow,
@@ -30,6 +31,7 @@ type StepKey =
   | "company"
   | "group"
   | "commitment"
+  | "goal"
   | "invite"
   | "notify"
   | "greeting";
@@ -39,6 +41,7 @@ const ALL_STEPS: StepKey[] = [
   "commitment",
   "company",
   "notify",
+  "goal",
   "greeting",
   "invite",
 ];
