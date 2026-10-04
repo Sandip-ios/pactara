@@ -198,6 +198,8 @@ function NewPactaraFlow() {
         return groupName.trim().length > 0;
       case "commitment":
         return duration !== "custom" || customDays.trim().length > 0;
+      case "goal":
+        return personalGoal.trim().length > 0;
       case "invite":
         return invitedFriends.length >= 2;
       default:
@@ -216,6 +218,7 @@ function NewPactaraFlow() {
           days={days}
           goalLabel={goalLabel}
           goalEmoji={goalEmoji}
+          personalGoal={personalGoal.trim()}
           frequencyLabel={frequencyLabel}
           onContinue={finish}
           onBack={back}
@@ -296,6 +299,9 @@ function NewPactaraFlow() {
           />
         )}
         {step === "notify" && <NotifyStep onAllow={next} />}
+        {step === "goal" && (
+          <PersonalGoalStep goal={personalGoal} setGoal={setPersonalGoal} />
+        )}
       </div>
 
       <div className="flex flex-col items-center gap-3 pt-6">
