@@ -9,103 +9,67 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SupportRouteImport } from './routes/support'
-import { Route as SignupRouteImport } from './routes/signup'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
-import { Route as AdminRouteRouteImport } from './routes/admin/route'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
-import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
-import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
-import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
-import { Route as AdminGrowthRouteImport } from './routes/admin/growth'
-import { Route as AdminGroupsRouteImport } from './routes/admin/groups'
-import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
-import { Route as AdminEventsRouteImport } from './routes/admin/events'
-import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
-import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
-import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
-import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
-import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
-import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
-import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
-import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
-import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
-import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
+import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
+import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
+import { Route as AdminEventsRouteImport } from './routes/admin/events'
+import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
+import { Route as AdminGroupsRouteImport } from './routes/admin/groups'
+import { Route as AdminGrowthRouteImport } from './routes/admin/growth'
+import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
+import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
-import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
-import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
-import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
-import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenticated/goal.$groupId'
-import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
-import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
-import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
-import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './routes/_authenticated/account-settings.password'
-import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
-import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
-import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/invite/defer'
-import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
-import { Route as ApiPublicHooksStreakRiskRouteImport } from './routes/api/public/hooks/streak-risk'
-import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
-import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
-import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
-import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
+import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
+import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
+import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './routes/_authenticated/account-settings.password'
+import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
+import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
+import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
+import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
+import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
+import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenticated/goal.$groupId'
+import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
+import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
+import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
+import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
+import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
+import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
+import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
+import { Route as ApiPublicHooksStreakRiskRouteImport } from './routes/api/public/hooks/streak-risk'
+import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
+import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/invite/defer'
 import { Route as ApiPublicOgInviteGroupIdRouteImport } from './routes/api/public/og/invite/$groupId'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SupportRoute = SupportRouteImport.update({
-  id: '/support',
-  path: '/support',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PaywallPreviewRoute = PaywallPreviewRouteImport.update({
-  id: '/paywall-preview',
-  path: '/paywall-preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BadgePreviewRoute = BadgePreviewRouteImport.update({
-  id: '/badge-preview',
-  path: '/badge-preview',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRouteRoute = AdminRouteRouteImport.update({
@@ -113,78 +77,65 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const BadgePreviewRoute = BadgePreviewRouteImport.update({
+  id: '/badge-preview',
+  path: '/badge-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
-  id: '/join/$groupId',
-  path: '/join/$groupId',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRouteRoute,
+const PaywallPreviewRoute = PaywallPreviewRouteImport.update({
+  id: '/paywall-preview',
+  path: '/paywall-preview',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRevenueRoute = AdminRevenueRouteImport.update({
-  id: '/revenue',
-  path: '/revenue',
-  getParentRoute: () => AdminRouteRoute,
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRetentionRoute = AdminRetentionRouteImport.update({
-  id: '/retention',
-  path: '/retention',
-  getParentRoute: () => AdminRouteRoute,
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminGrowthRoute = AdminGrowthRouteImport.update({
-  id: '/growth',
-  path: '/growth',
-  getParentRoute: () => AdminRouteRoute,
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminGroupsRoute = AdminGroupsRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AdminRouteRoute,
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminFunnelRoute = AdminFunnelRouteImport.update({
-  id: '/funnel',
-  path: '/funnel',
-  getParentRoute: () => AdminRouteRoute,
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminEventsRoute = AdminEventsRouteImport.update({
-  id: '/events',
-  path: '/events',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminAccountabilityRoute = AdminAccountabilityRouteImport.update({
-  id: '/accountability',
-  path: '/accountability',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const DotwellKnownAppleAppSiteAssociationRoute =
+  DotwellKnownAppleAppSiteAssociationRouteImport.update({
+    id: '/.well-known/apple-app-site-association',
+    path: '/.well-known/apple-app-site-association',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
+  id: '/home',
+  path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPartnerRoute = AuthenticatedPartnerRouteImport.update({
-  id: '/partner',
-  path: '/partner',
+const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
+  id: '/new-pactara',
+  path: '/new-pactara',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -193,102 +144,75 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedNewPactaraRoute = AuthenticatedNewPactaraRouteImport.update({
-  id: '/new-pactara',
-  path: '/new-pactara',
+const AuthenticatedPartnerRoute = AuthenticatedPartnerRouteImport.update({
+  id: '/partner',
+  path: '/partner',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
-  id: '/home',
-  path: '/home',
+const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const DotwellKnownAppleAppSiteAssociationRoute =
-  DotwellKnownAppleAppSiteAssociationRouteImport.update({
-    id: '/.well-known/apple-app-site-association',
-    path: '/.well-known/apple-app-site-association',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AuthenticatedGroupsIndexRoute =
-  AuthenticatedGroupsIndexRouteImport.update({
-    id: '/groups/',
-    path: '/groups/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCheckInIndexRoute =
-  AuthenticatedCheckInIndexRouteImport.update({
-    id: '/check-in/',
-    path: '/check-in/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
-  id: '/chat/',
-  path: '/chat/',
+const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminAccountabilityRoute = AdminAccountabilityRouteImport.update({
+  id: '/accountability',
+  path: '/accountability',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminFunnelRoute = AdminFunnelRouteImport.update({
+  id: '/funnel',
+  path: '/funnel',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminGroupsRoute = AdminGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminGrowthRoute = AdminGrowthRouteImport.update({
+  id: '/growth',
+  path: '/growth',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRetentionRoute = AdminRetentionRouteImport.update({
+  id: '/retention',
+  path: '/retention',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminRevenueRoute = AdminRevenueRouteImport.update({
+  id: '/revenue',
+  path: '/revenue',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
+  id: '/join/$groupId',
+  path: '/join/$groupId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountSettingsIndexRoute =
   AuthenticatedAccountSettingsIndexRouteImport.update({
     id: '/account-settings/',
     path: '/account-settings/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
-  id: '/u/$userId',
-  path: '/u/$userId',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPactGroupIdRoute =
-  AuthenticatedPactGroupIdRouteImport.update({
-    id: '/pact/$groupId',
-    path: '/pact/$groupId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGroupsGroupIdRoute =
-  AuthenticatedGroupsGroupIdRouteImport.update({
-    id: '/groups/$groupId',
-    path: '/groups/$groupId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGoalGroupIdRoute =
-  AuthenticatedGoalGroupIdRouteImport.update({
-    id: '/goal/$groupId',
-    path: '/goal/$groupId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCheckInNotesRoute =
-  AuthenticatedCheckInNotesRouteImport.update({
-    id: '/check-in/notes',
-    path: '/check-in/notes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedCheckInCameraRoute =
-  AuthenticatedCheckInCameraRouteImport.update({
-    id: '/check-in/camera',
-    path: '/check-in/camera',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedChatGroupIdRoute =
-  AuthenticatedChatGroupIdRouteImport.update({
-    id: '/chat/$groupId',
-    path: '/chat/$groupId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAccountSettingsPasswordRoute =
-  AuthenticatedAccountSettingsPasswordRouteImport.update({
-    id: '/account-settings/password',
-    path: '/account-settings/password',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAccountSettingsNotificationsRoute =
-  AuthenticatedAccountSettingsNotificationsRouteImport.update({
-    id: '/account-settings/notifications',
-    path: '/account-settings/notifications',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAccountSettingsNameRoute =
-  AuthenticatedAccountSettingsNameRouteImport.update({
-    id: '/account-settings/name',
-    path: '/account-settings/name',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAccountSettingsEmailRoute =
@@ -297,32 +221,91 @@ const AuthenticatedAccountSettingsEmailRoute =
     path: '/account-settings/email',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicInviteDeferRoute = ApiPublicInviteDeferRouteImport.update({
-  id: '/api/public/invite/defer',
-  path: '/api/public/invite/defer',
+const AuthenticatedAccountSettingsNameRoute =
+  AuthenticatedAccountSettingsNameRouteImport.update({
+    id: '/account-settings/name',
+    path: '/account-settings/name',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsNotificationsRoute =
+  AuthenticatedAccountSettingsNotificationsRouteImport.update({
+    id: '/account-settings/notifications',
+    path: '/account-settings/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsPasswordRoute =
+  AuthenticatedAccountSettingsPasswordRouteImport.update({
+    id: '/account-settings/password',
+    path: '/account-settings/password',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
+  id: '/chat/',
+  path: '/chat/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedChatGroupIdRoute =
+  AuthenticatedChatGroupIdRouteImport.update({
+    id: '/chat/$groupId',
+    path: '/chat/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckInIndexRoute =
+  AuthenticatedCheckInIndexRouteImport.update({
+    id: '/check-in/',
+    path: '/check-in/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckInCameraRoute =
+  AuthenticatedCheckInCameraRouteImport.update({
+    id: '/check-in/camera',
+    path: '/check-in/camera',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCheckInNotesRoute =
+  AuthenticatedCheckInNotesRouteImport.update({
+    id: '/check-in/notes',
+    path: '/check-in/notes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGoalGroupIdRoute =
+  AuthenticatedGoalGroupIdRouteImport.update({
+    id: '/goal/$groupId',
+    path: '/goal/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGroupsIndexRoute =
+  AuthenticatedGroupsIndexRouteImport.update({
+    id: '/groups/',
+    path: '/groups/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/groups/$groupId',
+    path: '/groups/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPactGroupIdRoute =
+  AuthenticatedPactGroupIdRouteImport.update({
+    id: '/pact/$groupId',
+    path: '/pact/$groupId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
+  id: '/u/$userId',
+  path: '/u/$userId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
+  id: '/api/public/hooks/auto-miss',
+  path: '/api/public/hooks/auto-miss',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicInviteClaimRoute = ApiPublicInviteClaimRouteImport.update({
-  id: '/api/public/invite/claim',
-  path: '/api/public/invite/claim',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksStreakRiskRoute =
-  ApiPublicHooksStreakRiskRouteImport.update({
-    id: '/api/public/hooks/streak-risk',
-    path: '/api/public/hooks/streak-risk',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksRevenuecatRoute =
-  ApiPublicHooksRevenuecatRouteImport.update({
-    id: '/api/public/hooks/revenuecat',
-    path: '/api/public/hooks/revenuecat',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksMorningRitualReminderRoute =
-  ApiPublicHooksMorningRitualReminderRouteImport.update({
-    id: '/api/public/hooks/morning-ritual-reminder',
-    path: '/api/public/hooks/morning-ritual-reminder',
+const ApiPublicHooksDailyReminderRoute =
+  ApiPublicHooksDailyReminderRouteImport.update({
+    id: '/api/public/hooks/daily-reminder',
+    path: '/api/public/hooks/daily-reminder',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicHooksEveningReminderRoute =
@@ -331,15 +314,32 @@ const ApiPublicHooksEveningReminderRoute =
     path: '/api/public/hooks/evening-reminder',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksDailyReminderRoute =
-  ApiPublicHooksDailyReminderRouteImport.update({
-    id: '/api/public/hooks/daily-reminder',
-    path: '/api/public/hooks/daily-reminder',
+const ApiPublicHooksMorningRitualReminderRoute =
+  ApiPublicHooksMorningRitualReminderRouteImport.update({
+    id: '/api/public/hooks/morning-ritual-reminder',
+    path: '/api/public/hooks/morning-ritual-reminder',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
-  id: '/api/public/hooks/auto-miss',
-  path: '/api/public/hooks/auto-miss',
+const ApiPublicHooksRevenuecatRoute =
+  ApiPublicHooksRevenuecatRouteImport.update({
+    id: '/api/public/hooks/revenuecat',
+    path: '/api/public/hooks/revenuecat',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicHooksStreakRiskRoute =
+  ApiPublicHooksStreakRiskRouteImport.update({
+    id: '/api/public/hooks/streak-risk',
+    path: '/api/public/hooks/streak-risk',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicInviteClaimRoute = ApiPublicInviteClaimRouteImport.update({
+  id: '/api/public/invite/claim',
+  path: '/api/public/invite/claim',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicInviteDeferRoute = ApiPublicInviteDeferRouteImport.update({
+  id: '/api/public/invite/defer',
+  path: '/api/public/invite/defer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicOgInviteGroupIdRoute =
@@ -705,74 +705,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/support': {
-      id: '/support'
-      path: '/support'
-      fullPath: '/support'
-      preLoaderRoute: typeof SupportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/paywall-preview': {
-      id: '/paywall-preview'
-      path: '/paywall-preview'
-      fullPath: '/paywall-preview'
-      preLoaderRoute: typeof PaywallPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/badge-preview': {
-      id: '/badge-preview'
-      path: '/badge-preview'
-      fullPath: '/badge-preview'
-      preLoaderRoute: typeof BadgePreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -782,109 +719,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
-      path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/join/$groupId': {
-      id: '/join/$groupId'
-      path: '/join/$groupId'
-      fullPath: '/join/$groupId'
-      preLoaderRoute: typeof JoinGroupIdRouteImport
+    '/badge-preview': {
+      id: '/badge-preview'
+      path: '/badge-preview'
+      fullPath: '/badge-preview'
+      preLoaderRoute: typeof BadgePreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/settings': {
-      id: '/admin/settings'
-      path: '/settings'
-      fullPath: '/admin/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/revenue': {
-      id: '/admin/revenue'
-      path: '/revenue'
-      fullPath: '/admin/revenue'
-      preLoaderRoute: typeof AdminRevenueRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/retention': {
-      id: '/admin/retention'
-      path: '/retention'
-      fullPath: '/admin/retention'
-      preLoaderRoute: typeof AdminRetentionRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/paywall-preview': {
+      id: '/paywall-preview'
+      path: '/paywall-preview'
+      fullPath: '/paywall-preview'
+      preLoaderRoute: typeof PaywallPreviewRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/growth': {
-      id: '/admin/growth'
-      path: '/growth'
-      fullPath: '/admin/growth'
-      preLoaderRoute: typeof AdminGrowthRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/groups': {
-      id: '/admin/groups'
-      path: '/groups'
-      fullPath: '/admin/groups'
-      preLoaderRoute: typeof AdminGroupsRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/funnel': {
-      id: '/admin/funnel'
-      path: '/funnel'
-      fullPath: '/admin/funnel'
-      preLoaderRoute: typeof AdminFunnelRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/events': {
-      id: '/admin/events'
-      path: '/events'
-      fullPath: '/admin/events'
-      preLoaderRoute: typeof AdminEventsRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/admin/accountability': {
-      id: '/admin/accountability'
-      path: '/accountability'
-      fullPath: '/admin/accountability'
-      preLoaderRoute: typeof AdminAccountabilityRouteImport
-      parentRoute: typeof AdminRouteRoute
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/profile': {
-      id: '/_authenticated/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof AuthenticatedProfileRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/.well-known/apple-app-site-association': {
+      id: '/.well-known/apple-app-site-association'
+      path: '/.well-known/apple-app-site-association'
+      fullPath: '/.well-known/apple-app-site-association'
+      preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/plan': {
-      id: '/_authenticated/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof AuthenticatedPlanRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/partner': {
-      id: '/_authenticated/partner'
-      path: '/partner'
-      fullPath: '/partner'
-      preLoaderRoute: typeof AuthenticatedPartnerRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/notifications': {
-      id: '/_authenticated/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+    '/_authenticated/home': {
+      id: '/_authenticated/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/new-pactara': {
@@ -894,116 +810,109 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewPactaraRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/home': {
-      id: '/_authenticated/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof AuthenticatedHomeRouteImport
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/.well-known/apple-app-site-association': {
-      id: '/.well-known/apple-app-site-association'
-      path: '/.well-known/apple-app-site-association'
-      fullPath: '/.well-known/apple-app-site-association'
-      preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/partner': {
+      id: '/_authenticated/partner'
+      path: '/partner'
+      fullPath: '/partner'
+      preLoaderRoute: typeof AuthenticatedPartnerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/groups/': {
-      id: '/_authenticated/groups/'
+    '/_authenticated/plan': {
+      id: '/_authenticated/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof AuthenticatedPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile': {
+      id: '/_authenticated/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/accountability': {
+      id: '/admin/accountability'
+      path: '/accountability'
+      fullPath: '/admin/accountability'
+      preLoaderRoute: typeof AdminAccountabilityRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/events': {
+      id: '/admin/events'
+      path: '/events'
+      fullPath: '/admin/events'
+      preLoaderRoute: typeof AdminEventsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/funnel': {
+      id: '/admin/funnel'
+      path: '/funnel'
+      fullPath: '/admin/funnel'
+      preLoaderRoute: typeof AdminFunnelRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/groups': {
+      id: '/admin/groups'
       path: '/groups'
-      fullPath: '/groups/'
-      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      fullPath: '/admin/groups'
+      preLoaderRoute: typeof AdminGroupsRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
-    '/_authenticated/check-in/': {
-      id: '/_authenticated/check-in/'
-      path: '/check-in'
-      fullPath: '/check-in/'
-      preLoaderRoute: typeof AuthenticatedCheckInIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/admin/growth': {
+      id: '/admin/growth'
+      path: '/growth'
+      fullPath: '/admin/growth'
+      preLoaderRoute: typeof AdminGrowthRouteImport
+      parentRoute: typeof AdminRouteRoute
     }
-    '/_authenticated/chat/': {
-      id: '/_authenticated/chat/'
-      path: '/chat'
-      fullPath: '/chat/'
-      preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/admin/retention': {
+      id: '/admin/retention'
+      path: '/retention'
+      fullPath: '/admin/retention'
+      preLoaderRoute: typeof AdminRetentionRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/revenue': {
+      id: '/admin/revenue'
+      path: '/revenue'
+      fullPath: '/admin/revenue'
+      preLoaderRoute: typeof AdminRevenueRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
+    '/join/$groupId': {
+      id: '/join/$groupId'
+      path: '/join/$groupId'
+      fullPath: '/join/$groupId'
+      preLoaderRoute: typeof JoinGroupIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account-settings/': {
       id: '/_authenticated/account-settings/'
       path: '/account-settings'
       fullPath: '/account-settings/'
       preLoaderRoute: typeof AuthenticatedAccountSettingsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/u/$userId': {
-      id: '/_authenticated/u/$userId'
-      path: '/u/$userId'
-      fullPath: '/u/$userId'
-      preLoaderRoute: typeof AuthenticatedUUserIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/pact/$groupId': {
-      id: '/_authenticated/pact/$groupId'
-      path: '/pact/$groupId'
-      fullPath: '/pact/$groupId'
-      preLoaderRoute: typeof AuthenticatedPactGroupIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/groups/$groupId': {
-      id: '/_authenticated/groups/$groupId'
-      path: '/groups/$groupId'
-      fullPath: '/groups/$groupId'
-      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/goal/$groupId': {
-      id: '/_authenticated/goal/$groupId'
-      path: '/goal/$groupId'
-      fullPath: '/goal/$groupId'
-      preLoaderRoute: typeof AuthenticatedGoalGroupIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/check-in/notes': {
-      id: '/_authenticated/check-in/notes'
-      path: '/check-in/notes'
-      fullPath: '/check-in/notes'
-      preLoaderRoute: typeof AuthenticatedCheckInNotesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/check-in/camera': {
-      id: '/_authenticated/check-in/camera'
-      path: '/check-in/camera'
-      fullPath: '/check-in/camera'
-      preLoaderRoute: typeof AuthenticatedCheckInCameraRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/chat/$groupId': {
-      id: '/_authenticated/chat/$groupId'
-      path: '/chat/$groupId'
-      fullPath: '/chat/$groupId'
-      preLoaderRoute: typeof AuthenticatedChatGroupIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/account-settings/password': {
-      id: '/_authenticated/account-settings/password'
-      path: '/account-settings/password'
-      fullPath: '/account-settings/password'
-      preLoaderRoute: typeof AuthenticatedAccountSettingsPasswordRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/account-settings/notifications': {
-      id: '/_authenticated/account-settings/notifications'
-      path: '/account-settings/notifications'
-      fullPath: '/account-settings/notifications'
-      preLoaderRoute: typeof AuthenticatedAccountSettingsNotificationsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/account-settings/name': {
-      id: '/_authenticated/account-settings/name'
-      path: '/account-settings/name'
-      fullPath: '/account-settings/name'
-      preLoaderRoute: typeof AuthenticatedAccountSettingsNameRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account-settings/email': {
@@ -1013,46 +922,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountSettingsEmailRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/invite/defer': {
-      id: '/api/public/invite/defer'
-      path: '/api/public/invite/defer'
-      fullPath: '/api/public/invite/defer'
-      preLoaderRoute: typeof ApiPublicInviteDeferRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/account-settings/name': {
+      id: '/_authenticated/account-settings/name'
+      path: '/account-settings/name'
+      fullPath: '/account-settings/name'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsNameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/invite/claim': {
-      id: '/api/public/invite/claim'
-      path: '/api/public/invite/claim'
-      fullPath: '/api/public/invite/claim'
-      preLoaderRoute: typeof ApiPublicInviteClaimRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/account-settings/notifications': {
+      id: '/_authenticated/account-settings/notifications'
+      path: '/account-settings/notifications'
+      fullPath: '/account-settings/notifications'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/streak-risk': {
-      id: '/api/public/hooks/streak-risk'
-      path: '/api/public/hooks/streak-risk'
-      fullPath: '/api/public/hooks/streak-risk'
-      preLoaderRoute: typeof ApiPublicHooksStreakRiskRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/account-settings/password': {
+      id: '/_authenticated/account-settings/password'
+      path: '/account-settings/password'
+      fullPath: '/account-settings/password'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsPasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/revenuecat': {
-      id: '/api/public/hooks/revenuecat'
-      path: '/api/public/hooks/revenuecat'
-      fullPath: '/api/public/hooks/revenuecat'
-      preLoaderRoute: typeof ApiPublicHooksRevenuecatRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/chat/': {
+      id: '/_authenticated/chat/'
+      path: '/chat'
+      fullPath: '/chat/'
+      preLoaderRoute: typeof AuthenticatedChatIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/morning-ritual-reminder': {
-      id: '/api/public/hooks/morning-ritual-reminder'
-      path: '/api/public/hooks/morning-ritual-reminder'
-      fullPath: '/api/public/hooks/morning-ritual-reminder'
-      preLoaderRoute: typeof ApiPublicHooksMorningRitualReminderRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/chat/$groupId': {
+      id: '/_authenticated/chat/$groupId'
+      path: '/chat/$groupId'
+      fullPath: '/chat/$groupId'
+      preLoaderRoute: typeof AuthenticatedChatGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/evening-reminder': {
-      id: '/api/public/hooks/evening-reminder'
-      path: '/api/public/hooks/evening-reminder'
-      fullPath: '/api/public/hooks/evening-reminder'
-      preLoaderRoute: typeof ApiPublicHooksEveningReminderRouteImport
+    '/_authenticated/check-in/': {
+      id: '/_authenticated/check-in/'
+      path: '/check-in'
+      fullPath: '/check-in/'
+      preLoaderRoute: typeof AuthenticatedCheckInIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/check-in/camera': {
+      id: '/_authenticated/check-in/camera'
+      path: '/check-in/camera'
+      fullPath: '/check-in/camera'
+      preLoaderRoute: typeof AuthenticatedCheckInCameraRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/check-in/notes': {
+      id: '/_authenticated/check-in/notes'
+      path: '/check-in/notes'
+      fullPath: '/check-in/notes'
+      preLoaderRoute: typeof AuthenticatedCheckInNotesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/goal/$groupId': {
+      id: '/_authenticated/goal/$groupId'
+      path: '/goal/$groupId'
+      fullPath: '/goal/$groupId'
+      preLoaderRoute: typeof AuthenticatedGoalGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups/': {
+      id: '/_authenticated/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/pact/$groupId': {
+      id: '/_authenticated/pact/$groupId'
+      path: '/pact/$groupId'
+      fullPath: '/pact/$groupId'
+      preLoaderRoute: typeof AuthenticatedPactGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/u/$userId': {
+      id: '/_authenticated/u/$userId'
+      path: '/u/$userId'
+      fullPath: '/u/$userId'
+      preLoaderRoute: typeof AuthenticatedUUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/hooks/auto-miss': {
+      id: '/api/public/hooks/auto-miss'
+      path: '/api/public/hooks/auto-miss'
+      fullPath: '/api/public/hooks/auto-miss'
+      preLoaderRoute: typeof ApiPublicHooksAutoMissRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/daily-reminder': {
@@ -1062,11 +1027,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksDailyReminderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/hooks/auto-miss': {
-      id: '/api/public/hooks/auto-miss'
-      path: '/api/public/hooks/auto-miss'
-      fullPath: '/api/public/hooks/auto-miss'
-      preLoaderRoute: typeof ApiPublicHooksAutoMissRouteImport
+    '/api/public/hooks/evening-reminder': {
+      id: '/api/public/hooks/evening-reminder'
+      path: '/api/public/hooks/evening-reminder'
+      fullPath: '/api/public/hooks/evening-reminder'
+      preLoaderRoute: typeof ApiPublicHooksEveningReminderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/morning-ritual-reminder': {
+      id: '/api/public/hooks/morning-ritual-reminder'
+      path: '/api/public/hooks/morning-ritual-reminder'
+      fullPath: '/api/public/hooks/morning-ritual-reminder'
+      preLoaderRoute: typeof ApiPublicHooksMorningRitualReminderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/revenuecat': {
+      id: '/api/public/hooks/revenuecat'
+      path: '/api/public/hooks/revenuecat'
+      fullPath: '/api/public/hooks/revenuecat'
+      preLoaderRoute: typeof ApiPublicHooksRevenuecatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/streak-risk': {
+      id: '/api/public/hooks/streak-risk'
+      path: '/api/public/hooks/streak-risk'
+      fullPath: '/api/public/hooks/streak-risk'
+      preLoaderRoute: typeof ApiPublicHooksStreakRiskRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/invite/claim': {
+      id: '/api/public/invite/claim'
+      path: '/api/public/invite/claim'
+      fullPath: '/api/public/invite/claim'
+      preLoaderRoute: typeof ApiPublicInviteClaimRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/invite/defer': {
+      id: '/api/public/invite/defer'
+      path: '/api/public/invite/defer'
+      fullPath: '/api/public/invite/defer'
+      preLoaderRoute: typeof ApiPublicInviteDeferRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/og/invite/$groupId': {
