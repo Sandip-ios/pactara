@@ -39,7 +39,6 @@ type StepKey =
 const ALL_STEPS: StepKey[] = [
   "group",
   "commitment",
-  "company",
   "notify",
   "goal",
   "greeting",
