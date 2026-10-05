@@ -1222,24 +1222,6 @@ export function GroupStep({
         Your friends will see this when they join.
       </p>
 
-      <div className="mt-7 rounded-2xl bg-white p-4 flex items-center gap-3" style={{ boxShadow: "0 6px 24px -10px rgba(0,0,0,0.08)" }}>
-        <div
-          className="w-14 h-14 rounded-2xl flex items-center justify-center text-[26px]"
-          style={{ background: "linear-gradient(135deg, #F97316 0%, #C026D3 100%)" }}
-        >
-          <Scale size={26} color="white" strokeWidth={2.2} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="text-[16px] font-semibold flex items-center gap-1.5 truncate">
-            <span>{goalEmoji}</span>
-            <span className="truncate">{groupName || `${goalLabel} Crew`}</span>
-          </div>
-          <div className="text-[13px] mt-0.5" style={{ color: TEXT_MUTED }}>
-            1 member · Day 1
-          </div>
-        </div>
-      </div>
-
       <GroupNameField groupName={groupName} setGroupName={setGroupName} goalLabel={goalLabel} goalEmoji={goalEmoji} />
     </div>
   );
