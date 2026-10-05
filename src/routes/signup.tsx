@@ -87,7 +87,6 @@ import {
   Clock,
   CreditCard,
   
-  Scale,
   Share2,
   Eye,
   EyeOff,
