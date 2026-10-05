@@ -8,7 +8,6 @@ import { getProfileOverview } from "@/lib/profile.functions";
 import {
   PURPLE,
   PrimaryButton,
-  CompanyStep,
   GroupStep,
   CommitmentStep,
   InviteStep,
