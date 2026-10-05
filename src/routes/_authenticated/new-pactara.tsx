@@ -8,7 +8,6 @@ import { getProfileOverview } from "@/lib/profile.functions";
 import {
   PURPLE,
   PrimaryButton,
-  CompanyStep,
   GroupStep,
   CommitmentStep,
   InviteStep,
@@ -39,7 +38,6 @@ type StepKey =
 const ALL_STEPS: StepKey[] = [
   "group",
   "commitment",
-  "company",
   "notify",
   "goal",
   "greeting",
@@ -194,7 +192,6 @@ function NewPactaraFlow() {
     }
   })();
 
-  if (step === "company") return <CompanyStep onContinue={next} onBack={back} progress={progress} />;
   if (step === "greeting") {
     const days = duration === "custom" ? parseInt(customDays, 10) || 30 : duration;
     const frequencyLabel = "Every day";
