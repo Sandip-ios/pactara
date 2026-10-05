@@ -17,7 +17,7 @@ import {
   PersonalGoalStep,
 } from "@/routes/signup";
 import { createGroupForUser } from "@/lib/groups.functions";
-import { getLatestMemberGoal, setMemberGoal } from "@/lib/member-goal.functions";
+import { setMemberGoal } from "@/lib/member-goal.functions";
 
 export const Route = createFileRoute("/_authenticated/new-pactara")({
   component: NewPactaraFlow,
