@@ -192,7 +192,6 @@ function NewPactaraFlow() {
     }
   })();
 
-  if (step === "notify") return <NotifyStep onContinue={next} onBack={back} progress={progress} />;
   if (step === "greeting") {
     const days = duration === "custom" ? parseInt(customDays, 10) || 30 : duration;
     const frequencyLabel = "Every day";
