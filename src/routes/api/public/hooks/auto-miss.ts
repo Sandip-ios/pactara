@@ -22,6 +22,30 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        // Partner-match reminder: one push to whoever hasn't accepted yet when
+        // a pending match has 3–4 hours left (hourly cron → sent once).
+        try {
+          const now = Date.now();
+          const { data: pending } = await supabaseAdmin
+            .from("partnerships")
+            .select("user_1_id, user_2_id, user_1_accepted_at, user_2_accepted_at")
+            .eq("status", "pending_acceptance")
+            .gt("expires_at", new Date(now + 3 * 3600_000).toISOString())
+            .lte("expires_at", new Date(now + 4 * 3600_000).toISOString());
+          const { pushToUsers } = await import("@/lib/notify.server");
+          for (const p of pending ?? []) {
+            const waiting = !p.user_1_accepted_at ? p.user_1_id : !p.user_2_accepted_at ? p.user_2_id : null;
+            if (!waiting) continue;
+            await pushToUsers([waiting], {
+              title: "Your partner match expires soon ⏳",
+              body: "Your partner is waiting. Tap to accept and sign your 90-day pact before it expires.",
+              url: "/partner",
+            }).catch(() => undefined);
+          }
+        } catch (err) {
+          console.warn("[auto-miss] partner reminder failed", err);
+        }
+
         // Find every membership (user × group). Missed posts are per-group.
         const { data: memberships, error: mErr } = await supabaseAdmin
           .from("group_members")
