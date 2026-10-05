@@ -49,12 +49,17 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
         // Find every membership (user × group). Missed posts are per-group.
         const { data: memberships, error: mErr } = await supabaseAdmin
           .from("group_members")
-          .select("user_id, group_id, joined_at");
+          .select("user_id, group_id, joined_at, pact_signed_at");
         if (mErr) {
           return Response.json({ error: mErr.message }, { status: 500 });
         }
 
-        const allMemberships = memberships ?? [];
+        // No missed posts until every member of a group has signed the pact.
+        const signedByGroup = new Map<string, boolean>();
+        for (const m of memberships ?? []) {
+          signedByGroup.set(m.group_id, (signedByGroup.get(m.group_id) ?? true) && Boolean(m.pact_signed_at));
+        }
+        const allMemberships = (memberships ?? []).filter((m) => signedByGroup.get(m.group_id));
         const userIds = Array.from(new Set(allMemberships.map((m) => m.user_id)));
         if (userIds.length === 0) return Response.json({ ok: true, scanned: 0 });
 

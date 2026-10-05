@@ -505,10 +505,12 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: groupMembers } = await supabaseAdmin
       .from("group_members")
-      .select("user_id, joined_at")
+      .select("user_id, joined_at, pact_signed_at")
       .eq("group_id", groupId);
+    // No missed posts until every member has signed the pact.
+    const allSigned = (groupMembers ?? []).length > 0 && (groupMembers ?? []).every((m) => Boolean(m.pact_signed_at));
     const memberIdsForMisses = Array.from(new Set((groupMembers ?? []).map((m) => m.user_id)));
-    if (memberIdsForMisses.length > 0) {
+    if (allSigned && memberIdsForMisses.length > 0) {
       const { data: memberProfiles } = await supabaseAdmin
         .from("profiles")
         .select("id, timezone")
