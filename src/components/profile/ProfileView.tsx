@@ -199,8 +199,14 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             <div className="relative shrink-0">
               <button
                 type="button"
-                onClick={isOwn ? openPicker : undefined}
-                aria-label={isOwn ? "Change photo" : firstName}
+                onClick={
+                  data?.avatarUrl
+                    ? () => setLightbox({ src: data.avatarUrl, kind: "image" })
+                    : isOwn
+                      ? openPicker
+                      : undefined
+                }
+                aria-label={data?.avatarUrl ? "View photo" : isOwn ? "Change photo" : firstName}
                 className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
                 style={{
                   background:
