@@ -38,6 +38,22 @@ function GroupChatPage() {
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
   const [gifOpen, setGifOpen] = useState(false);
+  // Visible viewport height — shrinks when the iOS keyboard opens so the
+  // header and messages stay on screen instead of being pushed out of view.
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setViewportHeight(vv.height + vv.offsetTop);
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   // Keep the active group in sync with the chat being viewed.
   useEffect(() => {
@@ -174,6 +190,11 @@ function GroupChatPage() {
     scrollToLatestMessage();
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
+  // Keep the latest message in view when the keyboard opens/closes.
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [viewportHeight, scrollToLatestMessage]);
+
   const group = data?.group;
   const relation = relationForGroup(groupId, partnerState);
   const displayName = relation?.name ?? group?.name ?? "";
@@ -232,8 +253,11 @@ function GroupChatPage() {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col bg-white"
-      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      className="fixed inset-x-0 top-0 flex flex-col bg-white"
+      style={{
+        fontFamily: "Inter, system-ui, sans-serif",
+        height: viewportHeight ? `${viewportHeight}px` : "100dvh",
+      }}
     >
 
       <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
