@@ -46,9 +46,15 @@ function GroupChatPage() {
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+    let raf = 0;
     const update = () => {
-      setViewportHeight(vv.height);
-      setViewportTop(vv.offsetTop);
+      // Coalesce the rapid resize events iOS fires while the keyboard
+      // animates into one state update per frame.
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setViewportHeight(vv.height);
+        setViewportTop(vv.offsetTop);
+      });
     };
     update();
     const html = document.documentElement;
@@ -59,6 +65,7 @@ function GroupChatPage() {
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
+      cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
       html.style.overflow = prevOverflow;
@@ -202,8 +209,10 @@ function GroupChatPage() {
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
   // Keep the latest message in view when the keyboard opens/closes.
+  // Scroll instantly (not "smooth") so it tracks the keyboard animation
+  // instead of lagging behind it.
   useEffect(() => {
-    scrollToLatestMessage();
+    scrollToLatestMessage("auto");
   }, [viewportHeight, scrollToLatestMessage]);
 
   const group = data?.group;
@@ -269,6 +278,10 @@ function GroupChatPage() {
         fontFamily: "Inter, system-ui, sans-serif",
         height: viewportHeight ? `${viewportHeight}px` : "100dvh",
         transform: `translateY(${viewportTop}px)`,
+        // Ease the resize so the chat glides with the keyboard instead of
+        // snapping frame-by-frame.
+        transition: "height 0.25s ease-out, transform 0.25s ease-out",
+        willChange: "height, transform",
       }}
     >
 
