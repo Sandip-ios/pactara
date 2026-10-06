@@ -65,6 +65,7 @@ function GroupChatPage() {
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
+      cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
       html.style.overflow = prevOverflow;
@@ -208,8 +209,10 @@ function GroupChatPage() {
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
   // Keep the latest message in view when the keyboard opens/closes.
+  // Scroll instantly (not "smooth") so it tracks the keyboard animation
+  // instead of lagging behind it.
   useEffect(() => {
-    scrollToLatestMessage();
+    scrollToLatestMessage("auto");
   }, [viewportHeight, scrollToLatestMessage]);
 
   const group = data?.group;
