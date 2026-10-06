@@ -267,7 +267,26 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
           <div className="mt-4">
             <div className="text-[18px] font-bold truncate">{name || firstName}</div>
             {goalLine && (
-              <div className="text-[13px] text-neutral-500 truncate mt-0.5">{goalLine}</div>
+              <>
+                <div
+                  ref={bioRef}
+                  className={`text-[13px] text-neutral-500 mt-0.5 whitespace-pre-line ${
+                    bioExpanded ? "" : "line-clamp-2"
+                  }`}
+                >
+                  {goalLine}
+                </div>
+                {(bioClamped || bioExpanded) && (
+                  <button
+                    type="button"
+                    onClick={() => setBioExpanded((v) => !v)}
+                    className="text-[13px] font-semibold mt-1 active:opacity-70"
+                    style={{ color: PURPLE }}
+                  >
+                    {bioExpanded ? "See less" : "See more"}
+                  </button>
+                )}
+              </>
             )}
           </div>
 
