@@ -41,17 +41,28 @@ function GroupChatPage() {
   // Visible viewport height — shrinks when the iOS keyboard opens so the
   // header and messages stay on screen instead of being pushed out of view.
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+  const [viewportTop, setViewportTop] = useState(0);
 
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
-    const update = () => setViewportHeight(vv.height + vv.offsetTop);
+    const update = () => {
+      setViewportHeight(vv.height);
+      setViewportTop(vv.offsetTop);
+    };
     update();
+    const html = document.documentElement;
+    const prevOverflow = html.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    html.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
     return () => {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
+      html.style.overflow = prevOverflow;
+      document.body.style.overflow = prevBodyOverflow;
     };
   }, []);
 
@@ -257,6 +268,7 @@ function GroupChatPage() {
       style={{
         fontFamily: "Inter, system-ui, sans-serif",
         height: viewportHeight ? `${viewportHeight}px` : "100dvh",
+        transform: `translateY(${viewportTop}px)`,
       }}
     >
 
