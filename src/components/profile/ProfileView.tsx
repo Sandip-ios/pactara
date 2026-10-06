@@ -72,6 +72,21 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
     setAvatarLoaded(false);
   }, [data?.avatarUrl]);
 
+  // Detect when the bio is cut off so the "See more" link only shows then.
+  useEffect(() => {
+    setBioExpanded(false);
+  }, [goalLine]);
+
+  useEffect(() => {
+    if (!goalLine || bioExpanded) return;
+    const el = bioRef.current;
+    if (!el) return;
+    const id = window.requestAnimationFrame(() => {
+      setBioClamped(el.scrollHeight > el.clientHeight + 1);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [goalLine, bioExpanded, data?.avatarUrl, name]);
+
   useEffect(() => {
     if (isOwn && data?.groupId && typeof localStorage !== "undefined") {
       localStorage.setItem("active-group-id", data.groupId);
