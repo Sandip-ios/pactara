@@ -278,6 +278,10 @@ function GroupChatPage() {
         fontFamily: "Inter, system-ui, sans-serif",
         height: viewportHeight ? `${viewportHeight}px` : "100dvh",
         transform: `translateY(${viewportTop}px)`,
+        // Ease the resize so the chat glides with the keyboard instead of
+        // snapping frame-by-frame.
+        transition: "height 0.25s ease-out, transform 0.25s ease-out",
+        willChange: "height, transform",
       }}
     >
 
