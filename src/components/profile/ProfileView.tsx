@@ -48,6 +48,9 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [tab, setTab] = useState<Tab>("posts");
+  const [bioExpanded, setBioExpanded] = useState(false);
+  const [bioClamped, setBioClamped] = useState(false);
+  const bioRef = useRef<HTMLDivElement>(null);
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [freezeOpen, setFreezeOpen] = useState(false);
@@ -89,6 +92,21 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
   const initial = (firstName || "U").slice(0, 1).toUpperCase();
 
   const goalLine = data?.personalGoal?.trim() || null;
+
+  // Detect when the bio is cut off so the "See more" link only shows then.
+  useEffect(() => {
+    setBioExpanded(false);
+  }, [goalLine]);
+
+  useEffect(() => {
+    if (!goalLine || bioExpanded) return;
+    const el = bioRef.current;
+    if (!el) return;
+    const id = window.requestAnimationFrame(() => {
+      setBioClamped(el.scrollHeight > el.clientHeight + 1);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [goalLine, bioExpanded, data?.avatarUrl, name]);
 
   const openPicker = () => {
     if (uploading) return;
@@ -249,7 +267,26 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
           <div className="mt-4">
             <div className="text-[18px] font-bold truncate">{name || firstName}</div>
             {goalLine && (
-              <div className="text-[13px] text-neutral-500 truncate mt-0.5">{goalLine}</div>
+              <>
+                <div
+                  ref={bioRef}
+                  className={`text-[13px] text-neutral-500 mt-0.5 whitespace-pre-line ${
+                    bioExpanded ? "" : "line-clamp-2"
+                  }`}
+                >
+                  {goalLine}
+                </div>
+                {(bioClamped || bioExpanded) && (
+                  <button
+                    type="button"
+                    onClick={() => setBioExpanded((v) => !v)}
+                    className="text-[13px] font-semibold mt-1 active:opacity-70"
+                    style={{ color: PURPLE }}
+                  >
+                    {bioExpanded ? "See less" : "See more"}
+                  </button>
+                )}
+              </>
             )}
           </div>
 
