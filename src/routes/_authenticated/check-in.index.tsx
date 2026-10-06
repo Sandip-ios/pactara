@@ -12,6 +12,8 @@ import { clearCheckInStream } from "@/lib/checkin-stream-store";
 import GroupSwitcherSheet, { type SwitcherGroup } from "@/components/GroupSwitcherSheet";
 import { getPartnerState, type PartnerState } from "@/lib/partners.functions";
 import { relationForGroup } from "@/lib/group-display";
+import { getRestDayInfo, takeRestDay } from "@/lib/rest-days.functions";
+import { Moon } from "lucide-react";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -228,6 +230,14 @@ function CheckInRouter() {
     staleTime: 30_000,
   });
   const [localPosted, setLocalPosted] = useState<string | null>(null);
+  const fetchRest = useServerFn(getRestDayInfo);
+  const { data: rest } = useQuery({
+    queryKey: ["rest-day-info"],
+    queryFn: () => fetchRest(),
+    staleTime: 30_000,
+  });
+
+  if (rest?.restingToday) return <RestDayDone remaining={rest.remaining} />;
 
   if (isLoading || !data) {
     return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
@@ -358,6 +368,7 @@ function MorningRitual({
         <p className="mt-2 text-[15px] text-neutral-500">
           Make it specific. Check in while you're doing it.
         </p>
+        <RestDayButton />
       </div>
 
 
@@ -433,3 +444,96 @@ function CheckInLaunch() {
 }
 
 
+
+function RestDayButton() {
+  const queryClient = useQueryClient();
+  const fetchRest = useServerFn(getRestDayInfo);
+  const takeFn = useServerFn(takeRestDay);
+  const { data: rest } = useQuery({
+    queryKey: ["rest-day-info"],
+    queryFn: () => fetchRest(),
+    staleTime: 30_000,
+  });
+  const [confirming, setConfirming] = useState(false);
+  const mutation = useMutation({
+    mutationFn: () => takeFn(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["rest-day-info"] });
+      queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
+      queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["group-today"] });
+    },
+  });
+  if (!rest || rest.checkedInToday) return null;
+  const none = rest.remaining <= 0;
+  return (
+    <div className="mt-4">
+      {!confirming ? (
+        <button
+          type="button"
+          disabled={none}
+          onClick={() => setConfirming(true)}
+          className="inline-flex items-center gap-2 rounded-full bg-white ring-1 ring-neutral-200 px-4 py-2 text-[14px] font-semibold disabled:opacity-50"
+          style={{ color: PURPLE }}
+        >
+          <Moon size={16} />
+          {none ? "No rest days left this week" : `Take a rest day · ${rest.remaining} left this week`}
+        </button>
+      ) : (
+        <div className="rounded-2xl bg-white ring-1 ring-neutral-200 p-4">
+          <div className="font-bold text-neutral-900">Take today off?</div>
+          <p className="mt-1 text-[14px] text-neutral-500">
+            Your streak stays alive and your group sees you're resting. You get {rest.limit} rest days a week.
+          </p>
+          {mutation.error && (
+            <p className="mt-2 text-[13px] text-red-600">{(mutation.error as Error).message}</p>
+          )}
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              className="flex-1 rounded-xl py-2.5 text-[14px] font-semibold bg-neutral-100 text-neutral-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={mutation.isPending}
+              onClick={() => mutation.mutate()}
+              className="flex-1 rounded-xl py-2.5 text-[14px] font-semibold text-white"
+              style={{ background: PURPLE }}
+            >
+              {mutation.isPending ? "Saving…" : "Rest today"}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RestDayDone({ remaining }: { remaining: number }) {
+  const navigate = useNavigate();
+  return (
+    <div
+      className="fixed inset-0 w-full flex flex-col items-center justify-center px-8 text-center"
+      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div className="h-16 w-16 rounded-full flex items-center justify-center" style={{ background: "#EFE9FB" }}>
+        <Moon size={28} color={PURPLE} />
+      </div>
+      <h1 className="mt-5 text-[28px] font-black tracking-tight">Rest day</h1>
+      <p className="mt-2 text-[15px] text-neutral-500">
+        Recover well. Your streak is safe. {remaining} rest day{remaining === 1 ? "" : "s"} left this week.
+      </p>
+      <button
+        type="button"
+        onClick={() => navigate({ to: "/home" })}
+        className="mt-8 w-full rounded-2xl py-4 text-white text-[16px] font-semibold"
+        style={{ background: PURPLE }}
+      >
+        Back to home
+      </button>
+    </div>
+  );
+}

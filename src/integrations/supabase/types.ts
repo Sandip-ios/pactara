@@ -859,6 +859,7 @@ export type Database = {
           freeze_date: string
           group_id: string
           id: string
+          kind: string
           user_id: string
         }
         Insert: {
@@ -866,6 +867,7 @@ export type Database = {
           freeze_date: string
           group_id: string
           id?: string
+          kind?: string
           user_id: string
         }
         Update: {
@@ -873,6 +875,7 @@ export type Database = {
           freeze_date?: string
           group_id?: string
           id?: string
+          kind?: string
           user_id?: string
         }
         Relationships: [

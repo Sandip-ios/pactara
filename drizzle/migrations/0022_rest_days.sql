@@ -1,0 +1,2 @@
+ALTER TABLE public.streak_freezes_used ADD COLUMN IF NOT EXISTS kind text NOT NULL DEFAULT 'freeze';
+CREATE INDEX IF NOT EXISTS streak_freezes_used_user_kind_idx ON public.streak_freezes_used (user_id, kind, freeze_date);
