@@ -38,6 +38,22 @@ function GroupChatPage() {
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
   const [gifOpen, setGifOpen] = useState(false);
+  // Visible viewport height — shrinks when the iOS keyboard opens so the
+  // header and messages stay on screen instead of being pushed out of view.
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setViewportHeight(vv.height + vv.offsetTop);
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
 
   // Keep the active group in sync with the chat being viewed.
   useEffect(() => {
