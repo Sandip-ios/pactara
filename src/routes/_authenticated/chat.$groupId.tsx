@@ -10,6 +10,7 @@ import GifPickerSheet from "@/components/GifPickerSheet";
 import { Button } from "@/components/ui/button";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
+import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -351,20 +352,22 @@ function GroupChatPage() {
               return (
                 <li key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                   {!mine && (
-                    <div
-                      className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold shrink-0 self-end overflow-hidden"
-                      style={{ background: m.authorColor }}
-                    >
-                      {m.authorAvatarUrl ? (
-                        <img
-                          src={m.authorAvatarUrl}
-                          alt={m.authorName}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        initial
-                      )}
-                    </div>
+                    <MemberProfileLink userId={m.userId} className="shrink-0 self-end">
+                      <div
+                        className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold overflow-hidden"
+                        style={{ background: m.authorColor }}
+                      >
+                        {m.authorAvatarUrl ? (
+                          <img
+                            src={m.authorAvatarUrl}
+                            alt={m.authorName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          initial
+                        )}
+                      </div>
+                    </MemberProfileLink>
                   )}
 
                   <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
