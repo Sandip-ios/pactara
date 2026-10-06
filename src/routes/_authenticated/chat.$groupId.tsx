@@ -46,9 +46,15 @@ function GroupChatPage() {
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
+    let raf = 0;
     const update = () => {
-      setViewportHeight(vv.height);
-      setViewportTop(vv.offsetTop);
+      // Coalesce the rapid resize events iOS fires while the keyboard
+      // animates into one state update per frame.
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        setViewportHeight(vv.height);
+        setViewportTop(vv.offsetTop);
+      });
     };
     update();
     const html = document.documentElement;
