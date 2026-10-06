@@ -93,6 +93,21 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
   const goalLine = data?.personalGoal?.trim() || null;
 
+  // Detect when the bio is cut off so the "See more" link only shows then.
+  useEffect(() => {
+    setBioExpanded(false);
+  }, [goalLine]);
+
+  useEffect(() => {
+    if (!goalLine || bioExpanded) return;
+    const el = bioRef.current;
+    if (!el) return;
+    const id = window.requestAnimationFrame(() => {
+      setBioClamped(el.scrollHeight > el.clientHeight + 1);
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [goalLine, bioExpanded, data?.avatarUrl, name]);
+
   const openPicker = () => {
     if (uploading) return;
     fileInputRef.current?.click();
