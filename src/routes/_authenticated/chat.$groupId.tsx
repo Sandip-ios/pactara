@@ -190,6 +190,11 @@ function GroupChatPage() {
     scrollToLatestMessage();
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
+  // Keep the latest message in view when the keyboard opens/closes.
+  useEffect(() => {
+    scrollToLatestMessage();
+  }, [viewportHeight, scrollToLatestMessage]);
+
   const group = data?.group;
   const relation = relationForGroup(groupId, partnerState);
   const displayName = relation?.name ?? group?.name ?? "";
