@@ -248,8 +248,11 @@ function GroupChatPage() {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col bg-white"
-      style={{ fontFamily: "Inter, system-ui, sans-serif" }}
+      className="fixed inset-x-0 top-0 flex flex-col bg-white"
+      style={{
+        fontFamily: "Inter, system-ui, sans-serif",
+        height: viewportHeight ? `${viewportHeight}px` : "100dvh",
+      }}
     >
 
       <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
