@@ -677,16 +677,18 @@ function CommentSection({ postId, groupId }: { postId: string; groupId: string }
     const size = isReply ? "h-7 w-7 text-[11px]" : "h-9 w-9 text-[13px]";
     return (
       <div className="flex gap-3 items-start">
-        {c.authorAvatarUrl ? (
-          <img src={c.authorAvatarUrl} alt="" className={`${size} rounded-full object-cover shrink-0`} />
-        ) : (
-          <div
-            className={`${size} rounded-full flex items-center justify-center text-white font-bold shrink-0`}
-            style={{ background: c.authorColor }}
-          >
-            {initial}
-          </div>
-        )}
+        <MemberProfileLink userId={c.userId} isYou={c.isMine} className="shrink-0">
+          {c.authorAvatarUrl ? (
+            <img src={c.authorAvatarUrl} alt="" className={`${size} rounded-full object-cover`} />
+          ) : (
+            <div
+              className={`${size} rounded-full flex items-center justify-center text-white font-bold`}
+              style={{ background: c.authorColor }}
+            >
+              {initial}
+            </div>
+          )}
+        </MemberProfileLink>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2">
             <span className={`${isReply ? "text-[13px]" : "text-[14px]"} font-bold text-neutral-900`}>
@@ -993,16 +995,18 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
     <div className="mx-4 mt-4 rounded-2xl bg-white shadow-sm overflow-hidden select-none" style={noSelectTouchStyle}>
       {/* Header */}
       <div className="flex items-start gap-3 px-4 pt-4">
-        {item.avatarUrl ? (
-          <img src={item.avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
-        ) : (
-          <div
-            className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-[18px]"
-            style={{ background: item.avatarColor || "#22C55E" }}
-          >
-            {initials}
-          </div>
-        )}
+        <MemberProfileLink userId={item.userId} isYou={item.isMe} className="shrink-0">
+          {item.avatarUrl ? (
+            <img src={item.avatarUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
+          ) : (
+            <div
+              className="h-12 w-12 rounded-full flex items-center justify-center text-white font-bold text-[18px]"
+              style={{ background: item.avatarColor || "#22C55E" }}
+            >
+              {initials}
+            </div>
+          )}
+        </MemberProfileLink>
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline justify-between gap-2">
             <span className="text-[17px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</span>
