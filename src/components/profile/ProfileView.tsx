@@ -201,7 +201,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
                 type="button"
                 onClick={
                   data?.avatarUrl
-                    ? () => setLightbox({ src: data.avatarUrl, kind: "image" })
+                    ? () => setLightbox({ src: data.avatarUrl!, kind: "image" })
                     : isOwn
                       ? openPicker
                       : undefined
