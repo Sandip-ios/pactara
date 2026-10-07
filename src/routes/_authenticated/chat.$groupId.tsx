@@ -199,22 +199,57 @@ function GroupChatPage() {
   }, [groupId, queryClient]);
 
 
-  const scrollToLatestMessage = useCallback((behavior: ScrollBehavior = "auto") => {
-    requestAnimationFrame(() => {
-      bottomRef.current?.scrollIntoView({ block: "end", behavior });
-    });
+  // Whether the user is reading the latest messages (vs. scrolled up into
+  // history). While true, any resize of the message list keeps it pinned to
+  // the bottom — including every frame of the keyboard animation.
+  const stickToBottom = useRef(true);
+
+  const pinToBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, []);
+
+  const scrollToLatestMessage = useCallback(
+    (_behavior: ScrollBehavior = "auto") => {
+      stickToBottom.current = true;
+      pinToBottom();
+      requestAnimationFrame(pinToBottom);
+    },
+    [pinToBottom],
+  );
 
   useLayoutEffect(() => {
     scrollToLatestMessage();
   }, [groupId, data?.messages.length, scrollToLatestMessage]);
 
-  // Keep the latest message in view when the keyboard opens/closes.
-  // Scroll instantly (not "smooth") so it tracks the keyboard animation
-  // instead of lagging behind it.
+  // Track whether the user is near the bottom.
   useEffect(() => {
-    scrollToLatestMessage("auto");
-  }, [viewportHeight, scrollToLatestMessage]);
+    const el = scrollRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // The chat area shrinks gradually while the keyboard slides in (the
+  // container height is animated), so re-pin on every size change rather
+  // than once when the keyboard starts opening.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      if (stickToBottom.current) pinToBottom();
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [pinToBottom]);
+
+  // Keyboard opened/closed: snap to the latest message if the user was there.
+  useEffect(() => {
+    if (stickToBottom.current) pinToBottom();
+  }, [viewportHeight, pinToBottom]);
 
   const group = data?.group;
   const relation = relationForGroup(groupId, partnerState);
