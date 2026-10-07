@@ -457,7 +457,9 @@ function GroupChatPage() {
                         <SignedImage
                             path={m.imageUrl}
                             className="mb-1 max-w-full rounded-2xl"
-                            onLoad={() => scrollToLatestMessage()}
+                            onLoad={() => {
+                              if (stickToBottom.current) pinToBottom();
+                            }}
                           />
                       )}
                       {m.body && (
