@@ -48,10 +48,19 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
         const now = new Date();
         const tzById = new Map<string, string>();
         const dueUserIds: string[] = [];
+        const hourById = new Map<string, number>();
+        const msgFor = (id: string) =>
+          hourById.get(id) === 11
+            ? { title: "1 hour left ⏰", body: "Make today's commitment before noon to keep your streak.", url: "/check-in" }
+            : { title: "Today's commitment", body: "Take a moment for today's commitment ☀️", url: "/check-in" };
         for (const prof of profiles ?? []) {
           const tz = prof.timezone || "UTC";
           tzById.set(prof.id, tz);
-          if (localHourFor(tz, now) === 10) dueUserIds.push(prof.id);
+          const h = localHourFor(tz, now);
+          if (h === 10 || h === 11) {
+            dueUserIds.push(prof.id);
+            hourById.set(prof.id, h);
+          }
         }
         if (dueUserIds.length === 0) {
           return Response.json({ ok: true, sent: 0, scanned: userIds.length });
@@ -87,11 +96,6 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
           .in("user_id", dueUserIds);
         if (sErr) return Response.json({ error: sErr.message }, { status: 500 });
 
-        const payload = JSON.stringify({
-          title: "Today's commitment",
-          body: "Take a moment for today's commitment ☀️",
-          url: "/home",
-        });
 
         let sent = 0;
         const expired: string[] = [];
@@ -100,7 +104,9 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
           endpoint: string;
           p256dh: string;
           auth: string;
+          user_id: string;
         }>) {
+          const payload = JSON.stringify(msgFor(s.user_id));
           try {
             await webpush.sendNotification(
               { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
@@ -128,17 +134,16 @@ export const Route = createFileRoute("/api/public/hooks/morning-ritual-reminder"
             .from("fcm_tokens" as never)
             .select("token, user_id")
             .in("user_id", dueUserIds);
-          const tokens = ((fcmRows ?? []) as Array<{ token: string }>).map((r) => r.token);
-          if (tokens.length > 0) {
+          const fcmList = (fcmRows ?? []) as Array<{ token: string; user_id: string }>;
+          for (const hr of [10, 11]) {
+            const tokens = fcmList.filter((r) => hourById.get(r.user_id) === hr).map((r) => r.token);
+            if (tokens.length === 0) continue;
+            const sample = fcmList.find((r) => hourById.get(r.user_id) === hr)!;
             try {
               const { sendFcm } = await import("@/lib/fcm.server");
-              const result = await sendFcm(tokens, {
-                title: "Today's commitment",
-                body: "Take a moment for today's commitment ☀️",
-                url: "/home",
-              });
-              fcmSent = result.sent;
-              fcmExpired = result.expired.length;
+              const result = await sendFcm(tokens, msgFor(sample.user_id));
+              fcmSent += result.sent;
+              fcmExpired += result.expired.length;
               if (result.expired.length > 0) {
                 await supabaseAdmin
                   .from("fcm_tokens" as never)
