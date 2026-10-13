@@ -853,6 +853,103 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_events: {
+        Row: {
+          claimed_at: string | null
+          created_at: string
+          event: string
+          id: string
+          ip_hash: string
+          partner_id: string
+          platform: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          created_at?: string
+          event: string
+          id?: string
+          ip_hash: string
+          partner_id: string
+          platform: string
+        }
+        Update: {
+          claimed_at?: string | null
+          created_at?: string
+          event?: string
+          id?: string
+          ip_hash?: string
+          partner_id?: string
+          platform?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_events_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_installs: {
+        Row: {
+          created_at: string
+          id: string
+          linked_at: string | null
+          partner_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          linked_at?: string | null
+          partner_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          linked_at?: string | null
+          partner_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_installs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_partners: {
+        Row: {
+          created_at: string
+          dashboard_key: string
+          id: string
+          name: string
+          payout_per_member_cents: number
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          dashboard_key?: string
+          id?: string
+          name: string
+          payout_per_member_cents?: number
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          dashboard_key?: string
+          id?: string
+          name?: string
+          payout_per_member_cents?: number
+          slug?: string
+        }
+        Relationships: []
+      }
       streak_freezes_used: {
         Row: {
           created_at: string
