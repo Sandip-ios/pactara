@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as BadgePreviewRouteImport } from './routes/badge-preview'
+import { Route as CreatorRouteImport } from './routes/creator'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PaywallPreviewRouteImport } from './routes/paywall-preview'
@@ -38,6 +39,7 @@ import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
+import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
@@ -61,6 +63,8 @@ import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/publi
 import { Route as ApiPublicHooksStreakRiskRouteImport } from './routes/api/public/hooks/streak-risk'
 import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
 import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/invite/defer'
+import { Route as ApiPublicReferralInstallRouteImport } from './routes/api/public/referral/install'
+import { Route as ApiPublicReferralLinkRouteImport } from './routes/api/public/referral/link'
 import { Route as ApiPublicOgInviteGroupIdRouteImport } from './routes/api/public/og/invite/$groupId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -80,6 +84,11 @@ const AdminRouteRoute = AdminRouteRouteImport.update({
 const BadgePreviewRoute = BadgePreviewRouteImport.update({
   id: '/badge-preview',
   path: '/badge-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreatorRoute = CreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -207,6 +216,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   id: '/join/$groupId',
   path: '/join/$groupId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RSlugRoute = RSlugRouteImport.update({
+  id: '/r/$slug',
+  path: '/r/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountSettingsIndexRoute =
@@ -342,6 +356,17 @@ const ApiPublicInviteDeferRoute = ApiPublicInviteDeferRouteImport.update({
   path: '/api/public/invite/defer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicReferralInstallRoute =
+  ApiPublicReferralInstallRouteImport.update({
+    id: '/api/public/referral/install',
+    path: '/api/public/referral/install',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicReferralLinkRoute = ApiPublicReferralLinkRouteImport.update({
+  id: '/api/public/referral/link',
+  path: '/api/public/referral/link',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicOgInviteGroupIdRoute =
   ApiPublicOgInviteGroupIdRouteImport.update({
     id: '/api/public/og/invite/$groupId',
@@ -353,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
+  '/creator': typeof CreatorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -377,6 +403,7 @@ export interface FileRoutesByFullPath {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/r/$slug': typeof RSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -401,11 +428,14 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
+  '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
+  '/api/public/referral/link': typeof ApiPublicReferralLinkRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/badge-preview': typeof BadgePreviewRoute
+  '/creator': typeof CreatorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -430,6 +460,7 @@ export interface FileRoutesByTo {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/r/$slug': typeof RSlugRoute
   '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -454,6 +485,8 @@ export interface FileRoutesByTo {
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
+  '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
+  '/api/public/referral/link': typeof ApiPublicReferralLinkRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRoutesById {
@@ -462,6 +495,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRouteRouteWithChildren
   '/badge-preview': typeof BadgePreviewRoute
+  '/creator': typeof CreatorRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/paywall-preview': typeof PaywallPreviewRoute
@@ -486,6 +520,7 @@ export interface FileRoutesById {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/r/$slug': typeof RSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -510,6 +545,8 @@ export interface FileRoutesById {
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
+  '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
+  '/api/public/referral/link': typeof ApiPublicReferralLinkRoute
   '/api/public/og/invite/$groupId': typeof ApiPublicOgInviteGroupIdRoute
 }
 export interface FileRouteTypes {
@@ -518,6 +555,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/badge-preview'
+    | '/creator'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -542,6 +580,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/r/$slug'
     | '/admin/'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -566,11 +605,14 @@ export interface FileRouteTypes {
     | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
+    | '/api/public/referral/install'
+    | '/api/public/referral/link'
     | '/api/public/og/invite/$groupId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/badge-preview'
+    | '/creator'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -595,6 +637,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/r/$slug'
     | '/admin'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -619,6 +662,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
+    | '/api/public/referral/install'
+    | '/api/public/referral/link'
     | '/api/public/og/invite/$groupId'
   id:
     | '__root__'
@@ -626,6 +671,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin'
     | '/badge-preview'
+    | '/creator'
     | '/forgot-password'
     | '/login'
     | '/paywall-preview'
@@ -650,6 +696,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/r/$slug'
     | '/admin/'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
@@ -674,6 +721,8 @@ export interface FileRouteTypes {
     | '/api/public/hooks/streak-risk'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
+    | '/api/public/referral/install'
+    | '/api/public/referral/link'
     | '/api/public/og/invite/$groupId'
   fileRoutesById: FileRoutesById
 }
@@ -682,6 +731,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   BadgePreviewRoute: typeof BadgePreviewRoute
+  CreatorRoute: typeof CreatorRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   PaywallPreviewRoute: typeof PaywallPreviewRoute
@@ -692,6 +742,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
+  RSlugRoute: typeof RSlugRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksDailyReminderRoute: typeof ApiPublicHooksDailyReminderRoute
   ApiPublicHooksEveningReminderRoute: typeof ApiPublicHooksEveningReminderRoute
@@ -700,6 +751,8 @@ export interface RootRouteChildren {
   ApiPublicHooksStreakRiskRoute: typeof ApiPublicHooksStreakRiskRoute
   ApiPublicInviteClaimRoute: typeof ApiPublicInviteClaimRoute
   ApiPublicInviteDeferRoute: typeof ApiPublicInviteDeferRoute
+  ApiPublicReferralInstallRoute: typeof ApiPublicReferralInstallRoute
+  ApiPublicReferralLinkRoute: typeof ApiPublicReferralLinkRoute
   ApiPublicOgInviteGroupIdRoute: typeof ApiPublicOgInviteGroupIdRoute
 }
 
@@ -731,6 +784,13 @@ declare module '@tanstack/react-router' {
       path: '/badge-preview'
       fullPath: '/badge-preview'
       preLoaderRoute: typeof BadgePreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/creator': {
+      id: '/creator'
+      path: '/creator'
+      fullPath: '/creator'
+      preLoaderRoute: typeof CreatorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -908,6 +968,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinGroupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$slug': {
+      id: '/r/$slug'
+      path: '/r/$slug'
+      fullPath: '/r/$slug'
+      preLoaderRoute: typeof RSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/account-settings/': {
       id: '/_authenticated/account-settings/'
       path: '/account-settings'
@@ -1069,6 +1136,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInviteDeferRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/referral/install': {
+      id: '/api/public/referral/install'
+      path: '/api/public/referral/install'
+      fullPath: '/api/public/referral/install'
+      preLoaderRoute: typeof ApiPublicReferralInstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/referral/link': {
+      id: '/api/public/referral/link'
+      path: '/api/public/referral/link'
+      fullPath: '/api/public/referral/link'
+      preLoaderRoute: typeof ApiPublicReferralLinkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/og/invite/$groupId': {
       id: '/api/public/og/invite/$groupId'
       path: '/api/public/og/invite/$groupId'
@@ -1167,6 +1248,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   BadgePreviewRoute: BadgePreviewRoute,
+  CreatorRoute: CreatorRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   PaywallPreviewRoute: PaywallPreviewRoute,
@@ -1178,6 +1260,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
+  RSlugRoute: RSlugRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksDailyReminderRoute: ApiPublicHooksDailyReminderRoute,
   ApiPublicHooksEveningReminderRoute: ApiPublicHooksEveningReminderRoute,
@@ -1187,6 +1270,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicHooksStreakRiskRoute: ApiPublicHooksStreakRiskRoute,
   ApiPublicInviteClaimRoute: ApiPublicInviteClaimRoute,
   ApiPublicInviteDeferRoute: ApiPublicInviteDeferRoute,
+  ApiPublicReferralInstallRoute: ApiPublicReferralInstallRoute,
+  ApiPublicReferralLinkRoute: ApiPublicReferralLinkRoute,
   ApiPublicOgInviteGroupIdRoute: ApiPublicOgInviteGroupIdRoute,
 }
 export const routeTree = rootRouteImport

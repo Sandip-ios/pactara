@@ -9,6 +9,7 @@ import { configureRevenueCat, logInRevenueCat, logOutRevenueCat } from "@/lib/re
 import { getPendingInvite, parseInviteUrl, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
 import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
+import { claimReferralInstall, linkReferralInstall } from "@/lib/referral";
 import { trackInvite } from "@/lib/invite-analytics";
 import {
   AlertDialog,
@@ -210,6 +211,7 @@ export function NativeBootstrap() {
             // invite they never tapped.
             const { data: auth } = await supabase.auth.getSession();
             if (!auth.session) {
+              void claimReferralInstall();
               try {
                 const claimed = await claimDeferredInvite();
                 if (claimed) trackInvite("deferred_deeplink_received", { group_id: claimed, app_install_state: "native" });
@@ -241,6 +243,7 @@ export function NativeBootstrap() {
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         window.setTimeout(() => void registerForPush(), 0);
+        window.setTimeout(() => void linkReferralInstall(), 0);
         window.setTimeout(() => {
           supabase.auth.getUser().then(({ data }) => {
             if (data.user?.id) void logInRevenueCat(data.user.id);
