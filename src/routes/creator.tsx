@@ -47,7 +47,7 @@ function scrollKit() {
 }
 function copy(text: string, msg: string) {
   navigator.clipboard.writeText(text);
-  toast(msg);
+  toast(msg, { position: "bottom-center", style: { background: "var(--cr-ink)", color: "var(--cr-bg)", borderRadius: 999, border: "none", width: "auto", left: "50%", transform: "translateX(-50%)" } });
 }
 
 function useCount(target: number) {
