@@ -9,7 +9,7 @@ export const getCreatorStats = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: partner } = await supabaseAdmin
       .from("referral_partners")
-      .select("id, name, slug, payout_per_member_cents, instagram_followers, tiktok_followers")
+      .select("id, name, slug, payout_per_member_cents, instagram_followers, tiktok_followers, short_link")
       .eq("dashboard_key", data.key)
       .maybeSingle();
     if (!partner) throw new Error("Invalid link");
@@ -47,7 +47,7 @@ export const getCreatorStats = createServerFn({ method: "POST" })
     const allPaying = userIds.filter((u) => paying.has(u)).length;
     return {
       name: partner.name,
-      link: `pactara.lovable.app/r/${partner.slug}`,
+      link: (partner.short_link ?? `https://pactara.lovable.app/r/${partner.slug}`).replace(/^https?:\/\//, ""),
       totals: {
         taps: ev.filter((e) => e.event === "tap").length,
         store: ev.filter((e) => e.event === "store").length,
