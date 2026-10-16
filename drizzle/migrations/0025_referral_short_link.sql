@@ -1,0 +1,1 @@
+ALTER TABLE public.referral_partners ADD COLUMN IF NOT EXISTS short_link text;

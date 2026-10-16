@@ -931,6 +931,7 @@ export type Database = {
           instagram_followers: number
           name: string
           payout_per_member_cents: number
+          short_link: string | null
           slug: string
           tiktok_followers: number
         }
@@ -941,6 +942,7 @@ export type Database = {
           instagram_followers?: number
           name: string
           payout_per_member_cents?: number
+          short_link?: string | null
           slug: string
           tiktok_followers?: number
         }
@@ -951,6 +953,7 @@ export type Database = {
           instagram_followers?: number
           name?: string
           payout_per_member_cents?: number
+          short_link?: string | null
           slug?: string
           tiktok_followers?: number
         }
