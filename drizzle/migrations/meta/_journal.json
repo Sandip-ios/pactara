@@ -169,6 +169,13 @@
       "when": 1791923116687,
       "tag": "0023_referral_partners",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1792125911035,
+      "tag": "0024_creator_followers",
+      "breakpoints": true
     }
   ]
 }

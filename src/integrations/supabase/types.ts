@@ -928,25 +928,31 @@ export type Database = {
           created_at: string
           dashboard_key: string
           id: string
+          instagram_followers: number
           name: string
           payout_per_member_cents: number
           slug: string
+          tiktok_followers: number
         }
         Insert: {
           created_at?: string
           dashboard_key?: string
           id?: string
+          instagram_followers?: number
           name: string
           payout_per_member_cents?: number
           slug: string
+          tiktok_followers?: number
         }
         Update: {
           created_at?: string
           dashboard_key?: string
           id?: string
+          instagram_followers?: number
           name?: string
           payout_per_member_cents?: number
           slug?: string
+          tiktok_followers?: number
         }
         Relationships: []
       }
