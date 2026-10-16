@@ -9,7 +9,7 @@ export const getCreatorStats = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: partner } = await supabaseAdmin
       .from("referral_partners")
-      .select("id, name, slug, payout_per_member_cents")
+      .select("id, name, slug, payout_per_member_cents, instagram_followers, tiktok_followers")
       .eq("dashboard_key", data.key)
       .maybeSingle();
     if (!partner) throw new Error("Invalid link");
@@ -58,15 +58,25 @@ export const getCreatorStats = createServerFn({ method: "POST" })
       },
       lifetime: { members: userIds.length, paying: allPaying, earnedCents: allPaying * partner.payout_per_member_cents },
       payoutCents: partner.payout_per_member_cents,
+      followers: { instagram: partner.instagram_followers, tiktok: partner.tiktok_followers },
       series,
       recent: inst
         .filter((i) => i.user_id)
         .sort((a, b) => (b.linked_at ?? "").localeCompare(a.linked_at ?? ""))
-        .slice(0, 12)
+        .slice(0, 7)
         .map((i) => ({
           name: nameOf.get(i.user_id!) ?? "New member",
           joined: i.linked_at,
           status: paying.has(i.user_id!) ? "Paying" : checked.has(i.user_id!) ? "Checking in" : "Signed up",
         })),
     };
+  });
+
+export const saveCreatorFollowers = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ key: z.string().min(10).max(80), instagram: z.number().int().min(0).max(1e9), tiktok: z.number().int().min(0).max(1e9) }).parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("referral_partners").update({ instagram_followers: data.instagram, tiktok_followers: data.tiktok }).eq("dashboard_key", data.key);
+    if (error) throw new Error("Could not save");
+    return { ok: true };
   });

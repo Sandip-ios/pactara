@@ -302,3 +302,24 @@ body [class*="min-h-[100dvh]"] {
   62% { transform: translateX(-8px) rotate(-2deg) scale(1.04); opacity: 1; }
   100% { transform: translateX(0) rotate(0) scale(1); opacity: 1; }
 }
+
+/* Creator dashboard palette (scoped to .creator) */
+.creator {
+  --cr-bg: #f6f6fb; --cr-surface: #ffffff; --cr-sunk: #eff0f8; --cr-line: #e3e4ef;
+  --cr-ink: #14132b; --cr-muted: #6a6a86; --cr-faint: #a3a3bb; --cr-accent: #5b4ff0;
+  --cr-accent-ink: #ffffff; --cr-accent-soft: #ecebff; --cr-accent-mid: #c9c5fb;
+  --cr-good: #11845b; --cr-good-bg: #e3f5ec; --cr-warn: #a15c00; --cr-warn-bg: #fdf0db;
+  font-family: "Onest", system-ui, sans-serif; font-size: 15px; font-variant-numeric: tabular-nums;
+}
+@media (prefers-color-scheme: dark) { .creator { --cr-bg: #0f0e1c; --cr-surface: #181729; --cr-sunk: #211f36; --cr-line: #2c2a45; --cr-ink: #f1f0fb; --cr-muted: #a09fbd; --cr-faint: #6d6b8c; --cr-accent: #8a80ff; --cr-accent-ink: #0f0e1c; --cr-accent-soft: #272351; --cr-accent-mid: #453f8f; --cr-good: #4fd39e; --cr-good-bg: #15382b; --cr-warn: #f2b45a; --cr-warn-bg: #3b2a10; } }
+.dark .creator { --cr-bg: #0f0e1c; --cr-surface: #181729; --cr-sunk: #211f36; --cr-line: #2c2a45; --cr-ink: #f1f0fb; --cr-muted: #a09fbd; --cr-faint: #6d6b8c; --cr-accent: #8a80ff; --cr-accent-ink: #0f0e1c; --cr-accent-soft: #272351; --cr-accent-mid: #453f8f; --cr-good: #4fd39e; --cr-good-bg: #15382b; --cr-warn: #f2b45a; --cr-warn-bg: #3b2a10; }
+.creator :is(button, input, textarea, a):focus-visible { outline: 2px solid var(--cr-accent); outline-offset: 2px; }
+@theme inline {
+  --color-cr-bg: var(--cr-bg); --color-cr-surface: var(--cr-surface); --color-cr-sunk: var(--cr-sunk);
+  --color-cr-line: var(--cr-line); --color-cr-ink: var(--cr-ink); --color-cr-muted: var(--cr-muted);
+  --color-cr-faint: var(--cr-faint); --color-cr-accent: var(--cr-accent); --color-cr-accent-ink: var(--cr-accent-ink);
+  --color-cr-accent-soft: var(--cr-accent-soft); --color-cr-accent-mid: var(--cr-accent-mid);
+  --color-cr-good: var(--cr-good); --color-cr-good-bg: var(--cr-good-bg); --color-cr-warn: var(--cr-warn); --color-cr-warn-bg: var(--cr-warn-bg);
+  --font-cr-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-cr-mono: "JetBrains Mono", ui-monospace, monospace;
+}

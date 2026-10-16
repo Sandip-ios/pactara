@@ -1,0 +1,2 @@
+ALTER TABLE public.referral_partners ADD COLUMN IF NOT EXISTS instagram_followers integer NOT NULL DEFAULT 0, ADD COLUMN IF NOT EXISTS tiktok_followers integer NOT NULL DEFAULT 0;
+UPDATE public.referral_partners SET instagram_followers = 244000, tiktok_followers = 140000 WHERE slug = 'marcia';
