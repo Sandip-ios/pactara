@@ -1,4 +1,5 @@
 import {
+import { stabilizeSignedUrls } from "@/lib/stable-urls";
   useEffect,
   useLayoutEffect,
   useRef,
@@ -528,7 +529,7 @@ function ReactionBar({
 
 const commentsQueryOptions = (postId: string) => ({
   queryKey: ["post-comments", postId] as const,
-  queryFn: () => getPostComments({ data: { postId } }),
+  queryFn: () => getPostComments({ data: { postId } }).then(stabilizeSignedUrls),
   staleTime: 30_000,
   gcTime: 5 * 60_000,
 });

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
@@ -158,7 +159,7 @@ function HomePage() {
   });
   const { data: feedData } = useQuery({
     queryKey: ["group-feed", selectedGroupId],
-    queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }),
+    queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
     refetchOnWindowFocus: true,
   });
   const { data: streaksData } = useQuery({

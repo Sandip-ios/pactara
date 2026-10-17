@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useNavigate, useRouter } from "@tanstack/react-router";
@@ -64,7 +65,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
   const { data, isPending } = useQuery({
     queryKey: ["member-profile", userId, selectedGroupId],
-    queryFn: () => getMemberProfile({ data: { userId, groupId: selectedGroupId } }),
+    queryFn: () => getMemberProfile({ data: { userId, groupId: selectedGroupId } }).then(stabilizeSignedUrls),
   });
 
   const [avatarLoaded, setAvatarLoaded] = useState(false);
