@@ -1,3 +1,4 @@
+import { makeVideoPoster } from "@/lib/video-poster";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ChevronLeft } from "lucide-react";
