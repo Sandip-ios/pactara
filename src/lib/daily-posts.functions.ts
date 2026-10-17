@@ -66,7 +66,7 @@ async function signAvatar(
   path: string | null | undefined,
 ): Promise<string | null> {
   if (!path) return null;
-  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60);
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
   return data?.signedUrl ?? null;
 }
 

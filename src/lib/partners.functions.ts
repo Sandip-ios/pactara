@@ -38,7 +38,7 @@ async function person(userId: string): Promise<PartnerPerson> {
     .maybeSingle();
   let url: string | null = null;
   if (p?.avatar_url) {
-    const { data: s } = await supabaseAdmin.storage.from("avatars").createSignedUrl(p.avatar_url, 3600);
+    const { data: s } = await supabaseAdmin.storage.from("avatars").createSignedUrl(p.avatar_url, 3600, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
     url = s?.signedUrl ?? null;
   }
   return {

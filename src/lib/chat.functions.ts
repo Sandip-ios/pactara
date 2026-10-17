@@ -123,7 +123,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
             if (p.avatar_url) {
               const { data: signed } = await supabase.storage
                 .from("avatars")
-                .createSignedUrl(p.avatar_url, 60 * 60);
+                .createSignedUrl(p.avatar_url, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
               avatarUrl = signed?.signedUrl ?? null;
             }
             return [p.id, { name: p.name, avatarColor: p.avatar_color, avatarUrl }] as const;

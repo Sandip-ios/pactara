@@ -77,7 +77,7 @@ export const getPact = createServerFn({ method: "GET" })
         if (p?.avatar_url) {
           const { data: s } = await supabaseAdmin.storage
             .from("avatars")
-            .createSignedUrl(p.avatar_url, 60 * 60);
+            .createSignedUrl(p.avatar_url, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
           url = s?.signedUrl ?? null;
         }
         const signedAt = (m as { pact_signed_at?: string | null }).pact_signed_at ?? null;
