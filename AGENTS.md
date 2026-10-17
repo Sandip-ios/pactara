@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Feed media URLs are signed in deduplicated batches per storage bucket, and feed videos load only near the viewport to avoid competing downloads.

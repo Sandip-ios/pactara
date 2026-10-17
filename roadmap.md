@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Reduce feed media requests and defer off-screen video downloads; build and existing regression tests pass
+- [ ] Verify signed-in feed/video load times on device — blocked by unavailable signed-in preview session
+
 - [x] Show the existing “How Pactara works” sheet instead of the welcome sheet on the first Home landing after signup, including partner signup
 - [x] Waiting (search) screen: live radar animation, orbiting candidates, "We're looking for someone who's ready to show up with you." subline — no shimmer bar, no Continue button, no "Partner search active" badge
 - [x] Waiting (search) screen headline: "Finding your accountability partner" (no "still"/"person" variants), wraps to two lines

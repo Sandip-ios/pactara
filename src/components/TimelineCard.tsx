@@ -110,6 +110,7 @@ function timeLabel(iso: string) {
 
 function VideoThumb({ src }: { src: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [nearViewport, setNearViewport] = useState(false);
   const primedRef = useRef(false);
   const visibleRef = useRef(false);
 
@@ -117,15 +118,24 @@ function VideoThumb({ src }: { src: string }) {
     const v = ref.current;
     if (!v) return;
     const detach = attachVideoDurationFix(v);
+    const preloadObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setNearViewport(true);
+        preloadObserver.disconnect();
+      }
+    }, { rootMargin: "240px" });
+    preloadObserver.observe(v);
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           const visible = entry.isIntersecting && entry.intersectionRatio >= 0.4;
           visibleRef.current = visible;
           if (visible) {
+            v.preload = "auto";
             v.play().catch(() => {});
-          } else if (!v.paused) {
-            v.pause();
+          } else {
+            v.preload = "metadata";
+            if (!v.paused) v.pause();
           }
         }
       },
@@ -134,6 +144,7 @@ function VideoThumb({ src }: { src: string }) {
     io.observe(v);
     return () => {
       io.disconnect();
+      preloadObserver.disconnect();
       detach();
     };
   }, []);
@@ -141,10 +152,10 @@ function VideoThumb({ src }: { src: string }) {
   return (
     <video
       ref={ref}
-      src={src}
+      src={nearViewport ? src : undefined}
       muted
       playsInline
-      preload="auto"
+      preload="metadata"
       // iOS Safari won't paint a first frame from preload alone or from a
       // bare currentTime seek. Briefly play muted then pause so the frame
       // is rendered; without this the thumbnail stays solid black. Skip the
