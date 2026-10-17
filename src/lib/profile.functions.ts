@@ -55,7 +55,7 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     if (avatarPath) {
       const { data: signed } = await supabase.storage
         .from("avatars")
-        .createSignedUrl(avatarPath, 60 * 60);
+        .createSignedUrl(avatarPath, 60 * 60, { transform: { width: 720, height: 720, resize: "cover", quality: 75 } });
       avatarSignedUrl = signed?.signedUrl ?? null;
     }
 

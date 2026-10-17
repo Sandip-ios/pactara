@@ -13,7 +13,7 @@ async function signAvatar(
   path: string | null | undefined,
 ): Promise<string | null> {
   if (!path) return null;
-  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60);
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
   return data?.signedUrl ?? null;
 }
 
@@ -61,7 +61,7 @@ export const getGroupPreview = createServerFn({ method: "GET" })
         if (path) {
           const { data: s } = await supabaseAdmin.storage
             .from("avatars")
-            .createSignedUrl(path, 60 * 60);
+            .createSignedUrl(path, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
           url = s?.signedUrl ?? null;
         }
         return {

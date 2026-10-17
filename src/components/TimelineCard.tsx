@@ -1,3 +1,4 @@
+import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import {
   useEffect,
   useLayoutEffect,
@@ -108,7 +109,7 @@ function timeLabel(iso: string) {
 }
 
 
-function VideoThumb({ src }: { src: string }) {
+function VideoThumb({ src, poster }: { src: string; poster?: string | null }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [nearViewport, setNearViewport] = useState(false);
   const primedRef = useRef(false);
@@ -153,6 +154,7 @@ function VideoThumb({ src }: { src: string }) {
     <video
       ref={ref}
       src={nearViewport ? src : undefined}
+      poster={poster ?? undefined}
       muted
       playsInline
       preload="metadata"
@@ -203,10 +205,10 @@ function VideoThumb({ src }: { src: string }) {
 
 
 
-function VideoBlock({ src }: { src: string }) {
+function VideoBlock({ src, poster }: { src: string; poster?: string | null }) {
   return (
     <div className="w-full aspect-square rounded-xl overflow-hidden bg-black relative">
-      <VideoThumb src={src} />
+      <VideoThumb src={src} poster={poster} />
     </div>
   );
 }
@@ -229,6 +231,7 @@ type Visual = {
   dot: { fill: string; ring: string };
   body?: string | null;
   photoUrl?: string | null;
+  posterUrl?: string | null;
   activity?: string | null;
   time?: string;
 };
@@ -266,6 +269,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         border: "#CFFAFE",
         body: node.text,
         photoUrl: node.photoUrl,
+        posterUrl: node.posterUrl,
         time: timeLabel(node.at),
         dot: { fill: "#0F766E", ring: "#0F766E" },
       };
@@ -279,6 +283,7 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         border: mood?.border ?? "#D1FADF",
         body: node.note,
         photoUrl: node.photoUrl,
+        posterUrl: node.posterUrl,
         activity: node.activity,
         time: timeLabel(node.at),
         dot: { fill: mood?.color ?? "#16A34A", ring: mood?.color ?? "#16A34A" },
@@ -528,7 +533,7 @@ function ReactionBar({
 
 const commentsQueryOptions = (postId: string) => ({
   queryKey: ["post-comments", postId] as const,
-  queryFn: () => getPostComments({ data: { postId } }),
+  queryFn: () => getPostComments({ data: { postId } }).then(stabilizeSignedUrls),
   staleTime: 30_000,
   gcTime: 5 * 60_000,
 });
@@ -1049,7 +1054,7 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
                 className="mt-3 block w-full overflow-hidden rounded-xl bg-transparent p-0"
               >
                 {isVideo ? (
-                  <VideoBlock src={src} />
+                  <VideoBlock src={src} poster={standaloneThought.posterUrl} />
                 ) : (
                   <img src={src} alt="" className="max-h-[360px] w-full rounded-xl object-cover" />
                 )}
@@ -1130,7 +1135,7 @@ export function TimelineCard({ item, autoOpenComments }: { item: FeedItem; autoO
                           className="block w-full p-0 border-0 bg-transparent"
                         >
                           {isVideo ? (
-                            <VideoBlock src={src} />
+                            <VideoBlock src={src} poster={visual.posterUrl} />
                           ) : (
                             <img src={src} alt="" className="w-full rounded-xl object-cover max-h-[360px]" />
                           )}

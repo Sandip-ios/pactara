@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -65,7 +66,7 @@ async function signAvatar(
   path: string | null | undefined,
 ): Promise<string | null> {
   if (!path) return null;
-  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60);
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
   return data?.signedUrl ?? null;
 }
 
@@ -422,6 +423,7 @@ export type TimelineNode =
       id: string;
       text: string | null;
       photoUrl: string | null;
+      posterUrl?: string | null;
       at: string;
     }
   | {
@@ -431,6 +433,7 @@ export type TimelineNode =
       activity: string | null;
       note: string | null;
       photoUrl: string | null;
+      posterUrl?: string | null;
       at: string;
     }
   | {
@@ -636,12 +639,13 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .map((item) => item.photo_url)
       .filter((path): path is string => !!path && !path.startsWith("http"))));
     // Two requests, regardless of how many repeated assets appear in the feed.
-    const [avatars, photos] = await Promise.all([
-      avatarPaths.length ? supabase.storage.from("avatars").createSignedUrls(avatarPaths, 60 * 60) : Promise.resolve({ data: [] }),
-      photoPaths.length ? supabase.storage.from("chat-photos").createSignedUrls(photoPaths, 60 * 60) : Promise.resolve({ data: [] }),
+    // Avatars and photos are resized server-side to their display size.
+    const [avatarUrls, photoUrls, posterUrls] = await Promise.all([
+      signAvatarThumbs(supabase as SupabaseClient, avatarPaths),
+      signFeedMedia(supabase as SupabaseClient, photoPaths),
+      signVideoPosters(supabase as SupabaseClient, photoPaths),
     ]);
-    const avatarUrls = new Map((avatars.data ?? []).map((asset) => [asset.path, asset.signedUrl]));
-    const photoUrls = new Map((photos.data ?? []).map((asset) => [asset.path, asset.signedUrl]));
+    const resolvePoster = (path: string | null | undefined) => (path ? posterUrls.get(path) ?? null : null);
     const resolvePhoto = (path: string | null | undefined) => !path ? null : path.startsWith("http") ? path : photoUrls.get(path) ?? null;
     const profileMap = new Map(
         (profiles ?? []).map((p) => [
@@ -657,10 +661,12 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const checkIns = rawCheckIns.map((ci) => ({
         ...ci,
         photo_url: resolvePhoto(ci.photo_url),
+        poster_url: resolvePoster(ci.photo_url),
       }));
     const thoughts = rawThoughts.map((t) => ({
         ...t,
         photo_url: resolvePhoto(t.photo_url),
+        poster_url: resolvePoster(t.photo_url),
       }));
 
     const items: FeedItem[] = posts.map((p) => {
@@ -701,6 +707,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           id: `t-${t.id}`,
           text: t.text ?? null,
           photoUrl: t.photo_url ?? null,
+          posterUrl: t.poster_url ?? null,
           at: t.created_at,
         });
       }
@@ -717,6 +724,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           activity: c.activity,
           note: c.note,
           photoUrl: c.photo_url ?? null,
+          posterUrl: c.poster_url ?? null,
           at: c.created_at,
         });
       }
@@ -949,16 +957,7 @@ export const getPostComments = createServerFn({ method: "GET" })
     const avatarPaths = (profs ?? [])
       .map((p: any) => p.avatar_url)
       .filter((p: string | null): p is string => !!p);
-    const signedMap = new Map<string, string>();
-    if (avatarPaths.length) {
-      const { data: signed } = await supabase.storage
-        .from("avatars")
-        .createSignedUrls(avatarPaths, 60 * 60);
-      (signed ?? []).forEach((s: any) => {
-        if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
-      });
-    }
-    const mediaSigned = new Map<string, string>();
+    const signedMap = await signAvatarThumbs(supabase as SupabaseClient, avatarPaths);
     const mediaPaths = Array.from(
       new Set(
         (rows ?? [])
@@ -966,14 +965,7 @@ export const getPostComments = createServerFn({ method: "GET" })
           .filter((p: string | null): p is string => !!p && !p.startsWith("http")),
       ),
     ) as string[];
-    if (mediaPaths.length) {
-      const { data: signed } = await supabase.storage
-        .from("chat-photos")
-        .createSignedUrls(mediaPaths, 60 * 60);
-      (signed ?? []).forEach((s: any) => {
-        if (s?.path && s?.signedUrl) mediaSigned.set(s.path, s.signedUrl);
-      });
-    }
+    const mediaSigned = await signFeedMedia(supabase as SupabaseClient, mediaPaths);
     const commentIds = (rows ?? []).map((r: any) => r.id) as string[];
     const likeCounts = new Map<string, number>();
     const likedByMe = new Set<string>();
@@ -1106,15 +1098,7 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
     const avatarPaths = (profs ?? [])
       .map((p: any) => p.avatar_url)
       .filter((p: string | null): p is string => !!p);
-    const signedMap = new Map<string, string>();
-    if (avatarPaths.length) {
-      const { data: signed } = await supabase.storage
-        .from("avatars")
-        .createSignedUrls(avatarPaths, 60 * 60);
-      (signed ?? []).forEach((s: any) => {
-        if (s?.path && s?.signedUrl) signedMap.set(s.path, s.signedUrl);
-      });
-    }
+    const signedMap = await signAvatarThumbs(supabase as SupabaseClient, avatarPaths);
     const checkedSet = new Set((todayCheckIns ?? []).map((c: any) => c.user_id as string));
     const teammates: CelebrationTeammate[] = (profs ?? []).map((p: any) => ({
       id: p.id,

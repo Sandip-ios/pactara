@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { awardBadgesForUser } from "./badges.functions";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { isVideoPath, signFeedMedia } from "./media-urls";
 
 function ymd(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -131,7 +133,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
           if (avatarPath) {
             const { data: signedAvatar } = await supabase.storage
               .from("avatars")
-              .createSignedUrl(avatarPath, 60 * 60);
+              .createSignedUrl(avatarPath, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
             memberAvatarUrl = signedAvatar?.signedUrl ?? null;
           }
           return [
@@ -158,7 +160,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     if (avatarPath) {
       const { data: signed } = await supabase.storage
         .from("avatars")
-        .createSignedUrl(avatarPath, 60 * 60);
+        .createSignedUrl(avatarPath, 60 * 60, { transform: { width: 720, height: 720, resize: "cover", quality: 75 } });
       avatarUrl = signed?.signedUrl ?? null;
     }
 
@@ -192,21 +194,21 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const mediaRows = rows.filter((r) => !!r.photo_url).slice(0, 120);
     const media: ProfileMedia[] = [];
     if (mediaRows.length > 0) {
-      const paths = mediaRows.map((r) => r.photo_url as string);
-      const { data: signed } = await supabase.storage
-        .from("chat-photos")
-        .createSignedUrls(paths, 60 * 60);
-      (signed ?? []).forEach((s, i) => {
-        const row = mediaRows[i];
-        if (!s?.signedUrl || !row) return;
+      const signedByPath = await signFeedMedia(
+        supabase as unknown as SupabaseClient,
+        mediaRows.map((r) => r.photo_url as string),
+      );
+      for (const row of mediaRows) {
         const path = row.photo_url as string;
+        const url = path.startsWith("http") ? path : signedByPath.get(path);
+        if (!url) continue;
         media.push({
           id: row.id,
-          url: s.signedUrl,
-          kind: /\.(mp4|mov|webm|m4v|ogg)$/i.test(path) ? "video" : "image",
+          url,
+          kind: isVideoPath(path) ? "video" : "image",
           date: row.checkin_date,
         });
-      });
+      }
     }
 
     // Backfill any milestone already reached but never recorded (e.g. streaks

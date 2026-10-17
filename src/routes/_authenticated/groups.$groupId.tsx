@@ -1,3 +1,4 @@
+import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -339,7 +340,7 @@ function MemberStatusRow({
 function ActivityTab({ groupId }: { groupId: string }) {
   const { data } = useQuery({
     queryKey: ["group-feed", groupId],
-    queryFn: () => getGroupFeed({ data: { groupId } }),
+    queryFn: () => getGroupFeed({ data: { groupId } }).then(stabilizeSignedUrls),
     staleTime: 30_000,
   });
 

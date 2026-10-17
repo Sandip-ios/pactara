@@ -64,7 +64,7 @@ function shiftIso(iso: string, deltaDays: number): string {
 
 async function signAvatar(supabase: SupabaseClient, path: string | null | undefined) {
   if (!path) return null;
-  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60);
+  const { data } = await supabase.storage.from("avatars").createSignedUrl(path, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
   return data?.signedUrl ?? null;
 }
 
