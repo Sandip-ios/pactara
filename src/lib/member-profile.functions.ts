@@ -131,7 +131,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
           if (avatarPath) {
             const { data: signedAvatar } = await supabase.storage
               .from("avatars")
-              .createSignedUrl(avatarPath, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
+              .createSignedUrl(avatarPath, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
             memberAvatarUrl = signedAvatar?.signedUrl ?? null;
           }
           return [
@@ -158,7 +158,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     if (avatarPath) {
       const { data: signed } = await supabase.storage
         .from("avatars")
-        .createSignedUrl(avatarPath, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
+        .createSignedUrl(avatarPath, 60 * 60, { transform: { width: 720, height: 720, resize: "cover", quality: 75 } });
       avatarUrl = signed?.signedUrl ?? null;
     }
 

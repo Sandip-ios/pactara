@@ -504,7 +504,7 @@ export const getWorkoutSession = createServerFn({ method: "GET" })
     if (path) {
       const { data: signed } = await supabase.storage
         .from("avatars")
-        .createSignedUrl(path, 60 * 60, { transform: { width: SIZE, height: SIZE, resize: "cover", quality: 75 } });
+        .createSignedUrl(path, 60 * 60, { transform: { width: 192, height: 192, resize: "cover", quality: 75 } });
       avatarUrl = signed?.signedUrl ?? null;
     }
 
