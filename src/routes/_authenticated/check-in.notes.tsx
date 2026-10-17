@@ -77,6 +77,19 @@ async function uploadCheckInPhotoOnce(blob: Blob): Promise<string> {
     .from("chat-photos")
     .upload(path, blob, { contentType: mime, upsert: false });
   if (error) throw error;
+  if (mime.startsWith("video/")) {
+    // Best effort: a small preview frame lets the feed paint instantly.
+    try {
+      const poster = await makeVideoPoster(blob);
+      if (poster) {
+        await supabase.storage
+          .from("chat-photos")
+          .upload(`${path}.poster.jpg`, poster, { contentType: "image/jpeg", upsert: true });
+      }
+    } catch {
+      /* the video still posts without a poster */
+    }
+  }
   return path;
 }
 
