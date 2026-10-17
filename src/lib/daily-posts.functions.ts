@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { signAvatarThumbs, signFeedMedia } from "./media-urls";
+import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -423,6 +423,7 @@ export type TimelineNode =
       id: string;
       text: string | null;
       photoUrl: string | null;
+      posterUrl?: string | null;
       at: string;
     }
   | {
@@ -432,6 +433,7 @@ export type TimelineNode =
       activity: string | null;
       note: string | null;
       photoUrl: string | null;
+      posterUrl?: string | null;
       at: string;
     }
   | {
@@ -638,10 +640,12 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .filter((path): path is string => !!path && !path.startsWith("http"))));
     // Two requests, regardless of how many repeated assets appear in the feed.
     // Avatars and photos are resized server-side to their display size.
-    const [avatarUrls, photoUrls] = await Promise.all([
+    const [avatarUrls, photoUrls, posterUrls] = await Promise.all([
       signAvatarThumbs(supabase as SupabaseClient, avatarPaths),
       signFeedMedia(supabase as SupabaseClient, photoPaths),
+      signVideoPosters(supabase as SupabaseClient, photoPaths),
     ]);
+    const resolvePoster = (path: string | null | undefined) => (path ? posterUrls.get(path) ?? null : null);
     const resolvePhoto = (path: string | null | undefined) => !path ? null : path.startsWith("http") ? path : photoUrls.get(path) ?? null;
     const profileMap = new Map(
         (profiles ?? []).map((p) => [
@@ -657,10 +661,12 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const checkIns = rawCheckIns.map((ci) => ({
         ...ci,
         photo_url: resolvePhoto(ci.photo_url),
+        poster_url: resolvePoster(ci.photo_url),
       }));
     const thoughts = rawThoughts.map((t) => ({
         ...t,
         photo_url: resolvePhoto(t.photo_url),
+        poster_url: resolvePoster(t.photo_url),
       }));
 
     const items: FeedItem[] = posts.map((p) => {
@@ -701,6 +707,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           id: `t-${t.id}`,
           text: t.text ?? null,
           photoUrl: t.photo_url ?? null,
+          posterUrl: t.poster_url ?? null,
           at: t.created_at,
         });
       }
@@ -717,6 +724,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           activity: c.activity,
           note: c.note,
           photoUrl: c.photo_url ?? null,
+          posterUrl: c.poster_url ?? null,
           at: c.created_at,
         });
       }

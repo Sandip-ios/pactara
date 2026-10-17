@@ -63,3 +63,26 @@ export async function signFeedMedia(
   }
   return imageMap;
 }
+
+/** Poster frame stored next to each check-in video (`<video path>.poster.jpg`). */
+export const posterPathFor = (videoPath: string) => `${videoPath}.poster.jpg`;
+
+/** Signed poster URLs for videos that have one; videos without a poster are skipped. */
+export async function signVideoPosters(
+  supabase: SupabaseClient,
+  paths: (string | null | undefined)[],
+  bucket = "chat-photos",
+): Promise<Map<string, string>> {
+  const videos = Array.from(
+    new Set(paths.filter((p): p is string => !!p && !p.startsWith("http") && isVideoPath(p))),
+  );
+  const out = new Map<string, string>();
+  if (!videos.length) return out;
+  const { data } = await supabase.storage
+    .from(bucket)
+    .createSignedUrls(videos.map(posterPathFor), TTL);
+  (data ?? []).forEach((row, i) => {
+    if (row?.signedUrl && !row.error) out.set(videos[i], row.signedUrl);
+  });
+  return out;
+}
