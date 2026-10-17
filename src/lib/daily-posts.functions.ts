@@ -626,32 +626,39 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     }
 
 
+    const rawCheckIns = checkInsResult.data ?? [];
+    const rawThoughts = ((thoughtsResult as any).data ?? []) as { photo_url: string | null; [key: string]: any }[];
+    const avatarPaths = Array.from(new Set((profiles ?? []).map((p) => p.avatar_url).filter((path): path is string => !!path)));
+    const photoPaths = Array.from(new Set([...rawCheckIns, ...rawThoughts]
+      .map((item) => item.photo_url)
+      .filter((path): path is string => !!path && !path.startsWith("http"))));
+    // Two requests, regardless of how many repeated assets appear in the feed.
+    const [avatars, photos] = await Promise.all([
+      avatarPaths.length ? supabase.storage.from("avatars").createSignedUrls(avatarPaths, 60 * 60) : Promise.resolve({ data: [] }),
+      photoPaths.length ? supabase.storage.from("chat-photos").createSignedUrls(photoPaths, 60 * 60) : Promise.resolve({ data: [] }),
+    ]);
+    const avatarUrls = new Map((avatars.data ?? []).map((asset) => [asset.path, asset.signedUrl]));
+    const photoUrls = new Map((photos.data ?? []).map((asset) => [asset.path, asset.signedUrl]));
+    const resolvePhoto = (path: string | null | undefined) => !path ? null : path.startsWith("http") ? path : photoUrls.get(path) ?? null;
     const profileMap = new Map(
-      await Promise.all(
-        (profiles ?? []).map(async (p) => [
+        (profiles ?? []).map((p) => [
           p.id,
           {
             name: p.name,
             avatar_color: p.avatar_color,
-            avatar_url: await signAvatar(supabase, p.avatar_url),
+            avatar_url: p.avatar_url ? avatarUrls.get(p.avatar_url) ?? null : null,
           },
         ] as const),
-      ),
     );
 
-    // Sign photos once.
-    const checkIns = await Promise.all(
-      (checkInsResult.data ?? []).map(async (ci) => ({
+    const checkIns = rawCheckIns.map((ci) => ({
         ...ci,
-        photo_url: await signPhoto(supabase, ci.photo_url),
-      })),
-    );
-    const thoughts = await Promise.all(
-      ((thoughtsResult as any).data ?? []).map(async (t: any) => ({
+        photo_url: resolvePhoto(ci.photo_url),
+      }));
+    const thoughts = rawThoughts.map((t) => ({
         ...t,
-        photo_url: await signPhoto(supabase, t.photo_url),
-      })),
-    );
+        photo_url: resolvePhoto(t.photo_url),
+      }));
 
     const items: FeedItem[] = posts.map((p) => {
       const prof = profileMap.get(p.user_id);
