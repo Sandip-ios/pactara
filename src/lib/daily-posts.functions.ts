@@ -627,7 +627,10 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
 
     const rawCheckIns = checkInsResult.data ?? [];
-    const rawThoughts = ((thoughtsResult as any).data ?? []) as { photo_url: string | null; [key: string]: any }[];
+    const rawThoughts = (thoughtsResult.data ?? []) as {
+      id: string; user_id: string; local_date: string; text: string | null;
+      photo_url: string | null; created_at: string;
+    }[];
     const avatarPaths = Array.from(new Set((profiles ?? []).map((p) => p.avatar_url).filter((path): path is string => !!path)));
     const photoPaths = Array.from(new Set([...rawCheckIns, ...rawThoughts]
       .map((item) => item.photo_url)
