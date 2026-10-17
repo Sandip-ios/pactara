@@ -578,7 +578,12 @@ function VideoRecordScreen() {
     const mimeType = pickMimeType();
     let rec: MediaRecorder;
     try {
-      rec = new MediaRecorder(baked.stream, mimeType ? { mimeType } : undefined);
+      // Cap the bitrate: without it phones record ~3-5 Mbps, making every
+      // check-in 10-25 MB and slow to load in the feed.
+      rec = new MediaRecorder(baked.stream, {
+        ...(mimeType ? { mimeType } : {}),
+        videoBitsPerSecond: 2_000_000,
+      });
     } catch {
       baked.cleanup();
       bakeCleanupRef.current = null;
