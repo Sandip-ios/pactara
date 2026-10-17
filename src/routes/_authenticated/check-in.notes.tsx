@@ -85,7 +85,7 @@ async function uploadCheckInPhotoOnce(blob: Blob): Promise<string> {
       if (poster) {
         await supabase.storage
           .from("chat-photos")
-          .upload(`${path}.poster.jpg`, poster, { contentType: "image/jpeg", upsert: true });
+          .upload(`${path}.poster.jpg`, poster, { contentType: "image/jpeg", upsert: false });
       }
     } catch {
       /* the video still posts without a poster */
