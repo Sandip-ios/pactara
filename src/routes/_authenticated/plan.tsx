@@ -124,9 +124,21 @@ function PlanPage() {
 
   const confirmPlan = async () => {
     if (!pendingPlan) return;
-    const pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
-    const product = pendingPlan === "annual" ? offerings?.annualProduct : offerings?.monthlyProduct;
+    let pkg = pendingPlan === "annual" ? offerings?.annual : offerings?.monthly;
+    let product = pendingPlan === "annual" ? offerings?.annualProduct : offerings?.monthlyProduct;
     if (isNative()) {
+      for (let attempt = 0; attempt < 3 && !pkg && !product; attempt++) {
+        try {
+          const fresh = await getOfferings();
+          if (fresh) {
+            pkg = pendingPlan === "annual" ? fresh.annual : fresh.monthly;
+            product = pendingPlan === "annual" ? fresh.annualProduct : fresh.monthlyProduct;
+          }
+        } catch (err) {
+          console.error("[plan] offerings retry failed", err);
+        }
+        if (!pkg && !product) await new Promise((r) => setTimeout(r, 1500));
+      }
       if (!pkg && !product) {
         setError(
           "Apple did not return this subscription. Please try again later or contact support at hello@pactara.app.",
