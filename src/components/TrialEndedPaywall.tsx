@@ -106,16 +106,33 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
 
   async function handleSubscribe() {
     if (purchasing) return;
-    const pkg = plan === "yearly" ? annualPkg : monthlyPkg;
-    const product = plan === "yearly" ? annualProduct : monthlyProduct;
+    setPurchasing(true);
+    setError(null);
+    let pkg = plan === "yearly" ? annualPkg : monthlyPkg;
+    let product = plan === "yearly" ? annualProduct : monthlyProduct;
     if (!pkg && !product) {
+      // Plans may still be loading (slow App Store) — fetch again before failing.
+      for (let attempt = 0; attempt < 3 && !pkg && !product; attempt++) {
+        try {
+          const fresh = await getOfferings();
+          if (fresh) {
+            setOfferings(fresh);
+            pkg = plan === "yearly" ? fresh.annual : fresh.monthly;
+            product = plan === "yearly" ? fresh.annualProduct : fresh.monthlyProduct;
+          }
+        } catch (err) {
+          console.error("[paywall] offerings retry failed", err);
+        }
+        if (!pkg && !product) await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+    if (!pkg && !product) {
+      setPurchasing(false);
       setError(
         "Apple did not return this subscription. Please try again later or contact support at hello@pactara.app.",
       );
       return;
     }
-    setPurchasing(true);
-    setError(null);
     try {
       const customerInfo = pkg ? await purchasePackage(pkg) : await purchaseProduct(product);
       if (customerInfo) {
