@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { PluginListenerHandle } from "@capacitor/core";
 import { useNavigate } from "@tanstack/react-router";
+import { focusManager } from "@tanstack/react-query";
 import { isNative, nativePlatform } from "@/lib/native";
 import { syncAppBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,6 +116,9 @@ export function NativeBootstrap() {
         );
         listenerHandles.push(
           App.addListener("appStateChange", ({ isActive }) => {
+            // Native suspension does not reliably emit browser visibility events.
+            // Drive Query's focus lifecycle so stale signed photos refresh on return.
+            focusManager.setFocused(isActive);
             if (isActive) {
               void registerForPush();
               void syncAppBadge();

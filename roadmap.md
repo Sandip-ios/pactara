@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Refresh cached photos on native app resume and prevent blank member tiles
 - [x] Reduce feed media requests and defer off-screen video downloads; build and existing regression tests pass
 - [ ] Verify signed-in feed/video load times on device — blocked by unavailable signed-in preview session
 

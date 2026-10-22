@@ -23,6 +23,7 @@ import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
 import { loadCheckInDraft, clearCheckInDraft, type CheckInDraft } from "@/lib/checkin-draft-store";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
+import { MemberPhoto } from "@/components/MemberPhoto";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { relationForGroup } from "@/lib/group-display";
@@ -166,6 +167,7 @@ function HomePage() {
     queryKey: ["group-member-streaks", selectedGroupId],
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
+    refetchOnWindowFocus: true,
   });
   const { data: paceData } = useQuery({
     queryKey: ["my-commitment-pace", selectedGroupId],
@@ -668,7 +670,6 @@ function HomePage() {
         <div className="pt-3">
           <div className="flex gap-3 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {(streaksData?.members ?? []).map((m) => {
-              const initial = (m.name || "U").slice(0, 1).toUpperCase();
               return (
                 <MemberProfileLink
                   key={m.userId}
@@ -681,11 +682,7 @@ function HomePage() {
                       className="h-[128px] w-[80px] rounded-lg flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
                       style={{ background: m.avatarColor }}
                     >
-                      {m.avatarUrl ? (
-                        <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" />
-                      ) : (
-                        initial
-                      )}
+                      <MemberPhoto src={m.avatarUrl} name={m.name || "U"} />
                     </div>
 
                     <div
