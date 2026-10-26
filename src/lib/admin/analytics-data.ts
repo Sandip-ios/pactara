@@ -76,13 +76,12 @@ export type Analytics = {
     activeSubscribers: number;
   };
 
-  today: {
+  summary: {
     activeUsers: number;
     commitments: number;
     completed: number;
     completionRate: number;
     activeGroups: number;
-    groupsAllIn: number;
     opens: number;
     newAccounts: number;
   };

@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 import { useAdmin } from "@/lib/admin/context";
+import { RANGE_LABELS } from "@/lib/admin/analytics-data";
 import {
   EmptyNote,
   InfoTip,
@@ -16,6 +17,11 @@ export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
       { title: "Overview · Pactara Founder Analytics" },
+      { name: "description", content: "Pactara account growth and accountability activity for your selected reporting period." },
+      { property: "og:title", content: "Overview · Pactara Founder Analytics" },
+      { property: "og:description", content: "Private Pactara account growth and accountability overview." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -33,20 +39,20 @@ const NORTH_STAR_DEF = {
 
 function OverviewPage() {
   const { data, compare } = useAdmin();
-  const t = data.today;
+  const t = data.summary;
 
   return (
     <div className="space-y-8">
       <PageHeader title="Overview" subtitle="Pactara's real numbers, straight from the app's own database." />
 
-      <Panel title="Pactara yesterday" description="The last full day of the accountability loop.">
+      <Panel title={`Pactara · ${RANGE_LABELS[data.range]}`} description="Activity for the selected period · dates in UTC.">
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
             { l: "Active people", v: t.activeUsers.toLocaleString() },
             { l: "New accounts", v: t.newAccounts.toLocaleString() },
             { l: "Commitments", v: t.commitments.toLocaleString() },
             { l: "Completed", v: `${t.completed} · ${Math.round(t.completionRate * 100)}%` },
-            { l: "Active groups", v: `${t.activeGroups} · ${t.groupsAllIn} all in` },
+            { l: "Groups with commitments", v: t.activeGroups.toLocaleString() },
             { l: "App opens", v: t.opens.toLocaleString() },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl bg-pactara-purple-soft/60 p-4">
