@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { buildPeriodSummary } from "./period-summary";
 import {
   METRIC_DEFS,
   RANGE_DAYS,
@@ -868,15 +869,6 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
         href: "/admin/funnel",
       });
 
-    const yesterdayKey = dayKey(new Date(now.getTime() - DAY));
-    const yPosts = posts.filter((p) => str(p, "local_date") === yesterdayKey);
-    const yGroups = new Set(yPosts.map((p) => str(p, "group_id")));
-    let yAllIn = 0;
-    for (const g of yGroups) {
-      const rows = postsByGroupDay.get(`${g}|${yesterdayKey}`) ?? [];
-      if (rows.length && rows.every((r) => maybeStr(r, "check_in_id") !== null)) yAllIn += 1;
-    }
-
     return {
       range,
       days,
@@ -887,16 +879,17 @@ export const getFounderAnalytics = createServerFn({ method: "POST" })
         checkIns: checkIns.length,
         activeSubscribers,
       },
-      today: {
-        activeUsers: [...activity.values()].filter((s) => s.has(yesterdayKey)).length,
-        commitments: yPosts.length,
-        completed: completedOf(yPosts),
-        completionRate: pct(completedOf(yPosts), yPosts.length),
-        activeGroups: yGroups.size,
-        groupsAllIn: yAllIn,
-        opens: opensByDay.get(yesterdayKey) ?? 0,
-        newAccounts: profiles.filter((p) => dayKey(str(p, "created_at")) === yesterdayKey).length,
-      },
+      summary: buildPeriodSummary({
+        from: rangeStartKey,
+        to: todayKey,
+        activity,
+        signups: profiles.map((p) => dayKey(str(p, "created_at"))),
+        posts: posts.map((p) => ({
+          user_id: str(p, "user_id"), group_id: str(p, "group_id"),
+          local_date: str(p, "local_date"), check_in_id: maybeStr(p, "check_in_id"),
+        })),
+        opens: opensByDay,
+      }),
       northStar: {
         value: northStarValue,
         wau: weeklyActive,

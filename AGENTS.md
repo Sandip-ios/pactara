@@ -13,3 +13,4 @@
 - Sign storage images through `src/lib/media-urls.ts` (resized via image transforms); videos get a `<path>.poster.jpg` preview frame uploaded at check-in. Why: raw uploads are 2–25 MB and made the feed slow.
 - Wrap feed/profile query results in `stabilizeSignedUrls` so refetches reuse the same signed URL. Why: a fresh token makes the browser re-download the same media.
 - Bridge native app state to React Query's focus manager; member-photo failures show initials until a fresh URL arrives. Why: suspended WebViews can retain expired photo links without emitting browser focus events.
+- Build the founder Overview period summary through `period-summary.ts`, using the same UTC date bounds as the selected range and unique user-day commitments. Why: a fixed yesterday summary contradicted the date selector and cross-group copies inflate activity.
