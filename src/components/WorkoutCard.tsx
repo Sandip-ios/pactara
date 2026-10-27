@@ -221,7 +221,7 @@ export function WorkoutCard({
 
         {needsProof && (
           <div
-            className="fixed inset-0 z-50 flex items-end bg-black/40"
+            className="fixed inset-0 z-[70] flex items-end bg-black/40"
             onClick={() => setNeedsProof(false)}
           >
             <div
