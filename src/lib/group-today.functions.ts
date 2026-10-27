@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
+import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
 
 /**
  * Daily accountability status for the Groups tab.
