@@ -36,6 +36,41 @@ export type WorkoutState = {
 
 const CHEER_EMOJIS = ["🔥", "💪", "👏"] as const;
 
+/**
+ * A workout can't run forever: sessions left "active" for more than 4 hours
+ * (app closed, phone died, forgotten overnight) are treated as abandoned so
+ * they stop showing as "in progress" the next day.
+ */
+export const WORKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
+
+function isStale(startedAt: string): boolean {
+  return Date.now() - Date.parse(startedAt) > WORKOUT_SESSION_TTL_MS;
+}
+
+/** Ends a stale active session; returns true when the row was expired. */
+async function expireIfStale(
+  supabase: SupabaseClient,
+  row: Record<string, unknown> | null,
+): Promise<boolean> {
+  if (!row || row["status"] !== "active" || !isStale(row["started_at"] as string)) {
+    return false;
+  }
+  const endedAt = new Date();
+  await supabase
+    .from("workout_sessions")
+    .update({
+      status: "ended_without_completion",
+      ended_at: endedAt.toISOString(),
+      duration_seconds: Math.max(
+        0,
+        Math.round((endedAt.getTime() - Date.parse(row["started_at"] as string)) / 1000),
+      ),
+    })
+    .eq("id", row["id"] as string)
+    .eq("status", "active");
+  return true;
+}
+
 async function resolveGroupAndTz(
   supabase: SupabaseClient,
   userId: string,
