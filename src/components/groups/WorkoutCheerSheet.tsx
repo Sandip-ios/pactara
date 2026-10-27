@@ -48,7 +48,7 @@ export function WorkoutCheerSheet({
   const isLive = session?.status === "active";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/40" onClick={onClose}>
+    <div className="fixed inset-0 z-[70] flex items-end bg-black/40" onClick={onClose}>
       <div
         className="w-full rounded-t-3xl bg-white px-5 pt-6 text-center"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
