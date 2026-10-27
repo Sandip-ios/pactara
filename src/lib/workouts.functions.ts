@@ -43,8 +43,8 @@ const CHEER_EMOJIS = ["🔥", "💪", "👏"] as const;
  */
 export const WORKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
 
-function isStale(startedAt: string): boolean {
-  return Date.now() - Date.parse(startedAt) > WORKOUT_SESSION_TTL_MS;
+export function isWorkoutSessionStale(startedAt: string, now = Date.now()): boolean {
+  return now - Date.parse(startedAt) > WORKOUT_SESSION_TTL_MS;
 }
 
 /** Ends a stale active session; returns true when the row was expired. */
