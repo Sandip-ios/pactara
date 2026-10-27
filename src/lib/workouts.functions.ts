@@ -180,13 +180,19 @@ export const getWorkoutState = createServerFn({ method: "GET" })
     const commitmentText = (post?.morning_ritual_text as string | null) ?? null;
     const checkedIn = proof || Boolean(post?.check_in_id);
 
+    // A session left over from hours ago (or overnight) is abandoned, not live.
+    const expired = await expireIfStale(
+      supabase,
+      (sessionRow as Record<string, unknown> | null) ?? null,
+    );
+
     return {
       groupId,
       groupName,
       commitmentText,
       hasCommitment: Boolean(commitmentText),
       checkedIn,
-      session: sessionRow
+      session: sessionRow && !expired
         ? toSession(sessionRow as Record<string, unknown>, groupName)
         : null,
     };
@@ -229,11 +235,15 @@ export const startWorkout = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      return {
-        session: toSession(existing as Record<string, unknown>, groupName),
-        created: false,
-        notified: false,
-      };
+      // A stale session from hours ago shouldn't block starting a real one now.
+      const expired = await expireIfStale(supabase, existing as Record<string, unknown>);
+      if (!expired) {
+        return {
+          session: toSession(existing as Record<string, unknown>, groupName),
+          created: false,
+          notified: false,
+        };
+      }
     }
 
     const { data: inserted, error } = await supabase
