@@ -365,6 +365,18 @@ export const finishWorkout = createServerFn({ method: "POST" })
       };
     }
 
+    // Forgotten sessions end as abandoned — never "completed" hours later.
+    if (await expireIfStale(supabase, row as Record<string, unknown>)) {
+      return {
+        needsProof: false,
+        session: toSession(
+          { ...(row as Record<string, unknown>), status: "ended_without_completion" },
+          groupName,
+        ),
+        durationSeconds: null,
+      };
+    }
+
     const proof = await hasProof(supabase, userId, groupId, localDate);
     if (!proof) {
       return {
