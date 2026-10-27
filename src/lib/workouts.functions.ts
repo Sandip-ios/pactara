@@ -36,6 +36,41 @@ export type WorkoutState = {
 
 const CHEER_EMOJIS = ["🔥", "💪", "👏"] as const;
 
+/**
+ * A workout can't run forever: sessions left "active" for more than 4 hours
+ * (app closed, phone died, forgotten overnight) are treated as abandoned so
+ * they stop showing as "in progress" the next day.
+ */
+export const WORKOUT_SESSION_TTL_MS = 4 * 60 * 60 * 1000;
+
+export function isWorkoutSessionStale(startedAt: string, now = Date.now()): boolean {
+  return now - Date.parse(startedAt) > WORKOUT_SESSION_TTL_MS;
+}
+
+/** Ends a stale active session; returns true when the row was expired. */
+async function expireIfStale(
+  supabase: SupabaseClient,
+  row: Record<string, unknown> | null,
+): Promise<boolean> {
+  if (!row || row["status"] !== "active" || !isWorkoutSessionStale(row["started_at"] as string)) {
+    return false;
+  }
+  const endedAt = new Date();
+  await supabase
+    .from("workout_sessions")
+    .update({
+      status: "ended_without_completion",
+      ended_at: endedAt.toISOString(),
+      duration_seconds: Math.max(
+        0,
+        Math.round((endedAt.getTime() - Date.parse(row["started_at"] as string)) / 1000),
+      ),
+    })
+    .eq("id", row["id"] as string)
+    .eq("status", "active");
+  return true;
+}
+
 async function resolveGroupAndTz(
   supabase: SupabaseClient,
   userId: string,
@@ -145,13 +180,19 @@ export const getWorkoutState = createServerFn({ method: "GET" })
     const commitmentText = (post?.morning_ritual_text as string | null) ?? null;
     const checkedIn = proof || Boolean(post?.check_in_id);
 
+    // A session left over from hours ago (or overnight) is abandoned, not live.
+    const expired = await expireIfStale(
+      supabase,
+      (sessionRow as Record<string, unknown> | null) ?? null,
+    );
+
     return {
       groupId,
       groupName,
       commitmentText,
       hasCommitment: Boolean(commitmentText),
       checkedIn,
-      session: sessionRow
+      session: sessionRow && !expired
         ? toSession(sessionRow as Record<string, unknown>, groupName)
         : null,
     };
@@ -194,11 +235,15 @@ export const startWorkout = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      return {
-        session: toSession(existing as Record<string, unknown>, groupName),
-        created: false,
-        notified: false,
-      };
+      // A stale session from hours ago shouldn't block starting a real one now.
+      const expired = await expireIfStale(supabase, existing as Record<string, unknown>);
+      if (!expired) {
+        return {
+          session: toSession(existing as Record<string, unknown>, groupName),
+          created: false,
+          notified: false,
+        };
+      }
     }
 
     const { data: inserted, error } = await supabase
@@ -317,6 +362,18 @@ export const finishWorkout = createServerFn({ method: "POST" })
         needsProof: false,
         session: toSession(row as Record<string, unknown>, groupName),
         durationSeconds: (row.duration_seconds as number | null) ?? 0,
+      };
+    }
+
+    // Forgotten sessions end as abandoned — never "completed" hours later.
+    if (await expireIfStale(supabase, row as Record<string, unknown>)) {
+      return {
+        needsProof: false,
+        session: toSession(
+          { ...(row as Record<string, unknown>), status: "ended_without_completion" },
+          groupName,
+        ),
+        durationSeconds: null,
       };
     }
 

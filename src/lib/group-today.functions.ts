@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
+import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
 
 /**
  * Daily accountability status for the Groups tab.
@@ -128,12 +129,14 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         .gte("freeze_date", windowStart)
         .lte("freeze_date", today)
         .limit(20000),
-      // Live "working out now" sessions.
+      // Live "working out now" sessions — only recent ones; a session left
+      // active for hours (app closed, overnight) is abandoned, not live.
       supabase
         .from("workout_sessions")
         .select("id, group_id, user_id, started_at")
         .in("group_id", groupIds)
-        .eq("status", "active"),
+        .eq("status", "active")
+        .gte("started_at", new Date(Date.now() - WORKOUT_SESSION_TTL_MS).toISOString()),
     ]);
 
 
