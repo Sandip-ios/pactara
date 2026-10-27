@@ -52,7 +52,7 @@ async function expireIfStale(
   supabase: SupabaseClient,
   row: Record<string, unknown> | null,
 ): Promise<boolean> {
-  if (!row || row["status"] !== "active" || !isStale(row["started_at"] as string)) {
+  if (!row || row["status"] !== "active" || !isWorkoutSessionStale(row["started_at"] as string)) {
     return false;
   }
   const endedAt = new Date();
