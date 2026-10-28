@@ -80,9 +80,20 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           const today = localDateFor(tz, now);
           const joinedLocalDate = localDateFor(tz, new Date(joinedAt));
           const hour = localHourFor(tz, now);
+          const yesterdayDate = localDateFor(tz, new Date(now.getTime() - 60 * 60 * 1000 * (hour + 1)));
+
+          // Rest days / streak freezes count as kept — never mark those days missed.
+          const { data: protectedRows } = await supabaseAdmin
+            .from("streak_freezes_used")
+            .select("freeze_date")
+            .eq("user_id", userId)
+            .eq("group_id", groupId)
+            .in("freeze_date", [today, yesterdayDate]);
+          const protectedDates = new Set((protectedRows ?? []).map((r) => r.freeze_date));
+          if (protectedDates.has(today) && protectedDates.has(yesterdayDate)) continue;
 
           // ── Missed today's commitment: past noon, no ritual posted today.
-          if (hour >= 12 && today >= joinedLocalDate) {
+          if (hour >= 12 && today >= joinedLocalDate && !protectedDates.has(today)) {
             const { data: existing } = await supabaseAdmin
               .from("daily_posts")
               .select("id, morning_ritual_posted_at, morning_missed")
@@ -113,7 +124,7 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
           // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
           // Only counts if the user was already a member on that day.
           const yesterday = localDateFor(tz, new Date(now.getTime() - 60 * 60 * 1000 * (hour + 1)));
-          if (yesterday !== today && yesterday >= joinedLocalDate) {
+          if (yesterday !== today && yesterday >= joinedLocalDate && !protectedDates.has(yesterday)) {
             const { data: y } = await supabaseAdmin
               .from("daily_posts")
               .select("id, check_in_id, check_in_missed")
