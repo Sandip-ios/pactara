@@ -519,7 +519,7 @@ export const cheerWorkout = createServerFn({ method: "POST" })
         {
           title: `${firstName} cheered you on ${data.emoji}`,
           body: "Keep going — your group is watching.",
-          url: `/home`,
+          url: `/home?group=${session.group_id as string}`,
         },
         "group_activity_enabled",
       );

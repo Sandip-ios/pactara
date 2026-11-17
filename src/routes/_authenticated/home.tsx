@@ -1,5 +1,6 @@
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { parseFeedDeepLink } from "@/lib/feed-deeplink";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
@@ -82,14 +83,32 @@ export const Route = createFileRoute("/_authenticated/home")({
 function HomePage() {
   useStatusBarScrollToTop();
   const navigate = useNavigate();
-  // Deep link from a notification: /home?post=<id>[&comments=1]
+  // Deep link from a notification: /home?group=<id>&post=<id>[&comments=1]
+  // Read reactively so a tap while already on the feed still switches groups.
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
   const [search, setSearch] = useState<{ post?: string; comments?: boolean }>({});
+  const [deepLinkGroup, setDeepLinkGroup] = useState<{ id: string } | null>(null);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const post = params.get("post") ?? undefined;
-    const comments = params.get("comments") === "1";
-    if (post) setSearch({ post, comments });
-  }, []);
+    const link = parseFeedDeepLink(searchStr || window.location.search);
+    if (!link.post && !link.group) return;
+    if (link.post) setSearch({ post: link.post, comments: link.comments });
+    void (async () => {
+      let groupId = link.group;
+      // Older notifications only carried the post — look up its group.
+      if (!groupId && link.post) {
+        const { data } = await supabase
+          .from("daily_posts")
+          .select("group_id")
+          .eq("id", link.post)
+          .maybeSingle();
+        groupId = (data?.group_id as string | undefined) ?? undefined;
+      }
+      if (groupId) setDeepLinkGroup({ id: groupId });
+    })();
+    // Consume the link so the same notification can be tapped again later.
+    void navigate({ to: "/home", replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchStr]);
 
   // Scroll the linked post into view once the feed has rendered it.
   useEffect(() => {
@@ -140,14 +159,24 @@ function HomePage() {
     return localStorage.getItem("active-group-id");
   });
 
+  // A notification for another group switches the feed to that group.
+  useEffect(() => {
+    if (!deepLinkGroup) return;
+    if (myGroups.some((g) => g.id === deepLinkGroup.id)) {
+      setSelectedGroupId(deepLinkGroup.id);
+      setDeepLinkGroup(null);
+    }
+  }, [deepLinkGroup, myGroups]);
+
   // Default to first group when none selected or selection no longer valid.
   useEffect(() => {
     if (myGroups.length === 0) return;
+    if (deepLinkGroup && myGroups.some((g) => g.id === deepLinkGroup.id)) return;
     const exists = selectedGroupId && myGroups.some((g) => g.id === selectedGroupId);
     if (!exists) {
       setSelectedGroupId(myGroups[0].id);
     }
-  }, [myGroups, selectedGroupId]);
+  }, [myGroups, selectedGroupId, deepLinkGroup]);
 
   useEffect(() => {
     if (selectedGroupId && typeof localStorage !== "undefined") {

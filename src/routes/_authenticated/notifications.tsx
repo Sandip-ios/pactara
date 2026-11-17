@@ -1,3 +1,4 @@
+import { feedUrl } from "@/lib/feed-deeplink";
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -152,9 +153,9 @@ function NotificationsPage() {
     const wantsComments =
       item.kind === "comment" || item.kind === "reply" || item.kind === "comment_like";
     if (item.postId) {
-      window.location.assign(
-        wantsComments ? `/home?post=${item.postId}&comments=1` : `/home?post=${item.postId}`,
-      );
+      navigate({
+        href: feedUrl({ groupId: item.groupId, postId: item.postId, comments: wantsComments }),
+      });
       return;
     }
     navigate({ to: "/groups/$groupId", params: { groupId: item.groupId } });

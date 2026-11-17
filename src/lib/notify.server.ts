@@ -211,7 +211,12 @@ export async function notifyGroupActivity(
       .map((m) => m.user_id as string)
       .filter((id) => id !== actorUserId);
     if (recipients.length === 0) return;
-    await notifyUsers(recipients, payload, "group_activity_enabled");
+    const { withFeedGroup } = await import("@/lib/feed-deeplink");
+    await notifyUsers(
+      recipients,
+      { ...payload, url: withFeedGroup(payload.url ?? "/home", groupId) },
+      "group_activity_enabled",
+    );
   } catch (err) {
     console.warn("[notify] group activity failed", err);
   }
@@ -246,13 +251,19 @@ export async function notifyPostAuthor(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: post } = await supabaseAdmin
       .from("daily_posts")
-      .select("user_id")
+      .select("user_id, group_id")
       .eq("id", postId)
       .maybeSingle();
     const authorId = post?.user_id as string | undefined;
     if (!authorId || authorId === actorUserId) return;
     const name = await displayName(actorUserId);
-    await notifyUsers([authorId], build(name), "group_activity_enabled");
+    const payload = build(name);
+    const { withFeedGroup } = await import("@/lib/feed-deeplink");
+    await notifyUsers(
+      [authorId],
+      { ...payload, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      "group_activity_enabled",
+    );
   } catch (err) {
     console.warn("[notify] post author push failed", err);
   }
@@ -270,7 +281,7 @@ export async function notifyPostComment(
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: post }, { data: commenters }] = await Promise.all([
-      supabaseAdmin.from("daily_posts").select("user_id").eq("id", postId).maybeSingle(),
+      supabaseAdmin.from("daily_posts").select("user_id, group_id").eq("id", postId).maybeSingle(),
       supabaseAdmin.from("post_comments").select("user_id").eq("post_id", postId),
     ]);
     const ids = new Set<string>();
@@ -281,7 +292,13 @@ export async function notifyPostComment(
     const recipients = Array.from(ids);
     if (recipients.length === 0) return;
     const name = await displayName(actorUserId);
-    await notifyUsers(recipients, build(name), "group_activity_enabled");
+    const payload = build(name);
+    const { withFeedGroup } = await import("@/lib/feed-deeplink");
+    await notifyUsers(
+      recipients,
+      { ...payload, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      "group_activity_enabled",
+    );
   } catch (err) {
     console.warn("[notify] post comment push failed", err);
   }

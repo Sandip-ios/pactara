@@ -37,7 +37,7 @@ export function InAppNotifications() {
                 type="button"
                 onClick={() => {
                   toast.dismiss(id);
-                  if (url) void navigate({ to: url });
+                  if (url) void navigate({ href: url });
                 }}
                 style={{ marginTop: "env(safe-area-inset-top)" }}
                 className="flex w-full items-start gap-3 rounded-2xl border border-border bg-background/95 px-4 py-3 text-left shadow-lg backdrop-blur"
