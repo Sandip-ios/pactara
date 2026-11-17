@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -7,7 +7,6 @@ import { Camera, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   getWorkoutState,
-  startWorkout,
   finishWorkout,
   endWorkoutWithoutCompleting,
 } from "@/lib/workouts.functions";
@@ -17,8 +16,9 @@ import { trackWorkout } from "@/lib/workout-analytics";
 /**
  * The accountability moment before the proof.
  *
- * Shows "Start workout" until today's check-in, then a live in-progress state
- * with Record proof / Finish workout. Starting is never completion.
+ * Home shows a plain "Check in" button (the fallback). Starting a workout from
+ * Home was retired; this only renders a still-running session (Record proof /
+ * Finish workout) until it finishes or expires.
  */
 
 /** Commitments like "100 pushups • Shoulders and arms" render as stacked bullet lines. */
@@ -42,7 +42,6 @@ function CommitmentLines({ text }: { text: string }) {
 
 export function WorkoutCard({
   groupId,
-  groupSize,
   streak,
   embedded = false,
   fallback = null,
@@ -57,7 +56,6 @@ export function WorkoutCard({
   const queryClient = useQueryClient();
   const [needsProof, setNeedsProof] = useState(false);
   const [completed, setCompleted] = useState<{ minutes: number } | null>(null);
-  const viewedRef = useRef<string | null>(null);
 
   const { data } = useQuery({
     queryKey: ["workout-state", groupId],
@@ -66,12 +64,10 @@ export function WorkoutCard({
     refetchInterval: 60_000,
   });
 
-  const startFn = useServerFn(startWorkout);
   const finishFn = useServerFn(finishWorkout);
   const endFn = useServerFn(endWorkoutWithoutCompleting);
 
   const session = data?.session ?? null;
-  const showStart = Boolean(data?.groupId) && !data?.checkedIn && !session;
 
   // Keep the "Started N min ago" line honest without a workout timer.
   const [, forceTick] = useState(0);
@@ -81,39 +77,10 @@ export function WorkoutCard({
     return () => window.clearInterval(t);
   }, [session]);
 
-  useEffect(() => {
-    if (!showStart || !groupId) return;
-    if (viewedRef.current === groupId) return;
-    viewedRef.current = groupId;
-    trackWorkout("workout_start_viewed", { group_id: groupId, group_size: groupSize });
-  }, [showStart, groupId, groupSize]);
-
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["workout-state"] });
     queryClient.invalidateQueries({ queryKey: ["groups-today"] });
   };
-
-  const start = useMutation({
-    mutationFn: () => startFn({ data: { groupId } }),
-    onSuccess: (res) => {
-      refresh();
-      trackWorkout(res.created ? "workout_started" : "workout_restarted", {
-        group_id: groupId,
-        session_id: res.session.id,
-        group_size: groupSize,
-        current_streak: streak,
-        notification_sent: res.notified,
-      });
-      if (res.notified) {
-        trackWorkout("workout_start_notification_sent", {
-          group_id: groupId,
-          session_id: res.session.id,
-        });
-        toast.success("Your group knows you started 💪");
-      }
-    },
-    onError: (e: Error) => toast.error(e.message || "Couldn't start that workout"),
-  });
 
   const finish = useMutation({
     mutationFn: (sessionId: string) => finishFn({ data: { sessionId } }),
@@ -254,28 +221,5 @@ export function WorkoutCard({
     );
   }
 
-  if (!showStart) return <>{fallback}</>;
-
-  return (
-    <div className={embedded ? "flex min-h-[166px] flex-col px-5 pb-3 pt-5" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-5 shadow-sm"}>
-      <div className="text-[13px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-        Today
-      </div>
-      <div className="mt-8 flex flex-1 items-center gap-4">
-        <div className="min-w-0 flex-1 break-words text-pretty text-[17px] font-bold leading-[1.25] text-card-foreground">
-          {data?.commitmentText ? <CommitmentLines text={data.commitmentText} /> : "Ready to show up today?"}
-        </div>
-        <Button
-          onClick={() => start.mutate()}
-          disabled={start.isPending}
-          className="h-12 shrink-0 rounded-full bg-pactara-purple px-6 text-[15px] font-bold text-pactara-purple-foreground shadow-none hover:bg-pactara-purple-deep active:scale-[0.99]"
-        >
-          {start.isPending ? "Starting…" : "Start workout"}
-        </Button>
-      </div>
-      <div className="mt-5 text-center text-[15px] leading-5 text-muted-foreground">
-        Your group gets a heads-up that you started.
-      </div>
-    </div>
-  );
+  return <>{fallback}</>;
 }

@@ -1,6 +1,6 @@
 # Roadmap
 
-- [x] Remove the daily commitment (screen, Home card, reminders, missed-commitment tiles, onboarding copy); rest day moved to Home; Start workout kept without a commitment (awaiting user confirmation)
+- [x] Remove the daily commitment (screen, Home card, reminders, missed-commitment tiles, onboarding copy); rest day moved to Home; Start workout removed from Home too — Home shows only Check in
 
 - [x] Make the founder Overview summary follow the selected time range — six regression tests pass; private dashboard verified across all five ranges (7 days: 1 signup; today: 0)
 
