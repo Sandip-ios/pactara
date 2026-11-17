@@ -41,9 +41,9 @@ export function statusLabel(status: MemberTodayStatus): string {
     case "committed":
       return "Waiting to check in";
     case "missed":
-      return "Didn't commit today";
+      return "Missed today";
     default:
-      return "Didn't commit today";
+      return "Not checked in yet";
   }
 }
 
@@ -103,7 +103,11 @@ export function StatusPill({ status }: { status: MemberTodayStatus }) {
       </span>
     );
   }
-  return <span className="text-[13px] font-semibold text-neutral-400">Didn't commit today</span>;
+  return (
+    <span className="text-[13px] font-semibold text-neutral-400">
+      {status === "missed" ? "Missed today" : "Not checked in yet"}
+    </span>
+  );
 }
 
 export function formatTime(iso: string | null): string | null {

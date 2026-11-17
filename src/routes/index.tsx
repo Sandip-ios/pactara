@@ -431,46 +431,6 @@ function OptionRow({
   );
 }
 
-/* Slide 3 — Morning ritual post */
-function MorningPostCard() {
-  return (
-    <Card>
-      <div className="flex items-center gap-3">
-        <Avatar letter="A" size={44} />
-        <div>
-          <div className="text-[15px] font-bold">Alex (you)</div>
-          <div className="text-[12px] text-neutral-400">
-            🌅 Morning post · just now
-          </div>
-        </div>
-      </div>
-
-      <p className="mt-4 text-[15px] leading-[1.45] text-neutral-800">
-        Today I'm hitting the gym before work and meal prepping for the week. No
-        excuses — my group is watching. 💪
-      </p>
-
-      <div className="mt-4 flex items-center gap-5 border-t border-neutral-100 pt-3 text-[13px] text-neutral-500">
-        <span className="flex items-center gap-1.5">🔥 4 reactions</span>
-        <span className="flex items-center gap-1.5">💬 2 replies</span>
-      </div>
-
-      <div
-        className="-mx-5 -mb-5 mt-3 flex items-center gap-3 rounded-b-3xl px-5 py-3"
-        style={{ backgroundColor: PURPLE_SOFT }}
-      >
-        <div className="flex -space-x-2">
-          <Avatar letter="J" size={26} bg={PURPLE} />
-          <Avatar letter="T" size={26} bg="#3B82F6" />
-          <Avatar letter="M" size={26} bg="#EC4899" />
-          <Avatar letter="S" size={26} bg="#EF4444" />
-        </div>
-        <span className="text-[13px] text-neutral-500">Your group sees this</span>
-      </div>
-    </Card>
-  );
-}
-
 /* Slide 4 — Streaks */
 function StreaksCard() {
   const days = ["M", "T", "W", "T", "F", "S", "S"];
@@ -625,20 +585,6 @@ function useSlides(): Slide[] {
       body: "Daily check-ins, everyone watching. No hiding.",
       cta: "Continue",
       visual: <CheckinCard />,
-    },
-    {
-      eyebrow: "TODAY'S COMMITMENT",
-      title: (
-        <>
-          Start every morning
-          <br />
-          with your plan.
-        </>
-      ),
-      body:
-        "Post what you're doing today. Your group sees it — and now they're watching.",
-      cta: "Continue",
-      visual: <MorningPostCard />,
     },
     {
       eyebrow: "STREAKS",

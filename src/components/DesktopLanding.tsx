@@ -263,7 +263,7 @@ function HowItWorks() {
       n: "02",
       title: "Set your daily promise",
       body:
-        "One habit. One check-in. Each person sets their own daily commitment.",
+        "One habit. One check-in. Each person sets their own goal.",
       emoji: "🎯",
     },
     {

@@ -12,7 +12,7 @@ const PURPLE = "#7C3AED";
 export function OnboardingSheet({ firstName: _firstName, onClose, initialStep = 0 }: Props) {
   useHideBottomTabs();
   const [step, setStep] = useState(initialStep);
-  const total = 3;
+  const total = 2;
   const isLast = step === total - 1;
 
 
@@ -32,9 +32,8 @@ export function OnboardingSheet({ firstName: _firstName, onClose, initialStep = 
         </button>
 
         <div className="mt-6 px-5 overflow-y-auto flex-1 pb-4">
-          {step === 0 && <StepCommitment />}
-          {step === 1 && <StepProof />}
-          {step === 2 && <StepSupport />}
+          {step === 0 && <StepProof />}
+          {step === 1 && <StepSupport />}
         </div>
 
         <div className="shrink-0 px-5 pt-3 pb-sheet bg-white border-t border-neutral-100">
@@ -60,34 +59,6 @@ export function OnboardingSheet({ firstName: _firstName, onClose, initialStep = 
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StepCommitment() {
-  return (
-    <div>
-      <div className="rounded-3xl px-6 py-8 flex items-center justify-center" style={{ background: "linear-gradient(180deg,#FCEFE4,#F8E2D1)" }}>
-        <div className="w-full max-w-[300px] rounded-2xl bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="h-6 w-6 rounded-full" style={{ background: "#E07A3B" }} />
-            <span className="text-[14px] font-semibold text-neutral-800">You · 6:42 AM</span>
-          </div>
-          <p className="mt-2 text-[15px] text-neutral-900 leading-snug">
-            "Leg day. No excuses. Locking this in for my pod 💪"
-          </p>
-          <div className="mt-3 inline-block px-3 py-1 rounded-full text-[12px] font-bold" style={{ background: "#FCE3D0", color: "#C75A1F" }}>
-            Today's commitment
-          </div>
-        </div>
-      </div>
-
-      <h2 className="mt-7 text-center text-[26px] leading-tight" style={{ fontFamily: SERIF, color: INK }}>
-        Post your morning commitment
-      </h2>
-      <p className="mt-3 text-center text-[15px] text-neutral-500 leading-relaxed px-2">
-        Start the day by telling your pod exactly what you're going to do. Saying it out loud is the first step to actually doing it.
-      </p>
     </div>
   );
 }

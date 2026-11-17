@@ -172,81 +172,6 @@ export const saveMyTimezone = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const postMorningRitual = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { text: string; groupId?: string | null; groupIds?: string[] | null }) => ({
-    text: String(input?.text ?? "").slice(0, 280).trim(),
-    groupId: input?.groupId ?? null,
-    groupIds: Array.isArray(input?.groupIds) ? input.groupIds.map(String).slice(0, 20) : null,
-  }))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    if (!data.text) throw new Error("Empty ritual");
-
-    const { groupIds, timezone } = await getMyTargetGroupsAndTz(
-      supabase,
-      userId,
-      data.groupId,
-      data.groupIds,
-    );
-    if (groupIds.length === 0) throw new Error("You're not in a group yet");
-
-    const today = localDateFor(timezone);
-
-    const { error } = await supabase.from("daily_posts").upsert(
-      groupIds.map((groupId) => ({
-        user_id: userId,
-        group_id: groupId,
-        local_date: today,
-        morning_ritual_text: data.text,
-        morning_ritual_posted_at: new Date().toISOString(),
-        morning_missed: false,
-      })),
-      { onConflict: "user_id,group_id,local_date" },
-    );
-    if (error) throw new Error(error.message);
-
-    try {
-      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
-      const name = await displayName(userId);
-      for (const groupId of groupIds) {
-        await notifyGroupActivity(groupId, userId, {
-          title: `${name} posted their commitment ☀️`,
-          body: data.text.slice(0, 120),
-          url: "/home",
-        });
-      }
-    } catch (err) {
-      console.warn("[ritual] push failed", err);
-    }
-
-    return { ok: true, groupCount: groupIds.length };
-
-  });
-
-export const getTodayRitualStatus = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input?: { groupId?: string | null }) => ({
-    groupId: input?.groupId ?? null,
-  }))
-  .handler(async ({ context, data }) => {
-    const { supabase, userId } = context;
-    const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
-    if (!groupId) return { posted: false, beforeNoon: localHourFor(timezone) < 12 };
-    const today = localDateFor(timezone);
-    const { data: post } = await supabase
-      .from("daily_posts")
-      .select("morning_ritual_posted_at")
-      .eq("user_id", userId)
-      .eq("group_id", groupId)
-      .eq("local_date", today)
-      .maybeSingle();
-    return {
-      posted: Boolean(post?.morning_ritual_posted_at),
-      beforeNoon: localHourFor(timezone) < 12,
-    };
-  });
-
 /** Posts an extra "what's on your mind" thought; appears as another node on today's timeline. */
 export const postThought = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -503,61 +428,6 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     }
     if (!groupId) return { items: [] };
 
-    // Ensure today's missed morning rituals exist as soon as each member passes
-    // noon locally, even if the hourly job has not run against this group yet.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: groupMembers } = await supabaseAdmin
-      .from("group_members")
-      .select("user_id, joined_at")
-      .eq("group_id", groupId);
-    const memberIdsForMisses = Array.from(new Set((groupMembers ?? []).map((m) => m.user_id)));
-    if (memberIdsForMisses.length > 0) {
-      const { data: memberProfiles } = await supabaseAdmin
-        .from("profiles")
-        .select("id, timezone")
-        .in("id", memberIdsForMisses);
-      const timezoneByMember = new Map((memberProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
-      const nowForMisses = new Date();
-      const candidates = (groupMembers ?? [])
-        .map((m) => {
-          const timezone = timezoneByMember.get(m.user_id) ?? "UTC";
-          const today = localDateFor(timezone, nowForMisses);
-          const joinedLocalDate = localDateFor(timezone, new Date(m.joined_at));
-          return { userId: m.user_id, today, eligible: localHourFor(timezone, nowForMisses) >= 12 && today >= joinedLocalDate };
-        })
-        .filter((m) => m.eligible);
-
-      if (candidates.length > 0) {
-        const candidateDates = Array.from(new Set(candidates.map((c) => c.today)));
-        const { data: existingTodayPosts } = await supabaseAdmin
-          .from("daily_posts")
-          .select("id, user_id, local_date, morning_ritual_posted_at, morning_missed")
-          .eq("group_id", groupId)
-          .in("user_id", memberIdsForMisses)
-          .in("local_date", candidateDates);
-        const existingByMemberDate = new Map(
-          (existingTodayPosts ?? []).map((p) => [`${p.user_id}:${p.local_date}`, p] as const),
-        );
-
-        await Promise.all(
-          candidates.map(async (candidate) => {
-            const existing = existingByMemberDate.get(`${candidate.userId}:${candidate.today}`);
-            if (!existing) {
-              await supabaseAdmin.from("daily_posts").insert({
-                user_id: candidate.userId,
-                group_id: groupId,
-                local_date: candidate.today,
-                morning_missed: true,
-              });
-            } else if (!existing.morning_ritual_posted_at && !existing.morning_missed) {
-              await supabaseAdmin.from("daily_posts").update({ morning_missed: true }).eq("id", existing.id);
-            }
-          }),
-        );
-      }
-    }
-
-
     const { data: posts, error } = await supabase
       .from("daily_posts")
       .select(
@@ -675,25 +545,15 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
       const tz = tzMap.get(p.user_id) ?? "UTC";
       const todayLocal = localDateFor(tz, now);
-      const localHour = localHourFor(tz, now);
-      const isToday = p.local_date === todayLocal;
       const isPastDay = p.local_date < todayLocal;
-      const ritualMissed = !p.morning_ritual_text && (isPastDay || (isToday && localHour >= 12));
-      const checkInMissed = isPastDay;
-
-      // Morning ritual (or missed)
+      // Commitments posted before the daily commitment was retired stay in
+      // history. No new ones are created and no "missed commitment" tiles show.
       if (p.morning_ritual_text) {
         nodes.push({
           kind: "ritual",
           id: `r-${p.id}`,
           text: p.morning_ritual_text,
           at: p.morning_ritual_posted_at ?? p.created_at,
-        });
-      } else if (ritualMissed) {
-        nodes.push({
-          kind: "ritual_missed",
-          id: `rm-${p.id}`,
-          at: zonedWallTimeToISO(tz, p.local_date, 12, 0),
         });
       }
 
@@ -729,20 +589,19 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         });
       }
 
-      // Only day-cards that carry a commitment get a check-in slot. A plain
-      // "what's on your mind" update is just an update, not a pending check-in.
-      const hasCommitment = nodes.some((n) => n.kind === "ritual" || n.kind === "ritual_missed");
-
-      if (myCheckIns.length === 0 && hasCommitment) {
-        if (checkInMissed) {
-          nodes.push({
-            kind: "check_in_missed",
-            id: `cm-${p.id}`,
-            at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
-          });
-        } else {
-          nodes.push({ kind: "pending", id: `p-${p.id}` });
-        }
+      // A closed day with no check-in shows "missed check-in" once the nightly
+      // job has flagged it (or it carried an old commitment). A plain "what's
+      // on your mind" update today is just an update, not a pending check-in.
+      if (
+        myCheckIns.length === 0 &&
+        isPastDay &&
+        (p.check_in_missed || Boolean(p.morning_ritual_text))
+      ) {
+        nodes.push({
+          kind: "check_in_missed",
+          id: `cm-${p.id}`,
+          at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
+        });
       }
 
       return {

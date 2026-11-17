@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router"
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
-import { Users, CalendarDays, CheckCircle2, ChevronRight, Sunrise, CheckSquare, Flame } from "lucide-react";
+import { Users, CalendarDays, CheckCircle2, ChevronRight, CheckSquare, Flame } from "lucide-react";
 import { getGroupPreview, joinGroupById } from "@/lib/groups.functions";
 import { getInviteContext, getInviteGroup } from "@/lib/invite.functions";
 import { decideInviteResolution, type InviteResolution } from "@/lib/invite-resolver";
@@ -444,12 +444,6 @@ function JoinPage() {
             bg="#F1E9FF"
             title="Join a small group"
             text="Up to 8 people, all chasing the same fitness goal."
-          />
-          <HowRow
-            icon={<Sunrise size={20} className="text-[#D97706]" />}
-            bg="#FEE9C9"
-            title="Today's commitment"
-            text="Every morning, tell your group what you're doing today. Your crew sees it — and now they're watching."
           />
           <HowRow
             icon={<CheckSquare size={20} className="text-white" />}

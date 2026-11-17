@@ -1933,7 +1933,7 @@ export function NotifyStep({ onAllow }: { onAllow: () => void }) {
         <div className="px-6 pt-6 pb-5 text-center">
           <div className="text-[17px] font-semibold">"Pactara" Would Like to Send You Notifications</div>
           <div className="mt-3 text-[14px] leading-[1.45]" style={{ color: "#3A3A3A" }}>
-            Get notified when someone in your group checks in, plus reminders to make your morning commitment and check in yourself. You can change this in Settings anytime.
+            Get notified when someone in your group checks in, plus reminders to check in yourself. You can change this in Settings anytime.
           </div>
         </div>
         <div className="grid grid-cols-2 border-t border-black/10">
@@ -2426,9 +2426,8 @@ export function GreetingStep({
 }) {
   const name = firstName || "friend";
   const howSteps = [
-    { n: "1", emoji: "🌅", title: "Set today's commitment", text: "Each morning, commit to one daily action with your group." },
-    { n: "2", emoji: "📸", title: "Check in with proof", text: "Record a quick 5–15 second video in the app showing you did the thing." },
-    { n: "3", emoji: "🤝", title: "Show up for your group", text: "React, cheer, celebrate. The group keeps you accountable." },
+    { n: "1", emoji: "📸", title: "Check in with proof", text: "Record a quick 5–15 second video in the app showing you did the thing." },
+    { n: "2", emoji: "🤝", title: "Show up for your group", text: "React, cheer, celebrate. The group keeps you accountable." },
   ];
   const withoutList = [
     "Motivation fades after a week",
@@ -2573,18 +2572,12 @@ export function HowItWorksStep({ onDone, onBack }: { onDone: () => void; onBack:
   const steps = [
     {
       n: "1",
-      emoji: "🌅",
-      title: "Set today's commitment",
-      text: "Each morning, commit to one daily action with your group. Small daily moves are how big goals actually happen.",
-    },
-    {
-      n: "2",
       emoji: "📸",
       title: "Check in with proof",
       text: "Record a quick 5–15 second video in the app showing you did the thing. Your group sees it the moment you post.",
     },
     {
-      n: "3",
+      n: "2",
       emoji: "🤝",
       title: "Show up for your group",
       text: "React, cheer, celebrate. The group keeps you accountable, and you do the same for them.",

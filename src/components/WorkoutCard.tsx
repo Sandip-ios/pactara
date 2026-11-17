@@ -15,9 +15,9 @@ import { elapsedLabel, LiveDot } from "@/components/groups/AccountabilityBits";
 import { trackWorkout } from "@/lib/workout-analytics";
 
 /**
- * The accountability moment between the commitment and the proof.
+ * The accountability moment before the proof.
  *
- * Shows "Start workout" on today's commitment, then a live in-progress state
+ * Shows "Start workout" until today's check-in, then a live in-progress state
  * with Record proof / Finish workout. Starting is never completion.
  */
 
@@ -71,7 +71,7 @@ export function WorkoutCard({
   const endFn = useServerFn(endWorkoutWithoutCompleting);
 
   const session = data?.session ?? null;
-  const showStart = Boolean(data?.hasCommitment) && !data?.checkedIn && !session;
+  const showStart = Boolean(data?.groupId) && !data?.checkedIn && !session;
 
   // Keep the "Started N min ago" line honest without a workout timer.
   const [, forceTick] = useState(0);
@@ -147,7 +147,7 @@ export function WorkoutCard({
         session_duration: res.durationSeconds,
         proof_completed: false,
       });
-      toast("Workout ended — your commitment is still open");
+      toast("Workout ended — you can still check in today");
     },
     onError: (e: Error) => toast.error(e.message || "Couldn't end that workout"),
   });
@@ -189,7 +189,7 @@ export function WorkoutCard({
               </span>
             </div>
             <div className="mt-2 flex-1 break-words text-pretty text-[20px] font-black leading-[1.18] text-card-foreground">
-              <CommitmentLines text={session.commitmentText || "Today's commitment"} />
+              <CommitmentLines text={session.commitmentText || "Today's workout"} />
             </div>
             <div className="mt-1 text-[14px] text-muted-foreground">
               {elapsedLabel(session.startedAt) ?? "Started just now"}
@@ -259,11 +259,11 @@ export function WorkoutCard({
   return (
     <div className={embedded ? "flex min-h-[166px] flex-col px-5 pb-3 pt-5" : "mx-4 mt-3 rounded-2xl bg-card px-5 py-5 shadow-sm"}>
       <div className="text-[13px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-        Today's commitment
+        Today
       </div>
       <div className="mt-8 flex flex-1 items-center gap-4">
         <div className="min-w-0 flex-1 break-words text-pretty text-[17px] font-bold leading-[1.25] text-card-foreground">
-          {data?.commitmentText ? <CommitmentLines text={data.commitmentText} /> : null}
+          {data?.commitmentText ? <CommitmentLines text={data.commitmentText} /> : "Ready to show up today?"}
         </div>
         <Button
           onClick={() => start.mutate()}

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Remove the daily commitment (screen, Home card, reminders, missed-commitment tiles, onboarding copy); rest day moved to Home; Start workout kept without a commitment (awaiting user confirmation)
+
 - [x] Make the founder Overview summary follow the selected time range — six regression tests pass; private dashboard verified across all five ranges (7 days: 1 signup; today: 0)
 
 - [x] Refresh cached photos on native app resume and prevent blank member tiles — resume regression test and browser photo recovery pass; physical-device verification remains blocked below

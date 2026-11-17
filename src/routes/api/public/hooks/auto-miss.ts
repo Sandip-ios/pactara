@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { localDateFor, localHourFor } from "@/lib/daily-posts.functions";
 
 /**
- * Hourly job: for every user with a group, in their own timezone, mark:
- *   - missed today's commitment if local time >= 12:00 and today's daily_post has no ritual
- *   - missed check-in for yesterday if local time has crossed midnight and yesterday's post has no check-in
+ * Hourly job: for every user with a group, in their own timezone, mark a
+ * missed check-in for yesterday once local time has crossed midnight and
+ * yesterday has no check-in. (The daily commitment was retired, so nothing is
+ * marked "missed commitment" anymore.)
  *
  * Authenticated with the Supabase anon `apikey` header (Lovable's cron pattern).
  */
@@ -69,7 +70,6 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
         for (const p of profs ?? []) tzByUser.set(p.id, p.timezone || "UTC");
 
         const now = new Date();
-        let ritualMissed = 0;
         let checkInMissed = 0;
 
         for (const m of allMemberships) {
@@ -88,37 +88,8 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
             .select("freeze_date")
             .eq("user_id", userId)
             .eq("group_id", groupId)
-            .in("freeze_date", [today, yesterdayDate]);
+            .eq("freeze_date", yesterdayDate);
           const protectedDates = new Set((protectedRows ?? []).map((r) => r.freeze_date));
-          if (protectedDates.has(today) && protectedDates.has(yesterdayDate)) continue;
-
-          // ── Missed today's commitment: past noon, no ritual posted today.
-          if (hour >= 12 && today >= joinedLocalDate && !protectedDates.has(today)) {
-            const { data: existing } = await supabaseAdmin
-              .from("daily_posts")
-              .select("id, morning_ritual_posted_at, morning_missed")
-              .eq("user_id", userId)
-              .eq("group_id", groupId)
-              .eq("local_date", today)
-              .maybeSingle();
-
-            if (!existing) {
-              const { error } = await supabaseAdmin.from("daily_posts").insert({
-                user_id: userId,
-                group_id: groupId,
-                local_date: today,
-                morning_missed: true,
-              });
-              if (!error) ritualMissed++;
-            } else if (!existing.morning_ritual_posted_at && !existing.morning_missed) {
-              const { error } = await supabaseAdmin
-                .from("daily_posts")
-                .update({ morning_missed: true })
-                .eq("id", existing.id);
-              if (!error) ritualMissed++;
-            }
-          }
-
 
           // ── Missed check-in: it's now past midnight in their tz, so yesterday is closed.
           // Yesterday in their tz = localDateFor(tz, now - 1 hour past midnight).
@@ -134,12 +105,11 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
               .maybeSingle();
 
             if (!y) {
-              // No record at all for yesterday → both missed
+              // No record at all for yesterday → missed check-in
               const { error } = await supabaseAdmin.from("daily_posts").insert({
                 user_id: userId,
                 group_id: groupId,
                 local_date: yesterday,
-                morning_missed: true,
                 check_in_missed: true,
               });
               if (!error) checkInMissed++;
@@ -156,7 +126,6 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
         return Response.json({
           ok: true,
           scanned: userIds.length,
-          ritualMissed,
           checkInMissed,
         });
       },

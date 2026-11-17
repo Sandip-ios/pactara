@@ -3,8 +3,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { Button } from "@/components/ui/button";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
+import { RestDayButton } from "@/components/RestDayButton";
 
-export type SnapshotState = "ritual" | "check-in" | "done";
+export type SnapshotState = "check-in" | "rest" | "done";
 
 type Props = {
   state: SnapshotState;
@@ -35,15 +36,15 @@ const COPY: Record<
   SnapshotState,
   { title: string; message: string; cta: string | null }
 > = {
-  ritual: {
-    title: "Today's commitment",
-    message: "Set your commitment for today so your group knows the plan.",
-    cta: "Commit now",
-  },
   "check-in": {
-    title: "Check in",
-    message: "Morning's done — check in and keep your streak alive.",
+    title: "Today",
+    message: "Check in with proof and keep your streak alive.",
     cta: "Check in",
+  },
+  rest: {
+    title: "Rest day",
+    message: "Recover well. Your streak is safe.",
+    cta: null,
   },
   done: {
     title: "All set",
@@ -66,10 +67,9 @@ export function TodaySnapshot({
   groupId,
   groupSize,
   memberGoals = [],
-  ritualMessage,
-}: Props & { ritualMessage?: string }) {
+}: Props) {
   const navigate = useNavigate();
-  const copy = state === "ritual" && ritualMessage ? { ...COPY[state], message: ritualMessage } : COPY[state];
+  const copy = COPY[state];
 
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
@@ -142,12 +142,20 @@ export function TodaySnapshot({
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {/* Slide 1 — Today's commitment */}
+        {/* Slide 1 — Today */}
         <div
           className="w-full shrink-0 overflow-hidden"
           style={{ maxHeight: index === 0 ? 400 : 0, visibility: index === 0 ? "visible" : "hidden" }}
           aria-hidden={index !== 0}
         >
+          {state === "rest" ? (
+            <div className="px-5 pb-6 pt-5">
+              <span className="text-[12px] font-black leading-none text-card-foreground">{copy.title}</span>
+              <p className="mt-4 text-pretty text-[17px] font-medium leading-[1.3] text-muted-foreground">
+                🌙 {copy.message}
+              </p>
+            </div>
+          ) : (
           <WorkoutCard
             groupId={groupId}
             groupSize={groupSize}
@@ -186,6 +194,8 @@ export function TodaySnapshot({
               </>
             }
           />
+          )}
+          {state === "check-in" && <RestDayButton />}
         </div>
 
         {/* Slide 2 — Weekly snapshot */}

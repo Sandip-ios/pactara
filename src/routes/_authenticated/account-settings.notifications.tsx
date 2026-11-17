@@ -133,43 +133,6 @@ function NotificationsPage() {
     },
   });
 
-  const morningToggle = useMutation({
-    mutationFn: async (next: boolean) => {
-      // In the native app pushes are delivered through Firebase, not Web Push.
-      // The WKWebView has no PushManager, so skip the web-push path entirely.
-      if (isNative()) {
-        await updateFn({
-          data: next
-            ? { morning_ritual_reminder_enabled: true, push_enabled: true }
-            : { morning_ritual_reminder_enabled: false },
-        });
-        return next;
-      }
-      if (next) {
-        await updateWebPushRegistration(true);
-        await updateFn({
-          data: { morning_ritual_reminder_enabled: true, push_enabled: true },
-        });
-      } else {
-        await updateFn({
-          data: { morning_ritual_reminder_enabled: false },
-        });
-      }
-      return next;
-    },
-    onMutate: (next) => {
-      setPrefs((p) => (p ? { ...p, morning_ritual_reminder_enabled: next } : p));
-    },
-    onSuccess: (next) => {
-      flash("ok", next ? "Commitment reminder on" : "Reminder turned off");
-      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
-    },
-    onError: (e: Error) => {
-      flash("err", e.message);
-      queryClient.invalidateQueries({ queryKey: ["notification-prefs"] });
-    },
-  });
-
   if (!prefs) {
     return (
       <SubPage title="Notifications" onBack={() => navigate({ to: "/account-settings" })}>
@@ -190,17 +153,6 @@ function NotificationsPage() {
           value={prefs.push_enabled}
           disabled={pushToggle.isPending}
           onChange={(v) => pushToggle.mutate(v)}
-        />
-      </Card>
-
-      <SectionLabel>TODAY'S COMMITMENT</SectionLabel>
-      <Card>
-        <ToggleRow
-          title="Commitment reminder"
-          subtitle="A push at 10am in your local timezone"
-          value={prefs.morning_ritual_reminder_enabled}
-          disabled={morningToggle.isPending}
-          onChange={(v) => morningToggle.mutate(v)}
         />
       </Card>
 

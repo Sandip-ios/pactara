@@ -10,7 +10,8 @@ import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
-import { getGroupFeed, getTodayRitualStatus, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
@@ -69,9 +70,9 @@ export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
     meta: [
       { title: "Home · Pactara" },
-      { name: "description", content: "Your daily commitments, check-ins, and accountability group on Pactara." },
+      { name: "description", content: "Your daily check-ins, streaks, and accountability group on Pactara." },
       { property: "og:title", content: "Home · Pactara" },
-      { property: "og:description", content: "Your daily commitments, check-ins, and accountability group on Pactara." },
+      { property: "og:description", content: "Your daily check-ins, streaks, and accountability group on Pactara." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -174,10 +175,10 @@ function HomePage() {
     queryFn: () => getMyCommitmentPace({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
   });
-  const { data: ritualStatus } = useQuery({
-    queryKey: ["today-ritual-status", selectedGroupId],
-    queryFn: () => getTodayRitualStatus({ data: { groupId: selectedGroupId } }),
-    refetchOnWindowFocus: true,
+  const { data: restInfo } = useQuery({
+    queryKey: ["rest-day-info"],
+    queryFn: () => getRestDayInfo(),
+    staleTime: 30_000,
   });
 
 
@@ -331,19 +332,6 @@ function HomePage() {
     }
   }, [status]);
 
-  // After a member posts their first morning commitment and returns Home,
-  // reopen the guide on step 2 ("Check in with proof") so they know what's next.
-  useEffect(() => {
-    if (!status || typeof sessionStorage === "undefined") return;
-    if (sessionStorage.getItem("morning-ritual-done") !== "1") return;
-    sessionStorage.removeItem("morning-ritual-done");
-    if (typeof localStorage !== "undefined" && localStorage.getItem("commitment-next-step-shown") === "1") return;
-    if (typeof localStorage !== "undefined") localStorage.setItem("commitment-next-step-shown", "1");
-    dismissHowItWorksTip();
-    setOnboardingStep(1);
-    setShowOnboarding(true);
-  }, [status]);
-
   const dismissOnboarding = () => {
     setShowOnboarding(false);
   };
@@ -493,14 +481,12 @@ function HomePage() {
         );
       })()}
       {(() => {
-        const ritualDone = ritualStatus?.posted ?? false;
-        const beforeNoon = ritualStatus?.beforeNoon ?? true;
         const checkedIn = pendingData?.iCheckedIn ?? false;
 
         const state: SnapshotState = checkedIn
           ? "done"
-          : !ritualDone && beforeNoon
-            ? "ritual"
+          : restInfo?.restingToday
+            ? "rest"
             : "check-in";
 
         // Build a 7-day week (Sun→Sat) of completion for the current user.
@@ -525,14 +511,6 @@ function HomePage() {
           <>
             <TodaySnapshot
               state={state}
-              ritualMessage={(() => {
-                const k = relationFor(selectedGroupId)?.kind;
-                return k === "solo"
-                  ? "Set your commitment for today."
-                  : k === "partner"
-                    ? "Set your commitment for today so your partner knows the plan."
-                    : undefined;
-              })()}
               week={week}
               streak={myStreak}
               longestStreak={myLongest}
@@ -721,7 +699,7 @@ function HomePage() {
               </div>
               <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
                 {relationFor(selectedGroupId)?.kind === "solo"
-                  ? "Make today's commitment and check in while we find your accountability partner."
+                  ? "Check in today while we find your accountability partner."
                   : "Share what's on your mind or check in to start your streak."}
               </div>
             </div>
