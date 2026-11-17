@@ -6,6 +6,7 @@ import { Moon } from "lucide-react";
 import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { clearCheckInStream } from "@/lib/checkin-stream-store";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
+import { parseFeedDeepLink } from "@/lib/feed-deeplink";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -80,6 +81,12 @@ function CheckInLaunch() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // A reminder or nudge about a specific group opens /check-in?group=<id>,
+    // so the check-in posts to that group, not the one last viewed.
+    const group = parseFeedDeepLink(window.location.search).group;
+    if (group && typeof localStorage !== "undefined") {
+      localStorage.setItem("active-group-id", group);
+    }
     clearCheckInPhoto();
     clearCheckInStream();
     navigate({ to: "/check-in/camera", replace: true });

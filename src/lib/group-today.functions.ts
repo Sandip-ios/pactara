@@ -341,7 +341,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
       {
         title: `👋 ${actor} nudged you`,
         body: `${groupName} is waiting on you today. You've got this.`,
-        url: "/check-in",
+        url: `/check-in?group=${data.groupId}`,
       },
       "nudges_enabled",
     );

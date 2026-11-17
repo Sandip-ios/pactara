@@ -93,35 +93,38 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
         };
 
         // Group recipients by the exact message they should receive.
-        const byBody = new Map<string, string[]>();
+        // Keyed by body + the group it names, so a tap opens that group's check-in.
+        const byBody = new Map<string, { body: string; groupId: string | null; users: string[] }>();
         for (const userId of recipients) {
           const tz = tzById.get(userId) ?? "UTC";
-          let best: { day: number; total: number; name: string } | null = null;
+          let best: { day: number; total: number; name: string; id: string } | null = null;
           for (const m of memberships ?? []) {
             if (m.user_id !== userId) continue;
             const g = groupById.get(m.group_id);
             if (!g) continue;
             const day = dayNumber(g.start_date, g.duration_days, tz);
             if (day === null) continue;
-            if (!best || day > best.day) best = { day, total: g.duration_days, name: g.name };
+            if (!best || day > best.day) best = { day, total: g.duration_days, name: g.name, id: g.id };
           }
           const body = best
             ? best.day === best.total
               ? `Final day of ${best.name} — finish strong and check in. 🏁`
               : `Day ${best.day} of ${best.total} in ${best.name} — keep it going. 🔥`
             : "Keep your streak alive — log today's check-in.";
-          const list = byBody.get(body);
-          if (list) list.push(userId);
-          else byBody.set(body, [userId]);
+          const groupId = best?.id ?? null;
+          const key = `${groupId ?? ""}|${body}`;
+          const entry = byBody.get(key);
+          if (entry) entry.users.push(userId);
+          else byBody.set(key, { body, groupId, users: [userId] });
         }
 
         const { pushToUsers } = await import("@/lib/notify.server");
         let sent = 0;
-        for (const [body, users] of byBody) {
+        for (const { body, groupId, users } of byBody.values()) {
           const result = await pushToUsers(users, {
             title: "Time to check in ✅",
             body,
-            url: "/check-in",
+            url: groupId ? `/check-in?group=${groupId}` : "/check-in",
           });
           sent += (result as { sent?: number }).sent ?? 0;
         }
