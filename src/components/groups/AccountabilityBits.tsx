@@ -156,6 +156,7 @@ export function NudgeButton({
   variant?: "solid" | "ghost";
 }) {
   const [sent, setSent] = useState(false);
+  const [covered, setCovered] = useState(false);
   const [sending, setSending] = useState(false);
   const queryClient = useQueryClient();
 
@@ -163,9 +164,12 @@ export function NudgeButton({
     if (sent || sending) return;
     setSending(true);
     try {
-      await nudgeMember({ data: { groupId, userId: member.userId } });
+      const result = await nudgeMember({ data: { groupId, userId: member.userId } });
+      // Already nudged today or already covered: nothing more to send today.
       setSent(true);
-      toast.success("👋 Nudge sent");
+      if (!result.ok && result.reason === "covered") setCovered(true);
+      if (result.ok) toast.success(result.message);
+      else toast.info(result.message);
       queryClient.invalidateQueries({ queryKey: ["groups-today"] });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't send that nudge");
@@ -183,7 +187,7 @@ export function NudgeButton({
         className={`${base} px-3.5 py-1.5 text-[13px]`}
         style={{ background: sent ? "#F4F1ED" : PURPLE_SOFT, color: sent ? "#8A8580" : PURPLE }}
       >
-        {sent ? "Nudged" : "Nudge"}
+        {covered ? "Covered" : sent ? "Nudged" : "Nudge"}
       </button>
     );
   }
@@ -196,7 +200,11 @@ export function NudgeButton({
       style={{ background: sent ? "#F4F1ED" : PURPLE_SOFT, color: sent ? "#8A8580" : PURPLE }}
     >
       <Clock size={15} />
-      {sent ? `Nudged ${member.firstName}` : `Nudge ${member.firstName}`}
+      {covered
+        ? `${member.firstName}'s covered today`
+        : sent
+          ? `Nudged ${member.firstName}`
+          : `Nudge ${member.firstName}`}
     </button>
   );
 }

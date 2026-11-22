@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { missedDayLabel } from "@/lib/streak-rules";
 import {
   Drawer,
   DrawerContent,
@@ -299,7 +300,8 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         bg: "#FEF2F2",
         border: "#FECACA",
         body: "Your group missed you yesterday. They're showing up again today.",
-        time: timeLabel(node.at),
+        // The day, not a clock time: a missed day has no moment it happened.
+        time: missedDayLabel(node.localDate, node.memberToday),
         dot: { fill: "#FFFFFF", ring: "#DC2626" },
       };
     case "rested":

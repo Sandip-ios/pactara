@@ -365,6 +365,9 @@ export type TimelineNode =
       kind: "check_in_missed";
       id: string;
       at: string;
+      /** The missed day and the member's own "today", both in their timezone. */
+      localDate: string;
+      memberToday: string;
     }
   | {
       /** The day was covered by an automatic rest day — streak kept. */
@@ -626,6 +629,8 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           kind: "check_in_missed",
           id: `cm-${p.id}`,
           at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
+          localDate: p.local_date,
+          memberToday: localDateFor(tz),
         });
       }
 

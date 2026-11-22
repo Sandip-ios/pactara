@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Paywall (no reviews, crews, yearly default), nudges once a day + covered check, missed cards show the day, morning reminder per group, 8 PM defers to 9 PM (unpublished, awaiting review)
+
 - [x] Evening reminders per group (skip covered days / rest left), check-in rest screen per group, 9 PM freeze wording, Home pace bar hidden (unpublished, awaiting review)
 
 - [x] Streak follow-ups: 9 PM at-risk push per group only when no rest days left; profile "weeks on goal"; Home This week + Mon–Sun dots; daily groups show target 5 (unpublished, awaiting review)

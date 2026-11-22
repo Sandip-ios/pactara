@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { localHourFor } from "@/lib/daily-posts.functions";
 import {
   EVENING_REMINDER_HOURS,
+  eveningReminderGroups,
   eveningReminderMessage,
-  groupsNeedingCheckIn,
 } from "@/lib/streak-risk-plan";
 import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
 
@@ -15,7 +15,8 @@ const LOOKBACK_DAYS = 9;
  * Hourly cron: at 5pm and 8pm local time, reminds members about each group
  * that still needs a check-in today — nothing covers today yet and no rest
  * day is left this week (otherwise an automatic rest day covers it). One push
- * per member names every such group.
+ * per member names every such group. At 8 PM, groups that will get the 9 PM
+ * "streak at risk" push are skipped, so nobody gets both for the same group.
  */
 export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
   server: {
@@ -67,7 +68,8 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           const inputs = await loadRiskInputs(supabaseAdmin, due, now, LOOKBACK_DAYS);
           for (const [hour, userIds] of dueByHour) {
             for (const userId of userIds) {
-              const groups = groupsNeedingCheckIn(tzById.get(userId) ?? "UTC", inputs.get(userId) ?? [], now);
+              // At 8 PM, groups the 9 PM "streak at risk" push will cover are left out.
+              const groups = eveningReminderGroups(hour, tzById.get(userId) ?? "UTC", inputs.get(userId) ?? [], now);
               if (groups.length === 0) continue;
               reminded += 1;
               const result = await pushToUsers([userId], eveningReminderMessage(hour, groups)).catch(() => ({

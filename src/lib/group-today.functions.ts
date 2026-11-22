@@ -3,7 +3,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
-import { currentStreak, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
+import { currentStreak, dayCovered, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
+import { alreadyNudgedResult, nudgeDecision, type NudgeResult } from "@/lib/nudge-rules";
 
 /**
  * Daily accountability status for the Groups tab.
@@ -288,7 +289,12 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     return { groups: out, firstName };
   });
 
-/** Sends a friendly "we're waiting for you" push to a groupmate. */
+/**
+ * Sends a friendly "we're waiting for you" push to a groupmate — at most once
+ * per groupmate, per group, per local day (nudger's timezone), and never when
+ * their day is already covered for that group. Returns a friendly message
+ * instead of throwing in those cases.
+ */
 export const nudgeMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { groupId: string; userId: string }) => {
@@ -297,7 +303,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
     if (!groupId || !target) throw new Error("Group and member are required");
     return { groupId, userId: target };
   })
-  .handler(async ({ context, data }) => {
+  .handler(async ({ context, data }): Promise<NudgeResult> => {
     const { supabase, userId } = context;
 
     const { data: mine } = await supabase
@@ -307,7 +313,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
       .eq("user_id", userId)
       .maybeSingle();
     if (!mine) throw new Error("You are not in this group");
-    if (data.userId === userId) return { ok: true };
+    if (data.userId === userId) throw new Error("You can't nudge yourself");
 
     const { data: theirs } = await supabase
       .from("group_members")
@@ -317,12 +323,65 @@ export const nudgeMember = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!theirs) throw new Error("That member is not in this group");
 
-    const [{ data: group }, { data: me }] = await Promise.all([
+    const [{ data: group }, { data: people }] = await Promise.all([
       supabase.from("groups").select("name").eq("id", data.groupId).maybeSingle(),
-      supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
+      supabase.from("profiles").select("id, name, timezone").in("id", [userId, data.userId]),
     ]);
+    const me = (people ?? []).find((p) => p.id === userId);
+    const them = (people ?? []).find((p) => p.id === data.userId);
     const actor = ((me?.name as string) ?? "").split(" ")[0] || "Someone";
+    const targetFirst = ((them?.name as string) ?? "").split(" ")[0] || "They";
     const groupName = (group?.name as string) ?? "your group";
+
+    // Once-a-day rule uses the nudger's local date; "covered" uses the target's.
+    const nudgerToday = localDateIn((me?.timezone as string | null) ?? "UTC");
+    const targetToday = localDateIn((them?.timezone as string | null) ?? "UTC");
+
+    const [{ data: prior }, { data: checkIns }, { data: covers }] = await Promise.all([
+      supabase
+        .from("member_nudges")
+        .select("id")
+        .eq("group_id", data.groupId)
+        .eq("nudger_id", userId)
+        .eq("target_id", data.userId)
+        .eq("local_date", nudgerToday)
+        .limit(1),
+      supabase
+        .from("check_ins")
+        .select("checkin_date")
+        .eq("group_id", data.groupId)
+        .eq("user_id", data.userId)
+        .eq("checkin_date", targetToday),
+      supabase
+        .from("streak_freezes_used")
+        .select("freeze_date")
+        .eq("group_id", data.groupId)
+        .eq("user_id", data.userId)
+        .eq("freeze_date", targetToday),
+    ]);
+
+    const blocked = nudgeDecision({
+      firstName: targetFirst,
+      alreadyNudgedToday: (prior ?? []).length > 0,
+      targetCoveredToday: dayCovered(
+        targetToday,
+        new Set((checkIns ?? []).map((c) => c.checkin_date as string)),
+        new Set((covers ?? []).map((f) => f.freeze_date as string)),
+      ),
+    });
+    if (blocked) return blocked;
+
+    // Record first; the unique (group, nudger, target, day) key stops double taps.
+    const { error: insertError } = await supabase.from("member_nudges").insert({
+      group_id: data.groupId,
+      nudger_id: userId,
+      target_id: data.userId,
+      local_date: nudgerToday,
+    });
+    if (insertError) {
+      if (insertError.code === "23505") return alreadyNudgedResult(targetFirst);
+      throw new Error("Couldn't send that nudge");
+    }
 
     const { notifyUsers } = await import("@/lib/notify.server");
     await notifyUsers(
@@ -334,5 +393,5 @@ export const nudgeMember = createServerFn({ method: "POST" })
       },
       "nudges_enabled",
     );
-    return { ok: true };
+    return { ok: true, message: `👋 Nudge sent to ${targetFirst}` };
   });

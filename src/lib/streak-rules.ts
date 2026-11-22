@@ -240,3 +240,26 @@ export function restLeftForGroup(
   if (match) return match.restLeft;
   return groups.length ? Math.min(...groups.map((g) => g.restLeft)) : 0;
 }
+
+/** A day is covered for a group when it has a check-in, rest row or freeze row. */
+export function dayCovered(date: string, checkIns: Set<string>, restOrFreeze: Set<string>): boolean {
+  return checkIns.has(date) || restOrFreeze.has(date);
+}
+
+const WEEKDAY_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * Day label for a missed check-in, from the member's own local dates:
+ * "Missed · yesterday", "Missed · Tuesday" within the past week, else "Missed · Nov 3".
+ */
+export function missedDayLabel(localDate: string, memberToday: string): string {
+  const [y, m, d] = localDate.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (localDate === memberToday) return "Missed · today";
+  if (addDaysIso(memberToday, -1) === localDate) return "Missed · yesterday";
+  if (localDate >= addDaysIso(memberToday, -6) && localDate < memberToday) {
+    return `Missed · ${WEEKDAY_LONG[dt.getUTCDay()]}`;
+  }
+  return `Missed · ${MONTH_SHORT[dt.getUTCMonth()]} ${dt.getUTCDate()}`;
+}

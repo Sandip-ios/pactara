@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CheckCircle2, Star, Flame, TrendingUp, Users, X } from "lucide-react";
+import { CheckCircle2, Flame, TrendingUp, Users, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
@@ -30,7 +30,7 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
   useHideBottomTabs();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
-  const [plan, setPlan] = useState<"yearly" | "monthly">("monthly");
+  const [plan, setPlan] = useState<"yearly" | "monthly">("yearly");
   const [offerings, setOfferings] = useState<PactaraOfferings | null>(null);
   const [loadingOfferings, setLoadingOfferings] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -68,33 +68,9 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
     };
   }, []);
 
-  const testimonials = [
-    {
-      badge: "🔥 21 day streak",
-      title: "Don't Lose Momentum",
-      body: "I almost cancelled. So glad I didn't — my streak is the longest thing I've stuck to in years.",
-      image:
-        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      badge: "💪 +14 lbs lifted",
-      title: "Worth Every Penny",
-      body: "Seeing everyone's progress cards keeps me honest. First app that's actually stuck.",
-      image:
-        "https://images.unsplash.com/photo-1534258936925-c58bed479fcb?auto=format&fit=crop&w=600&q=80",
-    },
-    {
-      badge: "⚖️ -12 lbs in 60 days",
-      title: "My Pod Keeps Me Going",
-      body: "The daily check-ins changed everything. I show up because they show up.",
-      image:
-        "https://images.unsplash.com/photo-1483721310020-03333e577078?auto=format&fit=crop&w=600&q=80",
-    },
-  ];
-
   const keepFeatures = [
     { Icon: Flame, label: "Your streak & check-in history" },
-    { Icon: Users, label: "Your pods and all your members" },
+    { Icon: Users, label: "Your crews and all your members" },
     { Icon: TrendingUp, label: "Every photo, check-in, and note" },
   ];
 
@@ -335,55 +311,6 @@ export function TrialEndedPaywall({ firstName, daysActive, mode = "blocked", onD
               Billed monthly
             </div>
           </button>
-        </div>
-
-        <div
-          className="mt-6 shrink-0 overflow-x-auto no-scrollbar"
-          style={{ WebkitOverflowScrolling: "touch", touchAction: "auto" }}
-        >
-          <div className="flex gap-3 px-6 pb-2 items-stretch">
-            {testimonials.map((t, i) => (
-              <div
-                key={i}
-                className="shrink-0 rounded-2xl bg-white flex flex-col overflow-hidden"
-
-                style={{
-                  width: 220,
-                  boxShadow: "0 1px 2px rgba(15,15,30,0.04), 0 8px 24px -12px rgba(15,15,30,0.08)",
-                }}
-              >
-                <div className="relative shrink-0 h-[182px] overflow-hidden">
-                  <img
-                    src={t.image}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
-                  <div
-                    className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
-                    style={{ background: INK }}
-                  >
-                    {t.badge}
-                  </div>
-                </div>
-                <div className="px-3.5 pt-2.5 pb-3 shrink-0">
-                  <div className="flex gap-0.5">
-                    {Array.from({ length: 5 }).map((_, j) => (
-                      <Star key={j} size={12} fill="#F5B400" stroke="#F5B400" />
-                    ))}
-                  </div>
-                  <div
-                    className="mt-1.5 text-[15px] font-bold tracking-tight"
-                    style={{ color: INK }}
-                  >
-                    {t.title}
-                  </div>
-                  <p className="mt-1 text-[12.5px] leading-[1.4]" style={{ color: MUTED }}>
-                    {t.body}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div className="px-6 pb-6 pt-4 shrink-0 mt-auto">

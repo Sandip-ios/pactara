@@ -1,6 +1,7 @@
 import {
   currentStreak,
   dayAtRisk,
+  dayCovered,
   localWeek,
   restAllowance,
   type GroupSchedule,
@@ -53,15 +54,71 @@ export function groupsNeedingCheckIn(
   });
 }
 
+function streakIn(g: RiskGroupInput, today: string): number {
+  return currentStreak(new Set<string>([...g.checkIns, ...g.rests, ...g.freezes]), today);
+}
+
 export function atRiskGroups(timezone: string, groups: RiskGroupInput[], now: Date = new Date()): AtRiskGroup[] {
   const { today } = localWeek(timezone, now);
-  const out: AtRiskGroup[] = [];
-  for (const g of groupsNeedingCheckIn(timezone, groups, now)) {
-    const kept = new Set<string>([...g.checkIns, ...g.rests, ...g.freezes]);
-    const streak = currentStreak(kept, today);
-    if (streak >= MIN_AT_RISK_STREAK) out.push({ groupId: g.groupId, name: g.name, streak });
+  return groupsNeedingCheckIn(timezone, groups, now)
+    .map((g) => ({ groupId: g.groupId, name: g.name, streak: streakIn(g, today) }))
+    .filter((g) => g.streak >= MIN_AT_RISK_STREAK);
+}
+
+export type ReminderGroup = { groupId: string; name: string; streak: number };
+
+/**
+ * Groups a 5 PM / 8 PM reminder should name. At 8 PM, groups that will get the
+ * 9 PM "streak at risk" push are left out (so a member whose groups are all
+ * at risk gets no 8 PM push at all).
+ */
+export function eveningReminderGroups(
+  hour: number,
+  timezone: string,
+  groups: RiskGroupInput[],
+  now: Date = new Date(),
+): ReminderGroup[] {
+  const { today } = localWeek(timezone, now);
+  const need = groupsNeedingCheckIn(timezone, groups, now).map((g) => ({
+    groupId: g.groupId,
+    name: g.name,
+    streak: streakIn(g, today),
+  }));
+  if (hour !== 20) return need;
+  return need.filter((g) => g.streak < MIN_AT_RISK_STREAK);
+}
+
+/**
+ * Groups the morning reminder should name: today isn't covered yet (no
+ * check-in, rest or freeze row). Rest days left don't matter here — the
+ * morning push is a friendly nudge, not a warning.
+ */
+export function morningReminderGroups(
+  timezone: string,
+  groups: RiskGroupInput[],
+  now: Date = new Date(),
+): RiskGroupInput[] {
+  const { today } = localWeek(timezone, now);
+  return groups.filter((g) => !dayCovered(today, g.checkIns, new Set([...g.rests, ...g.freezes])));
+}
+
+/** Morning push naming every group still waiting on today's check-in. */
+export function morningReminderMessage(
+  groups: { groupId: string; name: string; day?: number | null; total?: number | null }[],
+) {
+  const title = "Time to check in ✅";
+  const url = checkInUrl(groups);
+  if (groups.length === 1) {
+    const g = groups[0]!;
+    const body =
+      g.day && g.total
+        ? g.day === g.total
+          ? `Final day of ${g.name} — finish strong and check in. 🏁`
+          : `Day ${g.day} of ${g.total} in ${g.name} — keep it going. 🔥`
+        : `Log today's check-in for ${g.name}. 🔥`;
+    return { title, body, url };
   }
-  return out;
+  return { title, body: `Check in for ${joinNames(groups.map((g) => g.name))} today — keep it going. 🔥`, url };
 }
 
 export function joinNames(names: string[]): string {
@@ -98,7 +155,7 @@ export function streakRiskMessage(groups: AtRiskGroup[], hasFreeze: boolean) {
 export const EVENING_REMINDER_HOURS = [17, 20] as const;
 
 /** One 5 PM / 8 PM push per member, naming every group that still needs a check-in. */
-export function eveningReminderMessage(hour: number, groups: { groupId: string; name: string }[]) {
+export function eveningReminderMessage(hour: number, groups: { groupId: string; name: string; streak?: number }[]) {
   const names = joinNames(groups.map((g) => g.name));
   const url = checkInUrl(groups);
   if (hour === 17) {
@@ -108,9 +165,12 @@ export function eveningReminderMessage(hour: number, groups: { groupId: string; 
       url,
     };
   }
+  const hasStreak = groups.some((g) => (g.streak ?? 0) >= MIN_AT_RISK_STREAK);
   return {
     title: "Last call to check in 🌙",
-    body: `Don't break your ${groups.length === 1 ? "streak" : "streaks"} in ${names} — check in before bed.`,
+    body: hasStreak
+      ? `Don't break your ${groups.length === 1 ? "streak" : "streaks"} in ${names} — check in before bed.`
+      : `Check in for ${names} before bed.`,
     url,
   };
 }

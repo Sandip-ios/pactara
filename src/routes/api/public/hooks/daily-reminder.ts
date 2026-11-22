@@ -1,10 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { localHourFor } from "@/lib/daily-posts.functions";
+import { localDateIn } from "@/lib/streak-rules";
+import { morningReminderGroups, morningReminderMessage } from "@/lib/streak-risk-plan";
+import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
+
+/** Enough history to cover today in any timezone. */
+const LOOKBACK_DAYS = 2;
 
 /**
  * Hourly cron: sends each user their daily check-in reminder at the hour they
  * chose (notification_preferences.daily_reminder_time), in their local timezone.
- * Users who already checked in today are skipped.
+ * Each group is judged on its own: groups already covered today (check-in,
+ * rest or freeze row) are skipped; one push names the groups still waiting.
  */
 export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
   server: {
@@ -44,92 +51,48 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
         }
         if (due.length === 0) return Response.json({ ok: true, sent: 0, scanned: rows.length });
 
-        // Skip anyone who already checked in on their local date.
-        const { data: checked } = await supabaseAdmin
-          .from("check_ins")
-          .select("user_id, checkin_date")
-          .in("user_id", due)
-          .gte("checkin_date", new Date(now.getTime() - 36 * 3600 * 1000).toISOString().slice(0, 10));
-        const alreadyToday = new Set(
-          (checked ?? [])
-            .filter((c) => {
-              const tz = tzById.get(c.user_id) ?? "UTC";
-              const localToday = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
-              return c.checkin_date === localToday;
-            })
-            .map((c) => c.user_id),
-        );
-        const recipients = due.filter((id) => !alreadyToday.has(id));
-        if (recipients.length === 0) return Response.json({ ok: true, sent: 0, due: due.length });
+        // Each group on its own: skip groups whose day is already covered
+        // (check-in, rest or freeze row). Rest days left don't suppress this one.
+        const inputs = await loadRiskInputs(supabaseAdmin, due, now, LOOKBACK_DAYS);
 
-        // Work out where each person is in their challenge, so the reminder can
-        // say "Day 12 of 30 in Morning Milers".
-        const { data: memberships } = await supabaseAdmin
-          .from("group_members")
-          .select("user_id, group_id")
-          .in("user_id", recipients);
-
-        const groupIds = Array.from(
-          new Set((memberships ?? []).map((m) => m.group_id)),
-        );
+        // Challenge position per group, so a single-group push can say "Day 12 of 30".
+        const groupIds = Array.from(new Set([...inputs.values()].flat().map((g) => g.groupId)));
         const { data: groups } = groupIds.length
-          ? await supabaseAdmin
-              .from("groups")
-              .select("id, name, start_date, duration_days")
-              .in("id", groupIds)
-          : { data: [] as Array<{ id: string; name: string; start_date: string; duration_days: number }> };
+          ? await supabaseAdmin.from("groups").select("id, start_date, duration_days").in("id", groupIds)
+          : { data: [] as Array<{ id: string; start_date: string; duration_days: number }> };
         const groupById = new Map((groups ?? []).map((g) => [g.id, g]));
 
         /** Day number (1-based) in the challenge for a given timezone, or null if outside it. */
-        const dayNumber = (startDate: string, durationDays: number, tz: string) => {
-          const localToday = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
-          const diff = Math.round(
-            (Date.parse(`${localToday}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) /
-              86400000,
-          );
-          const day = diff + 1;
-          if (day < 1 || day > durationDays) return null;
-          return day;
+        const dayNumber = (startDate: string | null, durationDays: number | null, tz: string) => {
+          if (!startDate || !durationDays) return null;
+          const day = Math.round((Date.parse(`${localDateIn(tz, now)}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) / 86400000) + 1;
+          return day < 1 || day > durationDays ? null : day;
         };
-
-        // Group recipients by the exact message they should receive.
-        // Keyed by body + the group it names, so a tap opens that group's check-in.
-        const byBody = new Map<string, { body: string; groupId: string | null; users: string[] }>();
-        for (const userId of recipients) {
-          const tz = tzById.get(userId) ?? "UTC";
-          let best: { day: number; total: number; name: string; id: string } | null = null;
-          for (const m of memberships ?? []) {
-            if (m.user_id !== userId) continue;
-            const g = groupById.get(m.group_id);
-            if (!g) continue;
-            const day = dayNumber(g.start_date, g.duration_days, tz);
-            if (day === null) continue;
-            if (!best || day > best.day) best = { day, total: g.duration_days, name: g.name, id: g.id };
-          }
-          const body = best
-            ? best.day === best.total
-              ? `Final day of ${best.name} — finish strong and check in. 🏁`
-              : `Day ${best.day} of ${best.total} in ${best.name} — keep it going. 🔥`
-            : "Keep your streak alive — log today's check-in.";
-          const groupId = best?.id ?? null;
-          const key = `${groupId ?? ""}|${body}`;
-          const entry = byBody.get(key);
-          if (entry) entry.users.push(userId);
-          else byBody.set(key, { body, groupId, users: [userId] });
-        }
 
         const { pushToUsers } = await import("@/lib/notify.server");
         let sent = 0;
-        for (const { body, groupId, users } of byBody.values()) {
-          const result = await pushToUsers(users, {
-            title: "Time to check in ✅",
-            body,
-            url: groupId ? `/check-in?group=${groupId}` : "/check-in",
-          });
-          sent += (result as { sent?: number }).sent ?? 0;
+        let reminded = 0;
+        for (const userId of due) {
+          const tz = tzById.get(userId) ?? "UTC";
+          const need = morningReminderGroups(tz, inputs.get(userId) ?? [], now);
+          if (need.length === 0) continue;
+          reminded += 1;
+          const message = morningReminderMessage(
+            need.map((g) => {
+              const info = groupById.get(g.groupId);
+              return {
+                groupId: g.groupId,
+                name: g.name,
+                day: info ? dayNumber(info.start_date, info.duration_days, tz) : null,
+                total: info?.duration_days ?? null,
+              };
+            }),
+          );
+          const result = await pushToUsers([userId], message).catch(() => ({ webSent: 0, fcmSent: 0 }));
+          sent += result.webSent + result.fcmSent;
         }
 
-        return Response.json({ ok: true, due: due.length, sent });
+        return Response.json({ ok: true, due: due.length, reminded, sent });
       },
     },
   },

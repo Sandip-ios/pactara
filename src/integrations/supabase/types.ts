@@ -476,6 +476,33 @@ export type Database = {
         }
         Relationships: []
       }
+      member_nudges: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          local_date: string
+          nudger_id: string
+          target_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          local_date: string
+          nudger_id: string
+          target_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          local_date?: string
+          nudger_id?: string
+          target_id?: string
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string

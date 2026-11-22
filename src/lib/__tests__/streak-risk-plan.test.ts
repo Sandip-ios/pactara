@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   atRiskGroups,
+  eveningReminderGroups,
   eveningReminderMessage,
   groupsNeedingCheckIn,
+  morningReminderGroups,
+  morningReminderMessage,
   streakRiskMessage,
   type RiskGroupInput,
 } from "../streak-risk-plan";
@@ -155,5 +158,98 @@ describe("5 PM and 8 PM check-in reminders", () => {
     expect(msg.title).toBe("Still time to check in ⏳");
     expect(msg.body).toContain("Fit Uxers");
     expect(msg.url).toBe("/check-in?group=a");
+  });
+});
+
+describe("8 PM reminder steps aside for the 9 PM streak warning", () => {
+  const eightChicago = new Date("2026-11-22T02:00:00Z"); // Sat Nov 21, 8 PM Chicago
+  // No rest days left, nothing today, 3-day streak → 9 PM will warn.
+  const withStreak = group({
+    groupId: "a",
+    name: "Fit Uxers",
+    checkIns: new Set(["2026-11-16", "2026-11-17", "2026-11-18"]),
+    rests: new Set(["2026-11-19", "2026-11-20"]),
+  });
+  // No rest days left, nothing today, no streak (missed yesterday) → 9 PM won't warn.
+  const noStreak = group({
+    groupId: "b",
+    name: "Prim + Jose",
+    checkIns: new Set(["2026-11-16"]),
+    rests: new Set(["2026-11-17", "2026-11-18"]),
+  });
+
+  it("skips the 8 PM push when every group will get the 9 PM warning", () => {
+    expect(eveningReminderGroups(20, TZ, [withStreak], eightChicago)).toEqual([]);
+    expect(atRiskGroups(TZ, [withStreak], new Date("2026-11-22T03:00:00Z")).length).toBe(1);
+  });
+
+  it("still names groups the 9 PM push won't cover, with the no-streak wording", () => {
+    const groups = eveningReminderGroups(20, TZ, [withStreak, noStreak], eightChicago);
+    expect(groups.map((g) => g.groupId)).toEqual(["b"]);
+    const msg = eveningReminderMessage(20, groups);
+    expect(msg.title).toBe("Last call to check in 🌙");
+    expect(msg.body).toBe("Check in for Prim + Jose before bed.");
+  });
+
+  it("a 1-day streak counts as no streak", () => {
+    const oneDay = { ...noStreak, checkIns: new Set(["2026-11-16", "2026-11-20"]) };
+    const groups = eveningReminderGroups(20, TZ, [oneDay], eightChicago);
+    expect(groups).toEqual([{ groupId: "b", name: "Prim + Jose", streak: 1 }]);
+    expect(eveningReminderMessage(20, groups).body).toBe("Check in for Prim + Jose before bed.");
+  });
+
+  it("keeps 'Don't break your streak' when a named group has a streak", () => {
+    expect(eveningReminderMessage(20, [{ groupId: "a", name: "Fit Uxers", streak: 3 }]).body).toBe(
+      "Don't break your streak in Fit Uxers — check in before bed.",
+    );
+  });
+
+  it("5 PM is unchanged: it still names groups with a streak", () => {
+    expect(eveningReminderGroups(17, TZ, [withStreak], eightChicago).map((g) => g.groupId)).toEqual(["a"]);
+  });
+});
+
+describe("morning check-in reminder", () => {
+  const nineAmChicago = new Date("2026-11-21T15:00:00Z"); // Sat Nov 21, 9 AM Chicago
+
+  it("skips groups already covered today and ignores rest days left", () => {
+    const restLeft = group({ groupId: "a", name: "Fit Uxers", rests: new Set(["2026-11-20"]) }); // 1 rest left
+    const checked = group({ groupId: "b", name: "Prim + Jose", checkIns: new Set(["2026-11-21"]) });
+    const rested = group({ groupId: "c", name: "Busi + Jose", rests: new Set(["2026-11-21"]) });
+    const frozen = group({ groupId: "d", name: "Crew", freezes: new Set(["2026-11-21"]) });
+    expect(
+      morningReminderGroups(TZ, [restLeft, checked, rested, frozen], nineAmChicago).map((g) => g.groupId),
+    ).toEqual(["a"]);
+  });
+
+  it("a check-in in one group doesn't silence the reminder for another", () => {
+    const checked = group({ groupId: "b", name: "Prim + Jose", checkIns: new Set(["2026-11-21"]) });
+    const other = group({ groupId: "a", name: "Fit Uxers", checkIns: new Set() });
+    expect(morningReminderGroups(TZ, [checked, other], nineAmChicago).map((g) => g.groupId)).toEqual(["a"]);
+  });
+
+  it("names several groups in one push", () => {
+    const msg = morningReminderMessage([
+      { groupId: "a", name: "Fit Uxers" },
+      { groupId: "b", name: "Prim + Jose" },
+    ]);
+    expect(msg.title).toBe("Time to check in ✅");
+    expect(msg.body).toContain("Fit Uxers and Prim + Jose");
+    expect(msg.url).toBe("/check-in");
+  });
+
+  it("keeps the 'Day X of Y' wording for a single group", () => {
+    const msg = morningReminderMessage([{ groupId: "a", name: "Fit Uxers", day: 12, total: 30 }]);
+    expect(msg.body).toBe("Day 12 of 30 in Fit Uxers — keep it going. 🔥");
+    expect(msg.url).toBe("/check-in?group=a");
+  });
+});
+
+describe("missed check-in cards show the day", () => {
+  it("uses the member's own local dates", async () => {
+    const { missedDayLabel } = await import("../streak-rules");
+    expect(missedDayLabel("2026-11-21", "2026-11-22")).toBe("Missed · yesterday");
+    expect(missedDayLabel("2026-11-17", "2026-11-22")).toBe("Missed · Tuesday");
+    expect(missedDayLabel("2026-11-03", "2026-11-22")).toBe("Missed · Nov 3");
   });
 });
