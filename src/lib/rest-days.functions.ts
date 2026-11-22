@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { localWeek, restAllowance, weeklyTarget } from "@/lib/streak-rules";
+import { localWeek, restAllowance, weekDayStates, weeklyTarget, type WeekDayState } from "@/lib/streak-rules";
 
 /**
  * Rest days are automatic: the hourly job uses one when a day closes without a
@@ -15,6 +15,8 @@ export type GroupWeekStatus = {
   restAllowance: number;
   restUsed: number;
   restLeft: number;
+  /** Monday → Sunday: checked in, rested/frozen, or nothing. */
+  days: { date: string; state: WeekDayState }[];
 };
 
 async function restInfo(supabase: SupabaseClient, userId: string) {
@@ -37,9 +39,8 @@ async function restInfo(supabase: SupabaseClient, userId: string) {
     supabase.from("groups").select("id, frequency, days_per_week").in("id", safeIds),
     supabase
       .from("streak_freezes_used")
-      .select("group_id, freeze_date")
+      .select("group_id, freeze_date, kind")
       .eq("user_id", userId)
-      .eq("kind" as never, "rest")
       .in("group_id", safeIds)
       .gte("freeze_date", weekStart)
       .lte("freeze_date", weekEnd),
@@ -52,8 +53,13 @@ async function restInfo(supabase: SupabaseClient, userId: string) {
       .lte("checkin_date", today),
   ]);
 
+  // Rest rows use up the week's rest days; freeze rows only cover a day.
   const restsByGroup = new Map<string, Set<string>>();
-  for (const r of (rests ?? []) as { group_id: string; freeze_date: string }[]) {
+  const coveredByGroup = new Map<string, Set<string>>();
+  for (const r of (rests ?? []) as { group_id: string; freeze_date: string; kind: string | null }[]) {
+    if (!coveredByGroup.has(r.group_id)) coveredByGroup.set(r.group_id, new Set());
+    coveredByGroup.get(r.group_id)!.add(r.freeze_date);
+    if (r.kind !== "rest") continue;
     if (!restsByGroup.has(r.group_id)) restsByGroup.set(r.group_id, new Set());
     restsByGroup.get(r.group_id)!.add(r.freeze_date);
   }
@@ -74,6 +80,11 @@ async function restInfo(supabase: SupabaseClient, userId: string) {
         restAllowance: allowance,
         restUsed: used,
         restLeft: Math.max(0, allowance - used),
+        days: weekDayStates(
+          weekStart,
+          workoutDaysByGroup.get(g.id) ?? new Set(),
+          coveredByGroup.get(g.id) ?? new Set(),
+        ),
       };
     },
   );

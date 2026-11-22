@@ -8,6 +8,7 @@
  *   (frequency "daily" or 7 days a week), which keep 2 rest days a week.
  * - When a day closes with no check-in, a rest day is used automatically if
  *   one is left this week; otherwise the day is missed.
+ * - Weekly target = 7 − rest days (daily groups: 5).
  * - Extra workouts beyond the weekly target never bank rest days.
  */
 
@@ -60,16 +61,22 @@ function isDailyGroup(g: GroupSchedule): boolean {
   return (g.frequency ?? "daily") === "daily" || dpw >= 7;
 }
 
-/** Workouts a member owes this group per week. */
-export function weeklyTarget(g: GroupSchedule): number {
-  if (isDailyGroup(g)) return 7;
+function scheduledDays(g: GroupSchedule): number {
   return Math.max(1, Math.min(7, g.days_per_week ?? 7));
 }
 
 /** Rest days a member gets per Mon–Sun week in this group. */
 export function restAllowance(g: GroupSchedule): number {
   if (isDailyGroup(g)) return DAILY_GROUP_REST_DAYS;
-  return 7 - weeklyTarget(g);
+  return 7 - scheduledDays(g);
+}
+
+/**
+ * Workouts a member owes this group per week = the days left after rest days,
+ * so the target and the rest allowance always add up to 7 (daily groups: 5).
+ */
+export function weeklyTarget(g: GroupSchedule): number {
+  return 7 - restAllowance(g);
 }
 
 export type ClosedDayOutcome = "kept" | "rest" | "missed";
@@ -157,4 +164,66 @@ export function groupStreak(
     cursor = addDaysIso(cursor, -1);
   }
   return streak;
+}
+
+/**
+ * True when today would really be missed for this group: no check-in, no
+ * rest/freeze row covering today, and no rest days left this week.
+ */
+export function dayAtRisk(input: {
+  checkedInToday: boolean;
+  protectedToday: boolean;
+  restUsedThisWeek: number;
+  allowance: number;
+}): boolean {
+  return (
+    closeDay({
+      checkedIn: input.checkedInToday,
+      protectedDay: input.protectedToday,
+      restUsedThisWeek: input.restUsedThisWeek,
+      allowance: input.allowance,
+    }) === "missed"
+  );
+}
+
+/**
+ * "Weeks on goal": completed Mon–Sun weeks since joining where distinct
+ * check-in days reached the weekly target. Rest and freeze days don't count
+ * toward the target. A week only counts once it has fully ended, and the
+ * joining week counts only when the member joined on its Monday.
+ */
+export function weeksOnGoal(
+  checkInDates: Iterable<string>,
+  joinedOn: string,
+  today: string,
+  target: number,
+): { hit: number; completed: number } {
+  const days = new Set(checkInDates);
+  const currentWeekStart = weekStartIso(today);
+  let start = weekStartIso(joinedOn);
+  if (start < joinedOn) start = addDaysIso(start, 7);
+  let hit = 0;
+  let completed = 0;
+  for (let ws = start; ws < currentWeekStart; ws = addDaysIso(ws, 7)) {
+    completed += 1;
+    let n = 0;
+    for (let i = 0; i < 7; i++) if (days.has(addDaysIso(ws, i))) n += 1;
+    if (n >= target) hit += 1;
+  }
+  return { hit, completed };
+}
+
+export type WeekDayState = "checked" | "rest" | "none";
+
+/** Monday → Sunday states for the week starting `weekStart`. */
+export function weekDayStates(
+  weekStart: string,
+  checkIns: Set<string>,
+  restOrFreeze: Set<string>,
+): { date: string; state: WeekDayState }[] {
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = addDaysIso(weekStart, i);
+    const state: WeekDayState = checkIns.has(date) ? "checked" : restOrFreeze.has(date) ? "rest" : "none";
+    return { date, state };
+  });
 }

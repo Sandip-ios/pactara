@@ -8,7 +8,6 @@ export type SnapshotState = "check-in" | "rest" | "done";
 
 type Props = {
   state: SnapshotState;
-  week: { label: string; done: boolean }[];
   streak: number;
   longestStreak: number;
   pace?: {
@@ -22,7 +21,12 @@ type Props = {
   groupId: string | null;
   groupSize?: number;
   /** This Mon–Sun week in the selected group; rest days are used automatically. */
-  weekStatus?: { workouts: number; target: number; restLeft: number } | null;
+  weekStatus?: {
+    workouts: number;
+    target: number;
+    restLeft: number;
+    days: { date: string; state: "checked" | "rest" | "none" }[];
+  } | null;
   memberGoals?: {
     userId: string;
     name: string;
@@ -56,12 +60,14 @@ const COPY: Record<
 
 type Stat = { label: string; value: string };
 
+const WEEKDAY_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+const WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 
 
 
 export function TodaySnapshot({
   state,
-  week,
   streak,
   longestStreak,
   pace,
@@ -126,11 +132,10 @@ export function TodaySnapshot({
     deltaX.current = 0;
   };
 
-  const completedCount = week.filter((d) => d.done).length;
-
+  // Same Mon–Sun numbers as the weekly line under the check-in card.
   const stats: Stat[] = [
     { label: "Day streak", value: String(streak) },
-    { label: "This week", value: `${completedCount}/7` },
+    { label: "This week", value: weekStatus ? `${weekStatus.workouts}/${weekStatus.target}` : "–" },
     { label: "Longest streak", value: String(longestStreak) },
   ];
 
@@ -228,6 +233,27 @@ export function TodaySnapshot({
                 </div>
               ))}
             </div>
+            {weekStatus && (
+              <div className="mt-5 flex items-center justify-center gap-3" aria-label="This week, Monday to Sunday">
+                {weekStatus.days.map((d, i) => (
+                  <div key={d.date} className="flex flex-col items-center gap-1.5">
+                    <span
+                      className={
+                        d.state === "checked"
+                          ? "h-3 w-3 rounded-full bg-pactara-purple"
+                          : d.state === "rest"
+                            ? "h-3 w-3 rounded-full bg-pactara-purple/30"
+                            : "h-3 w-3 rounded-full border border-border bg-transparent"
+                      }
+                      aria-label={`${WEEKDAY_NAMES[i]}: ${
+                        d.state === "checked" ? "checked in" : d.state === "rest" ? "rest day" : "no check-in"
+                      }`}
+                    />
+                    <span className="text-[10px] font-semibold text-muted-foreground">{WEEKDAY_LETTERS[i]}</span>
+                  </div>
+                ))}
+              </div>
+            )}
             {pace && (
               <div className="mt-5 border-t border-border/60 pt-4">
                 <div className="flex items-center justify-between text-[13px]">

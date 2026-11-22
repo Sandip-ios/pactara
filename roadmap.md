@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Streak follow-ups: 9 PM at-risk push per group only when no rest days left; profile "weeks on goal"; Home This week + Mon–Sun dots; daily groups show target 5 (unpublished, awaiting review)
+
 - [x] Streaks follow each group's weekly rule; rest days automatic (Mon–Sun local weeks); local-date streaks on profile, Groups and Home; feed shows "Rested · streak kept"; this week's missed days corrected
 
 - [x] Remove the daily commitment (screen, Home card, reminders, missed-commitment tiles, onboarding copy); rest day moved to Home; Start workout removed from Home too — Home shows only Check in

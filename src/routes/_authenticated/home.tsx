@@ -518,19 +518,6 @@ function HomePage() {
             ? "rest"
             : "check-in";
 
-        // Build a 7-day week (Sun→Sat) of completion for the current user.
-        const now = new Date();
-        const week: { label: string; done: boolean }[] = [];
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date(now);
-          d.setDate(now.getDate() - i);
-          const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const done = (feedData?.items ?? []).some(
-            (item) => item.isMe && item.localDate === key && item.nodes.some((n) => n.kind === "check_in" || n.kind === "ritual"),
-          );
-          week.push({ label: key, done });
-        }
-
         const myStreak =
           streaksData?.members?.find((m) => m.isYou)?.streak ?? 0;
         const myLongest =
@@ -540,7 +527,6 @@ function HomePage() {
           <>
             <TodaySnapshot
               state={state}
-              week={week}
               streak={myStreak}
               longestStreak={myLongest}
               pace={paceData ?? null}

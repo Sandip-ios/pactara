@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts } from "@/lib/streak-rules";
+import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts, weeklyTarget, weeksOnGoal } from "@/lib/streak-rules";
 
 // Streaks and day grids use the member's own local dates (profiles.timezone),
 // never UTC dates — otherwise a US evening already reads as "tomorrow".
@@ -18,7 +18,8 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       .select("name, avatar_color, avatar_url, timezone")
       .eq("id", userId)
       .maybeSingle();
-    const today = localDateIn((profile as { timezone?: string } | null)?.timezone ?? "UTC");
+    const timezone = (profile as { timezone?: string } | null)?.timezone ?? "UTC";
+    const today = localDateIn(timezone);
 
     let avatarSignedUrl: string | null = null;
     const avatarPath = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
@@ -51,14 +52,16 @@ export const getProfileOverview = createServerFn({ method: "GET" })
 
     let groupName: string | null = null;
     let activeGroupId: string | null = null;
+    let target: number | null = null;
     if (targetMembership) {
       activeGroupId = targetMembership.group_id as string;
       const { data: g } = await supabase
         .from("groups")
-        .select("name")
+        .select("name, frequency, days_per_week")
         .eq("id", activeGroupId)
         .maybeSingle();
       groupName = g?.name ?? null;
+      if (g) target = weeklyTarget(g);
     }
 
     // Days active is measured against the selected group's join date
@@ -111,29 +114,12 @@ export const getProfileOverview = createServerFn({ method: "GET" })
     // This Mon–Sun week vs. the one before, in the member's timezone.
     const { thisWeek, lastWeek } = weekCounts(dates, today);
 
-    // Group-scoped missed check-ins
-    let missedQuery = supabase
-      .from("daily_posts")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("check_in_missed", true);
-    if (activeGroupId) missedQuery = missedQuery.eq("group_id", activeGroupId);
-    const { count: missedCount } = await missedQuery;
-    const missed = missedCount ?? 0;
-    // Denominator = every day the user was expected to check in.
-    // Use the max of days-since-join and (checked + missed) so a missed day
-    // is always counted even if joinedAt is off by a day (timezone).
-    const expectedDays = Math.max(daysSinceJoin, uniqueDays + missed);
-    const checkInRatePct =
-      expectedDays > 0
-        ? Math.min(100, Math.round((uniqueDays / expectedDays) * 100))
-        : 0;
-    const totalExpected = uniqueDays + missed;
-    const onTimeRatePct =
-      totalExpected > 0
-        ? Math.round((uniqueDays / totalExpected) * 100)
-        : 0;
-
+    // Completed Mon–Sun weeks since joining where check-ins met the group's
+    // weekly target (member's timezone).
+    const weeklyGoal =
+      target !== null && joinedAt
+        ? weeksOnGoal(dates, localDateIn(timezone, new Date(joinedAt)), today, target)
+        : { hit: 0, completed: 0 };
 
     return {
       name: profile?.name ?? "",
@@ -146,13 +132,12 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       bestStreak: best,
       past7,
       past90,
-      checkInRatePct,
+      weeklyTarget: target,
+      weeksOnGoal: weeklyGoal,
       daysSinceJoin,
       uniqueDaysCheckedIn: uniqueDays,
       thisWeek,
       lastWeek,
-      onTimeRatePct,
-      missedCount: missedCount ?? 0,
       streakFreezesAvailable,
       frozenDates,
     };

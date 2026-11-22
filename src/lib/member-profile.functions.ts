@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { awardBadgesForUser } from "./badges.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isVideoPath, signFeedMedia } from "./media-urls";
-import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts } from "./streak-rules";
+import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts, weeklyTarget, weeksOnGoal } from "./streak-rules";
 
 // Streaks and day grids use the member's own local dates (profiles.timezone).
 export type ProfileMedia = {
@@ -70,7 +70,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: group } = await supabase
       .from("groups")
-      .select("id, name, emoji, duration_days, start_date")
+      .select("id, name, emoji, duration_days, start_date, frequency, days_per_week")
       .eq("id", groupId)
       .maybeSingle();
 
@@ -125,7 +125,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       .select("name, avatar_color, avatar_url, streak_freezes_available, timezone")
       .eq("id", targetId)
       .maybeSingle();
-    const today = localDateIn((profile as { timezone?: string } | null)?.timezone ?? "UTC");
+    const timezone = (profile as { timezone?: string } | null)?.timezone ?? "UTC";
+    const today = localDateIn(timezone);
 
     let avatarUrl: string | null = null;
     const avatarPath = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
@@ -223,12 +224,14 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       .eq("group_id", groupId)
       .eq("check_in_missed", true);
     const missed = missedCount ?? 0;
-    const expectedDays = Math.max(daysSinceJoin, uniqueDays + missed);
-    const checkInRatePct =
-      expectedDays > 0 ? Math.min(100, Math.round((uniqueDays / expectedDays) * 100)) : 0;
-    const totalExpected = uniqueDays + missed;
-    const onTimeRatePct =
-      totalExpected > 0 ? Math.round((uniqueDays / totalExpected) * 100) : 0;
+
+    // Completed Mon–Sun weeks since joining where check-ins met the group's
+    // weekly target (member's timezone).
+    const target = group ? weeklyTarget(group) : null;
+    const weeklyGoal =
+      target !== null && !noGroups
+        ? weeksOnGoal(dates, localDateIn(timezone, new Date(joinedAt)), today, target)
+        : { hit: 0, completed: 0 };
 
     return {
       isSelf,
@@ -283,8 +286,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       bestStreak: best,
       past7,
       past90,
-      checkInRatePct,
-      onTimeRatePct,
+      weeklyTarget: target,
+      weeksOnGoal: weeklyGoal,
       daysSinceJoin,
       uniqueDaysCheckedIn: uniqueDays,
       thisWeek,

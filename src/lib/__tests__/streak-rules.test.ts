@@ -59,7 +59,16 @@ describe("rest days allowed per week", () => {
 
   it("weekly target follows days per week", () => {
     expect(weeklyTarget({ frequency: "specific", days_per_week: 5 })).toBe(5);
-    expect(weeklyTarget({ frequency: "daily", days_per_week: 7 })).toBe(7);
+    expect(weeklyTarget({ frequency: "specific", days_per_week: 3 })).toBe(3);
+  });
+
+  it("daily groups show a weekly target of 5 (7 minus their 2 rest days)", () => {
+    expect(weeklyTarget({ frequency: "daily", days_per_week: 7 })).toBe(5);
+    expect(weeklyTarget({ frequency: "specific", days_per_week: 7 })).toBe(5);
+    // Groups set to daily that store 3 or 4 days a week are still daily.
+    expect(weeklyTarget({ frequency: "daily", days_per_week: 3 })).toBe(5);
+    expect(weeklyTarget({ frequency: "daily", days_per_week: 4 })).toBe(5);
+    expect(restAllowance({ frequency: "daily", days_per_week: 4 })).toBe(2);
   });
 });
 

@@ -261,7 +261,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             <div className="flex-1 flex items-center justify-between">
               <HeadStat value={stat(data?.totalCheckIns ?? 0)} label="check-ins" />
               <HeadStat value={stat(data?.currentStreak ?? 0)} label="streak" />
-              <HeadStat value={`${data?.onTimeRatePct ?? 0}%`} label="on time" />
+              <HeadStat value={weeksOnGoalValue(data?.weeksOnGoal)} label="weeks on goal" />
             </div>
           </div>
 
@@ -405,12 +405,13 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             <div className="mt-3 rounded-2xl bg-white p-5 space-y-4">
               <div className="text-[16px] font-bold">Insights</div>
               <InsightRow
-                label="Check-in rate"
-                value={`${data?.checkInRatePct ?? 0}%`}
-                sub={`${data?.uniqueDaysCheckedIn ?? 0} of ${Math.max(
-                  data?.daysSinceJoin ?? 0,
-                  (data?.uniqueDaysCheckedIn ?? 0) + (data?.missedCount ?? 0),
-                )} days`}
+                label="Weekly goal hit"
+                value={weeksOnGoalValue(data?.weeksOnGoal)}
+                sub={
+                  (data?.weeksOnGoal?.completed ?? 0) === 0
+                    ? "No full week finished yet"
+                    : `Weeks with ${data?.weeklyTarget ?? 0}+ check-ins`
+                }
               />
               <WeekDeltaRow thisWeek={data?.thisWeek ?? 0} lastWeek={data?.lastWeek ?? 0} />
               <InsightRow
@@ -441,6 +442,10 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
       )}
     </div>
   );
+}
+
+function weeksOnGoalValue(w: { hit: number; completed: number } | undefined) {
+  return `${w?.hit ?? 0}/${w?.completed ?? 0}`;
 }
 
 function HeadStat({ value, label }: { value: string; label: string }) {
