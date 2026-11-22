@@ -1,11 +1,10 @@
-import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
 import { getGroupsToday, type GroupToday, type MemberToday } from "@/lib/group-today.functions";
-import { getGroupFeed } from "@/lib/daily-posts.functions";
 import { FeedList } from "@/components/feed/FeedList";
+import { useGroupFeed } from "@/components/feed/use-group-feed";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
@@ -337,22 +336,22 @@ function MemberStatusRow({
 }
 
 function ActivityTab({ groupId }: { groupId: string }) {
-  const { data, isPending, isError, refetch } = useQuery({
-    queryKey: ["group-feed", groupId],
-    queryFn: () => getGroupFeed({ data: { groupId } }).then(stabilizeSignedUrls),
-    staleTime: 30_000,
-  });
+  const groupFeed = useGroupFeed(groupId, { staleTime: 30_000 });
 
   // Same day-by-day feed as Home, for this one group.
   return (
     <div className="pb-2">
       <FeedList
-        items={data?.items}
-        meta={data?.meta}
-        loading={isPending}
-        refreshFailed={isError}
-        onRetry={() => void refetch()}
+        items={groupFeed.feed?.items}
+        meta={groupFeed.feed?.meta}
+        loading={groupFeed.isPending}
+        refreshFailed={groupFeed.refreshFailed}
+        onRetry={() => void groupFeed.refetch()}
         groupId={groupId}
+        hasMore={groupFeed.hasMore}
+        loadingMore={groupFeed.loadingMore}
+        loadMoreFailed={groupFeed.loadMoreFailed}
+        onLoadMore={groupFeed.loadMore}
       />
     </div>
   );

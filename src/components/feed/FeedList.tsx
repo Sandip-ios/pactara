@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { Video } from "lucide-react";
 import type { FeedItem, FeedMeta } from "@/lib/daily-posts.functions";
-import { buildFeedDays, type FeedDay, type FeedEntry } from "@/lib/feed-days";
-import { daySummary } from "@/lib/feed-view";
+import { buildFeedDays, type FeedEntry } from "@/lib/feed-days";
 import { localDateIn } from "@/lib/streak-rules";
 import { TimelineCard, TimelineCardSkeleton } from "@/components/TimelineCard";
-import { FeedAvatar } from "@/components/feed/FeedMedia";
 import { FeedContext } from "@/components/feed/feed-context";
-import { MilestoneRow, MissedRow, NotYetRow, RestedRow } from "@/components/feed/QuietRows";
+import { MilestoneRow, MissedRow, NotYetRow, QuietDayRow, RestedRow } from "@/components/feed/QuietRows";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -57,61 +56,53 @@ function EmptyFeed({ onInvite }: { onInvite?: () => void }) {
   );
 }
 
-function DaySummaryCard({ day, meta, onExpand }: { day: FeedDay; meta: FeedMeta | null; onExpand: () => void }) {
-  const people = new Map((meta?.members ?? []).map((m) => [m.userId, m]));
-  const nameOf = (id: string) => ({ firstName: people.get(id)?.firstName ?? "Member", isMe: !!people.get(id)?.isMe });
-  const stat = day.stat;
-  const summary = stat ? daySummary(stat, nameOf) : null;
-  const faces = (stat?.checkedIn ?? []).map((id) => people.get(id)).filter(Boolean).slice(0, 5);
-  const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
-
-  if (summary?.everyoneIn) {
-    return (
-      <section className="mx-4 mt-1 rounded-[20px] p-4" style={{ background: "#E8F6EC" }}>
-        <div className="flex items-center">
-          {faces.map((m, i) => (
-            <span key={m!.userId} className="relative" style={{ marginLeft: i === 0 ? 0 : -8, zIndex: 10 - i }}>
-              <FeedAvatar url={m!.avatarUrl} color={m!.avatarColor} name={m!.name} size={30} className="border-2 border-white" />
-            </span>
-          ))}
-        </div>
-        <h3 className="mt-2.5 text-[16px] font-extrabold text-neutral-900">Everyone showed up</h3>
-        <p className="mt-0.5 text-[13px]" style={{ color: MUTED }}>
-          Crew streak: {plural(stat!.groupStreak, "day")} · {plural(day.cheers, "cheer")} · {plural(day.comments, "comment")}
-        </p>
-        {day.thumbs.length > 0 && (
-          <div className="mt-3 flex gap-2">
-            {day.thumbs.map((t) => (
-              <img key={t} src={t} alt="" loading="lazy" className="h-14 w-14 rounded-xl object-cover" />
-            ))}
-          </div>
-        )}
-        <button type="button" onClick={onExpand} className="mt-2 h-11 text-[14px] font-bold" style={{ color: "#15803D" }}>
-          See all {plural(day.checkInCount, "check-in")}
-        </button>
-      </section>
-    );
+function scrollParentOf(el: HTMLElement): HTMLElement | Window {
+  let cur = el.parentElement;
+  while (cur && cur !== document.body) {
+    if (/(auto|scroll)/.test(getComputedStyle(cur).overflowY)) return cur;
+    cur = cur.parentElement;
   }
+  return window;
+}
 
-  return (
-    <section className="mx-4 mt-1 flex items-center gap-3 rounded-[20px] bg-white p-4 shadow-sm">
-      <div className="min-w-0 flex-1">
-        <h3 className="text-[15px] font-bold text-neutral-900">{summary?.title ?? `${plural(day.checkInCount, "check-in")}`}</h3>
-        {summary?.subline && (
-          <p className="mt-0.5 truncate text-[13px]" style={{ color: MUTED }}>
-            {summary.subline}
-          </p>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={onExpand}
-        className="h-9 shrink-0 rounded-full px-4 text-[14px] font-bold text-white"
-        style={{ background: PURPLE }}
-      >
-        Expand
-      </button>
-    </section>
+/**
+ * iPhone: the sticky day headers sit right under the status bar. Once the feed
+ * reaches the top of the screen, a solid page-colored strip covers the status
+ * bar area so nothing scrolls visibly behind the clock.
+ */
+function StatusBarCover({ target, active }: { target: React.RefObject<HTMLElement | null>; active: boolean }) {
+  const [mounted, setMounted] = useState(false);
+  const [show, setShow] = useState(false);
+  const cover = useRef<HTMLDivElement>(null);
+  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    const el = target.current;
+    if (!mounted || !active || !el) return;
+    const scroller = scrollParentOf(el);
+    const update = () => {
+      const inset = cover.current?.offsetHeight ?? 0;
+      const r = el.getBoundingClientRect();
+      setShow(inset > 0 && r.top < inset && r.bottom > 0);
+    };
+    update();
+    scroller.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      scroller.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [mounted, active, target]);
+  if (!mounted) return null;
+  // Portaled: the pull-to-refresh wrapper's transform would pin a fixed child to it.
+  return createPortal(
+    <div
+      ref={cover}
+      aria-hidden
+      data-status-bar-cover
+      className="pointer-events-none fixed inset-x-0 top-0 z-30"
+      style={{ height: "env(safe-area-inset-top)", background: BG, visibility: show ? "visible" : "hidden" }}
+    />,
+    document.body,
   );
 }
 
@@ -129,14 +120,16 @@ function Entry({ entry, groupId, autoOpen }: { entry: FeedEntry; groupId: string
       return <NotYetRow member={entry.member} closesAt={entry.closesAt} nudgedAt={entry.nudgedAt} groupId={groupId} />;
     case "milestone":
       return <MilestoneRow member={entry.member} streakDays={entry.streakDays} postId={entry.postId} />;
+    case "quiet":
+      return <QuietDayRow missed={entry.missed} rested={entry.rested} />;
   }
 }
 
 const entryPostId = (e: FeedEntry) => ("item" in e ? e.item.id : null);
 
 /**
- * The Home feed, grouped by day with sticky headers. Today and yesterday show
- * full cards; older days collapse into one summary card until expanded.
+ * The Home feed, grouped by day with sticky headers, newest day first. Every
+ * day shows its cards in full; older weeks load as the reader nears the bottom.
  */
 export function FeedList({
   items,
@@ -149,6 +142,10 @@ export function FeedList({
   deepLinkPost,
   deepLinkComments,
   onInvite,
+  hasMore = false,
+  loadingMore = false,
+  loadMoreFailed = false,
+  onLoadMore,
 }: {
   items: FeedItem[] | undefined;
   meta: FeedMeta | null | undefined;
@@ -161,20 +158,70 @@ export function FeedList({
   deepLinkPost?: string;
   deepLinkComments?: boolean;
   onInvite?: () => void;
+  /** Older days exist before the oldest loaded one. */
+  hasMore?: boolean;
+  loadingMore?: boolean;
+  loadMoreFailed?: boolean;
+  onLoadMore?: () => void;
 }) {
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const days = useMemo(() => buildFeedDays(items ?? [], meta, localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone)), [items, meta]);
   const me = meta?.members.find((m) => m.isMe) ?? null;
   const hasPosts = days.some((d) => d.entries.some((e) => e.kind === "checkins" || e.kind === "update"));
   const viewerToday = meta?.viewerToday;
   const feedGroupId = groupId ?? items?.[0]?.groupId ?? "";
 
-  // A notification for a post on an older day opens that day.
+  // Load the next 7 days when the reader nears the bottom. A failed load
+  // waits for Retry instead of looping.
+  const sentinel = useRef<HTMLDivElement>(null);
+  const [nearBottom, setNearBottom] = useState(false);
   useEffect(() => {
-    if (!deepLinkPost) return;
-    const day = days.find((d) => d.collapsed && d.entries.some((e) => entryPostId(e) === deepLinkPost));
-    if (day) setExpanded((prev) => new Set(prev).add(day.date));
-  }, [deepLinkPost, days]);
+    const el = sentinel.current;
+    if (!el) {
+      setNearBottom(false);
+      return;
+    }
+    const io = new IntersectionObserver(([e]) => setNearBottom(Boolean(e?.isIntersecting)), {
+      rootMargin: "0px 0px 800px 0px",
+    });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, hasPosts, loading]);
+  useEffect(() => {
+    if (nearBottom && hasMore && !loadingMore && !loadMoreFailed) onLoadMore?.();
+  }, [nearBottom, hasMore, loadingMore, loadMoreFailed, onLoadMore]);
+
+  // A notification for an older post: load a few more weeks to find it.
+  const deepLinkTries = useRef(0);
+  const deepLinkMissing = Boolean(deepLinkPost && items && !items.some((i) => i.id === deepLinkPost));
+  useEffect(() => {
+    if (!deepLinkMissing || !hasMore || loadingMore || loadMoreFailed || deepLinkTries.current >= 4) return;
+    deepLinkTries.current += 1;
+    onLoadMore?.();
+  }, [deepLinkMissing, hasMore, loadingMore, loadMoreFailed, onLoadMore]);
+
+  const listRef = useRef<HTMLDivElement>(null);
+
+  const loadMoreFooter = hasMore ? (
+    <div ref={sentinel}>
+      {loadMoreFailed ? (
+        <div className="flex flex-col items-center px-6 pb-4 pt-6 text-center">
+          <div className="text-[14px]" style={{ color: MUTED }}>Couldn't load older days</div>
+          <button
+            type="button"
+            onClick={() => onLoadMore?.()}
+            className="mt-1 h-11 px-4 text-[15px] font-semibold"
+            style={{ color: PURPLE }}
+          >
+            Retry
+          </button>
+        </div>
+      ) : (
+        <div aria-busy="true" aria-label="Loading older days">
+          <TimelineCardSkeleton />
+        </div>
+      )}
+    </div>
+  ) : null;
 
   const banner = refreshFailed && (
     <div
@@ -211,7 +258,7 @@ export function FeedList({
     return (
       <div className="pb-2">
         {banner}
-        {items && <EmptyFeed onInvite={onInvite} />}
+        {hasMore ? loadMoreFooter : items && <EmptyFeed onInvite={onInvite} />}
       </div>
     );
   }
@@ -219,7 +266,8 @@ export function FeedList({
   const anchored = new Set<string>();
   return (
     <FeedContext.Provider value={{ me, weeklyTarget: meta?.weeklyTarget ?? 5 }}>
-      <div className="pb-2">
+      <StatusBarCover target={listRef} active={hasPosts} />
+      <div ref={listRef} className="pb-2">
         {banner}
         {days.map((day) => {
           const isToday = day.date === viewerToday;
@@ -229,7 +277,6 @@ export function FeedList({
               : day.stat
                 ? { in: day.stat.checkedIn.length, due: day.stat.due }
                 : null;
-          const open = !day.collapsed || expanded.has(day.date);
           return (
             <section key={day.date} aria-label={day.label}>
               <div
@@ -243,38 +290,41 @@ export function FeedList({
                   </span>
                 )}
               </div>
-              {open ? (
-                day.entries.map((entry) => {
-                  const pid = entryPostId(entry);
-                  const first = pid && !anchored.has(pid);
-                  if (pid) anchored.add(pid);
-                  const canOpen = entry.kind === "checkins" || entry.kind === "update" || entry.kind === "missed";
-                  return (
-                    <div key={entry.key} id={first ? `post-${pid}` : undefined}>
-                      <Entry
-                        entry={entry}
-                        groupId={feedGroupId}
-                        autoOpen={Boolean(first && canOpen && deepLinkComments && deepLinkPost === pid)}
+              {day.entries.map((entry) => {
+                const pid = entry.kind === "quiet"
+                  ? entry.missedItems.find((i) => i.id === deepLinkPost)?.id ?? null
+                  : entryPostId(entry);
+                const first = pid && !anchored.has(pid);
+                if (pid) anchored.add(pid);
+                const canOpen = entry.kind === "checkins" || entry.kind === "update" || entry.kind === "missed";
+                const autoOpen = Boolean(first && deepLinkComments && deepLinkPost === pid);
+                return (
+                  <div key={entry.key} id={first ? `post-${pid}` : undefined}>
+                    {entry.kind === "quiet" ? (
+                      <QuietDayRow
+                        missed={entry.missed}
+                        rested={entry.rested}
+                        autoOpenItem={autoOpen ? entry.missedItems.find((i) => i.id === pid) : undefined}
                       />
-                    </div>
-                  );
-                })
-              ) : (
-                <DaySummaryCard
-                  day={day}
-                  meta={meta ?? null}
-                  onExpand={() => setExpanded((prev) => new Set(prev).add(day.date))}
-                />
-              )}
+                    ) : (
+                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} />
+                    )}
+                  </div>
+                );
+              })}
             </section>
           );
         })}
-        <div className="px-6 pb-4 pt-8 text-center">
-          <div className="text-[17px] font-bold text-neutral-900">You're all caught up</div>
-          <div className="mt-1 text-[13px]" style={{ color: MUTED }}>
-            Older days are on each person's profile.
+        {hasMore ? (
+          loadMoreFooter
+        ) : (
+          <div className="px-6 pb-4 pt-8 text-center">
+            <div className="text-[17px] font-bold text-neutral-900">You're all caught up</div>
+            <div className="mt-1 text-[13px]" style={{ color: MUTED }}>
+              Older days are on each person's profile.
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </FeedContext.Provider>
   );

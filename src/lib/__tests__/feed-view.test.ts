@@ -3,14 +3,13 @@ import {
   cheerSentence,
   checkInMetaLine,
   dayHeaderLabel,
-  daySummary,
   feedDayNumber,
-  isCollapsedDay,
+  quietDayLine,
   showQuickReplies,
   type Reactor,
 } from "../feed-view";
-import { buildFeedDays } from "../feed-days";
-import type { FeedItem, FeedMeta } from "../daily-posts.functions";
+import { buildFeedDays, mergeFeedPages } from "../feed-days";
+import type { FeedItem, FeedMember, FeedMeta, GroupFeedPage, TimelineNode } from "../daily-posts.functions";
 
 const r = (firstName: string, isMe = false): Reactor => ({
   userId: firstName,
@@ -59,33 +58,39 @@ describe("Day n on a check-in card", () => {
   });
 });
 
-describe("day collapsing", () => {
+describe("day headers", () => {
   const today = "2026-11-22"; // Sunday
-  it("keeps today and yesterday open and collapses older days", () => {
-    expect(isCollapsedDay("2026-11-22", today)).toBe(false);
-    expect(isCollapsedDay("2026-11-21", today)).toBe(false);
-    expect(isCollapsedDay("2026-11-20", today)).toBe(true);
-    expect(isCollapsedDay("2026-11-10", today)).toBe(true);
-  });
-  it("labels the day headers", () => {
+  it("reads Today · weekday, Yesterday · weekday, then weekday · date for every older day", () => {
     expect(dayHeaderLabel("2026-11-22", today)).toBe("Today · Sunday");
     expect(dayHeaderLabel("2026-11-21", today)).toBe("Yesterday · Saturday");
-    expect(dayHeaderLabel("2026-11-19", today)).toBe("Thursday");
+    expect(dayHeaderLabel("2026-11-16", today)).toBe("Monday · Nov 16");
+    expect(dayHeaderLabel("2026-11-20", today)).toBe("Friday · Nov 20");
+    expect(dayHeaderLabel("2026-11-03", today)).toBe("Tuesday · Nov 3");
   });
+});
 
-  const item = (id: string, localDate: string): FeedItem => ({
+describe("feed days", () => {
+  const today = "2026-11-22"; // Sunday
+  const person = (userId: string, firstName: string, isMe = false): FeedMember => ({
+    userId,
+    name: firstName,
+    firstName,
+    avatarUrl: null,
+    avatarColor: "#000",
+    isMe,
+  });
+  const crew = [person("me", "Jose", true), person("m", "Michele"), person("g", "Guy"), person("b", "Bertille")];
+  const post = (id: string, userId: string, localDate: string, nodes: TimelineNode[]): FeedItem => ({
     id,
-    groupId: "g",
-    userId: "u1",
-    isMe: false,
-    name: "Ana",
+    groupId: "g1",
+    userId,
+    isMe: userId === "me",
+    name: crew.find((c) => c.userId === userId)?.name ?? "Ana",
     avatarColor: "#000",
     avatarUrl: null,
     localDate,
     updatedAt: `${localDate}T12:00:00Z`,
-    nodes: [
-      { kind: "check_in", id: `c-${id}`, mood: null, activity: null, note: null, photoUrl: null, at: `${localDate}T12:00:00Z` },
-    ],
+    nodes,
     reactions: [],
     reactors: [],
     commentCount: 0,
@@ -94,41 +99,133 @@ describe("day collapsing", () => {
     dayNumber: 1,
     weekCount: 1,
   });
-  const meta: FeedMeta = { viewerToday: today, weeklyTarget: 5, members: [], days: [], notYet: [], milestones: [] };
-
-  it("builds newest day first with only older days collapsed", () => {
-    const days = buildFeedDays([item("a", "2026-11-20"), item("b", "2026-11-22"), item("c", "2026-11-21")], meta, today);
-    expect(days.map((d) => [d.date, d.collapsed])).toEqual([
-      ["2026-11-22", false],
-      ["2026-11-21", false],
-      ["2026-11-20", true],
+  const checkIn = (id: string, userId: string, localDate: string) =>
+    post(id, userId, localDate, [
+      { kind: "check_in", id: `c-${id}`, mood: null, activity: null, note: null, photoUrl: null, at: `${localDate}T12:00:00Z` },
     ]);
+  const missed = (id: string, userId: string, localDate: string) =>
+    post(id, userId, localDate, [
+      { kind: "check_in_missed", id: `cm-${id}`, at: `${localDate}T23:59:00Z`, localDate, memberToday: today },
+    ]);
+  const rested = (id: string, userId: string, localDate: string) =>
+    post(id, userId, localDate, [
+      { kind: "rested", id: `rest-${id}`, at: `${localDate}T23:59:00Z`, localDate, memberToday: today },
+    ]);
+  const meta = (over: Partial<FeedMeta> = {}): FeedMeta => ({
+    viewerToday: today,
+    weeklyTarget: 5,
+    members: crew,
+    days: [],
+    notYet: [],
+    milestones: [],
+    ...over,
   });
+
+  it("lists every day newest first with all of its check-in cards", () => {
+    const days = buildFeedDays(
+      [checkIn("a", "m", "2026-11-12"), checkIn("b", "g", "2026-11-22"), checkIn("c", "b", "2026-11-21"), checkIn("d", "g", "2026-11-12")],
+      meta(),
+      today,
+    );
+    expect(days.map((d) => d.date)).toEqual(["2026-11-22", "2026-11-21", "2026-11-12"]);
+    expect(days[2]?.entries.filter((e) => e.kind === "checkins")).toHaveLength(2);
+  });
+
+  it("combines a past day's missed and rested people into one row, missed first", () => {
+    const days = buildFeedDays(
+      [
+        checkIn("a", "b", "2026-11-20"),
+        missed("b", "m", "2026-11-20"),
+        missed("c", "me", "2026-11-20"),
+        missed("d", "g", "2026-11-20"),
+      ],
+      meta({ days: [{ date: "2026-11-20", checkedIn: ["b"], rested: [], missed: [], due: 4, groupStreak: 0 }] }),
+      today,
+    );
+    const entries = days[0]?.entries ?? [];
+    expect(entries.map((e) => e.kind)).toEqual(["checkins", "quiet"]);
+    const quiet = entries[1];
+    if (quiet?.kind !== "quiet") throw new Error("no quiet row");
+    expect(quietDayLine(quiet.missed, quiet.rested)).toBe("Guy, Michele and you missed");
+  });
+
+  it("adds rest days from the crew's day stats even without a post", () => {
+    const days = buildFeedDays(
+      [missed("a", "m", "2026-11-19")],
+      meta({ days: [{ date: "2026-11-19", checkedIn: [], rested: ["b"], missed: ["m"], due: 3, groupStreak: 0 }] }),
+      today,
+    );
+    expect(days).toHaveLength(1);
+    const quiet = days[0]?.entries[0];
+    if (quiet?.kind !== "quiet") throw new Error("no quiet row");
+    expect(quietDayLine(quiet.missed, quiet.rested)).toBe("Michele missed · Bertille rested");
+  });
+
+  it("shows a day where nobody checked in as just that one quiet row", () => {
+    const days = buildFeedDays([missed("a", "m", "2026-11-18"), rested("b", "me", "2026-11-18")], meta(), today);
+    expect(days[0]?.label).toBe("Wednesday · Nov 18");
+    expect(days[0]?.entries.map((e) => e.kind)).toEqual(["quiet"]);
+  });
+
+  it("keeps one row per person today", () => {
+    const days = buildFeedDays(
+      [missed("a", "m", today), rested("b", "b", today), checkIn("c", "me", today)],
+      meta({ notYet: [{ userId: "g", closesAt: "2026-11-23T06:00:00Z", nudgedAt: null }] }),
+      today,
+    );
+    expect(days[0]?.entries.map((e) => e.kind)).toEqual(["checkins", "not_yet", "rested", "missed"]);
+  });
+
+  it("keeps milestone rows individual on past days", () => {
+    const days = buildFeedDays(
+      [checkIn("a", "m", "2026-11-17"), missed("b", "g", "2026-11-17")],
+      meta({
+        milestones: [
+          { id: "x", userId: "m", streakDays: 7, localDate: "2026-11-17", postId: "a" },
+          { id: "y", userId: "b", streakDays: 3, localDate: "2026-11-17", postId: null },
+        ],
+      }),
+      today,
+    );
+    expect(days[0]?.entries.map((e) => e.kind)).toEqual(["milestone", "milestone", "checkins", "quiet"]);
+  });
+
   it("files a post from a member already on tomorrow under Today", () => {
-    const days = buildFeedDays([item("a", "2026-11-23")], meta, today);
+    const days = buildFeedDays([checkIn("a", "m", "2026-11-23")], meta(), today);
     expect(days[0]?.date).toBe(today);
-    expect(days[0]?.collapsed).toBe(false);
+    expect(days[0]?.label).toBe("Today · Sunday");
+  });
+
+  it("joins loaded weeks into one feed, today's rows from the newest week only", () => {
+    const first: GroupFeedPage = {
+      items: [checkIn("a", "m", "2026-11-22")],
+      meta: meta({ notYet: [{ userId: "g", closesAt: "x", nudgedAt: null }], days: [{ date: "2026-11-22", checkedIn: ["m"], rested: [], missed: [], due: 4, groupStreak: 1 }] }),
+      nextBefore: "2026-11-16",
+    };
+    const second: GroupFeedPage = {
+      items: [checkIn("b", "g", "2026-11-12")],
+      meta: meta({ members: [...crew, person("z", "Zoe")], days: [{ date: "2026-11-12", checkedIn: ["g"], rested: [], missed: [], due: 4, groupStreak: 0 }] }),
+      nextBefore: null,
+    };
+    const merged = mergeFeedPages([first, second]);
+    expect(merged.items.map((i) => i.id)).toEqual(["a", "b"]);
+    expect(merged.meta?.days.map((d) => d.date)).toEqual(["2026-11-22", "2026-11-12"]);
+    expect(merged.meta?.notYet).toHaveLength(1);
+    expect(merged.meta?.members.map((m) => m.userId)).toContain("z");
   });
 });
 
-describe("collapsed day summary", () => {
-  const people: Record<string, { firstName: string; isMe: boolean }> = {
-    me: { firstName: "Jose", isMe: true },
-    b: { firstName: "Bertille", isMe: false },
-    m: { firstName: "Michele", isMe: false },
-    g: { firstName: "Guy", isMe: false },
-  };
-  const nameOf = (id: string) => people[id] ?? { firstName: "Member", isMe: false };
-  it("reads everyone showed up when all members due checked in", () => {
-    const s = daySummary({ date: "d", checkedIn: ["me", "b", "g"], rested: ["m"], missed: [], due: 3, groupStreak: 4 }, nameOf);
-    expect(s.everyoneIn).toBe(true);
-    expect(s.title).toBe("Everyone showed up");
+describe("past-day quiet row wording", () => {
+  const p = (firstName: string, isMe = false) => ({ firstName, isMe });
+  it("puts you last in lowercase and missed before rested", () => {
+    expect(quietDayLine([p("Michele"), p("Jose", true), p("Guy")], [p("Bertille")])).toBe(
+      "Michele, Guy and you missed · Bertille rested",
+    );
   });
-  it("names who checked in, rested and missed on a mixed day", () => {
-    const s = daySummary({ date: "d", checkedIn: ["b", "me"], rested: ["m"], missed: ["g"], due: 3, groupStreak: 0 }, nameOf);
-    expect(s.everyoneIn).toBe(false);
-    expect(s.title).toBe("Bertille and you checked in");
-    expect(s.subline).toBe("Michele rested · Guy missed");
+  it("capitalises You only when it opens the line", () => {
+    expect(quietDayLine([p("Jose", true)], [])).toBe("You missed");
+    expect(quietDayLine([p("Guy")], [p("Jose", true)])).toBe("Guy missed · you rested");
+    expect(quietDayLine([], [p("Jose", true)])).toBe("You rested");
   });
 });
 

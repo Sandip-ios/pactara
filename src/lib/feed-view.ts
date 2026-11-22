@@ -1,6 +1,6 @@
 /**
- * Pure helpers for the Home feed: who-cheered sentence, Day n, day headers,
- * which days collapse and the collapsed-day summary. Dates are local calendar
+ * Pure helpers for the Home feed: who-cheered sentence, Day n, day headers
+ * and the combined quiet row on past days. Dates are local calendar
  * dates ("YYYY-MM-DD"); streak math comes from streak-rules.
  */
 import { addDaysIso, currentStreak } from "@/lib/streak-rules";
@@ -68,19 +68,13 @@ export function weekdayName(iso: string): string {
   return WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()] ?? "";
 }
 
-/** "Today · Sunday", "Yesterday · Saturday", "Thursday", or "Thursday · Nov 5" beyond a week. */
+/** "Today · Sunday", "Yesterday · Saturday", then "Monday · Nov 16" for every older day. */
 export function dayHeaderLabel(date: string, viewerToday: string): string {
   const day = weekdayName(date);
   if (date >= viewerToday) return `Today · ${weekdayName(viewerToday)}`;
   if (date === addDaysIso(viewerToday, -1)) return `Yesterday · ${day}`;
-  if (date >= addDaysIso(viewerToday, -6)) return day;
   const [, m, d] = date.split("-").map(Number);
   return `${day} · ${MONTHS[m - 1]} ${d}`;
-}
-
-/** Today and yesterday show full cards; anything older starts collapsed. */
-export function isCollapsedDay(date: string, viewerToday: string): boolean {
-  return date < addDaysIso(viewerToday, -1);
 }
 
 /** The feed's day key: a member a timezone ahead is still shown under "Today". */
@@ -104,30 +98,22 @@ export type DayStat = {
   groupStreak: number;
 };
 
-export type DaySummary = {
-  everyoneIn: boolean;
-  /** "Bertille and you checked in" */
-  title: string;
-  /** "Michele rested · Guy missed" */
-  subline: string;
-};
+type QuietPerson = { firstName: string; isMe: boolean };
 
-/** Collapsed older day: everyone in, or who checked in / rested / missed. */
-export function daySummary(stat: DayStat, nameOf: (userId: string) => { firstName: string; isMe: boolean }): DaySummary {
-  const label = (ids: string[], lowerYou: boolean) => {
-    const others = ids.filter((id) => !nameOf(id).isMe).map((id) => nameOf(id).firstName);
-    const me = ids.some((id) => nameOf(id).isMe);
-    return me ? [...others, lowerYou && others.length > 0 ? "you" : "You"] : others;
+/**
+ * The one quiet row under a past day: "Michele, Guy and you missed · Bertille rested".
+ * Missed first, then rested; you come last as "you" ("You" only to open the line).
+ */
+export function quietDayLine(missed: QuietPerson[], rested: QuietPerson[]): string {
+  const names = (people: QuietPerson[]) => {
+    const others = people.filter((p) => !p.isMe).map((p) => p.firstName);
+    return people.some((p) => p.isMe) ? [...others, "you"] : others;
   };
-  const everyoneIn = stat.due > 0 && stat.checkedIn.length >= stat.due && stat.missed.length === 0;
-  const inNames = label(stat.checkedIn, true);
-  const title = inNames.length ? `${joinNames(inNames)} checked in` : "Nobody checked in";
   const parts: string[] = [];
-  const rested = label(stat.rested, false);
-  const missed = label(stat.missed, false);
-  if (rested.length) parts.push(`${joinNames(rested)} rested`);
-  if (missed.length) parts.push(`${joinNames(missed)} missed`);
-  return { everyoneIn, title: everyoneIn ? "Everyone showed up" : title, subline: parts.join(" · ") };
+  if (missed.length) parts.push(`${joinNames(names(missed))} missed`);
+  if (rested.length) parts.push(`${joinNames(names(rested))} rested`);
+  const line = parts.join(" · ");
+  return line.charAt(0).toUpperCase() + line.slice(1);
 }
 
 /** "15h left" / "45m left" until the member's day closes. */

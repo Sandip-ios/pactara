@@ -1,10 +1,11 @@
 /**
  * Turns the group feed into days for Home: post cards (check-ins swipe
- * together, each update is its own card), quiet rows (not yet, rested,
- * missed, milestone) and the collapsed summary for older days.
+ * together, each update is its own card) and quiet rows. Today keeps one row
+ * per person (not yet, rested, missed); past days get one combined quiet row.
+ * Milestones stay individual on every day. Nothing collapses.
  */
-import type { FeedItem, FeedMember, FeedMeta, TimelineNode } from "@/lib/daily-posts.functions";
-import { dayHeaderLabel, feedDayKey, isCollapsedDay, type DayStat } from "@/lib/feed-view";
+import type { FeedItem, FeedMember, FeedMeta, GroupFeedPage, TimelineNode } from "@/lib/daily-posts.functions";
+import { dayHeaderLabel, feedDayKey, type DayStat } from "@/lib/feed-view";
 
 export type CheckInNode = Extract<TimelineNode, { kind: "check_in" }>;
 export type UpdateNode = Extract<TimelineNode, { kind: "thought" | "ritual" }>;
@@ -15,22 +16,17 @@ export type FeedEntry =
   | { kind: "rested"; key: string; item: FeedItem; localDate: string }
   | { kind: "missed"; key: string; item: FeedItem; localDate: string }
   | { kind: "not_yet"; key: string; member: FeedMember; closesAt: string; nudgedAt: string | null }
-  | { kind: "milestone"; key: string; member: FeedMember; streakDays: number; postId: string | null; localDate: string };
+  | { kind: "milestone"; key: string; member: FeedMember; streakDays: number; postId: string | null; localDate: string }
+  /** Past days only: everyone who missed, then everyone who rested, in one row. */
+  | { kind: "quiet"; key: string; missed: FeedMember[]; rested: FeedMember[]; missedItems: FeedItem[] };
 
 export type FeedDay = {
   date: string;
   label: string;
-  collapsed: boolean;
   entries: FeedEntry[];
   stat: DayStat | null;
-  checkInCount: number;
-  cheers: number;
-  comments: number;
-  /** Up to 4 media thumbnails (photos or video poster frames). */
-  thumbs: string[];
 };
 
-const VIDEO_RE = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i;
 const at = (iso: string | undefined) => (iso ? Date.parse(iso) || 0 : 0);
 const ORDER: Record<FeedEntry["kind"], number> = {
   milestone: 0,
@@ -39,22 +35,41 @@ const ORDER: Record<FeedEntry["kind"], number> = {
   not_yet: 2,
   rested: 3,
   missed: 4,
+  quiet: 5,
 };
+
+const memberFromItem = (item: FeedItem): FeedMember => ({
+  userId: item.userId,
+  name: item.name,
+  firstName: (item.name || "").split(" ")[0] || "Member",
+  avatarUrl: item.avatarUrl,
+  avatarColor: item.avatarColor,
+  isMe: item.isMe,
+});
+
+/** Others by first name, you last. */
+const orderPeople = (people: FeedMember[]) =>
+  [...people].sort((a, b) => Number(a.isMe) - Number(b.isMe) || a.firstName.localeCompare(b.firstName));
 
 export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefined, fallbackToday: string): FeedDay[] {
   const viewerToday = meta?.viewerToday ?? fallbackToday;
   const members = new Map((meta?.members ?? []).map((m) => [m.userId, m]));
-  const byDay = new Map<string, { entries: (FeedEntry & { sortAt: number })[]; items: Set<FeedItem> }>();
+  type Bucket = {
+    entries: (FeedEntry & { sortAt: number })[];
+    missed: Map<string, FeedItem>;
+    rested: Map<string, FeedMember>;
+  };
+  const byDay = new Map<string, Bucket>();
   const dayFor = (date: string) => {
     const key = feedDayKey(date, viewerToday);
     let d = byDay.get(key);
-    if (!d) byDay.set(key, (d = { entries: [], items: new Set() }));
+    if (!d) byDay.set(key, (d = { entries: [], missed: new Map(), rested: new Map() }));
     return d;
   };
 
   for (const item of items) {
     const day = dayFor(item.localDate);
-    day.items.add(item);
+    const isPast = feedDayKey(item.localDate, viewerToday) < viewerToday;
     const checkIns = item.nodes.filter((n): n is CheckInNode => n.kind === "check_in");
     if (checkIns.length) {
       day.entries.push({
@@ -69,10 +84,24 @@ export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefin
       if (n.kind === "thought" || n.kind === "ritual") {
         day.entries.push({ kind: "update", key: `up-${n.id}`, item, node: n, sortAt: at(n.at) });
       } else if (n.kind === "rested") {
-        day.entries.push({ kind: "rested", key: `rest-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
+        if (isPast) day.rested.set(item.userId, members.get(item.userId) ?? memberFromItem(item));
+        else day.entries.push({ kind: "rested", key: `rest-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
       } else if (n.kind === "check_in_missed") {
-        day.entries.push({ kind: "missed", key: `miss-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
+        if (isPast) day.missed.set(item.userId, item);
+        else day.entries.push({ kind: "missed", key: `miss-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
       }
+    }
+  }
+
+  // Rest and freeze days on past days come from the crew's day stats too, so a
+  // rest day shows even when it has no post of its own.
+  const stats = new Map((meta?.days ?? []).map((d) => [d.date, d]));
+  for (const stat of stats.values()) {
+    if (stat.date >= viewerToday || stat.rested.length === 0) continue;
+    const day = dayFor(stat.date);
+    for (const id of stat.rested) {
+      const m = members.get(id);
+      if (m && !day.missed.has(id)) day.rested.set(id, m);
     }
   }
 
@@ -95,30 +124,51 @@ export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefin
     });
   }
 
-  const stats = new Map((meta?.days ?? []).map((d) => [d.date, d]));
+  for (const [date, d] of byDay) {
+    if (d.missed.size === 0 && d.rested.size === 0) continue;
+    const missedItems = [...d.missed.values()];
+    d.entries.push({
+      kind: "quiet",
+      key: `quiet-${date}`,
+      missed: orderPeople(missedItems.map((i) => members.get(i.userId) ?? memberFromItem(i))),
+      rested: orderPeople([...d.rested.values()]),
+      missedItems,
+      sortAt: 0,
+    });
+  }
+
   return Array.from(byDay.entries())
     .filter(([, d]) => d.entries.length > 0)
     .sort(([a], [b]) => (a < b ? 1 : a > b ? -1 : 0))
-    .map(([date, d]) => {
-      const entries = d.entries
+    .map(([date, d]) => ({
+      date,
+      label: dayHeaderLabel(date, viewerToday),
+      entries: d.entries
         .sort((a, b) => ORDER[a.kind] - ORDER[b.kind] || b.sortAt - a.sortAt)
-        .map(({ sortAt: _s, ...e }) => e as FeedEntry);
-      const dayItems = [...d.items];
-      const checkInNodes = entries.flatMap((e) => (e.kind === "checkins" ? e.checkIns : []));
-      const thumbs = checkInNodes
-        .map((c) => c.posterUrl ?? (c.photoUrl && !VIDEO_RE.test(c.photoUrl) ? c.photoUrl : null))
-        .filter((u): u is string => !!u)
-        .slice(0, 4);
-      return {
-        date,
-        label: dayHeaderLabel(date, viewerToday),
-        collapsed: isCollapsedDay(date, viewerToday),
-        entries,
-        stat: stats.get(date) ?? null,
-        checkInCount: checkInNodes.length,
-        cheers: dayItems.reduce((sum, i) => sum + i.reactors.length, 0),
-        comments: dayItems.reduce((sum, i) => sum + i.commentCount, 0),
-        thumbs,
-      };
-    });
+        .map(({ sortAt: _s, ...e }) => e as FeedEntry),
+      stat: stats.get(date) ?? null,
+    }));
+}
+
+/**
+ * Joins loaded feed pages (newest first) into one list. Today-only data and the
+ * viewer's settings come from the newest page that has any.
+ */
+export function mergeFeedPages(pages: GroupFeedPage[]): { items: FeedItem[]; meta: FeedMeta | null } {
+  const items = pages.flatMap((p) => p.items);
+  const metas = pages.map((p) => p.meta).filter((m): m is FeedMeta => !!m);
+  const base = metas[0];
+  if (!base) return { items, meta: null };
+  const members = new Map<string, FeedMember>();
+  for (const m of metas) for (const person of m.members) if (!members.has(person.userId)) members.set(person.userId, person);
+  return {
+    items,
+    meta: {
+      ...base,
+      members: [...members.values()],
+      days: metas.flatMap((m) => m.days),
+      milestones: metas.flatMap((m) => m.milestones),
+      notYet: base.notYet,
+    },
+  };
 }

@@ -472,12 +472,19 @@ export type PostComment = {
   parentCommentId: string | null;
 };
 
+/** Days per feed page: today plus the 6 before it, then 7 more per scroll. */
+const FEED_PAGE_DAYS = 7;
+
+/** One page of the feed. `nextBefore` is the cursor for older days, null at the start of the group. */
+export type GroupFeedPage = { items: FeedItem[]; meta: FeedMeta | null; nextBefore: string | null };
+
 export const getGroupFeed = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input?: { groupId?: string | null }) => ({
+  .inputValidator((input?: { groupId?: string | null; before?: string | null }) => ({
     groupId: input?.groupId ? String(input.groupId) : null,
+    before: input?.before && /^\d{4}-\d{2}-\d{2}$/.test(String(input.before)) ? String(input.before) : null,
   }))
-  .handler(async ({ context, data }): Promise<{ items: FeedItem[]; meta: FeedMeta | null }> => {
+  .handler(async ({ context, data }): Promise<GroupFeedPage> => {
     const { supabase, userId } = context;
     let groupId: string | null = data.groupId;
     if (groupId) {
@@ -492,25 +499,46 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     if (!groupId) {
       ({ groupId } = await getMyGroupAndTz(supabase, userId));
     }
-    if (!groupId) return { items: [], meta: null };
+    if (!groupId) return { items: [], meta: null, nextBefore: null };
 
-    const { data: posts, error } = await supabase
+    // The page covers 7 of the viewer's local days: today and the 6 before it,
+    // or the 7 days before `before`. The first page has no upper bound so a
+    // crewmate already on tomorrow still shows under Today.
+    const now = new Date();
+    const { data: viewerProfile } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+    const viewerToday = localDateIn((viewerProfile?.timezone as string | null) || "UTC", now);
+    const windowEnd = data.before ? addDaysIso(data.before, -1) : viewerToday;
+    const windowStart = addDaysIso(windowEnd, -(FEED_PAGE_DAYS - 1));
+
+    let postsQuery = supabase
       .from("daily_posts")
       .select(
         "id, user_id, local_date, morning_ritual_text, morning_ritual_posted_at, morning_missed, check_in_missed, updated_at, created_at",
       )
       .eq("group_id", groupId)
-      .order("updated_at", { ascending: false })
-      .limit(50);
+      .gte("local_date", windowStart);
+    if (data.before) postsQuery = postsQuery.lt("local_date", data.before);
+    const [{ data: posts, error }, olderRes] = await Promise.all([
+      postsQuery.order("updated_at", { ascending: false }).limit(1000),
+      // The newest older day with anything on it; skips empty stretches.
+      supabase
+        .from("daily_posts")
+        .select("local_date")
+        .eq("group_id", groupId)
+        .lt("local_date", windowStart)
+        .order("local_date", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+    ]);
     if (error) throw new Error(error.message);
-    if (!posts || posts.length === 0) return { items: [], meta: null };
+    const olderDate = (olderRes.data?.local_date as string | undefined) ?? null;
+    const nextBefore = olderDate ? addDaysIso(olderDate, 1) : null;
+    if (!posts || posts.length === 0) return { items: [], meta: null, nextBefore };
 
-    const now = new Date();
     const postIds = posts.map((p) => p.id);
     const posterIds = Array.from(new Set(posts.map((p) => p.user_id)));
     const dates = Array.from(new Set(posts.map((p) => p.local_date)));
-    const minDate = dates.reduce((a, b) => (a < b ? a : b));
-    const historyStart = addDaysIso(minDate, -FEED_STREAK_LOOKBACK_DAYS);
+    const historyStart = addDaysIso(windowStart, -FEED_STREAK_LOOKBACK_DAYS);
     const recentNudgeDay = addDaysIso(now.toISOString().slice(0, 10), -1);
 
     const [
@@ -563,11 +591,18 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .gte("checkin_date", historyStart)
         .order("checkin_date", { ascending: false })
         .limit(20000),
-      supabase
-        .from("earned_badges")
-        .select("id, user_id, streak_days, earned_at")
-        .eq("group_id", groupId)
-        .gte("earned_at", `${addDaysIso(minDate, -1)}T00:00:00Z`),
+      (data.before
+        ? supabase
+            .from("earned_badges")
+            .select("id, user_id, streak_days, earned_at")
+            .eq("group_id", groupId)
+            .gte("earned_at", `${addDaysIso(windowStart, -1)}T00:00:00Z`)
+            .lt("earned_at", `${addDaysIso(data.before, 1)}T12:00:00Z`)
+        : supabase
+            .from("earned_badges")
+            .select("id, user_id, streak_days, earned_at")
+            .eq("group_id", groupId)
+            .gte("earned_at", `${addDaysIso(windowStart, -1)}T00:00:00Z`)),
       supabase
         .from("member_nudges")
         .select("target_id, local_date, created_at")
@@ -610,7 +645,6 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .select("id, name, avatar_color, avatar_url, timezone")
       .in("id", peopleIds);
     const tzMap = new Map((profiles ?? []).map((p) => [p.id, (p.timezone as string | null) || "UTC"]));
-    const viewerToday = localDateIn(tzMap.get(userId) ?? "UTC", now);
 
     const protectedKind = new Map<string, string>();
     const coveredByUser = new Map<string, Set<string>>();
@@ -827,7 +861,9 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       };
     });
     const streakInputs = crew.map((m) => ({ joinedOn: m.joinedOn, kept: new Set([...m.checkIns, ...m.covered]) }));
-    const dayDates = Array.from(new Set([...dates.map((d) => (d > viewerToday ? viewerToday : d)), viewerToday]));
+    // Every day of the page, so quiet days (only rests or misses) still get a row.
+    const dayDates: string[] = [];
+    for (let d = windowEnd; d >= windowStart; d = addDaysIso(d, -1)) dayDates.push(d);
     const days: DayStat[] = dayDates.map((date) => {
       const checkedIn: string[] = [];
       const rested: string[] = [];
@@ -855,8 +891,9 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     for (const n of (nudgesRes.data ?? []) as { target_id: string; local_date: string; created_at: string }[]) {
       if (n.local_date === myNudgeDay) nudgedAt.set(n.target_id, n.created_at);
     }
+    // "Hasn't checked in yet" rows belong to today, so only the first page has them.
     const notYet = crew
-      .filter((m) => m.userId !== userId && !m.checkIns.has(m.today) && !m.covered.has(m.today))
+      .filter((m) => !data.before && m.userId !== userId && !m.checkIns.has(m.today) && !m.covered.has(m.today))
       .map((m) => ({
         userId: m.userId,
         closesAt: zonedWallTimeToISO(m.tz, addDaysIso(m.today, 1), 0, 0),
@@ -871,7 +908,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         const post = posts.find((p) => p.user_id === b.user_id && p.local_date === localDate);
         return { id: b.id, userId: b.user_id, streakDays: b.streak_days, localDate, postId: post?.id ?? null };
       })
-      .filter((m) => m.localDate >= minDate);
+      .filter((m) => m.localDate >= windowStart && (!data.before || m.localDate < data.before));
 
     const members: FeedMember[] = peopleIds.map((uid) => {
       const prof = profileMap.get(uid);
@@ -895,6 +932,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         notYet,
         milestones,
       },
+      nextBefore,
     };
   });
 

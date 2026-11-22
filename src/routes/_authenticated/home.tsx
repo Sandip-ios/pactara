@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getHomeCrew } from "@/lib/home-crew.functions";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
-import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
+import { postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { CrewBar, CrewBarSkeleton } from "@/components/home/CrewBar";
 import { TodayCard, TodayCardSkeleton, type TodayState } from "@/components/home/TodayCard";
@@ -22,6 +22,7 @@ import { ShareInviteDrawer, inviteLinkFor } from "@/components/groups/GroupOverf
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
 import { FeedList } from "@/components/feed/FeedList";
+import { useGroupFeed } from "@/components/feed/use-group-feed";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
@@ -190,16 +191,8 @@ function HomePage() {
     queryKey: ["pending-checkins", selectedGroupId],
     queryFn: () => getPendingCheckIns({ data: { groupId: selectedGroupId } }),
   });
-  const {
-    data: feedData,
-    isPending: feedLoading,
-    isError: feedFailed,
-    refetch: refetchFeed,
-  } = useQuery({
-    queryKey: ["group-feed", selectedGroupId],
-    queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
-    refetchOnWindowFocus: true,
-  });
+  const groupFeed = useGroupFeed(selectedGroupId, { refetchOnWindowFocus: true });
+  const feedData = groupFeed.feed;
   const { data: crew, isPending: crewLoading } = useQuery({
     queryKey: ["home-crew", selectedGroupId],
     queryFn: () => getHomeCrew({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
@@ -693,9 +686,13 @@ function HomePage() {
       <FeedList
         items={feedData?.items}
         meta={feedData?.meta}
-        loading={feedLoading}
-        refreshFailed={feedFailed}
-        onRetry={() => void refetchFeed()}
+        loading={groupFeed.isPending}
+        refreshFailed={groupFeed.refreshFailed}
+        onRetry={() => void groupFeed.refetch()}
+        hasMore={groupFeed.hasMore}
+        loadingMore={groupFeed.loadingMore}
+        loadMoreFailed={groupFeed.loadMoreFailed}
+        onLoadMore={groupFeed.loadMore}
         groupId={selectedGroupId}
         todayCounts={crew && crew.groupId === feedData?.items[0]?.groupId ? { inCount: crew.inCount, dueCount: crew.dueCount } : null}
         deepLinkPost={search.post}

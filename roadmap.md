@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Feed follow-up: no day collapsing, older weeks load on scroll, one combined quiet row on past days, status-bar cover behind sticky day headers, "Weekday · Mon D" headers (unpublished, awaiting review)
 - [x] Home redesign part 2: feed cards restyle (cards, action row, comments preview, quiet rows, day groups, comments sheet, loading/empty/offline, week-dots label)
 - [x] Allow GIF/photo/video comments with no text
 

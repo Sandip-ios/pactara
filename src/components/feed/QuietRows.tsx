@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Moon } from "lucide-react";
 import type { FeedItem, FeedMember } from "@/lib/daily-posts.functions";
 import { nudgeMember } from "@/lib/group-today.functions";
-import { timeLeftLabel, weekdayName } from "@/lib/feed-view";
+import { quietDayLine, timeLeftLabel, weekdayName } from "@/lib/feed-view";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { FeedAvatar } from "@/components/feed/FeedMedia";
 import { useCommentsSheet, usePostQuickComment } from "@/components/feed/CommentsSheet";
@@ -244,5 +244,46 @@ export function MilestoneRow({ member, streakDays, postId }: { member: FeedMembe
         ) : null
       }
     />
+  );
+}
+
+/** Opens the comments on a missed post a notification linked to. */
+function AutoOpenComments({ item }: { item: FeedItem }) {
+  const comments = useCommentsSheet(item);
+  useEffect(() => {
+    comments.openSheet();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id]);
+  return <>{comments.sheet}</>;
+}
+
+/**
+ * Past days: one calm row for everyone who missed or rested, e.g.
+ * "Michele, Guy and you missed · Bertille rested".
+ */
+export function QuietDayRow({
+  missed,
+  rested,
+  autoOpenItem,
+}: {
+  missed: FeedMember[];
+  rested: FeedMember[];
+  autoOpenItem?: FeedItem;
+}) {
+  const faces = [...missed, ...rested].slice(0, 3);
+  return (
+    <div className="mx-4 mt-2 flex items-center gap-3 rounded-2xl bg-white px-[14px] py-3">
+      <span className="flex shrink-0 items-center" aria-hidden>
+        {faces.map((m, i) => (
+          <span key={m.userId} className="relative" style={{ marginLeft: i === 0 ? 0 : -10, zIndex: 3 - i }}>
+            <FeedAvatar url={m.avatarUrl} color={m.avatarColor} name={m.name} size={28} className="border-2 border-white" />
+          </span>
+        ))}
+      </span>
+      <p className="line-clamp-2 min-w-0 flex-1 text-[14px] font-medium leading-snug" style={{ color: MUTED }}>
+        {quietDayLine(missed, rested)}
+      </p>
+      {autoOpenItem && <AutoOpenComments item={autoOpenItem} />}
+    </div>
   );
 }
