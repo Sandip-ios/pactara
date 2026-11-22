@@ -74,6 +74,62 @@ export function useNativeStatusTap(enabled = true) {
   }, [enabled]);
 }
 
+/**
+ * What the page looks like when a sheet, dialog or menu has locked scrolling:
+ * the overlay libraries set `overflow: hidden` / `position: fixed` on the body
+ * (or html), or `data-scroll-locked` on the body, while the overlay is open.
+ */
+export type ScrollLockSnapshot = {
+  bodyOverflow: string;
+  htmlOverflow: string;
+  bodyPosition: string;
+  scrollLockAttr: boolean;
+  overlayOpen: boolean;
+};
+
+export function isScrollLocked(s: ScrollLockSnapshot): boolean {
+  return (
+    s.scrollLockAttr ||
+    s.overlayOpen ||
+    s.bodyOverflow === "hidden" ||
+    s.htmlOverflow === "hidden" ||
+    s.bodyPosition === "fixed"
+  );
+}
+
+/**
+ * While a lock is on, or just came off, a jump of the document to the top is
+ * the overlay's doing, not a tap on the clock.
+ */
+export function shouldTreatAsStatusTap(opts: {
+  scrollY: number;
+  park: number;
+  locked: boolean;
+  msSinceLastLock: number;
+}): boolean {
+  if (opts.locked) return false;
+  if (opts.msSinceLastLock < LOCK_GRACE_MS) return false;
+  return opts.scrollY < opts.park;
+}
+
+export const LOCK_GRACE_MS = 1500;
+
+function readScrollLock(): boolean {
+  const body = document.body;
+  const html = document.documentElement;
+  const bs = window.getComputedStyle(body);
+  const hs = window.getComputedStyle(html);
+  return isScrollLocked({
+    bodyOverflow: bs.overflowY,
+    htmlOverflow: hs.overflowY,
+    bodyPosition: bs.position,
+    scrollLockAttr: body.hasAttribute("data-scroll-locked"),
+    overlayOpen: !!document.querySelector(
+      "[data-vaul-drawer], [role='dialog'], [role='alertdialog'], [role='menu']",
+    ),
+  });
+}
+
 // One shared parking setup, counted by the screens that use it. Route changes
 // can mount the next screen before the previous one unmounts; a per-screen
 // setup would then undo the new screen's parking.
@@ -88,6 +144,15 @@ function installParking(safeTop: number): () => void {
   document.body.style.minHeight = `calc(100dvh - env(safe-area-inset-top) + ${PARK}px)`;
 
   let parking = false;
+  // Sheets, dialogs and menus lock page scrolling while open, which can reset
+  // the document offset. Stand down while that's happening (and just after),
+  // so parking never fights the lock and the feed never jumps.
+  let lastLockAt = -Infinity;
+  const lockedNow = () => {
+    const locked = readScrollLock();
+    if (locked) lastLockAt = performance.now();
+    return locked;
+  };
   const park = () => {
     parking = true;
     window.scrollTo(0, PARK);
@@ -99,8 +164,20 @@ function installParking(safeTop: number): () => void {
 
   const onScroll = () => {
     if (parking) return;
-    if (window.scrollY < PARK) {
+    const locked = lockedNow();
+    if (locked) return;
+    if (
+      shouldTreatAsStatusTap({
+        scrollY: window.scrollY,
+        park: PARK,
+        locked,
+        msSinceLastLock: performance.now() - lastLockAt,
+      })
+    ) {
       scrollPageToTop();
+      park();
+    } else if (window.scrollY < PARK) {
+      // A lock just came off and left the document at 0: re-park quietly.
       park();
     }
   };
@@ -110,6 +187,7 @@ function installParking(safeTop: number): () => void {
   // Re-park quietly if something else reset the document (route scroll
   // restoration, or parking before the page was tall enough to scroll).
   const keepParked = window.setInterval(() => {
+    if (lockedNow()) return;
     if (!parking && window.scrollY < PARK) park();
   }, 1000);
 
@@ -126,6 +204,7 @@ function installParking(safeTop: number): () => void {
     ) {
       return;
     }
+    if (lockedNow()) return;
     scrollPageToTop();
   };
   document.addEventListener("touchend", handleTap, { capture: true, passive: true });

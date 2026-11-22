@@ -30,13 +30,7 @@ import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { CheckInShareModal } from "@/components/CheckInShareModal";
 import type { MoodId } from "@/routes/_authenticated/check-in.index";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -358,6 +352,21 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  // The sheet closes first; the chosen action opens once it's gone, so two
+  // overlays never hold the page's scroll lock at the same time.
+  const pending = useRef<"share" | "delete" | null>(null);
+  const runPending = () => {
+    const action = pending.current;
+    pending.current = null;
+    if (action === "share") setSharing(true);
+    else if (action === "delete") setConfirmOpen(true);
+  };
+  const choose = (action: "share" | "delete") => {
+    pending.current = action;
+    setMenuOpen(false);
+    window.setTimeout(runPending, 350);
+  };
   const del = useMutation({
     mutationFn: () => deleteCheckIn({ data: { checkInId: checkIn.id.replace(/^c-/, "") } }),
     onSuccess: () => {
@@ -372,32 +381,61 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
   const shareImage = checkIn.photoUrl && isVideoUrl(checkIn.photoUrl) ? checkIn.posterUrl ?? null : checkIn.photoUrl;
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label="Check-in options"
-            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-700 after:absolute after:-inset-1 after:content-[''] active:scale-95"
-            style={{ background: "#F4F2EF" }}
-          >
-            <MoreHorizontal size={18} />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-[180px]">
-          <DropdownMenuItem onSelect={() => setSharing(true)} className="min-h-11 text-[15px]">
-            Share to story
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              setConfirmOpen(true);
-            }}
-            className="min-h-11 text-[15px] text-red-600 focus:text-red-600"
-          >
-            Delete check-in
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <button
+        type="button"
+        aria-label="Check-in options"
+        aria-haspopup="dialog"
+        onClick={() => {
+          pending.current = null;
+          setMenuOpen(true);
+        }}
+        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-700 after:absolute after:-inset-1 after:content-[''] active:scale-95"
+        style={{ background: "#F4F2EF" }}
+      >
+        <MoreHorizontal size={18} />
+      </button>
+      <Drawer
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        onAnimationEnd={(o) => {
+          if (!o) runPending();
+        }}
+        shouldScaleBackground={false}
+      >
+        <DrawerContent className="p-0 pb-[max(env(safe-area-inset-bottom),12px)]">
+          <DrawerHeader className="pb-2 pt-3">
+            <DrawerTitle className="text-center text-[17px] font-bold">Your check-in</DrawerTitle>
+            <DrawerDescription className="sr-only">Share or delete this check-in</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
+            <div className="overflow-hidden rounded-2xl" style={{ background: "#F7F5F2" }}>
+              <button
+                type="button"
+                onClick={() => choose("share")}
+                className="flex h-[52px] w-full items-center px-4 text-left text-[16px] font-semibold text-neutral-900 active:bg-black/5"
+              >
+                Share to story
+              </button>
+              <div className="h-px" style={{ background: "#ECE8E3" }} />
+              <button
+                type="button"
+                onClick={() => choose("delete")}
+                className="flex h-[52px] w-full items-center px-4 text-left text-[16px] font-semibold text-red-600 active:bg-black/5"
+              >
+                Delete check-in
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="mt-2 flex h-[52px] w-full items-center justify-center rounded-2xl text-[16px] font-semibold text-neutral-700 active:bg-black/5"
+              style={{ background: "#F7F5F2" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
