@@ -2216,7 +2216,7 @@ function PaywallStep({
     {
       badge: "🔥 21 day streak",
       title: "Finally Consistent",
-      body: "My crew calls me out the second I skip a check-in. Haven't missed one in 6 weeks.",
+      body: "My pod calls me out the second I skip a check-in. Haven't missed one in 6 weeks.",
       image:
         "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80",
     },
