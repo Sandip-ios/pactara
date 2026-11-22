@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Home redesign part 1: header pill only for new members (+ settings row), crew bar, single Today card, Crew today row with per-member week dots and nudges, skeletons (unpublished, awaiting review)
+
 - [x] Paywall (no reviews, crews, yearly default), nudges once a day + covered check, missed cards show the day, morning reminder per group, 8 PM defers to 9 PM (unpublished, awaiting review)
 
 - [x] Evening reminders per group (skip covered days / rest left), check-in rest screen per group, 9 PM freeze wording, Home pace bar hidden (unpublished, awaiting review)

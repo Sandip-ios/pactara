@@ -13,9 +13,11 @@ import {
   Loader2,
   Zap,
   LogOut,
+  HelpCircle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/profile.functions";
+import { OnboardingSheet } from "@/components/OnboardingSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -32,6 +34,7 @@ function AccountSettingsHub() {
   const queryClient = useQueryClient();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [showGuide, setShowGuide] = useState(false);
 
   const deleteFn = useServerFn(deleteMyAccount);
   const deleteAccount = useMutation({
@@ -126,6 +129,14 @@ function AccountSettingsHub() {
             onClick={() => navigate({ to: "/plan" })}
           />
           <Divider />
+          <Row
+            icon={<HelpCircle size={18} style={{ color: PURPLE }} />}
+            iconBg={PURPLE_SOFT}
+            title="How Pactara works"
+            subtitle="A quick guide to the app"
+            onClick={() => setShowGuide(true)}
+          />
+          <Divider />
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-4 px-4 py-4 text-left"
@@ -200,6 +211,7 @@ function AccountSettingsHub() {
           )}
         </div>
       </section>
+      {showGuide && <OnboardingSheet firstName="" onClose={() => setShowGuide(false)} />}
     </div>
   );
 }

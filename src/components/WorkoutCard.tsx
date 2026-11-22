@@ -80,6 +80,7 @@ export function WorkoutCard({
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ["workout-state"] });
     queryClient.invalidateQueries({ queryKey: ["groups-today"] });
+    queryClient.invalidateQueries({ queryKey: ["home-crew"] });
   };
 
   const finish = useMutation({

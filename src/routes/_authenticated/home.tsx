@@ -5,15 +5,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell, X } from "lucide-react";
+import { MessageSquare, Image as ImageIcon, Send, Zap, Bell, X } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
-import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
+import { getHomeCrew } from "@/lib/home-crew.functions";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
-import { TodaySnapshot, type SnapshotState } from "@/components/TodaySnapshot";
+import { CrewBar, CrewBarSkeleton } from "@/components/home/CrewBar";
+import { TodayCard, TodayCardSkeleton, type TodayState } from "@/components/home/TodayCard";
+import { CrewToday, CrewTodaySkeleton } from "@/components/home/CrewToday";
+import { ShareInviteDrawer, inviteLinkFor } from "@/components/groups/GroupOverflowMenu";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
@@ -24,8 +28,6 @@ import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { supabase } from "@/integrations/supabase/client";
 import { loadCheckInDraft, clearCheckInDraft, type CheckInDraft } from "@/lib/checkin-draft-store";
-import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
-import { MemberPhoto } from "@/components/MemberPhoto";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { relationForGroup } from "@/lib/group-display";
@@ -193,12 +195,16 @@ function HomePage() {
     queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
     refetchOnWindowFocus: true,
   });
-  const { data: streaksData } = useQuery({
-    queryKey: ["group-member-streaks", selectedGroupId],
-    queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
-    staleTime: 60_000,
+  const { data: crew, isPending: crewLoading } = useQuery({
+    queryKey: ["home-crew", selectedGroupId],
+    queryFn: () => getHomeCrew({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
+    enabled: Boolean(selectedGroupId),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteCopied, setInviteCopied] = useState(false);
   const { data: restInfo } = useQuery({
     queryKey: ["rest-day-info"],
     queryFn: () => getRestDayInfo(),
@@ -270,6 +276,11 @@ function HomePage() {
   // Only new members (joined within the last 21 days) see it; long-time
   // users get permanently marked as seen so it never appears for them.
   const [showHowItWorksTip, setShowHowItWorksTip] = useState(false);
+  // Same 21-day rule as the tooltip: only new members see the header pill;
+  // everyone can open the guide from Account settings.
+  const isNewMember = Boolean(
+    status?.joinedAt && new Date(status.joinedAt).getTime() > Date.now() - 21 * 24 * 60 * 60 * 1000,
+  );
   const dismissHowItWorksTip = () => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("how-pactara-works-tip-seen", "1");
@@ -366,36 +377,48 @@ function HomePage() {
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       <header
-        className="bg-white pl-6 pr-6 pb-4 flex items-center justify-between"
+        className="bg-white px-4 pb-3 flex items-center justify-between"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)" }}
       >
         <div className="text-[24px] font-black tracking-tight">
           <span style={{ color: PURPLE }}>P</span><span>actara</span>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              dismissHowItWorksTip();
-              setShowOnboarding(true);
-            }}
-            className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
-            style={{ background: "#EDE6FE", color: PURPLE }}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-            How Pactara works
-          </button>
-          <button
-            onClick={() => navigate({ to: "/notifications" })}
-            aria-label="Notifications"
-            className="relative h-9 w-9 flex items-center justify-center rounded-full"
-            style={{ background: "#EDE6FE", color: PURPLE }}
-          >
-            <Bell size={18} />
-            {notifUnread > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
-                {notifUnread > 99 ? "99+" : notifUnread}
+        <div className="flex items-center gap-1">
+          {isNewMember && (
+            <button
+              type="button"
+              onClick={() => {
+                dismissHowItWorksTip();
+                setShowOnboarding(true);
+              }}
+              className="flex h-11 items-center"
+            >
+              <span
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
+                style={{ background: "#EDE6FE", color: PURPLE }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                How Pactara works
               </span>
-            )}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/notifications" })}
+            aria-label={notifUnread > 0 ? `Notifications, ${notifUnread} unread` : "Notifications"}
+            className="relative flex h-11 w-11 items-center justify-center"
+          >
+            <span
+              className="relative flex h-9 w-9 items-center justify-center rounded-full"
+              style={{ background: "#EDE6FE", color: PURPLE }}
+            >
+              <Bell size={18} />
+              {notifUnread > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
+                  {notifUnread > 99 ? "99+" : notifUnread}
+                </span>
+              )}
+            </span>
           </button>
         </div>
 
@@ -443,7 +466,9 @@ function HomePage() {
               return (
                 k === "group-feed" ||
                 k === "pending-checkins" ||
-                 k === "group-member-streaks" ||
+                k === "home-crew" ||
+                k === "rest-day-info" ||
+                k === "workout-state" ||
                 k === "my-groups" ||
                 k === "my-group-status" ||
                 k === "unread-chat-counts"
@@ -455,86 +480,96 @@ function HomePage() {
 
       {(() => {
         const activeGroup = myGroups.find((g) => g.id === selectedGroupId) ?? myGroups[0];
-        const duration = (activeGroup as { durationDays?: number } | undefined)?.durationDays ?? 30;
-        const startSource =
-          (activeGroup as { startDate?: string | null } | undefined)?.startDate ??
-          activeGroup?.createdAt;
-        let dayNumber = 1;
-        if (startSource) {
-          const start = (activeGroup as { startDate?: string | null } | undefined)?.startDate
-            ? new Date(`${(activeGroup as { startDate: string }).startDate}T00:00:00`)
-            : new Date(activeGroup!.createdAt as string);
-          const startLocal = new Date(start.getFullYear(), start.getMonth(), start.getDate());
-          const now = new Date();
-          const todayLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const diffDays = Math.floor((todayLocal.getTime() - startLocal.getTime()) / 86400000);
-          dayNumber = Math.min(duration, Math.max(1, diffDays + 1));
+        // No group yet: keep the plain check-in card, as before.
+        if (groupsData && myGroups.length === 0) {
+          return (
+            <TodayCard
+              state="check-in"
+              groupId={null}
+              streak={0}
+              inCount={0}
+              crewSize={1}
+              solo
+              week={null}
+              myCheckIn={null}
+            />
+          );
         }
-        const hasMultiple = myGroups.length > 1;
-        const rel = relationFor(activeGroup?.id);
-        const label = rel?.name ?? activeGroup?.name;
-        const icon = rel?.emoji ?? activeGroup?.emoji;
-        return (
-          <div className="px-6 pt-4 pb-3 border-b border-neutral-200 flex items-center justify-between text-[15px]">
-            {hasMultiple ? (
-              <>
-                <button
-                  onClick={() => setSwitcherOpen(true)}
-                  className="flex items-center gap-1.5 font-bold text-neutral-900 active:opacity-70"
-                >
-                  {icon && <span>{icon}</span>}
-                  <span className="truncate max-w-[200px]">{label ?? "Group"}</span>
-                  <ChevronDown size={16} className="text-neutral-500" />
-                </button>
-                <GroupSwitcherSheet
-                  open={switcherOpen}
-                  onClose={() => setSwitcherOpen(false)}
-                  groups={myGroups}
-                  selectedGroupId={selectedGroupId}
-                  onSelect={(id) => setSelectedGroupId(id)}
-                />
-              </>
-            ) : (
-              <div className="flex items-center gap-1.5 font-bold text-neutral-900">
-                {icon && <span>{icon}</span>}
-                <span className="truncate max-w-[220px]">{label ?? ""}</span>
-              </div>
-            )}
-            <span className="text-neutral-400 text-[13px]">Day {dayNumber} of {duration}</span>
-          </div>
-        );
-      })()}
-      {(() => {
-        const checkedIn = pendingData?.iCheckedIn ?? false;
-
-        const state: SnapshotState = checkedIn
-          ? "done"
-          : restInfo?.restingToday
-            ? "rest"
-            : "check-in";
-
-        const myStreak =
-          streaksData?.members?.find((m) => m.isYou)?.streak ?? 0;
-        const myLongest =
-          streaksData?.members?.find((m) => m.isYou)?.longestStreak ?? 0;
-
+        if (!groupsData || !activeGroup || crewLoading || !crew) {
+          return (
+            <>
+              <CrewBarSkeleton />
+              <TodayCardSkeleton />
+              <CrewTodaySkeleton />
+            </>
+          );
+        }
+        const rel = relationFor(activeGroup.id);
+        const label = rel?.name ?? activeGroup.name ?? "Group";
+        const icon = rel?.emoji ?? activeGroup.emoji;
+        const solo = crew.memberCount <= 1;
+        const me = crew.members.find((m) => m.isYou);
+        const todayState: TodayState =
+          me?.status === "done" ? "done" : me?.status === "rest" ? "rest" : "check-in";
+        const weekInfo = restInfo?.groups.find((g) => g.groupId === crew.groupId) ?? null;
         return (
           <>
-            <TodaySnapshot
-              state={state}
-              streak={myStreak}
-              longestStreak={myLongest}
-              groupId={selectedGroupId}
-              groupSize={streaksData?.members?.length}
-              weekStatus={restInfo?.groups.find((g) => g.groupId === selectedGroupId) ?? null}
-              memberGoals={streaksData?.members}
+            <CrewBar
+              label={label}
+              icon={icon}
+              canSwitch={myGroups.length > 1}
+              onOpenSwitcher={() => setSwitcherOpen(true)}
+              dayNumber={crew.dayNumber}
+              durationDays={crew.durationDays}
+              streak={solo ? crew.myStreak : crew.groupStreak}
+              solo={solo}
+              weeklyTarget={crew.weeklyTarget}
             />
+            {myGroups.length > 1 && (
+              <GroupSwitcherSheet
+                open={switcherOpen}
+                onClose={() => setSwitcherOpen(false)}
+                groups={myGroups}
+                selectedGroupId={selectedGroupId}
+                onSelect={(id) => setSelectedGroupId(id)}
+              />
+            )}
+            <TodayCard
+              state={todayState}
+              groupId={crew.groupId}
+              streak={crew.myStreak}
+              inCount={crew.inCount}
+              crewSize={crew.memberCount}
+              solo={solo}
+              week={weekInfo ? { workouts: weekInfo.workouts, target: weekInfo.target, restLeft: weekInfo.restLeft } : null}
+              myCheckIn={crew.myCheckIn}
+            />
+            <CrewToday
+              groupId={crew.groupId}
+              members={crew.members}
+              solo={solo}
+              onInvite={() => setInviteOpen(true)}
+            />
+            {inviteOpen && (
+              <ShareInviteDrawer
+                open
+                onOpenChange={(o) => {
+                  if (!o) setInviteOpen(false);
+                }}
+                groupName={label}
+                inviteLink={inviteLinkFor(crew.groupId)}
+                shareText="Accept your invite to my Pactara group!"
+                copied={inviteCopied}
+                onCopy={() => {
+                  navigator.clipboard.writeText(inviteLinkFor(crew.groupId)).catch(() => {});
+                  setInviteCopied(true);
+                  setTimeout(() => setInviteCopied(false), 1800);
+                }}
+              />
+            )}
           </>
         );
       })()}
-
-
-
 
       {checkInDraft && (
         <div className="mx-4 mt-3 rounded-2xl bg-white ring-1 ring-neutral-200 p-4 flex items-center gap-3">
@@ -653,41 +688,6 @@ function HomePage() {
         </div>
       )}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
-
-      {(streaksData?.members.length ?? 0) > 0 && (
-        <div className="pt-3">
-          <div className="flex gap-3 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {(streaksData?.members ?? []).map((m) => {
-              return (
-                <MemberProfileLink
-                  key={m.userId}
-                  userId={m.userId}
-                  isYou={m.isYou}
-                  className="shrink-0 flex flex-col items-center pb-2"
-                >
-                  <div className="relative">
-                    <div
-                      className="h-[128px] w-[80px] rounded-lg flex items-center justify-center text-white font-bold text-[22px] overflow-hidden"
-                      style={{ background: m.avatarColor }}
-                    >
-                      <MemberPhoto src={m.avatarUrl} name={m.name || "U"} />
-                    </div>
-
-                    <div
-                      className="absolute left-1/2 -translate-x-1/2 -bottom-3 flex items-center gap-1 rounded-full bg-white px-2.5 py-1 text-[14px] font-bold text-neutral-800 shadow-sm"
-                    >
-                      <span className="text-[14px] leading-none">🔥</span>
-                      <span className="leading-none">{m.streak}</span>
-                    </div>
-                  </div>
-                </MemberProfileLink>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-
 
       {(() => {
         const cards = splitFeedIntoTimelineCards(feedData?.items ?? []);

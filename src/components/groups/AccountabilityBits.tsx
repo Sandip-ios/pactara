@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Flame, Check, Clock, Hourglass } from "lucide-react";
+import { Flame, Check, Clock, Hourglass, Hand } from "lucide-react";
 import { toast } from "sonner";
 import { nudgeMember, type MemberToday, type MemberTodayStatus } from "@/lib/group-today.functions";
 
@@ -150,12 +150,15 @@ export function NudgeButton({
   groupId,
   member,
   variant = "solid",
+  initialSent = false,
 }: {
   groupId: string;
   member: Pick<MemberToday, "userId" | "firstName">;
-  variant?: "solid" | "ghost";
+  variant?: "solid" | "ghost" | "pill";
+  /** Already nudged today (e.g. before a reload). */
+  initialSent?: boolean;
 }) {
-  const [sent, setSent] = useState(false);
+  const [sent, setSent] = useState(initialSent);
   const [covered, setCovered] = useState(false);
   const [sending, setSending] = useState(false);
   const queryClient = useQueryClient();
@@ -171,6 +174,7 @@ export function NudgeButton({
       if (result.ok) toast.success(result.message);
       else toast.info(result.message);
       queryClient.invalidateQueries({ queryKey: ["groups-today"] });
+      queryClient.invalidateQueries({ queryKey: ["home-crew"] });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't send that nudge");
     } finally {
@@ -179,6 +183,26 @@ export function NudgeButton({
   };
 
   const base = "rounded-full font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60";
+  if (variant === "pill") {
+    // 32px tall pill; the invisible ::after extends the touch target to 44px.
+    return (
+      <button
+        type="button"
+        onClick={send}
+        disabled={sent || sending}
+        aria-label={covered ? `${member.firstName} is covered today` : sent ? `Nudged ${member.firstName}` : `Nudge ${member.firstName}`}
+        className="relative flex h-8 items-center justify-center gap-1 rounded-full px-3 text-[12px] font-bold after:absolute after:-inset-y-1.5 after:inset-x-0 after:content-[''] disabled:cursor-default"
+        style={
+          sent
+            ? { background: "#F4F1ED", color: "#8A8580" }
+            : { background: PURPLE, color: "#FFFFFF" }
+        }
+      >
+        {!sent && <Hand size={13} strokeWidth={2.5} />}
+        {covered ? "Covered" : sent ? "Nudged" : "Nudge"}
+      </button>
+    );
+  }
   if (variant === "ghost") {
     return (
       <button
