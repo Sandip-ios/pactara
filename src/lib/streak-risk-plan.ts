@@ -68,9 +68,10 @@ export function atRiskGroups(timezone: string, groups: RiskGroupInput[], now: Da
 export type ReminderGroup = { groupId: string; name: string; streak: number };
 
 /**
- * Groups a 5 PM / 8 PM reminder should name. At 8 PM, groups that will get the
- * 9 PM "streak at risk" push are left out (so a member whose groups are all
- * at risk gets no 8 PM push at all).
+ * Groups a 5 PM / 8 PM reminder should name. At 8 PM a member whose groups
+ * are all at risk gets nothing (the 9 PM "streak at risk" push covers them);
+ * otherwise the 8 PM push names every group still waiting, at-risk ones first,
+ * and the 9 PM push is skipped for them (one evening push a night).
  */
 export function eveningReminderGroups(
   hour: number,
@@ -85,7 +86,9 @@ export function eveningReminderGroups(
     streak: streakIn(g, today),
   }));
   if (hour !== 20) return need;
-  return need.filter((g) => g.streak < MIN_AT_RISK_STREAK);
+  const atRisk = need.filter((g) => g.streak >= MIN_AT_RISK_STREAK);
+  const rest = need.filter((g) => g.streak < MIN_AT_RISK_STREAK);
+  return rest.length === 0 ? [] : [...atRisk, ...rest];
 }
 
 /**
@@ -165,12 +168,17 @@ export function eveningReminderMessage(hour: number, groups: { groupId: string; 
       url,
     };
   }
-  const hasStreak = groups.some((g) => (g.streak ?? 0) >= MIN_AT_RISK_STREAK);
-  return {
-    title: "Last call to check in 🌙",
-    body: hasStreak
-      ? `Don't break your ${groups.length === 1 ? "streak" : "streaks"} in ${names} — check in before bed.`
-      : `Check in for ${names} before bed.`,
-    url,
-  };
+  const streaky = groups.filter((g) => (g.streak ?? 0) >= MIN_AT_RISK_STREAK);
+  const others = groups.filter((g) => (g.streak ?? 0) < MIN_AT_RISK_STREAK);
+  const ordered = [...streaky, ...others];
+  const allNames = joinNames(ordered.map((g) => g.name));
+  const streakWord = streaky.length === 1 ? "streak" : "streaks";
+  let body = `Check in for ${allNames} before bed.`;
+  if (streaky.length > 0 && others.length === 0) {
+    body = `Don't break your ${streakWord} in ${allNames} — check in before bed.`;
+  } else if (streaky.length > 0) {
+    // Mixed: at-risk crews first with the streak warning, then every crew still waiting.
+    body = `Don't break your ${streakWord} in ${joinNames(streaky.map((g) => g.name))} — check in for ${allNames} before bed.`;
+  }
+  return { title: "Last call to check in 🌙", body, url };
 }

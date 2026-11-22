@@ -161,7 +161,7 @@ describe("5 PM and 8 PM check-in reminders", () => {
   });
 });
 
-describe("8 PM reminder steps aside for the 9 PM streak warning", () => {
+describe("8 PM reminder and the 9 PM streak warning", () => {
   const eightChicago = new Date("2026-11-22T02:00:00Z"); // Sat Nov 21, 8 PM Chicago
   // No rest days left, nothing today, 3-day streak → 9 PM will warn.
   const withStreak = group({
@@ -183,12 +183,13 @@ describe("8 PM reminder steps aside for the 9 PM streak warning", () => {
     expect(atRiskGroups(TZ, [withStreak], new Date("2026-11-22T03:00:00Z")).length).toBe(1);
   });
 
-  it("still names groups the 9 PM push won't cover, with the no-streak wording", () => {
-    const groups = eveningReminderGroups(20, TZ, [withStreak, noStreak], eightChicago);
-    expect(groups.map((g) => g.groupId)).toEqual(["b"]);
+  it("mixed crews: one 8 PM push names every crew still waiting, at-risk crew first with the streak wording", () => {
+    const groups = eveningReminderGroups(20, TZ, [noStreak, withStreak], eightChicago);
+    expect(groups.map((g) => g.groupId)).toEqual(["a", "b"]);
     const msg = eveningReminderMessage(20, groups);
     expect(msg.title).toBe("Last call to check in 🌙");
-    expect(msg.body).toBe("Check in for Prim + Jose before bed.");
+    expect(msg.body).toBe("Don't break your streak in Fit Uxers — check in for Fit Uxers and Prim + Jose before bed.");
+    expect(msg.url).toBe("/check-in");
   });
 
   it("a 1-day streak counts as no streak", () => {

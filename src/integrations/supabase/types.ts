@@ -325,6 +325,7 @@ export type Database = {
           group_ids: string[]
           hour: number
           local_date: string
+          source: string | null
           status: string
           updated_at: string
           user_id: string
@@ -334,6 +335,7 @@ export type Database = {
           group_ids?: string[]
           hour: number
           local_date: string
+          source?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -343,6 +345,7 @@ export type Database = {
           group_ids?: string[]
           hour?: number
           local_date?: string
+          source?: string | null
           status?: string
           updated_at?: string
           user_id?: string

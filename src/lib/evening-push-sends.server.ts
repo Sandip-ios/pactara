@@ -16,10 +16,10 @@ export function eveningPushDeps(
       if (error) throw new Error(error.message);
       return data === true;
     },
-    finish: async (userId, localDate, status, groupIds) => {
+    finish: async (userId, localDate, status, groupIds, source) => {
       const { error } = await admin
         .from("evening_push_sends")
-        .update({ status, group_ids: groupIds, updated_at: new Date().toISOString() })
+        .update({ status, group_ids: groupIds, source, updated_at: new Date().toISOString() })
         .eq("user_id", userId)
         .eq("local_date", localDate);
       if (error) console.warn("[evening-push] couldn't record send", error.message);

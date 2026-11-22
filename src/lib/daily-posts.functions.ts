@@ -10,7 +10,7 @@ import {
   weekCounts,
   weeklyTarget,
 } from "./streak-rules";
-import { restingOn } from "./group-today-view";
+import { memberOwnToday } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
@@ -1269,9 +1269,9 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
     }
     if (streak === 0) streak = 1; // we just checked in
 
-    // Teammates' own today can be a day either side of yours.
-    const dayBefore = addDaysIso(today, -1);
-    const dayAfter = addDaysIso(today, 1);
+    // Teammates' own today can be up to two days either side of yours.
+    const dayBefore = addDaysIso(today, -2);
+    const dayAfter = addDaysIso(today, 2);
     const [{ data: group }, { data: members }, { data: nearCheckIns }, { data: nearCovered }] = await Promise.all([
       supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
       supabase.from("group_members").select("user_id").eq("group_id", groupId),
@@ -1288,7 +1288,6 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
         .gte("freeze_date", dayBefore)
         .lte("freeze_date", dayAfter),
     ]);
-    const todayCheckIns = (nearCheckIns ?? []).filter((c: any) => c.checkin_date === today);
     const checkInDatesBy = new Map<string, Set<string>>();
     for (const c of nearCheckIns ?? []) {
       const u = (c as any).user_id as string;
@@ -1313,17 +1312,23 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
       .map((p: any) => p.avatar_url)
       .filter((p: string | null): p is string => !!p);
     const signedMap = await signAvatarThumbs(supabase as SupabaseClient, avatarPaths);
-    const checkedSet = new Set((todayCheckIns ?? []).map((c: any) => c.user_id as string));
-    const teammates: CelebrationTeammate[] = (profs ?? []).map((p: any) => ({
-      id: p.id,
-      initial: (p.name ?? "?").trim().charAt(0).toUpperCase() || "•",
-      checkedIn: checkedSet.has(p.id),
-      resting:
-        !checkedSet.has(p.id) &&
-        restingOn(localDateIn(p.timezone || "UTC"), checkInDatesBy.get(p.id), coveredBy.get(p.id)),
-      avatarUrl: p.avatar_url ? signedMap.get(p.avatar_url) ?? null : null,
-      avatarColor: p.avatar_color ?? null,
-    }));
+    // Each teammate is judged only by their own today (same rule as the Groups list and Home).
+    const teammates: CelebrationTeammate[] = (profs ?? []).map((p: any) => {
+      const own = memberOwnToday({
+        ownToday: localDateIn(p.timezone || "UTC"),
+        checkInDates: checkInDatesBy.get(p.id),
+        coveredDates: coveredBy.get(p.id),
+        workingOut: false,
+      });
+      return {
+        id: p.id,
+        initial: (p.name ?? "?").trim().charAt(0).toUpperCase() || "•",
+        checkedIn: own.status === "done",
+        resting: own.resting,
+        avatarUrl: p.avatar_url ? signedMap.get(p.avatar_url) ?? null : null,
+        avatarColor: p.avatar_color ?? null,
+      };
+    });
 
 
     return {

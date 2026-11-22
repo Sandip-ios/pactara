@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Mixed crews get one 8 PM push naming all (at-risk first); a personal reminder set 8:00–9:59 PM counts as the night's evening push; celebration judges teammates by their own today (unpublished, awaiting review)
+
 - [x] One evening push (8 PM or 9 PM) per person per local day, recorded so repeat runs can't double-send; Groups list and crew page judge teammates by their own today (unpublished, awaiting review)
 
 - [x] Crew page Today tab: members resting today show "Resting today", can't be nudged and aren't counted as due (unpublished, awaiting review)

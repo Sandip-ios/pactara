@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   canClaimEveningPush,
+  dailyReminderEveningPlan,
+  isEveningPushHour,
   planEveningPush,
   sendEveningPush,
   type EveningPushDeps,
@@ -78,14 +80,27 @@ describe("one evening push per member per local day", () => {
     expect(failed.push).toHaveBeenCalledTimes(2);
   });
 
-  it("only the 9 PM push goes out when the 8 PM one didn't apply", async () => {
+  it("only the 9 PM push goes out when the 8 PM one didn't apply (every crew at risk)", async () => {
     const { push, deps } = ledger();
-    // A group at risk (and one that isn't): 8 PM leaves this member for 9 PM — the old overlap case.
-    const groups = [atRisk("g1", "Fit Uxers"), lastCall("g2", "Runners")];
+    const groups = [atRisk("g1", "Fit Uxers")];
     expect(planEveningPush({ hour: 20, timezone: TZ, groups, hasFreeze: false, now: eightPm })).toBeNull();
     const nine = planEveningPush({ hour: 21, timezone: TZ, groups, hasFreeze: false, now: ninePm })!;
     expect(nine.message.title).toBe("Your 5-day streak in Fit Uxers is at risk 🔥");
     expect((await sendEveningPush(deps, "u1", TZ, nine, ninePm)).claimed).toBe(true);
+    expect(push).toHaveBeenCalledTimes(1);
+  });
+
+  it("mixed crews: one 8 PM push names all crews, at-risk first, and the 9 PM push is skipped", async () => {
+    const { push, deps } = ledger();
+    const groups = [lastCall("g2", "Runners"), atRisk("g1", "Fit Uxers")];
+    const eight = planEveningPush({ hour: 20, timezone: TZ, groups, hasFreeze: false, now: eightPm })!;
+    expect(eight.groupIds).toEqual(["g1", "g2"]);
+    expect(eight.message.body).toBe(
+      "Don't break your streak in Fit Uxers — check in for Fit Uxers and Runners before bed.",
+    );
+    expect((await sendEveningPush(deps, "u1", TZ, eight, eightPm)).claimed).toBe(true);
+    const nine = planEveningPush({ hour: 21, timezone: TZ, groups, hasFreeze: false, now: ninePm })!;
+    expect((await sendEveningPush(deps, "u1", TZ, nine, ninePm)).claimed).toBe(false);
     expect(push).toHaveBeenCalledTimes(1);
   });
 
@@ -130,6 +145,49 @@ describe("one evening push per member per local day", () => {
     const nine = planEveningPush({ hour: 21, timezone: TZ, groups: [atRisk("g1", "Fit Uxers")], hasFreeze: false, now: ninePm })!;
     await sendEveningPush(deps, "u1", TZ, nine, ninePm);
     await sendEveningPush(deps, "u1", TZ, nine, new Date("2026-11-23T03:00:00Z"));
+    expect(push).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("personal daily reminder set between 8:00 and 9:59 PM", () => {
+  const reminder = { title: "Time to check in ✅", body: "Log today's check-in for Fit Uxers. 🔥", url: "/check-in?group=g1" };
+
+  it("only 8 PM and 9 PM reminder hours share the evening slot", () => {
+    expect([19, 20, 21, 22, 9].map(isEveningPushHour)).toEqual([false, true, true, false, false]);
+    expect(dailyReminderEveningPlan(9, ["g1"], reminder)).toBeNull();
+    expect(dailyReminderEveningPlan(19, ["g1"], reminder)).toBeNull();
+    expect(dailyReminderEveningPlan(22, ["g1"], reminder)).toBeNull();
+  });
+
+  it("a reminder at 8:30 PM went out → the 8 PM and 9 PM pushes are skipped that night", async () => {
+    const { push, deps, rows } = ledger();
+    const own = dailyReminderEveningPlan(20, ["g1"], reminder)!;
+    expect((await sendEveningPush(deps, "u1", TZ, own, eightPm)).claimed).toBe(true);
+    const eight = planEveningPush({ hour: 20, timezone: TZ, groups: [lastCall("g1", "Fit Uxers")], hasFreeze: false, now: eightPm })!;
+    const nine = planEveningPush({ hour: 21, timezone: TZ, groups: [atRisk("g1", "Fit Uxers")], hasFreeze: false, now: ninePm })!;
+    expect((await sendEveningPush(deps, "u1", TZ, eight, eightPm)).claimed).toBe(false);
+    expect((await sendEveningPush(deps, "u1", TZ, nine, ninePm)).claimed).toBe(false);
+    expect(push).toHaveBeenCalledTimes(1);
+    expect(rows.get("u1:2026-11-21")?.status).toBe("sent");
+  });
+
+  it("8 PM push went out → a reminder set for 9:15 PM is skipped", async () => {
+    const { push, deps } = ledger();
+    const eight = planEveningPush({ hour: 20, timezone: TZ, groups: [lastCall("g1", "Fit Uxers")], hasFreeze: false, now: eightPm })!;
+    await sendEveningPush(deps, "u1", TZ, eight, eightPm);
+    const own = dailyReminderEveningPlan(21, ["g1"], reminder)!;
+    expect((await sendEveningPush(deps, "u1", TZ, own, ninePm)).claimed).toBe(false);
+    expect(push).toHaveBeenCalledTimes(1);
+  });
+
+  it("a reminder at 9 PM after a failed 8 PM push still goes out, and the 9 PM job then skips", async () => {
+    const { push, deps } = ledger(0);
+    const eight = planEveningPush({ hour: 20, timezone: TZ, groups: [lastCall("g1", "Fit Uxers")], hasFreeze: false, now: eightPm })!;
+    await sendEveningPush(deps, "u1", TZ, eight, eightPm);
+    const own = dailyReminderEveningPlan(21, ["g1"], reminder)!;
+    expect((await sendEveningPush(deps, "u1", TZ, own, ninePm)).claimed).toBe(true);
+    const nine = planEveningPush({ hour: 21, timezone: TZ, groups: [atRisk("g1", "Fit Uxers")], hasFreeze: false, now: ninePm })!;
+    expect((await sendEveningPush(deps, "u1", TZ, nine, ninePm)).claimed).toBe(false);
     expect(push).toHaveBeenCalledTimes(2);
   });
 });

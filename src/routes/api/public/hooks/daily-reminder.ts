@@ -3,6 +3,8 @@ import { localHourFor } from "@/lib/daily-posts.functions";
 import { localDateIn } from "@/lib/streak-rules";
 import { morningReminderGroups, morningReminderMessage } from "@/lib/streak-risk-plan";
 import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
+import { dailyReminderEveningPlan, sendEveningPush } from "@/lib/evening-push-plan";
+import { eveningPushDeps } from "@/lib/evening-push-sends.server";
 
 /** Enough history to cover today in any timezone. */
 const LOOKBACK_DAYS = 2;
@@ -12,6 +14,8 @@ const LOOKBACK_DAYS = 2;
  * chose (notification_preferences.daily_reminder_time), in their local timezone.
  * Each group is judged on its own: groups already covered today (check-in,
  * rest or freeze row) are skipped; one push names the groups still waiting.
+ * A reminder set between 8:00 and 9:59 PM is that member's one evening push
+ * for the night (shared with the 8 PM / 9 PM jobs, see evening-push-plan).
  */
 export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
   server: {
@@ -45,9 +49,13 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
 
         const now = new Date();
         const due: string[] = [];
+        const hourById = new Map<string, number>();
         for (const r of rows) {
           const hour = Number(String(r.daily_reminder_time ?? "09:00:00").slice(0, 2));
-          if (localHourFor(tzById.get(r.user_id) ?? "UTC", now) === hour) due.push(r.user_id);
+          if (localHourFor(tzById.get(r.user_id) ?? "UTC", now) === hour) {
+            due.push(r.user_id);
+            hourById.set(r.user_id, hour);
+          }
         }
         if (due.length === 0) return Response.json({ ok: true, sent: 0, scanned: rows.length });
 
@@ -70,6 +78,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
         };
 
         const { pushToUsers } = await import("@/lib/notify.server");
+        const deps = eveningPushDeps(supabaseAdmin, (userId, message) => pushToUsers([userId], message));
         let sent = 0;
         let reminded = 0;
         for (const userId of due) {
@@ -88,6 +97,21 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
               };
             }),
           );
+          // 8:00–9:59 PM: only if no evening push reached them tonight.
+          const evening = dailyReminderEveningPlan(
+            hourById.get(userId) ?? -1,
+            need.map((g) => g.groupId),
+            message,
+          );
+          if (evening) {
+            const r = await sendEveningPush(deps, userId, tz, evening, now).catch((err) => {
+              console.warn("[daily-reminder] evening send failed", err);
+              return { claimed: false, delivered: 0 };
+            });
+            if (!r.claimed) reminded -= 1;
+            sent += r.delivered;
+            continue;
+          }
           const result = await pushToUsers([userId], message).catch(() => ({ webSent: 0, fcmSent: 0 }));
           sent += result.webSent + result.fcmSent;
         }

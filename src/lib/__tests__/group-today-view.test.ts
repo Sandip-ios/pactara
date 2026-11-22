@@ -99,3 +99,26 @@ describe("teammate already on tomorrow: judged only by their own today", () => {
     expect(memberOwnToday({ ...base, checkInDates: new Set(), coveredDates: covered }).resting).toBe(true);
   });
 });
+
+describe("check-in celebration: teammates judged by their own today", () => {
+  // You (Chicago) just checked in on Sun Nov 22; Kai, Lena and Mia are already on Mon Nov 23.
+  const own = (checkIns: string[], covered: string[]) => {
+    const r = memberOwnToday({ ownToday: "2026-11-23", checkInDates: new Set(checkIns), coveredDates: new Set(covered), workingOut: false });
+    return { checkedIn: r.status === "done", resting: r.resting };
+  };
+
+  it("a check-in or rest row on your today doesn't count for a teammate already on tomorrow", () => {
+    expect(own(["2026-11-22"], [])).toEqual({ checkedIn: false, resting: false });
+    expect(own([], ["2026-11-22"])).toEqual({ checkedIn: false, resting: false });
+  });
+
+  it("counts their own today: checked in → in, rest row → resting and not due", () => {
+    const you = { checkedIn: true, resting: false };
+    const kai = own([], ["2026-11-22"]);
+    const lena = own([], ["2026-11-23"]);
+    const mia = own(["2026-11-23"], []);
+    expect(lena).toEqual({ checkedIn: false, resting: true });
+    expect(mia).toEqual({ checkedIn: true, resting: false });
+    expect(celebrationCounts([you, kai, lena, mia])).toEqual({ done: 2, due: 3 });
+  });
+});
