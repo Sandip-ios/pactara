@@ -136,16 +136,16 @@ export function NotYetRow({
   );
 }
 
-export function RestedRow({ item, localDate }: { item: FeedItem; localDate: string }) {
-  const first = (item.name || "").split(" ")[0] || "Member";
+export function RestedRow({ member, localDate }: { member: FeedMember; localDate: string }) {
+  const first = member.firstName || (member.name || "").split(" ")[0] || "Member";
   return (
     <Row
-      userId={item.userId}
-      isMe={item.isMe}
-      name={item.name}
-      avatarUrl={item.avatarUrl}
-      avatarColor={item.avatarColor}
-      title={item.isMe ? "You rested" : `${first} rested`}
+      userId={member.userId}
+      isMe={member.isMe}
+      name={member.name}
+      avatarUrl={member.avatarUrl}
+      avatarColor={member.avatarColor}
+      title={member.isMe ? "You rested" : `${first} rested`}
       subline={weekdayName(localDate)}
       className="bg-white"
       right={

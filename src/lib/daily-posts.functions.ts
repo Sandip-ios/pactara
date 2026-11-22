@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { commentMediaKind, commentProblem, commentPush } from "@/lib/comment-media";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
@@ -442,18 +443,13 @@ export type FeedMeta = {
   days: DayStat[];
   /** Crewmates whose own day is still open with no check-in or rest. */
   notYet: { userId: string; closesAt: string; nudgedAt: string | null }[];
+  /** Members whose own today is covered by a rest day or freeze, with no check-in. */
+  restingToday?: string[];
   milestones: { id: string; userId: string; streakDays: number; localDate: string; postId: string | null }[];
 };
 
 const FEED_STREAK_LOOKBACK_DAYS = 120;
 
-function commentMediaKind(url: string | null, type: string | null): CommentPreview["mediaKind"] {
-  if (!url) return null;
-  const t = (type ?? "").toLowerCase();
-  if (t.startsWith("video/")) return "video";
-  if (t === "image/gif" || /\.gif(\?|$)/i.test(url) || /giphy|tenor/i.test(url)) return "gif";
-  return "photo";
-}
 
 export type PostComment = {
   id: string;
@@ -518,7 +514,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .eq("group_id", groupId)
       .gte("local_date", windowStart);
     if (data.before) postsQuery = postsQuery.lt("local_date", data.before);
-    const [{ data: posts, error }, olderRes] = await Promise.all([
+    const [{ data: posts, error }, olderRes, olderRestRes] = await Promise.all([
       postsQuery.order("updated_at", { ascending: false }).limit(1000),
       // The newest older day with anything on it; skips empty stretches.
       supabase
@@ -529,15 +525,27 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .order("local_date", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      // ...or with a rest day or freeze on it, which has no post of its own.
+      supabase
+        .from("streak_freezes_used")
+        .select("freeze_date")
+        .eq("group_id", groupId)
+        .lt("freeze_date", windowStart)
+        .order("freeze_date", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     if (error) throw new Error(error.message);
-    const olderDate = (olderRes.data?.local_date as string | undefined) ?? null;
+    const olderPost = (olderRes.data?.local_date as string | undefined) ?? null;
+    const olderRest = (olderRestRes.data?.freeze_date as string | undefined) ?? null;
+    const olderDate = olderPost && olderRest ? (olderPost > olderRest ? olderPost : olderRest) : olderPost ?? olderRest;
     const nextBefore = olderDate ? addDaysIso(olderDate, 1) : null;
-    if (!posts || posts.length === 0) return { items: [], meta: null, nextBefore };
+    // No posts this week can still mean rest days and today's crew rows, so carry on.
+    const noRows = Promise.resolve({ data: [] as any[], error: null });
 
-    const postIds = posts.map((p) => p.id);
-    const posterIds = Array.from(new Set(posts.map((p) => p.user_id)));
-    const dates = Array.from(new Set(posts.map((p) => p.local_date)));
+    const postIds = (posts ?? []).map((p) => p.id);
+    const posterIds = Array.from(new Set((posts ?? []).map((p) => p.user_id)));
+    const dates = Array.from(new Set((posts ?? []).map((p) => p.local_date)));
     const historyStart = addDaysIso(windowStart, -FEED_STREAK_LOOKBACK_DAYS);
     const recentNudgeDay = addDaysIso(now.toISOString().slice(0, 10), -1);
 
@@ -555,27 +563,35 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     ] = await Promise.all([
       supabase.from("groups").select("frequency, days_per_week").eq("id", groupId).maybeSingle(),
       supabase.from("group_members").select("user_id, joined_at").eq("group_id", groupId),
-      supabase
-        .from("check_ins")
-        .select("id, user_id, checkin_date, mood, activity, note, photo_url, created_at")
-        .eq("group_id", groupId)
-        .in("user_id", posterIds)
-        .in("checkin_date", dates),
-      (supabase as any)
-        .from("daily_thoughts")
-        .select("id, user_id, local_date, text, photo_url, created_at")
-        .eq("group_id", groupId)
-        .in("user_id", posterIds)
-        .in("local_date", dates),
-      (supabase as any)
-        .from("post_reactions")
-        .select("post_id, user_id, emoji, created_at")
-        .in("post_id", postIds)
-        .order("created_at", { ascending: true }),
-      (supabase as any)
-        .from("post_comments")
-        .select("id, post_id, user_id, body, media_url, media_type, created_at")
-        .in("post_id", postIds),
+      postIds.length
+        ? supabase
+            .from("check_ins")
+            .select("id, user_id, checkin_date, mood, activity, note, photo_url, created_at")
+            .eq("group_id", groupId)
+            .in("user_id", posterIds)
+            .in("checkin_date", dates)
+        : noRows,
+      postIds.length
+        ? (supabase as any)
+            .from("daily_thoughts")
+            .select("id, user_id, local_date, text, photo_url, created_at")
+            .eq("group_id", groupId)
+            .in("user_id", posterIds)
+            .in("local_date", dates)
+        : noRows,
+      postIds.length
+        ? (supabase as any)
+            .from("post_reactions")
+            .select("post_id, user_id, emoji, created_at")
+            .in("post_id", postIds)
+            .order("created_at", { ascending: true })
+        : noRows,
+      postIds.length
+        ? (supabase as any)
+            .from("post_comments")
+            .select("id, post_id, user_id, body, media_url, media_type, created_at")
+            .in("post_id", postIds)
+        : noRows,
       // Rest days and streak freezes: those days are kept, never "missed".
       supabase
         .from("streak_freezes_used")
@@ -724,7 +740,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         poster_url: resolvePoster(t.photo_url),
       }));
 
-    const items: FeedItem[] = posts.map((p) => {
+    const items: FeedItem[] = (posts ?? []).map((p) => {
       const prof = profileMap.get(p.user_id);
       const nodes: TimelineNode[] = [];
 
@@ -778,7 +794,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       // job has flagged it (or it carried an old commitment). A plain "what's
       // on your mind" update today is just an update, not a pending check-in.
       const coveredBy = protectedKind.get(`${p.user_id}|${p.local_date}`);
-      if (myCheckIns.length === 0 && coveredBy === "rest") {
+      if (myCheckIns.length === 0 && coveredBy) {
         nodes.push({
           kind: "rested",
           id: `rest-${p.id}`,
@@ -900,12 +916,17 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         nudgedAt: nudgedAt.get(m.userId) ?? null,
       }));
 
+    // Today's own day already covered by a rest day or freeze, check-in or not posted.
+    const restingToday = data.before
+      ? []
+      : crew.filter((m) => !m.checkIns.has(m.today) && m.covered.has(m.today)).map((m) => m.userId);
+
     // Streak badges (3 days and up); the 1-day badge is every first check-in.
     const milestones = ((badgesRes.data ?? []) as { id: string; user_id: string; streak_days: number; earned_at: string }[])
       .filter((b) => b.streak_days >= 3)
       .map((b) => {
         const localDate = localDateIn(tzMap.get(b.user_id) ?? "UTC", new Date(b.earned_at));
-        const post = posts.find((p) => p.user_id === b.user_id && p.local_date === localDate);
+        const post = (posts ?? []).find((p) => p.user_id === b.user_id && p.local_date === localDate);
         return { id: b.id, userId: b.user_id, streakDays: b.streak_days, localDate, postId: post?.id ?? null };
       })
       .filter((m) => m.localDate >= windowStart && (!data.before || m.localDate < data.before));
@@ -930,6 +951,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         members,
         days,
         notYet,
+        restingToday,
         milestones,
       },
       nextBefore,
@@ -1029,18 +1051,18 @@ export const addPostComment = createServerFn({ method: "POST" })
   .inputValidator(
     (data: {
       postId: string;
-      body: string;
+      body?: string | null;
       mediaUrl?: string | null;
       mediaType?: string | null;
       parentCommentId?: string | null;
     }) => data,
   )
   .handler(async ({ data, context }) => {
-    const body = data.body.trim();
+    const body = (data.body ?? "").trim();
     const mediaUrl = data.mediaUrl?.trim() || null;
     const mediaType = mediaUrl ? data.mediaType?.trim() || null : null;
-    if (!body && !mediaUrl) throw new Error("Comment cannot be empty");
-    if (body.length > 1000) throw new Error("Comment is too long");
+    const problem = commentProblem(body, mediaUrl);
+    if (problem) throw new Error(problem);
     const { supabase, userId } = context;
 
     // Instagram/Facebook style: one level of nesting. Replying to a reply
@@ -1068,14 +1090,9 @@ export const addPostComment = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     try {
       const { notifyPostComment } = await import("@/lib/notify.server");
-      const preview = body
-        ? body.slice(0, 120)
-        : mediaType?.startsWith("video/")
-          ? "Sent a video"
-          : "Sent a photo";
+      const kind = commentMediaKind(mediaUrl, mediaType);
       await notifyPostComment(data.postId, userId, (name) => ({
-        title: `${name} commented`,
-        body: preview,
+        ...commentPush(name, body, kind),
         url: `/home?post=${data.postId}&comments=1`,
       }));
     } catch (err) {

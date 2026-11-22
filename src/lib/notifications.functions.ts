@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { commentMediaKind, mediaOnlyCommentLine } from "@/lib/comment-media";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -137,7 +138,7 @@ async function collect(
     const [{ data: comments }, { data: reactions }] = await Promise.all([
       supabase
         .from("post_comments")
-        .select("id, post_id, user_id, body, media_url, parent_comment_id, created_at")
+        .select("id, post_id, user_id, body, media_url, media_type, parent_comment_id, created_at")
         .in("post_id", postIds)
         .gte("created_at", from)
         .order("created_at", { ascending: false })
@@ -157,6 +158,7 @@ async function collect(
       user_id: string;
       body: string;
       media_url: string | null;
+      media_type: string | null;
       parent_comment_id: string | null;
       created_at: string;
     }>;
@@ -177,11 +179,14 @@ async function collect(
         key: `comment:${c.id}`,
         kind: replyToMe ? "reply" : "comment",
         actorId: c.user_id,
-        text: replyToMe
-          ? "replied to your comment"
-          : mine
-            ? "commented on your check-in"
-            : "also commented on a check-in",
+        // A GIF or photo with no words reads "{Name} sent a GIF".
+        text: !(c.body ?? "").trim() && c.media_url
+          ? mediaOnlyCommentLine(commentMediaKind(c.media_url, c.media_type) ?? "photo")
+          : replyToMe
+            ? "replied to your comment"
+            : mine
+              ? "commented on your check-in"
+              : "also commented on a check-in",
         createdAt: c.created_at,
         mediaPath: c.media_url ?? postPhoto.get(c.post_id) ?? null,
         mediaKind: null,
@@ -432,7 +437,7 @@ export const getNotifications = createServerFn({ method: "GET" })
       signMany(
         supabase,
         "chat-photos",
-        raw.map((r) => r.mediaPath ?? "").filter(Boolean),
+        raw.map((r) => r.mediaPath ?? "").filter((p) => p && !p.startsWith("http")),
       ),
       readKeys(supabase, userId),
     ]);
@@ -451,7 +456,7 @@ export const getNotifications = createServerFn({ method: "GET" })
         text: r.text,
         createdAt: r.createdAt,
         read: read.has(r.key),
-        mediaUrl: r.mediaPath ? (mediaUrls[r.mediaPath] ?? null) : null,
+        mediaUrl: r.mediaPath ? (r.mediaPath.startsWith("http") ? r.mediaPath : (mediaUrls[r.mediaPath] ?? null)) : null,
         mediaKind: r.mediaPath ? (isVideo(r.mediaPath) ? "video" : "image") : null,
         groupId: r.groupId,
         groupName: nameById.get(r.groupId) ?? "",

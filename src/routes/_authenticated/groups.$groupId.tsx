@@ -158,7 +158,7 @@ function GroupDetailPage() {
         {tab === "today" ? (
            <TodayTab group={group} displayName={displayName} onCheer={setCheerSessionId} />
         ) : (
-          <ActivityTab groupId={group.id} />
+          <ActivityTab groupId={group.id} solo={relation?.kind === "solo" || group.memberCount <= 1} />
         )}
       </PullToRefresh>
 
@@ -336,7 +336,7 @@ function MemberStatusRow({
   );
 }
 
-function ActivityTab({ groupId }: { groupId: string }) {
+function ActivityTab({ groupId, solo }: { groupId: string; solo: boolean }) {
   const groupFeed = useGroupFeed(groupId, { staleTime: 30_000 });
 
   // Same day-by-day feed as Home, for this one group.
@@ -349,6 +349,7 @@ function ActivityTab({ groupId }: { groupId: string }) {
         refreshFailed={groupFeed.refreshFailed}
         onRetry={() => void groupFeed.refetch()}
         groupId={groupId}
+        solo={solo}
         hasMore={groupFeed.hasMore}
         loadingMore={groupFeed.loadingMore}
         loadMoreFailed={groupFeed.loadMoreFailed}

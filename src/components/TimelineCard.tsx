@@ -1,3 +1,4 @@
+import { mediaOnlyCommentLine } from "@/lib/comment-media";
 import {
   useEffect,
   useLayoutEffect,
@@ -326,7 +327,7 @@ function useCheers(item: FeedItem) {
 function CommentsPreview({ item, unread, onOpen }: { item: FeedItem; unread: number; onOpen: () => void }) {
   if (item.commentCount <= 0) return null;
   const c = item.latestComment;
-  const mediaWord = c?.mediaKind === "gif" ? "a GIF" : c?.mediaKind === "video" ? "a video" : "a photo";
+
   return (
     <button type="button" onClick={onOpen} className="block w-full px-4 pt-0.5 text-left active:opacity-70">
       <span className="flex items-center gap-2">
@@ -342,7 +343,7 @@ function CommentsPreview({ item, unread, onOpen }: { item: FeedItem; unread: num
       {c && (
         <span className="mt-1 flex items-center gap-3">
           <span className="line-clamp-2 min-w-0 flex-1 text-[14px] text-neutral-900">
-            <b className="font-bold">{c.authorName}</b> {c.body || (c.mediaKind ? `sent ${mediaWord}` : "")}
+            <b className="font-bold">{c.authorName}</b> {c.body || (c.mediaKind ? mediaOnlyCommentLine(c.mediaKind) : "")}
           </span>
           {c.thumbUrl && <img src={c.thumbUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg object-cover" />}
         </span>

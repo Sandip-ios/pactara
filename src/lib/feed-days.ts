@@ -1,7 +1,8 @@
 /**
  * Turns the group feed into days for Home: post cards (check-ins swipe
  * together, each update is its own card) and quiet rows. Today keeps one row
- * per person (not yet, rested, missed); past days get one combined quiet row.
+ * per person (not yet, rested, missed), rest days included even without a post;
+ * past days get one combined quiet row.
  * Milestones stay individual on every day. Nothing collapses.
  */
 import type { FeedItem, FeedMember, FeedMeta, GroupFeedPage, TimelineNode } from "@/lib/daily-posts.functions";
@@ -13,7 +14,7 @@ export type UpdateNode = Extract<TimelineNode, { kind: "thought" | "ritual" }>;
 export type FeedEntry =
   | { kind: "checkins"; key: string; item: FeedItem; checkIns: CheckInNode[] }
   | { kind: "update"; key: string; item: FeedItem; node: UpdateNode }
-  | { kind: "rested"; key: string; item: FeedItem; localDate: string }
+  | { kind: "rested"; key: string; member: FeedMember; localDate: string }
   | { kind: "missed"; key: string; item: FeedItem; localDate: string }
   | { kind: "not_yet"; key: string; member: FeedMember; closesAt: string; nudgedAt: string | null }
   | { kind: "milestone"; key: string; member: FeedMember; streakDays: number; postId: string | null; localDate: string }
@@ -54,6 +55,8 @@ const orderPeople = (people: FeedMember[]) =>
 export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefined, fallbackToday: string): FeedDay[] {
   const viewerToday = meta?.viewerToday ?? fallbackToday;
   const members = new Map((meta?.members ?? []).map((m) => [m.userId, m]));
+  // Today's rest rows, one per person, from their post or from the crew's rest days.
+  const restedToday = new Map<string, { member: FeedMember; localDate: string }>();
   type Bucket = {
     entries: (FeedEntry & { sortAt: number })[];
     missed: Map<string, FeedItem>;
@@ -85,7 +88,9 @@ export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefin
         day.entries.push({ kind: "update", key: `up-${n.id}`, item, node: n, sortAt: at(n.at) });
       } else if (n.kind === "rested") {
         if (isPast) day.rested.set(item.userId, members.get(item.userId) ?? memberFromItem(item));
-        else day.entries.push({ kind: "rested", key: `rest-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
+        else if (!restedToday.has(item.userId)) {
+          restedToday.set(item.userId, { member: members.get(item.userId) ?? memberFromItem(item), localDate: n.localDate });
+        }
       } else if (n.kind === "check_in_missed") {
         if (isPast) day.missed.set(item.userId, item);
         else day.entries.push({ kind: "missed", key: `miss-${item.id}`, item, localDate: n.localDate, sortAt: 0 });
@@ -103,6 +108,14 @@ export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefin
       const m = members.get(id);
       if (m && !day.missed.has(id)) day.rested.set(id, m);
     }
+  }
+
+  for (const id of meta?.restingToday ?? []) {
+    const member = members.get(id);
+    if (member && !restedToday.has(id)) restedToday.set(id, { member, localDate: viewerToday });
+  }
+  for (const [id, r] of restedToday) {
+    dayFor(viewerToday).entries.push({ kind: "rested", key: `rest-${id}`, member: r.member, localDate: r.localDate, sortAt: 0 });
   }
 
   for (const n of meta?.notYet ?? []) {
@@ -169,6 +182,7 @@ export function mergeFeedPages(pages: GroupFeedPage[]): { items: FeedItem[]; met
       days: metas.flatMap((m) => m.days),
       milestones: metas.flatMap((m) => m.milestones),
       notYet: base.notYet,
+      restingToday: base.restingToday ?? [],
     },
   };
 }

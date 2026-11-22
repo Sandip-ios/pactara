@@ -13,7 +13,7 @@ const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
 const MUTED = "#57534E";
 
-function EmptyFeed({ onInvite }: { onInvite?: () => void }) {
+function EmptyFeed({ onInvite, solo }: { onInvite?: () => void; solo?: boolean }) {
   const navigate = useNavigate();
   // iOS: a click after the keyboard collapses can land at stale coordinates.
   // Navigate on a touch that didn't move, like the Today card.
@@ -24,9 +24,13 @@ function EmptyFeed({ onInvite }: { onInvite?: () => void }) {
       <span className="flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "#EDE6FE" }}>
         <Video size={26} style={{ color: PURPLE }} />
       </span>
-      <h2 className="mt-4 text-[18px] font-extrabold text-neutral-900">Be the first one in</h2>
+      <h2 className="mt-4 text-[18px] font-extrabold text-neutral-900">
+        {solo ? "Your feed starts with you." : "Be the first one in"}
+      </h2>
       <p className="mt-1.5 max-w-[280px] text-[14px]" style={{ color: MUTED }}>
-        Your crew's check-ins show up here. Post yours and they'll see it right away.
+        {solo
+          ? "Check in today while we find your accountability partner."
+          : "Your crew's check-ins show up here. Post yours and they'll see it right away."}
       </p>
       <button
         type="button"
@@ -47,7 +51,7 @@ function EmptyFeed({ onInvite }: { onInvite?: () => void }) {
         <Video size={20} />
         Check in with video
       </button>
-      {onInvite && (
+      {onInvite && !solo && (
         <button type="button" onClick={onInvite} className="mt-2 h-11 px-4 text-[15px] font-semibold" style={{ color: PURPLE }}>
           Invite your crew
         </button>
@@ -113,7 +117,7 @@ function Entry({ entry, groupId, autoOpen }: { entry: FeedEntry; groupId: string
     case "update":
       return <TimelineCard kind="update" item={entry.item} node={entry.node} autoOpenComments={autoOpen} />;
     case "rested":
-      return <RestedRow item={entry.item} localDate={entry.localDate} />;
+      return <RestedRow member={entry.member} localDate={entry.localDate} />;
     case "missed":
       return <MissedRow item={entry.item} localDate={entry.localDate} autoOpenComments={autoOpen} />;
     case "not_yet":
@@ -142,6 +146,7 @@ export function FeedList({
   deepLinkPost,
   deepLinkComments,
   onInvite,
+  solo = false,
   hasMore = false,
   loadingMore = false,
   loadMoreFailed = false,
@@ -158,6 +163,8 @@ export function FeedList({
   deepLinkPost?: string;
   deepLinkComments?: boolean;
   onInvite?: () => void;
+  /** Solo crew or still waiting for a partner: the empty feed speaks to just you. */
+  solo?: boolean;
   /** Older days exist before the oldest loaded one. */
   hasMore?: boolean;
   loadingMore?: boolean;
@@ -258,7 +265,7 @@ export function FeedList({
     return (
       <div className="pb-2">
         {banner}
-        {hasMore ? loadMoreFooter : items && <EmptyFeed onInvite={onInvite} />}
+        {hasMore ? loadMoreFooter : items && <EmptyFeed onInvite={onInvite} solo={solo} />}
       </div>
     );
   }

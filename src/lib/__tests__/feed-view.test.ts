@@ -176,6 +176,44 @@ describe("feed days", () => {
     expect(days[0]?.entries.map((e) => e.kind)).toEqual(["checkins", "not_yet", "rested", "missed"]);
   });
 
+  it("shows a member resting today with no post as their own rested row", () => {
+    const days = buildFeedDays([checkIn("c", "me", today)], meta({ restingToday: ["b"] }), today);
+    const rows = days[0]?.entries ?? [];
+    expect(rows.map((e) => e.kind)).toEqual(["checkins", "rested"]);
+    const rest = rows[1];
+    if (rest?.kind !== "rested") throw new Error("no rested row");
+    expect(rest.member.firstName).toBe("Bertille");
+    expect(rest.localDate).toBe(today);
+  });
+
+  it("shows one rested row today when the member also has a post for the day", () => {
+    const days = buildFeedDays([rested("x", "b", today), checkIn("c", "me", today)], meta({ restingToday: ["b"] }), today);
+    expect(days[0]?.entries.filter((e) => e.kind === "rested")).toHaveLength(1);
+  });
+
+  it("names a past rest day with no post in that day's combined row", () => {
+    const days = buildFeedDays(
+      [checkIn("a", "m", "2026-11-21"), missed("b", "g", "2026-11-21")],
+      meta({ days: [{ date: "2026-11-21", checkedIn: ["m"], rested: ["b"], missed: ["g"], due: 3, groupStreak: 0 }] }),
+      today,
+    );
+    const quiet = days[0]?.entries.find((e) => e.kind === "quiet");
+    if (quiet?.kind !== "quiet") throw new Error("no quiet row");
+    expect(quietDayLine(quiet.missed, quiet.rested)).toBe("Guy missed · Bertille rested");
+  });
+
+  it("keeps a rest-only day with nobody posting", () => {
+    const days = buildFeedDays(
+      [],
+      meta({ days: [{ date: "2026-11-20", checkedIn: [], rested: ["b"], missed: [], due: 3, groupStreak: 0 }] }),
+      today,
+    );
+    expect(days.map((d) => d.date)).toEqual(["2026-11-20"]);
+    const quiet = days[0]?.entries[0];
+    if (quiet?.kind !== "quiet") throw new Error("no quiet row");
+    expect(quietDayLine(quiet.missed, quiet.rested)).toBe("Bertille rested");
+  });
+
   it("keeps milestone rows individual on past days", () => {
     const days = buildFeedDays(
       [checkIn("a", "m", "2026-11-17"), missed("b", "g", "2026-11-17")],
@@ -211,6 +249,7 @@ describe("feed days", () => {
     expect(merged.items.map((i) => i.id)).toEqual(["a", "b"]);
     expect(merged.meta?.days.map((d) => d.date)).toEqual(["2026-11-22", "2026-11-12"]);
     expect(merged.meta?.notYet).toHaveLength(1);
+    expect(mergeFeedPages([{ ...first, meta: meta({ restingToday: ["b"] }) }, second]).meta?.restingToday).toEqual(["b"]);
     expect(merged.meta?.members.map((m) => m.userId)).toContain("z");
   });
 });

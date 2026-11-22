@@ -698,6 +698,10 @@ function HomePage() {
         deepLinkPost={search.post}
         deepLinkComments={Boolean(search.comments)}
         onInvite={crew ? () => setInviteOpen(true) : undefined}
+        solo={
+          relationFor(crew?.groupId ?? selectedGroupId)?.kind === "solo" ||
+          Boolean(crew && crew.groupId === (selectedGroupId ?? crew.groupId) && crew.memberCount <= 1)
+        }
       />
 
       {/* Getting started checklist hidden for now */}
