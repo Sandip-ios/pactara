@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekDayStates, weeksOnGoal } from "../streak-rules";
+import { restLeftForGroup, weekDayStates, weeksOnGoal } from "../streak-rules";
 
 // Weeks: Oct 26–Nov 1, Nov 2–8, Nov 9–15, Nov 16–22 (all Mon–Sun, 2026).
 const fiveEach = (monday: string, days: number[]) =>
@@ -55,5 +55,23 @@ describe("Home week dots", () => {
       new Set(["2026-11-17", "2026-11-18"]),
     ).map((d) => d.state);
     expect(states).toEqual(["checked", "rest", "checked", "none", "none", "none", "none"]);
+  });
+});
+
+describe("check-in screen rest days left", () => {
+  const groups = [
+    { groupId: "daily", restLeft: 0 },
+    { groupId: "three-a-week", restLeft: 3 },
+  ];
+
+  it("shows the rest days left in the group being checked in to", () => {
+    expect(restLeftForGroup(groups, "three-a-week")).toBe(3);
+    expect(restLeftForGroup(groups, "daily")).toBe(0);
+  });
+
+  it("falls back to the fewest left only when the group isn't known", () => {
+    expect(restLeftForGroup(groups, null)).toBe(0);
+    expect(restLeftForGroup(groups, "someone-else")).toBe(0);
+    expect(restLeftForGroup([], "daily")).toBe(0);
   });
 });

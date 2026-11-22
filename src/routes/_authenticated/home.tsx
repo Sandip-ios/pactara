@@ -9,7 +9,7 @@ import { MessageSquare, Image as ImageIcon, Send, Zap, ChevronDown, Bell, X } fr
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
-import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks, getMyCommitmentPace } from "@/lib/groups.functions";
+import { getMyGroupStatus, getPendingCheckIns, listMyGroups, getGroupMemberStreaks } from "@/lib/groups.functions";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getGroupFeed, postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
@@ -198,11 +198,6 @@ function HomePage() {
     queryFn: () => getGroupMemberStreaks({ data: { groupId: selectedGroupId } }),
     staleTime: 60_000,
     refetchOnWindowFocus: true,
-  });
-  const { data: paceData } = useQuery({
-    queryKey: ["my-commitment-pace", selectedGroupId],
-    queryFn: () => getMyCommitmentPace({ data: { groupId: selectedGroupId } }),
-    staleTime: 60_000,
   });
   const { data: restInfo } = useQuery({
     queryKey: ["rest-day-info"],
@@ -529,7 +524,6 @@ function HomePage() {
               state={state}
               streak={myStreak}
               longestStreak={myLongest}
-              pace={paceData ?? null}
               groupId={selectedGroupId}
               groupSize={streaksData?.members?.length}
               weekStatus={restInfo?.groups.find((g) => g.groupId === selectedGroupId) ?? null}

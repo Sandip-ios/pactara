@@ -227,3 +227,16 @@ export function weekDayStates(
     return { date, state };
   });
 }
+
+/**
+ * Rest days left this week for the group being checked in to. Falls back to
+ * the fewest left across groups only when that group isn't known.
+ */
+export function restLeftForGroup(
+  groups: { groupId: string; restLeft: number }[],
+  groupId: string | null | undefined,
+): number {
+  const match = groupId ? groups.find((g) => g.groupId === groupId) : undefined;
+  if (match) return match.restLeft;
+  return groups.length ? Math.min(...groups.map((g) => g.restLeft)) : 0;
+}

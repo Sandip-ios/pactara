@@ -1,16 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { localHourFor } from "@/lib/daily-posts.functions";
+import {
+  EVENING_REMINDER_HOURS,
+  eveningReminderMessage,
+  groupsNeedingCheckIn,
+} from "@/lib/streak-risk-plan";
+import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
 
-const EVENING_HOURS = [17, 20];
-
-const COPY: Record<number, { title: string; body: string }> = {
-  17: { title: "Still time to check in ⏳", body: "Log today's check-in before the day gets away." },
-  20: { title: "Last call to check in 🌙", body: "Don't break your streak — check in before bed." },
-};
+const EVENING_HOURS: readonly number[] = EVENING_REMINDER_HOURS;
+/** Enough history to cover this Mon–Sun week in any timezone. */
+const LOOKBACK_DAYS = 9;
 
 /**
- * Hourly cron: nudges users at 5pm and 8pm local time if they haven't
- * checked in yet today.
+ * Hourly cron: at 5pm and 8pm local time, reminds members about each group
+ * that still needs a check-in today — nothing covers today yet and no rest
+ * day is left this week (otherwise an automatic rest day covers it). One push
+ * per member names every such group.
  */
 export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
   server: {
@@ -56,31 +61,24 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
         const { pushToUsers } = await import("@/lib/notify.server");
         const due = [...dueByHour.values()].flat();
 
-        // Skip anyone who already checked in on their local date.
-        const { data: checked } = await supabaseAdmin
-          .from("check_ins")
-          .select("user_id, checkin_date")
-          .in("user_id", due)
-          .gte("checkin_date", new Date(now.getTime() - 36 * 3600 * 1000).toISOString().slice(0, 10));
-        const alreadyToday = new Set(
-          (checked ?? [])
-            .filter((c) => {
-              const tz = tzById.get(c.user_id) ?? "UTC";
-              const localToday = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(now);
-              return c.checkin_date === localToday;
-            })
-            .map((c) => c.user_id),
-        );
-
         let sent = 0;
-        for (const hour of EVENING_HOURS) {
-          const recipients = (dueByHour.get(hour) ?? []).filter((id) => !alreadyToday.has(id));
-          if (recipients.length === 0) continue;
-          const result = await pushToUsers(recipients, {
-            ...COPY[hour],
-            url: "/check-in",
-          });
-          sent += (result as { sent?: number }).sent ?? 0;
+        let reminded = 0;
+        try {
+          const inputs = await loadRiskInputs(supabaseAdmin, due, now, LOOKBACK_DAYS);
+          for (const [hour, userIds] of dueByHour) {
+            for (const userId of userIds) {
+              const groups = groupsNeedingCheckIn(tzById.get(userId) ?? "UTC", inputs.get(userId) ?? [], now);
+              if (groups.length === 0) continue;
+              reminded += 1;
+              const result = await pushToUsers([userId], eveningReminderMessage(hour, groups)).catch(() => ({
+                webSent: 0,
+                fcmSent: 0,
+              }));
+              sent += result.webSent + result.fcmSent;
+            }
+          }
+        } catch (err) {
+          console.warn("[evening-reminder] check-in reminder failed", err);
         }
 
         // One-time nudge for members who still haven't made their group's pact
@@ -165,7 +163,7 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           console.warn("[evening-reminder] solo nudge failed", err);
         }
 
-        return Response.json({ ok: true, due: due.length, sent, pactNudged, soloNudged });
+        return Response.json({ ok: true, due: due.length, reminded, sent, pactNudged, soloNudged });
       },
     },
   },

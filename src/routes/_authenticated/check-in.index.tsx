@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Moon } from "lucide-react";
@@ -7,6 +7,7 @@ import { clearCheckInPhoto } from "@/lib/checkin-photo-store";
 import { clearCheckInStream } from "@/lib/checkin-stream-store";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { parseFeedDeepLink } from "@/lib/feed-deeplink";
+import { restLeftForGroup } from "@/lib/streak-rules";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -32,7 +33,13 @@ function CheckInRouter() {
     queryFn: () => fetchRest(),
     staleTime: 30_000,
   });
-  if (rest?.restingToday) return <RestDayDone remaining={rest.remaining} />;
+  // The group being checked in to: a reminder's ?group=, else the one last viewed.
+  const [groupId, setGroupId] = useState<string | null>(null);
+  useEffect(() => {
+    const fromLink = parseFeedDeepLink(window.location.search).group;
+    setGroupId(fromLink ?? (typeof localStorage !== "undefined" ? localStorage.getItem("active-group-id") : null));
+  }, []);
+  if (rest?.restingToday) return <RestDayDone remaining={restLeftForGroup(rest.groups, groupId)} />;
   if (!rest && !isError) return <div className="min-h-[100dvh] w-full" style={{ background: BG }} />;
   return <CheckInLaunch />;
 }
