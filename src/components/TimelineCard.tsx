@@ -302,6 +302,16 @@ function nodeVisual(node: TimelineNode, firstName?: string): Visual | null {
         time: timeLabel(node.at),
         dot: { fill: "#FFFFFF", ring: "#DC2626" },
       };
+    case "rested":
+      return {
+        emoji: "🌙",
+        emojiSize: 16,
+        label: "Rested · streak kept",
+        labelColor: "#6B7280",
+        bg: "#F9FAFB",
+        border: "#E5E7EB",
+        dot: { fill: "#FFFFFF", ring: "#9CA3AF" },
+      };
     case "pending":
       return null;
   }

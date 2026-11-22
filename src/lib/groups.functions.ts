@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
+import { addDaysIso, bestStreak, currentStreak, localDateIn } from "@/lib/streak-rules";
 
 async function getUserTimezone(supabase: SupabaseClient, userId: string): Promise<string> {
   const { data } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
@@ -752,12 +753,8 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
 
     const tz = await getUserTimezone(supabase, userId);
     const today = localDateFor(tz);
-    const yesterday = (() => {
-      const [y, mo, d] = today.split("-").map(Number);
-      const dt = new Date(Date.UTC(y, mo - 1, d));
-      dt.setUTCDate(dt.getUTCDate() - 1);
-      return dt.toISOString().slice(0, 10);
-    })();
+    // Members ahead of the viewer's timezone may already be on tomorrow.
+    const tomorrow = addDaysIso(today, 1);
 
     const { data: members } = await supabase
       .from("group_members")
@@ -777,14 +774,14 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
     const [profRes, ciRes, freezeRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, name, avatar_color, avatar_url")
+        .select("id, name, avatar_color, avatar_url, timezone")
         .in("id", memberIds),
       supabase
         .from("check_ins")
         .select("user_id, checkin_date")
         .eq("group_id", groupId)
         .in("user_id", memberIds)
-        .lte("checkin_date", today)
+        .lte("checkin_date", tomorrow)
         .order("checkin_date", { ascending: false })
         .limit(4000),
       supabase
@@ -792,7 +789,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
         .select("user_id, freeze_date")
         .eq("group_id", groupId)
         .in("user_id", memberIds)
-        .lte("freeze_date", today)
+        .lte("freeze_date", tomorrow)
         .limit(4000),
     ]);
 
@@ -805,48 +802,13 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
       daysByUser.get(r.user_id as string)?.add(r.freeze_date as string);
     }
 
-    const computeStreak = (days: Set<string>): number => {
-      let streak = 0;
-      const start = days.has(today) ? today : days.has(yesterday) ? yesterday : null;
-      if (!start) return 0;
-      const [y, mo, d] = start.split("-").map(Number);
-      const cursor = new Date(Date.UTC(y, mo - 1, d));
-      while (true) {
-        const iso = cursor.toISOString().slice(0, 10);
-        if (days.has(iso)) {
-          streak += 1;
-          cursor.setUTCDate(cursor.getUTCDate() - 1);
-        } else break;
-      }
-      return streak;
-    };
-
-    // Longest run of consecutive days (descending from each day).
-    const computeLongestStreak = (days: Set<string>): number => {
-      if (days.size === 0) return 0;
-      let longest = 0;
-      for (const startIso of days) {
-        const [y, mo, d] = startIso.split("-").map(Number);
-        const cursor = new Date(Date.UTC(y, mo - 1, d));
-        let run = 0;
-        while (true) {
-          const iso = cursor.toISOString().slice(0, 10);
-          if (days.has(iso)) {
-            run += 1;
-            cursor.setUTCDate(cursor.getUTCDate() - 1);
-          } else break;
-        }
-        if (run > longest) longest = run;
-      }
-      return longest;
-    };
-
-    const profileById = new Map<string, { name: string; avatarColor: string; avatarPath: string | null }>();
+    const profileById = new Map<string, { name: string; avatarColor: string; avatarPath: string | null; tz: string }>();
     for (const p of profRes.data ?? []) {
       profileById.set(p.id as string, {
         name: ((p.name as string) ?? "").trim() || "Member",
         avatarColor: (p as { avatar_color?: string | null }).avatar_color ?? "#7C3AED",
         avatarPath: (p as { avatar_url?: string | null }).avatar_url ?? null,
+        tz: (p as { timezone?: string | null }).timezone || tz,
       });
     }
 
@@ -860,8 +822,9 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
           avatarColor: prof?.avatarColor ?? "#7C3AED",
           isYou: id === userId,
           personalGoal: goalByUser.get(id) ?? null,
-          streak: computeStreak(daysByUser.get(id) ?? new Set()),
-          longestStreak: computeLongestStreak(daysByUser.get(id) ?? new Set()),
+          // Each member's streak runs on their own local calendar.
+          streak: currentStreak(daysByUser.get(id) ?? new Set(), localDateIn(prof?.tz ?? tz)),
+          longestStreak: bestStreak(daysByUser.get(id) ?? new Set()),
         };
       }),
     );

@@ -546,6 +546,7 @@ function HomePage() {
               pace={paceData ?? null}
               groupId={selectedGroupId}
               groupSize={streaksData?.members?.length}
+              weekStatus={restInfo?.groups.find((g) => g.groupId === selectedGroupId) ?? null}
               memberGoals={streaksData?.members}
             />
           </>

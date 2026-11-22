@@ -240,6 +240,7 @@ function NotesPage() {
 
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["rest-day-info"] });
       queryClient.invalidateQueries({ queryKey: ["my-badges"] });
 
       // Stash any new badges so /home can also announce them — safety net in case

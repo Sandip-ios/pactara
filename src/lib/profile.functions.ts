@@ -1,40 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts } from "@/lib/streak-rules";
 
-function ymd(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function computeStreaks(dates: string[], frozenDates: string[] = []) {
-  const set = new Set<string>([...dates, ...frozenDates]);
-  // current streak (ending today or yesterday)
-  let current = 0;
-  const today = new Date();
-  let cursor = new Date(today);
-  if (!set.has(ymd(cursor))) cursor.setUTCDate(cursor.getUTCDate() - 1);
-  while (set.has(ymd(cursor))) {
-    current += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-  }
-  // best streak
-  const sorted = [...set].sort();
-  let best = 0;
-  let run = 0;
-  let prev: Date | null = null;
-  for (const s of sorted) {
-    const d = new Date(s + "T00:00:00Z");
-    if (prev) {
-      const diff = Math.round((d.getTime() - prev.getTime()) / 86400000);
-      run = diff === 1 ? run + 1 : 1;
-    } else {
-      run = 1;
-    }
-    if (run > best) best = run;
-    prev = d;
-  }
-  return { current, best };
-}
-
+// Streaks and day grids use the member's own local dates (profiles.timezone),
+// never UTC dates — otherwise a US evening already reads as "tomorrow".
 export const getProfileOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input?: { groupId?: string | null }) => ({
@@ -46,9 +15,10 @@ export const getProfileOverview = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color, avatar_url")
+      .select("name, avatar_color, avatar_url, timezone")
       .eq("id", userId)
       .maybeSingle();
+    const today = localDateIn((profile as { timezone?: string } | null)?.timezone ?? "UTC");
 
     let avatarSignedUrl: string | null = null;
     const avatarPath = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
@@ -124,23 +94,11 @@ export const getProfileOverview = createServerFn({ method: "GET" })
         ?.streak_freezes_available ?? 0;
 
     const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
-    const { current, best } = computeStreaks(dates, frozenDates);
-
-    const past7: { date: string; checked: boolean }[] = [];
-    const past90: { date: string; checked: boolean }[] = [];
     const set = new Set<string>([...dates, ...frozenDates]);
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() - i);
-      const s = ymd(d);
-      past7.push({ date: s, checked: set.has(s) });
-    }
-    for (let i = 89; i >= 0; i--) {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() - i);
-      const s = ymd(d);
-      past90.push({ date: s, checked: set.has(s) });
-    }
+    const current = currentStreak(set, today);
+    const best = bestStreak(set);
+    const past7 = pastDays(set, today, 7);
+    const past90 = pastDays(set, today, 90);
 
     const uniqueDays = new Set(dates).size;
     let daysSinceJoin = 1;
@@ -150,17 +108,8 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       daysSinceJoin = Math.max(1, Math.floor(diffMs / 86400000) + 1);
     }
 
-    const now = Date.now();
-    const dayMs = 86400000;
-    const last7Cut = now - 7 * dayMs;
-    const prev7Cut = now - 14 * dayMs;
-    let thisWeek = 0;
-    let lastWeek = 0;
-    for (const s of dates) {
-      const t = new Date(s + "T00:00:00Z").getTime();
-      if (t >= last7Cut) thisWeek += 1;
-      else if (t >= prev7Cut) lastWeek += 1;
-    }
+    // This Mon–Sun week vs. the one before, in the member's timezone.
+    const { thisWeek, lastWeek } = weekCounts(dates, today);
 
     // Group-scoped missed check-ins
     let missedQuery = supabase

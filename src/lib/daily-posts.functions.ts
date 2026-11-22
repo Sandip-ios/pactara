@@ -367,6 +367,12 @@ export type TimelineNode =
       at: string;
     }
   | {
+      /** The day was covered by an automatic rest day — streak kept. */
+      kind: "rested";
+      id: string;
+      at: string;
+    }
+  | {
       kind: "pending";
       id: string;
     };
@@ -450,7 +456,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
     const dates = Array.from(new Set(posts.map((p) => p.local_date)));
 
-    const [{ data: profiles }, checkInsResult, thoughtsResult, reactionsResult, commentsResult] = await Promise.all([
+    const [{ data: profiles }, checkInsResult, thoughtsResult, reactionsResult, commentsResult, freezesResult] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, name, avatar_color, avatar_url")
@@ -475,7 +481,18 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .from("post_comments")
         .select("post_id, created_at")
         .in("post_id", posts.map((p) => p.id)),
+      // Rest days and streak freezes: those days are kept, never "missed".
+      supabase
+        .from("streak_freezes_used")
+        .select("user_id, freeze_date, kind")
+        .eq("group_id", groupId)
+        .in("user_id", userIds)
+        .in("freeze_date", dates),
     ]);
+    const protectedKind = new Map<string, string>();
+    for (const f of (freezesResult.data ?? []) as { user_id: string; freeze_date: string; kind: string }[]) {
+      protectedKind.set(`${f.user_id}|${f.freeze_date}`, f.kind);
+    }
 
     const reactionsByPost = new Map<string, ReactionSummary[]>();
     for (const r of ((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[]) {
@@ -592,9 +609,17 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       // A closed day with no check-in shows "missed check-in" once the nightly
       // job has flagged it (or it carried an old commitment). A plain "what's
       // on your mind" update today is just an update, not a pending check-in.
-      if (
+      const coveredBy = protectedKind.get(`${p.user_id}|${p.local_date}`);
+      if (myCheckIns.length === 0 && coveredBy === "rest") {
+        nodes.push({
+          kind: "rested",
+          id: `rest-${p.id}`,
+          at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
+        });
+      } else if (
         myCheckIns.length === 0 &&
         isPastDay &&
+        !coveredBy &&
         (p.check_in_missed || Boolean(p.morning_ritual_text))
       ) {
         nodes.push({

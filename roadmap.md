@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Streaks follow each group's weekly rule; rest days automatic (Mon–Sun local weeks); local-date streaks on profile, Groups and Home; feed shows "Rested · streak kept"; this week's missed days corrected
+
 - [x] Remove the daily commitment (screen, Home card, reminders, missed-commitment tiles, onboarding copy); rest day moved to Home; Start workout removed from Home too — Home shows only Check in
 
 - [x] Make the founder Overview summary follow the selected time range — six regression tests pass; private dashboard verified across all five ranges (7 days: 1 signup; today: 0)

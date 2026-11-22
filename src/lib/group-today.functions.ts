@@ -3,6 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
+import { currentStreak, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
 
 /**
  * Daily accountability status for the Groups tab.
@@ -82,6 +83,8 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const tz = (profile?.timezone as string | undefined) ?? "UTC";
     const today = localDateFor(tz);
     const windowStart = shiftIso(today, -STREAK_LOOKBACK_DAYS);
+    // Members ahead of the viewer's timezone may already be on tomorrow.
+    const windowEnd = shiftIso(today, 1);
     const firstName = ((profile?.name as string) ?? "").split(" ")[0] || "there";
 
     const { data: myMemberships } = await supabase
@@ -108,13 +111,13 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const safeIds = memberIds.length ? memberIds : ["00000000-0000-0000-0000-000000000000"];
 
     const [profilesRes, checkinsRes, postsRes, freezesRes, workoutsRes] = await Promise.all([
-      supabase.from("profiles").select("id, name, avatar_color, avatar_url").in("id", safeIds),
+      supabase.from("profiles").select("id, name, avatar_color, avatar_url, timezone").in("id", safeIds),
       supabase
         .from("check_ins")
         .select("group_id, user_id, checkin_date")
         .in("group_id", groupIds)
         .gte("checkin_date", windowStart)
-        .lte("checkin_date", today)
+        .lte("checkin_date", windowEnd)
         .limit(20000),
       supabase
         .from("daily_posts")
@@ -127,7 +130,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         .select("group_id, user_id, freeze_date")
         .in("group_id", groupIds)
         .gte("freeze_date", windowStart)
-        .lte("freeze_date", today)
+        .lte("freeze_date", windowEnd)
         .limit(20000),
       // Live "working out now" sessions — only recent ones; a session left
       // active for hours (app closed, overnight) is abandoned, not live.
@@ -140,13 +143,14 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     ]);
 
 
-    const profileById = new Map<string, { name: string; color: string; url: string | null }>();
+    const profileById = new Map<string, { name: string; color: string; url: string | null; tz: string }>();
     await Promise.all(
       (profilesRes.data ?? []).map(async (p) => {
         profileById.set(p.id as string, {
           name: ((p.name as string) ?? "").trim() || "Member",
           color: (p as { avatar_color?: string | null }).avatar_color ?? "#7C3AED",
           url: await signAvatar(supabase, (p as { avatar_url?: string | null }).avatar_url ?? null),
+          tz: (p as { timezone?: string | null }).timezone || "UTC",
         });
       }),
     );
@@ -192,17 +196,8 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       });
     }
 
-    const computeStreak = (days: Set<string>): number => {
-      const start = days.has(today) ? today : days.has(shiftIso(today, -1)) ? shiftIso(today, -1) : null;
-      if (!start) return 0;
-      let streak = 0;
-      let cursor = start;
-      while (days.has(cursor)) {
-        streak += 1;
-        cursor = shiftIso(cursor, -1);
-      }
-      return streak;
-    };
+    // Each member's streak runs on their own local calendar, not the viewer's.
+    const memberToday = (uid: string) => localDateIn(profileById.get(uid)?.tz ?? tz);
 
     const out: GroupToday[] = (groupsRes.data ?? []).map((g) => {
       const gid = g.id as string;
@@ -250,32 +245,26 @@ export const getGroupsToday = createServerFn({ method: "GET" })
           status,
           committedAt: post?.ritualAt ?? null,
           commitmentText: post?.ritualText ?? null,
-          streak: computeStreak(days),
+          streak: currentStreak(days, memberToday(uid)),
           workoutStartedAt: workout?.startedAt ?? null,
           workoutSessionId: workout?.id ?? null,
         };
       });
 
       // Group streak: consecutive days (ending today or yesterday) where every
-      // member who had already joined checked in.
-      const joinedIsoByUser = new Map(
-        roster.map((m) => [m.user_id as string, localDateFor(tz, new Date(m.joined_at as string))]),
+      // member who had already joined checked in or had a rest/freeze row.
+      // Join dates and kept days are in each member's own timezone.
+      const groupStreak = computeGroupStreak(
+        roster.map((m) => {
+          const uid = m.user_id as string;
+          return {
+            joinedOn: localDateIn(profileById.get(uid)?.tz ?? tz, new Date(m.joined_at as string)),
+            kept: byUser.get(uid) ?? new Set<string>(),
+          };
+        }),
+        today,
+        STREAK_LOOKBACK_DAYS,
       );
-      const everyoneShowedUp = (iso: string) => {
-        const required = roster.filter((m) => (joinedIsoByUser.get(m.user_id as string) ?? iso) <= iso);
-        if (required.length === 0) return false;
-        return required.every((m) => (byUser.get(m.user_id as string) ?? new Set()).has(iso));
-      };
-      let groupStreak = 0;
-      let cursor = everyoneShowedUp(today)
-        ? today
-        : everyoneShowedUp(shiftIso(today, -1))
-          ? shiftIso(today, -1)
-          : null;
-      while (cursor && everyoneShowedUp(cursor) && groupStreak < STREAK_LOOKBACK_DAYS) {
-        groupStreak += 1;
-        cursor = shiftIso(cursor, -1);
-      }
 
       return {
         id: gid,

@@ -3,38 +3,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { awardBadgesForUser } from "./badges.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isVideoPath, signFeedMedia } from "./media-urls";
+import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts } from "./streak-rules";
 
-function ymd(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
-
-function computeStreaks(dates: string[], frozenDates: string[] = []) {
-  const set = new Set<string>([...dates, ...frozenDates]);
-  let current = 0;
-  const cursor = new Date();
-  if (!set.has(ymd(cursor))) cursor.setUTCDate(cursor.getUTCDate() - 1);
-  while (set.has(ymd(cursor))) {
-    current += 1;
-    cursor.setUTCDate(cursor.getUTCDate() - 1);
-  }
-  const sorted = [...set].sort();
-  let best = 0;
-  let run = 0;
-  let prev: Date | null = null;
-  for (const s of sorted) {
-    const d = new Date(s + "T00:00:00Z");
-    if (prev) {
-      const diff = Math.round((d.getTime() - prev.getTime()) / 86400000);
-      run = diff === 1 ? run + 1 : 1;
-    } else {
-      run = 1;
-    }
-    if (run > best) best = run;
-    prev = d;
-  }
-  return { current, best };
-}
-
+// Streaks and day grids use the member's own local dates (profiles.timezone).
 export type ProfileMedia = {
   id: string;
   url: string;
@@ -151,9 +122,10 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color, avatar_url, streak_freezes_available")
+      .select("name, avatar_color, avatar_url, streak_freezes_available, timezone")
       .eq("id", targetId)
       .maybeSingle();
+    const today = localDateIn((profile as { timezone?: string } | null)?.timezone ?? "UTC");
 
     let avatarUrl: string | null = null;
     const avatarPath = (profile as { avatar_url?: string | null } | null)?.avatar_url ?? null;
@@ -188,7 +160,9 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       .eq("group_id", groupId);
     const frozenDates = (freezeRows ?? []).map((f: { freeze_date: string }) => f.freeze_date);
 
-    const { current, best } = computeStreaks(dates, frozenDates);
+    const keptDays = new Set<string>([...dates, ...frozenDates]);
+    const current = currentStreak(keptDays, today);
+    const best = bestStreak(keptDays);
 
     // Media grid (newest first)
     const mediaRows = rows.filter((r) => !!r.photo_url).slice(0, 120);
@@ -229,19 +203,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       }),
     );
 
-    const set = new Set<string>([...dates, ...frozenDates]);
-    const past7: { date: string; checked: boolean }[] = [];
-    const past90: { date: string; checked: boolean }[] = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() - i);
-      past7.push({ date: ymd(d), checked: set.has(ymd(d)) });
-    }
-    for (let i = 89; i >= 0; i--) {
-      const d = new Date();
-      d.setUTCDate(d.getUTCDate() - i);
-      past90.push({ date: ymd(d), checked: set.has(ymd(d)) });
-    }
+    const past7 = pastDays(keptDays, today, 7);
+    const past90 = pastDays(keptDays, today, 90);
 
     const uniqueDays = new Set(dates).size;
     const joinDate = new Date(joinedAt);
@@ -250,15 +213,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       Math.floor((Date.now() - joinDate.getTime()) / 86400000) + 1,
     );
 
-    const now = Date.now();
-    const dayMs = 86400000;
-    let thisWeek = 0;
-    let lastWeek = 0;
-    for (const s of dates) {
-      const t = new Date(s + "T00:00:00Z").getTime();
-      if (t >= now - 7 * dayMs) thisWeek += 1;
-      else if (t >= now - 14 * dayMs) lastWeek += 1;
-    }
+    // This Mon–Sun week vs. the one before, in the member's timezone.
+    const { thisWeek, lastWeek } = weekCounts(dates, today);
 
     const { count: missedCount } = await supabase
       .from("daily_posts")

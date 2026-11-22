@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { Button } from "@/components/ui/button";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
-import { RestDayButton } from "@/components/RestDayButton";
 
 export type SnapshotState = "check-in" | "rest" | "done";
 
@@ -22,6 +21,8 @@ type Props = {
   } | null;
   groupId: string | null;
   groupSize?: number;
+  /** This Mon–Sun week in the selected group; rest days are used automatically. */
+  weekStatus?: { workouts: number; target: number; restLeft: number } | null;
   memberGoals?: {
     userId: string;
     name: string;
@@ -66,6 +67,7 @@ export function TodaySnapshot({
   pace,
   groupId,
   groupSize,
+  weekStatus,
   memberGoals = [],
 }: Props) {
   const navigate = useNavigate();
@@ -195,7 +197,12 @@ export function TodaySnapshot({
             }
           />
           )}
-          {state === "check-in" && <RestDayButton />}
+          {weekStatus && state !== "rest" && (
+            <p className="px-5 pb-2 text-center text-[13px] font-semibold text-muted-foreground">
+              {weekStatus.workouts} of {weekStatus.target} this week · {weekStatus.restLeft} rest{" "}
+              {weekStatus.restLeft === 1 ? "day" : "days"} left
+            </p>
+          )}
         </div>
 
         {/* Slide 2 — Weekly snapshot */}
