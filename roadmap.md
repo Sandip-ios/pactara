@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Home redesign part 2: feed cards — waiting on Jose's brief for what the cards should do
+
 - [x] Home part 1 follow-ups: guide pill by account age, crew bar one line ("Rest days are automatic"), Today headline leaves out members resting today, pod → crew copy (unpublished, awaiting review)
 
 - [x] Home redesign part 1: header pill only for new members (+ settings row), crew bar, single Today card, Crew today row with per-member week dots and nudges, skeletons (unpublished, awaiting review)
