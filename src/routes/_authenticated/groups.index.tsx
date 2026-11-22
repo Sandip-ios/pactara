@@ -7,6 +7,7 @@ import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { GroupOverflowMenu, inviteLinkFor, ShareInviteDrawer } from "@/components/groups/GroupOverflowMenu";
 import { PendingInvitesRow } from "@/components/groups/PendingInvitesRow";
+import { PlansDiscover } from "@/components/plans/PlansDiscover";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { crewPageCounts, crewPageStatus, crewWaiting } from "@/lib/group-today-view";
@@ -22,18 +23,56 @@ import {
   StatusPill,
 } from "@/components/groups/AccountabilityBits";
 
+type DiscoverTab = "crews" | "plans";
+
 export const Route = createFileRoute("/_authenticated/groups/")({
-  validateSearch: (s: Record<string, unknown>): { invite?: string } => ({
+  validateSearch: (s: Record<string, unknown>): { invite?: string; tab?: DiscoverTab; complete?: string } => ({
     invite: typeof s.invite === "string" && s.invite ? s.invite : undefined,
+    tab: s.tab === "crews" || s.tab === "plans" ? s.tab : undefined,
+    complete: typeof s.complete === "string" && s.complete ? s.complete : undefined,
+  }),
+  head: () => ({
+    meta: [
+      { title: "Discover · Pactara" },
+      { name: "description", content: "Your crews and workout plans on Pactara." },
+    ],
   }),
   component: GroupsOverview,
 });
+
+/** Discover → Crews | Plans. Defaults to Crews when you're in a crew, Plans otherwise. */
+function DiscoverTabs({ value, onChange }: { value: DiscoverTab; onChange: (t: DiscoverTab) => void }) {
+  return (
+    <div className="mt-3 grid grid-cols-2 rounded-full p-1" style={{ background: BG }} role="tablist" aria-label="Discover">
+      {(["crews", "plans"] as const).map((t) => {
+        const on = value === t;
+        return (
+          <button
+            key={t}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            onClick={() => onChange(t)}
+            className="h-11 rounded-full text-[15px] font-semibold transition-colors"
+            style={{
+              background: on ? "#FFFFFF" : "transparent",
+              color: on ? PURPLE : "#78716C",
+              boxShadow: on ? "0 1px 3px rgba(0,0,0,0.08)" : undefined,
+            }}
+          >
+            {t === "crews" ? "Crews" : "Plans"}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function GroupsOverview() {
   useStatusBarScrollToTop();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { invite: inviteGroupId } = Route.useSearch();
+  const { invite: inviteGroupId, tab: tabParam, complete: completeSlug } = Route.useSearch();
   const { data, isLoading } = useQuery({
     queryKey: ["groups-today"],
     queryFn: () => getGroupsToday(),
@@ -53,7 +92,7 @@ function GroupsOverview() {
   useEffect(() => {
     if (!inviteGroupId || inviteHandled.current || !data) return;
     inviteHandled.current = true;
-    navigate({ to: "/groups", search: {}, replace: true });
+    navigate({ to: "/groups", search: { tab: "crews" }, replace: true });
     const group = data.groups.find((g) => g.id === inviteGroupId) ?? data.groups[0];
     if (!group) return;
     const relation = relationForGroup(group.id, partnerState);
@@ -77,6 +116,36 @@ function GroupsOverview() {
     }
   }, [inviteGroupId, data, navigate, partnerState]);
 
+  // "In a crew" = at least one group with someone else in it.
+  const inCrew = (data?.groups ?? []).some((g) => g.memberCount >= 2);
+  const tab: DiscoverTab | null = tabParam ?? (inviteGroupId ? "crews" : data ? (inCrew ? "crews" : "plans") : null);
+  const setTab = (t: DiscoverTab) =>
+    navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t, complete: undefined }), replace: true });
+
+  if (tab === "plans") {
+    return (
+      <div
+        data-scroll-root
+        className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
+        style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
+      >
+        <header className="bg-white px-6 pt-safe-5 pb-4">
+          <div className="text-[24px] font-black tracking-tight">
+            <span style={{ color: PURPLE }}>P</span>
+            <span>actara</span>
+          </div>
+          <DiscoverTabs value="plans" onChange={setTab} />
+        </header>
+        <PlansDiscover
+          completeSlug={completeSlug}
+          onCloseComplete={() =>
+            navigate({ to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
+          }
+        />
+      </div>
+    );
+  }
+
   if (isLoading || !data) {
     return <div className="fixed inset-0 w-full overflow-hidden" style={{ background: BG }} />;
   }
@@ -99,6 +168,7 @@ function GroupsOverview() {
           <span style={{ color: PURPLE }}>P</span>
           <span>actara</span>
         </div>
+        <DiscoverTabs value="crews" onChange={setTab} />
       </header>
 
       <PullToRefresh

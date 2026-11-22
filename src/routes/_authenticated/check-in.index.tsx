@@ -8,6 +8,7 @@ import { clearCheckInStream } from "@/lib/checkin-stream-store";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { parseFeedDeepLink } from "@/lib/feed-deeplink";
 import { restLeftForGroup } from "@/lib/streak-rules";
+import { claimPlanCheckInForLaunch } from "@/lib/plan-checkin";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -94,6 +95,8 @@ function CheckInLaunch() {
     if (group && typeof localStorage !== "undefined") {
       localStorage.setItem("active-group-id", group);
     }
+    // Only "Done, check in" on a plan day carries a plan day into this check-in.
+    claimPlanCheckInForLaunch();
     clearCheckInPhoto();
     clearCheckInStream();
     navigate({ to: "/check-in/camera", replace: true });

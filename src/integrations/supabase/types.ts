@@ -770,6 +770,149 @@ export type Database = {
           },
         ]
       }
+      plan_days: {
+        Row: {
+          created_at: string
+          day_number: number
+          id: string
+          minutes: string | null
+          moves: Json
+          note: string | null
+          plan_id: string
+          title: string
+          week_number: number | null
+        }
+        Insert: {
+          created_at?: string
+          day_number: number
+          id?: string
+          minutes?: string | null
+          moves?: Json
+          note?: string | null
+          plan_id: string
+          title: string
+          week_number?: number | null
+        }
+        Update: {
+          created_at?: string
+          day_number?: number
+          id?: string
+          minutes?: string | null
+          moves?: Json
+          note?: string | null
+          plan_id?: string
+          title?: string
+          week_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_days_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plan_workout_logs: {
+        Row: {
+          check_in_id: string | null
+          completed_at: string
+          day_number: number
+          id: string
+          user_plan_id: string
+          week: number
+        }
+        Insert: {
+          check_in_id?: string | null
+          completed_at?: string
+          day_number: number
+          id?: string
+          user_plan_id: string
+          week: number
+        }
+        Update: {
+          check_in_id?: string | null
+          completed_at?: string
+          day_number?: number
+          id?: string
+          user_plan_id?: string
+          week?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_workout_logs_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: true
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_workout_logs_user_plan_id_fkey"
+            columns: ["user_plan_id"]
+            isOneToOne: false
+            referencedRelation: "user_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plans: {
+        Row: {
+          created_at: string
+          days_per_week: number
+          gear: string[]
+          goal: string
+          id: string
+          is_published: boolean
+          level: string
+          minutes: string
+          name: string
+          note: string | null
+          progression_rule: string
+          safety_note: string
+          slug: string
+          sort_order: number
+          summary: string
+          weeks: number
+        }
+        Insert: {
+          created_at?: string
+          days_per_week: number
+          gear?: string[]
+          goal: string
+          id?: string
+          is_published?: boolean
+          level: string
+          minutes: string
+          name: string
+          note?: string | null
+          progression_rule: string
+          safety_note: string
+          slug: string
+          sort_order?: number
+          summary: string
+          weeks: number
+        }
+        Update: {
+          created_at?: string
+          days_per_week?: number
+          gear?: string[]
+          goal?: string
+          id?: string
+          is_published?: boolean
+          level?: string
+          minutes?: string
+          name?: string
+          note?: string | null
+          progression_rule?: string
+          safety_note?: string
+          slug?: string
+          sort_order?: number
+          summary?: string
+          weeks?: number
+        }
+        Relationships: []
+      }
       post_comments: {
         Row: {
           body: string
@@ -1114,6 +1257,53 @@ export type Database = {
         }
         Relationships: []
       }
+      user_plans: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_week: number
+          id: string
+          next_day: number
+          plan_id: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_week?: number
+          id?: string
+          next_day?: number
+          plan_id: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_week?: number
+          id?: string
+          next_day?: number
+          plan_id?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_plans_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_cheers: {
         Row: {
           created_at: string
@@ -1231,6 +1421,16 @@ export type Database = {
         Args: { _hour: number; _local_date: string; _user_id: string }
         Returns: boolean
       }
+      crew_active_plans: {
+        Args: never
+        Returns: {
+          current_week: number
+          plan_name: string
+          plan_slug: string
+          user_id: string
+          weeks: number
+        }[]
+      }
       increment_badge_counts: {
         Args: { _user_ids: string[] }
         Returns: {
@@ -1245,6 +1445,15 @@ export type Database = {
       merge_solo_into_partner: {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined
+      }
+      plan_tags_for_check_ins: {
+        Args: { _check_in_ids: string[] }
+        Returns: {
+          check_in_id: string
+          day_number: number
+          plan_name: string
+          week: number
+        }[]
       }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
     }

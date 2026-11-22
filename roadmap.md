@@ -41,3 +41,4 @@
 - [x] Use state-aware Pact names across Home, Check In, Groups, Chat, Notifications, and Profile
 - [x] Fix the iPhone crash from the ••• menu on your own post: bottom sheet instead of dropdown, tap-to-top parking stands down during sheets/menus
 - [x] Groups list and check-in celebration leave resting members out of the count and show them resting (moon), never nudgeable
+- [x] Workout plans phase 1: Discover tab (Crews | Plans), six seeded plans, plan detail/day screens, membership gate, plan-day check-ins that advance the plan, feed plan tag, profile current/past plans

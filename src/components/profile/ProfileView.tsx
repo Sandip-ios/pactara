@@ -30,6 +30,7 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
+import { ProfilePlans } from "@/components/plans/ProfilePlans";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -317,6 +318,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
               </button>
             )}
           </div>
+          {isOwn && <ProfilePlans />}
 
         </section>
 

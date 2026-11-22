@@ -19,6 +19,7 @@ import {
   cheerSentence,
   cheerSummary,
   checkInMetaLine,
+  checkInMetaParts,
   orderReactors,
   showQuickReplies,
   viewCommentsLabel,
@@ -568,9 +569,10 @@ export function TimelineCard(props: PostCardProps) {
 
   const checkIns = props.kind === "checkins" ? props.checkIns : [];
   const current = checkIns[Math.min(index, checkIns.length - 1)];
+  const metaPlan = props.kind === "checkins" ? current?.plan ?? null : null;
   const meta =
     props.kind === "checkins"
-      ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "")
+      ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "", metaPlan)
       : props.node.kind === "ritual"
         ? `Commitment · ${clock(props.node.at)}`
         : `Update · ${clock(props.node.at)}`;
@@ -595,7 +597,14 @@ export function TimelineCard(props: PostCardProps) {
         </MemberProfileLink>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</div>
-          <div className="truncate text-[13px]" style={{ color: MUTED }}>{meta}</div>
+          {metaPlan && current ? (
+            <PlanMetaLine
+              label={meta}
+              parts={checkInMetaParts(current.activity, item.dayNumber, clock(current.at), metaPlan)}
+            />
+          ) : (
+            <div className="truncate text-[13px]" style={{ color: MUTED }}>{meta}</div>
+          )}
         </div>
         {item.isMe && current && <OwnPostMenu checkIn={current} />}
       </header>
@@ -684,6 +693,30 @@ export function TimelineCardSkeleton() {
         <div className="h-8 w-14 animate-pulse rounded-full bg-neutral-200" />
         <div className="h-8 w-14 animate-pulse rounded-full bg-neutral-200" />
       </div>
+    </div>
+  );
+}
+
+/**
+ * One-line meta with a plan. On narrow cards the activity word gives way first,
+ * then the plan name truncates; the emoji, W#D#, Day n and time always show.
+ */
+function PlanMetaLine({ label, parts }: { label: string; parts: ReturnType<typeof checkInMetaParts> }) {
+  const [emoji, ...words] = (parts.lead ?? "").split(" ");
+  return (
+    <div className="flex min-w-0 overflow-hidden whitespace-nowrap text-[13px]" style={{ color: MUTED }} aria-label={label}>
+      {parts.lead && (
+        <>
+          <span className="shrink-0">{emoji}</span>
+          {words.length > 0 && <span className="min-w-0 shrink-[8] truncate">&nbsp;{words.join(" ")}</span>}
+          <span className="shrink-0">&nbsp;·&nbsp;</span>
+        </>
+      )}
+      <span className="min-w-[2.5rem] truncate">{parts.plan?.name}</span>
+      <span className="shrink-0">
+        &nbsp;{parts.plan?.code}
+        {parts.tail ? <>&nbsp;·&nbsp;{parts.tail}</> : null}
+      </span>
     </div>
   );
 }

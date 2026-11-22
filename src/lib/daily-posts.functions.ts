@@ -250,6 +250,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       activity?: string;
       groupId?: string | null;
       groupIds?: string[] | null;
+      planDay?: { userPlanId: string; week: number; day: number } | null;
     }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
@@ -257,6 +258,11 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       activity: input?.activity?.slice(0, 40) ?? null,
       groupId: input?.groupId ?? null,
       groupIds: Array.isArray(input?.groupIds) ? input.groupIds.map(String).slice(0, 20) : null,
+      planDay:
+        input?.planDay && typeof input.planDay.userPlanId === "string" &&
+        Number.isInteger(input.planDay.week) && Number.isInteger(input.planDay.day)
+          ? { userPlanId: input.planDay.userPlanId, week: input.planDay.week, day: input.planDay.day }
+          : null,
     }),
   )
   .handler(async ({ data, context }) => {
@@ -271,6 +277,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
 
     const today = localDateFor(timezone);
     const newBadgeSet = new Set<number>();
+    const postedCheckInIds: string[] = [];
 
     for (const groupId of groupIds) {
       const { data: checkIn, error: ciErr } = await supabase
@@ -287,6 +294,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         .select("id")
         .single();
       if (ciErr) throw new Error(ciErr.message);
+      postedCheckInIds.push(checkIn.id);
 
       // Upsert the daily post; link the FIRST check-in for backwards-compat and clear "missed".
       // Additional check-ins are surfaced via the per-day check_ins query in getGroupFeed.
@@ -337,7 +345,18 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true, newBadges: Array.from(newBadgeSet), groupCount: groupIds.length };
+    // A plan day counts exactly like any other check-in; it also moves the plan on.
+    let plan: import("./workout-plans").PlanDayResult | null = null;
+    if (data.planDay) {
+      try {
+        const { logPlanWorkout } = await import("./plan-progress.server");
+        plan = await logPlanWorkout(supabase as SupabaseClient, userId, data.planDay, postedCheckInIds);
+      } catch (err) {
+        console.error("[check-in] plan log failed", err);
+      }
+    }
+
+    return { ok: true, newBadges: Array.from(newBadgeSet), groupCount: groupIds.length, plan };
 
   });
 
@@ -366,6 +385,8 @@ export type TimelineNode =
       id: string;
       mood: string | null;
       activity: string | null;
+      /** Set when the check-in finished a workout plan day. */
+      plan?: { name: string; week: number; day: number } | null;
       note: string | null;
       photoUrl: string | null;
       posterUrl?: string | null;
@@ -711,10 +732,13 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .filter((path): path is string => !!path && !path.startsWith("http"))));
     // Two requests, regardless of how many repeated assets appear in the feed.
     // Avatars and photos are resized server-side to their display size.
-    const [avatarUrls, photoUrls, posterUrls] = await Promise.all([
+    const [avatarUrls, photoUrls, posterUrls, planTags] = await Promise.all([
       signAvatarThumbs(supabase as SupabaseClient, avatarPaths),
       signFeedMedia(supabase as SupabaseClient, photoPaths),
       signVideoPosters(supabase as SupabaseClient, photoPaths),
+      import("./plan-progress.server").then(({ planTagsForCheckIns }) =>
+        planTagsForCheckIns(supabase as SupabaseClient, rawCheckIns.map((c) => c.id as string)),
+      ),
     ]);
     const resolvePoster = (path: string | null | undefined) => (path ? posterUrls.get(path) ?? null : null);
     const resolvePhoto = (path: string | null | undefined) => !path ? null : path.startsWith("http") ? path : photoUrls.get(path) ?? null;
@@ -784,6 +808,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           id: `c-${c.id}`,
           mood: c.mood,
           activity: c.activity,
+          plan: planTags.get(c.id) ?? null,
           note: c.note,
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,

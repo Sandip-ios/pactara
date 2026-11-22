@@ -8,8 +8,7 @@ import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide
 import { getPendingPact } from "@/lib/pact.functions";
 import { getPendingGoal } from "@/lib/member-goal.functions";
 import { getPartnerState } from "@/lib/partners.functions";
-import { getCustomerInfo, isSubscriptionActive } from "@/lib/revenuecat";
-import { isNative } from "@/lib/native";
+import { hasActiveMembership } from "@/lib/membership";
 
 const TRIAL_DAYS = 7;
 
@@ -104,6 +103,7 @@ function AuthLayout() {
     pathname.startsWith("/goal/") ||
     pathname === "/partner" ||
     pathname === "/new-pactara" ||
+    pathname.startsWith("/plans/") ||
     /^\/chat\/[^/]+/.test(pathname);
 
   const [trialState, setTrialState] = useState<{
@@ -151,28 +151,7 @@ function AuthLayout() {
       const now = Date.now();
       const daysActive = Math.max(0, Math.floor((now - created) / 86400000));
 
-      // Server-side truth: entitlement state persisted by the RevenueCat webhook.
-      let subscribed = false;
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("is_active, expires_at")
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (sub?.is_active) {
-        const expiresAt = sub.expires_at ? new Date(sub.expires_at).getTime() : null;
-        subscribed = expiresAt === null || expiresAt > Date.now();
-      }
-
-      // Fall back to the device's live entitlement (covers the moments right
-      // after a purchase, before the webhook lands).
-      if (!subscribed && isNative()) {
-        try {
-          const customerInfo = await getCustomerInfo();
-          subscribed = isSubscriptionActive(customerInfo);
-        } catch (err) {
-          console.error("[auth-layout] RevenueCat subscription check failed", err);
-        }
-      }
+      const subscribed = await hasActiveMembership(userId);
 
 
       // Debug override: append ?paywall=1 to any URL, or set localStorage.pactara-force-paywall=1

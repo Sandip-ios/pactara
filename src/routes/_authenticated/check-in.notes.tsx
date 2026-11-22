@@ -15,6 +15,8 @@ import { listMyGroups } from "@/lib/groups.functions";
 import { AllGroupsToggle } from "./check-in.index";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
+import { clearPlanCheckIn, getPlanCheckIn, setPlanCheckIn, type PlanCheckIn } from "@/lib/plan-checkin";
+import type { PlanDayResult } from "@/lib/workout-plans";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -125,6 +127,9 @@ function NotesPage() {
   const [activity, setActivity] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [allGroups, setAllGroups] = useState(false);
+  // The plan day this check-in finishes ("Done, check in" on a plan day).
+  const [planDay, setPlanDay] = useState<PlanCheckIn | null>(null);
+  const [planResult, setPlanResult] = useState<PlanDayResult | null>(null);
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -153,6 +158,11 @@ function NotesPage() {
   const [savingDraft, setSavingDraft] = useState(false);
 
   useEffect(() => {
+    const plan = getPlanCheckIn();
+    if (plan) {
+      setPlanDay(plan);
+      setActivity((a) => a ?? plan.activity);
+    }
     const existing = getCheckInPhoto();
     if (existing) {
       setPhotoPreview(existing.previewUrl);
@@ -169,6 +179,10 @@ function NotesPage() {
       }
       setNote(draft.note ?? "");
       setActivity(draft.activity ?? null);
+      if (draft.planDay) {
+        setPlanDay(draft.planDay);
+        setPlanCheckIn(draft.planDay, false);
+      }
       setAllGroups(draft.allGroups ?? false);
       setDraftRestored(true);
     });
@@ -188,18 +202,30 @@ function NotesPage() {
     staleTime: 30_000,
   });
 
-  const finalizeAndExit = () => {
+  const finalizeAndExit = (plan: PlanDayResult | null = planResult) => {
     sessionStorage.setItem("checkin-celebrate", "1");
     clearCheckInPhoto();
     queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
     queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     queryClient.invalidateQueries({ queryKey: ["home-crew"] });
+    // Finishing the last day of a plan lands on the "Plan complete" celebration.
+    if (plan?.completed) {
+      navigate({ to: "/groups", search: { tab: "plans", complete: plan.slug } });
+      return;
+    }
     navigate({ to: "/home" });
   };
 
   const recordCheckInFn = useServerFn(recordCheckIn);
   const mutation = useMutation({
-    mutationFn: async (vars: { note?: string; activity?: string; photoUrl?: string; groupId?: string | null; groupIds?: string[] | null }) =>
+    mutationFn: async (vars: {
+      note?: string;
+      activity?: string;
+      photoUrl?: string;
+      groupId?: string | null;
+      groupIds?: string[] | null;
+      planDay?: { userPlanId: string; week: number; day: number } | null;
+    }) =>
       recordCheckInFn({ data: vars }),
   });
 
@@ -233,11 +259,18 @@ function NotesPage() {
           photoUrl,
           groupId: activeGroupId,
           groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
+          planDay: planDay ? { userPlanId: planDay.userPlanId, week: planDay.week, day: planDay.day } : null,
         }),
         POST_TIMEOUT_MS,
         "Posting timed out. Please try again.",
       );
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
+      const plan = (result as { plan?: PlanDayResult | null } | undefined)?.plan ?? null;
+      if (planDay) {
+        clearPlanCheckIn();
+        setPlanResult(plan);
+        queryClient.invalidateQueries({ queryKey: ["my-plans"] });
+      }
 
       queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
@@ -256,7 +289,7 @@ function NotesPage() {
 
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
       if (hide && newBadges.length === 0) {
-        finalizeAndExit();
+        finalizeAndExit(plan);
         return;
       }
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
@@ -288,6 +321,7 @@ function NotesPage() {
         allGroups,
         blob: photo?.blob ?? null,
         isVideo: photo ? photo.blob.type.startsWith("video/") : false,
+        planDay,
       });
       if (ok) {
         // The draft now owns the blob; drop the in-memory copy and go home,
@@ -427,6 +461,11 @@ function NotesPage() {
           </div>
         </div>
         <div className="px-6 pt-6">
+          {planDay && (
+            <div className="mb-3 rounded-2xl px-4 py-3 text-[14px]" style={{ background: "#EFE9FB", color: PURPLE }}>
+              <span className="font-semibold">{planDay.planName}</span> · Week {planDay.week} · Day {planDay.day}
+            </div>
+          )}
           {!allGroups && activeGroupName && (
             <div className="mb-3 text-[14px] text-neutral-500">
               Posting to <span className="font-semibold text-neutral-900">{activeGroupName}</span>

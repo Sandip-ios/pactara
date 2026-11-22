@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { Home, Users, Zap, MessageCircle } from "lucide-react";
+import { Home, Compass, Zap, MessageCircle } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
 
@@ -66,9 +66,9 @@ export function BottomTabs() {
         onClick={() => navigate({ to: "/home" })}
       />
       <TabItem
-        icon={<Users size={22} />}
-        label="Groups"
-        active={isActive("/groups")}
+        icon={<Compass size={22} />}
+        label="Discover"
+        active={isActive("/groups") || isActive("/plans")}
         onPointerDown={preload("/groups")}
         onClick={() => navigate({ to: "/groups" })}
       />

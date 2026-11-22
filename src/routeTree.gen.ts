@@ -54,7 +54,9 @@ import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
+import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
 import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
+import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
 import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
@@ -306,11 +308,22 @@ const AuthenticatedPactGroupIdRoute =
     path: '/pact/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPlansSlugRoute = AuthenticatedPlansSlugRouteImport.update({
+  id: '/plans/$slug',
+  path: '/plans/$slug',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlansSlugDayRoute =
+  AuthenticatedPlansSlugDayRouteImport.update({
+    id: '/plans/$slug_/day',
+    path: '/plans/$slug/day',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
   id: '/api/public/hooks/auto-miss',
   path: '/api/public/hooks/auto-miss',
@@ -415,11 +428,13 @@ export interface FileRoutesByFullPath {
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
+  '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -472,11 +487,13 @@ export interface FileRoutesByTo {
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
+  '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
+  '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -532,11 +549,13 @@ export interface FileRoutesById {
   '/_authenticated/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
+  '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -592,11 +611,13 @@ export interface FileRouteTypes {
     | '/goal/$groupId'
     | '/groups/$groupId'
     | '/pact/$groupId'
+    | '/plans/$slug'
     | '/u/$userId'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
     | '/groups/'
+    | '/plans/$slug/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -649,11 +670,13 @@ export interface FileRouteTypes {
     | '/goal/$groupId'
     | '/groups/$groupId'
     | '/pact/$groupId'
+    | '/plans/$slug'
     | '/u/$userId'
     | '/account-settings'
     | '/chat'
     | '/check-in'
     | '/groups'
+    | '/plans/$slug/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -708,11 +731,13 @@ export interface FileRouteTypes {
     | '/_authenticated/goal/$groupId'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/pact/$groupId'
+    | '/_authenticated/plans/$slug'
     | '/_authenticated/u/$userId'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
     | '/_authenticated/groups/'
+    | '/_authenticated/plans/$slug_/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -1073,11 +1098,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPactGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/plans/$slug': {
+      id: '/_authenticated/plans/$slug'
+      path: '/plans/$slug'
+      fullPath: '/plans/$slug'
+      preLoaderRoute: typeof AuthenticatedPlansSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/u/$userId': {
       id: '/_authenticated/u/$userId'
       path: '/u/$userId'
       fullPath: '/u/$userId'
       preLoaderRoute: typeof AuthenticatedUUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plans/$slug_/day': {
+      id: '/_authenticated/plans/$slug_/day'
+      path: '/plans/$slug/day'
+      fullPath: '/plans/$slug/day'
+      preLoaderRoute: typeof AuthenticatedPlansSlugDayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/hooks/auto-miss': {
@@ -1177,11 +1216,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGoalGroupIdRoute: typeof AuthenticatedGoalGroupIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
+  AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
   AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
   AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
+  AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1204,12 +1245,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGoalGroupIdRoute: AuthenticatedGoalGroupIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
+  AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
   AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
   AuthenticatedAccountSettingsIndexRoute:
     AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
   AuthenticatedCheckInIndexRoute: AuthenticatedCheckInIndexRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
+  AuthenticatedPlansSlugDayRoute: AuthenticatedPlansSlugDayRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
