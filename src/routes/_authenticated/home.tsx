@@ -369,7 +369,7 @@ function HomePage() {
   const firstName = status?.firstName || "there";
 
   return (
-    <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       <header
         className="bg-white px-4 pb-3 flex items-center justify-between"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)" }}

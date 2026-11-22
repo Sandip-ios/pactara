@@ -85,6 +85,7 @@ function GroupDetailPage() {
 
   return (
     <div
+      data-scroll-root
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
     >
