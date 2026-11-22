@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { celebrationCounts, crewPageCanNudge, crewPageCounts, crewPageStatus, crewWaiting, restingOn } from "../group-today-view";
+import { celebrationCounts, crewPageCanNudge, crewPageCounts, crewPageStatus, crewWaiting, memberOwnToday, restingOn } from "../group-today-view";
+import { crewTodayStatus } from "../crew-today";
 
 const m = (status: "done" | "not_committed" | "missed", resting = false, workoutSessionId: string | null = null) => ({
   status,
@@ -56,5 +57,45 @@ describe("check-in celebration: resting teammates", () => {
         { checkedIn: false, resting: true },
       ]),
     ).toEqual({ done: 1, due: 2 });
+  });
+});
+
+describe("teammate already on tomorrow: judged only by their own today", () => {
+  // Viewer in Chicago is on Sun Nov 22; Kai in Auckland is already on Mon Nov 23.
+  const kaiToday = "2026-11-23";
+  const base = { ownToday: kaiToday, workingOut: false };
+
+  it("a rest row on the viewer's today never makes them 'Already checked in'", () => {
+    const r = memberOwnToday({ ...base, checkInDates: new Set(), coveredDates: new Set(["2026-11-22"]) });
+    expect(r).toEqual({ status: "not_committed", resting: false });
+    const status = crewPageStatus({ ...r, workoutSessionId: null });
+    expect(status).toBe("not_committed");
+    expect(crewPageCanNudge(status, false)).toBe(true);
+    expect(crewPageCounts([{ ...r, workoutSessionId: null }])).toEqual({ done: 0, due: 1 });
+  });
+
+  it("a check-in on the viewer's today doesn't count on their new day", () => {
+    const r = memberOwnToday({ ...base, checkInDates: new Set(["2026-11-22"]), coveredDates: new Set() });
+    expect(r.status).toBe("not_committed");
+  });
+
+  it("checked in on their own today → done", () => {
+    const r = memberOwnToday({ ...base, checkInDates: new Set([kaiToday]), coveredDates: new Set([kaiToday]) });
+    expect(r).toEqual({ status: "done", resting: false });
+    expect(crewPageCounts([{ ...r, workoutSessionId: null }])).toEqual({ done: 1, due: 1 });
+  });
+
+  it("rest/freeze row on their own today → 'Resting today', not due, not nudgeable", () => {
+    const r = memberOwnToday({ ...base, checkInDates: new Set(), coveredDates: new Set([kaiToday]) });
+    const status = crewPageStatus({ ...r, workoutSessionId: null });
+    expect(status).toBe("rest");
+    expect(crewPageCanNudge(status, false)).toBe(false);
+    expect(crewPageCounts([{ ...r, workoutSessionId: null }])).toEqual({ done: 0, due: 0 });
+  });
+
+  it("matches Home's Crew today status for the same member", () => {
+    const covered = new Set([kaiToday]);
+    expect(crewTodayStatus({ today: kaiToday, checkIns: new Set(), covered, missed: new Set(), workingOut: false })).toBe("rest");
+    expect(memberOwnToday({ ...base, checkInDates: new Set(), coveredDates: covered }).resting).toBe(true);
   });
 });

@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] One evening push (8 PM or 9 PM) per person per local day, recorded so repeat runs can't double-send; Groups list and crew page judge teammates by their own today (unpublished, awaiting review)
+
 - [x] Crew page Today tab: members resting today show "Resting today", can't be nudged and aren't counted as due (unpublished, awaiting review)
 - [x] Feed: rest/freeze days show without a post (today's own row, past combined row); GIF/photo-only comments read "{Name} sent a GIF/photo" in preview, push and notifications; solo/partner-search empty feed message restored (unpublished, awaiting review)
 - [x] Feed follow-up: no day collapsing, older weeks load on scroll, one combined quiet row on past days, status-bar cover behind sticky day headers, "Weekday · Mon D" headers (unpublished, awaiting review)

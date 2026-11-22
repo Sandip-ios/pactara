@@ -1,17 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { localHourFor } from "@/lib/daily-posts.functions";
-import { atRiskGroups, streakRiskMessage, type RiskGroupInput } from "@/lib/streak-risk-plan";
+import { type RiskGroupInput } from "@/lib/streak-risk-plan";
 import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
+import { STREAK_RISK_HOUR, planEveningPush, sendEveningPush } from "@/lib/evening-push-plan";
+import { eveningPushDeps } from "@/lib/evening-push-sends.server";
 
 /** Local hour at which the streak-at-risk warning goes out. */
-const RISK_HOUR = 21;
+const RISK_HOUR = STREAK_RISK_HOUR;
 /** How far back to load activity when measuring the streak shown in the push. */
 const LOOKBACK_DAYS = 400;
 
 /**
  * Hourly cron: at 9pm local time, warn members whose day would really be
  * missed — per group, no check-in today and no rest days left this Mon–Sun
- * week (see streak-risk-plan). One push per member names every group at risk.
+ * week (see streak-risk-plan). One push per member names every group at risk,
+ * and only if no 8 PM push reached them tonight (see evening-push-plan).
  */
 export const Route = createFileRoute("/api/public/hooks/streak-risk")({
   server: {
@@ -62,18 +65,31 @@ export const Route = createFileRoute("/api/public/hooks/streak-risk")({
         const { pushToUsers } = await import("@/lib/notify.server");
         let atRiskUsers = 0;
         let sent = 0;
+        const deps = eveningPushDeps(supabaseAdmin, (userId, message) => pushToUsers([userId], message));
+        let skipped = 0;
         for (const userId of due) {
           const groups = inputs.get(userId);
           if (!groups) continue;
-          const risky = atRiskGroups(tzById.get(userId) ?? "UTC", groups, now);
-          if (risky.length === 0) continue;
+          const tz = tzById.get(userId) ?? "UTC";
+          const plan = planEveningPush({
+            hour: STREAK_RISK_HOUR,
+            timezone: tz,
+            groups,
+            hasFreeze: (freezesById.get(userId) ?? 0) > 0,
+            now,
+          });
+          if (!plan) continue;
           atRiskUsers += 1;
-          const message = streakRiskMessage(risky, (freezesById.get(userId) ?? 0) > 0);
-          const result = await pushToUsers([userId], message).catch(() => ({ webSent: 0, fcmSent: 0 }));
-          sent += result.webSent + result.fcmSent;
+          // Skipped when tonight's 8 PM push already reached them (or a repeat run already sent).
+          const result = await sendEveningPush(deps, userId, tz, plan, now).catch((err) => {
+            console.warn("[streak-risk] send failed", err);
+            return { claimed: false, delivered: 0 };
+          });
+          if (!result.claimed) skipped += 1;
+          sent += result.delivered;
         }
 
-        return Response.json({ ok: true, due: due.length, atRisk: atRiskUsers, sent });
+        return Response.json({ ok: true, due: due.length, atRisk: atRiskUsers, skipped, sent });
       },
     },
   },

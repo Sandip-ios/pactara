@@ -319,6 +319,36 @@ export type Database = {
           },
         ]
       }
+      evening_push_sends: {
+        Row: {
+          created_at: string
+          group_ids: string[]
+          hour: number
+          local_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_ids?: string[]
+          hour: number
+          local_date: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_ids?: string[]
+          hour?: number
+          local_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       fcm_tokens: {
         Row: {
           created_at: string
@@ -1194,6 +1224,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_evening_push: {
+        Args: { _hour: number; _local_date: string; _user_id: string }
+        Returns: boolean
+      }
       increment_badge_counts: {
         Args: { _user_ids: string[] }
         Returns: {

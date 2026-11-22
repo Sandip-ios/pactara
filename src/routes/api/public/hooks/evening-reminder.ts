@@ -6,6 +6,8 @@ import {
   eveningReminderMessage,
 } from "@/lib/streak-risk-plan";
 import { loadRiskInputs } from "@/lib/streak-risk-inputs.server";
+import { LAST_CALL_HOUR, planEveningPush, sendEveningPush } from "@/lib/evening-push-plan";
+import { eveningPushDeps } from "@/lib/evening-push-sends.server";
 
 const EVENING_HOURS: readonly number[] = EVENING_REMINDER_HOURS;
 /** Enough history to cover this Mon–Sun week in any timezone. */
@@ -15,8 +17,10 @@ const LOOKBACK_DAYS = 9;
  * Hourly cron: at 5pm and 8pm local time, reminds members about each group
  * that still needs a check-in today — nothing covers today yet and no rest
  * day is left this week (otherwise an automatic rest day covers it). One push
- * per member names every such group. At 8 PM, groups that will get the 9 PM
- * "streak at risk" push are skipped, so nobody gets both for the same group.
+ * per member names every such group. 8 PM is one of the member's single
+ * evening push per local day (see evening-push-plan): members with a group
+ * at risk are left for the 9 PM push, and each send is recorded so a repeat
+ * run can't send it twice.
  */
 export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
   server: {
@@ -66,10 +70,23 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
         let reminded = 0;
         try {
           const inputs = await loadRiskInputs(supabaseAdmin, due, now, LOOKBACK_DAYS);
+          const deps = eveningPushDeps(supabaseAdmin, (userId, message) => pushToUsers([userId], message));
           for (const [hour, userIds] of dueByHour) {
             for (const userId of userIds) {
-              // At 8 PM, groups the 9 PM "streak at risk" push will cover are left out.
-              const groups = eveningReminderGroups(hour, tzById.get(userId) ?? "UTC", inputs.get(userId) ?? [], now);
+              const tz = tzById.get(userId) ?? "UTC";
+              if (hour === LAST_CALL_HOUR) {
+                // One evening push per member per local day, shared with the 9 PM job.
+                const plan = planEveningPush({ hour, timezone: tz, groups: inputs.get(userId) ?? [], hasFreeze: false, now });
+                if (!plan) continue;
+                const result = await sendEveningPush(deps, userId, tz, plan, now).catch((err) => {
+                  console.warn("[evening-reminder] 8 PM send failed", err);
+                  return { claimed: false, delivered: 0 };
+                });
+                if (result.claimed) reminded += 1;
+                sent += result.delivered;
+                continue;
+              }
+              const groups = eveningReminderGroups(hour, tz, inputs.get(userId) ?? [], now);
               if (groups.length === 0) continue;
               reminded += 1;
               const result = await pushToUsers([userId], eveningReminderMessage(hour, groups)).catch(() => ({

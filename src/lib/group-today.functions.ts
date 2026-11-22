@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
 import { currentStreak, dayCovered, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
-import { restingOn } from "@/lib/group-today-view";
+import { memberOwnToday } from "@/lib/group-today-view";
 import { alreadyNudgedResult, nudgeDecision, type NudgeResult } from "@/lib/nudge-rules";
 
 /**
@@ -87,8 +87,9 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const tz = (profile?.timezone as string | undefined) ?? "UTC";
     const today = localDateFor(tz);
     const windowStart = shiftIso(today, -STREAK_LOOKBACK_DAYS);
-    // Members ahead of the viewer's timezone may already be on tomorrow.
-    const windowEnd = shiftIso(today, 1);
+    // Teammates' own today can be up to two days either side of the viewer's.
+    const windowEnd = shiftIso(today, 2);
+    const postsFrom = shiftIso(today, -2);
     const firstName = ((profile?.name as string) ?? "").split(" ")[0] || "there";
 
     const { data: myMemberships } = await supabase
@@ -125,9 +126,10 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         .limit(20000),
       supabase
         .from("daily_posts")
-        .select("group_id, user_id, morning_ritual_text, morning_ritual_posted_at, check_in_missed, check_in_id")
+        .select("group_id, user_id, local_date, morning_ritual_text, morning_ritual_posted_at, check_in_missed, check_in_id")
         .in("group_id", groupIds)
-        .eq("local_date", today),
+        .gte("local_date", postsFrom)
+        .lte("local_date", windowEnd),
       // Applied streak freezes count as a kept day, same as on the home screen.
       supabase
         .from("streak_freezes_used")
@@ -194,7 +196,8 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       { ritualText: string | null; ritualAt: string | null; missed: boolean; checkInId: string | null }
     >();
     for (const row of postsRes.data ?? []) {
-      postByKey.set(`${row.group_id}:${row.user_id}`, {
+      // Keyed by the post's own local date; each member is read on their own today.
+      postByKey.set(`${row.group_id}:${row.user_id}:${row.local_date}`, {
         ritualText: (row.morning_ritual_text as string | null) ?? null,
         ritualAt: (row.morning_ritual_posted_at as string | null) ?? null,
         missed: Boolean(row.check_in_missed),
@@ -237,20 +240,17 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         const uid = m.user_id as string;
         const prof = profileById.get(uid);
         const days = byUser.get(uid) ?? new Set<string>();
-        const post = postByKey.get(`${gid}:${uid}`);
-        const doneToday = days.has(today) || Boolean(post?.checkInId);
         const workout = workoutByKey.get(`${gid}:${uid}`);
-
-        let status: MemberTodayStatus = "not_committed";
-        if (doneToday) status = "done";
-        else if (workout) status = "working_out";
-        else if (post?.missed) status = "missed";
-        else if (post?.ritualText) status = "committed";
-
+        // Status, count and nudge come only from the member's own today.
         const ownToday = memberToday(uid);
-        const resting =
-          !post?.checkInId &&
-          restingOn(ownToday, checkInsByKey.get(`${gid}:${uid}`), coveredByKey.get(`${gid}:${uid}`));
+        const post = postByKey.get(`${gid}:${uid}:${ownToday}`);
+        const { status, resting } = memberOwnToday({
+          ownToday,
+          checkInDates: checkInsByKey.get(`${gid}:${uid}`),
+          coveredDates: coveredByKey.get(`${gid}:${uid}`),
+          post,
+          workingOut: Boolean(workout),
+        });
 
         const name = prof?.name ?? "Member";
         return {

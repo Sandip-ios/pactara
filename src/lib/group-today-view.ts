@@ -4,6 +4,7 @@
  * by a rest or freeze row is resting: not checked in, not nudgeable, not due.
  */
 import type { MemberTodayStatus } from "@/lib/group-today.functions";
+import { crewTodayStatus } from "@/lib/crew-today";
 
 export type CrewPageStatus = MemberTodayStatus | "rest";
 
@@ -58,4 +59,36 @@ export function celebrationCounts(mates: { checkedIn: boolean; resting: boolean 
     done: mates.filter((t) => t.checkedIn).length,
     due: mates.filter((t) => t.checkedIn || !t.resting).length,
   };
+}
+
+/**
+ * A teammate's today on the Groups list and crew page, judged only by THEIR
+ * own today (their timezone) — same rule as Home's Crew today
+ * (crewTodayStatus): checked in on their today → done; live workout →
+ * working out; rest/freeze row on their today → resting; otherwise not
+ * checked in yet. Rows on any other date (e.g. the viewer's today) never count.
+ */
+export function memberOwnToday(input: {
+  ownToday: string;
+  checkInDates: ReadonlySet<string> | undefined;
+  coveredDates: ReadonlySet<string> | undefined;
+  /** Their daily_posts row for their own today, if any. */
+  post?: { checkInId: string | null; missed: boolean; ritualText: string | null } | undefined;
+  workingOut: boolean;
+}): { status: MemberTodayStatus; resting: boolean } {
+  const checkIns = new Set(input.checkInDates ?? []);
+  if (input.post?.checkInId) checkIns.add(input.ownToday);
+  const home = crewTodayStatus({
+    today: input.ownToday,
+    checkIns,
+    covered: new Set(input.coveredDates ?? []),
+    missed: new Set(),
+    workingOut: input.workingOut,
+  });
+  if (home === "done") return { status: "done", resting: false };
+  if (home === "working_out") return { status: "working_out", resting: false };
+  if (home === "rest") return { status: "not_committed", resting: true };
+  if (input.post?.missed) return { status: "missed", resting: false };
+  if (input.post?.ritualText) return { status: "committed", resting: false };
+  return { status: "not_committed", resting: false };
 }
