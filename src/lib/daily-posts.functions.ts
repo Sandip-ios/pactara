@@ -10,6 +10,7 @@ import {
   weekCounts,
   weeklyTarget,
 } from "./streak-rules";
+import { restingOn } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
@@ -1209,6 +1210,8 @@ export type CelebrationTeammate = {
   id: string;
   initial: string;
   checkedIn: boolean;
+  /** Own today (their timezone) covered by a rest or freeze row, no check-in. */
+  resting: boolean;
   avatarUrl: string | null;
   avatarColor: string | null;
 };
@@ -1266,21 +1269,44 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
     }
     if (streak === 0) streak = 1; // we just checked in
 
-    const [{ data: group }, { data: members }, { data: todayCheckIns }] = await Promise.all([
+    // Teammates' own today can be a day either side of yours.
+    const dayBefore = addDaysIso(today, -1);
+    const dayAfter = addDaysIso(today, 1);
+    const [{ data: group }, { data: members }, { data: nearCheckIns }, { data: nearCovered }] = await Promise.all([
       supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
       supabase.from("group_members").select("user_id").eq("group_id", groupId),
       supabase
         .from("check_ins")
-        .select("user_id")
+        .select("user_id, checkin_date")
         .eq("group_id", groupId)
-        .eq("checkin_date", today),
+        .gte("checkin_date", dayBefore)
+        .lte("checkin_date", dayAfter),
+      supabase
+        .from("streak_freezes_used")
+        .select("user_id, freeze_date")
+        .eq("group_id", groupId)
+        .gte("freeze_date", dayBefore)
+        .lte("freeze_date", dayAfter),
     ]);
+    const todayCheckIns = (nearCheckIns ?? []).filter((c: any) => c.checkin_date === today);
+    const checkInDatesBy = new Map<string, Set<string>>();
+    for (const c of nearCheckIns ?? []) {
+      const u = (c as any).user_id as string;
+      if (!checkInDatesBy.has(u)) checkInDatesBy.set(u, new Set());
+      checkInDatesBy.get(u)!.add((c as any).checkin_date as string);
+    }
+    const coveredBy = new Map<string, Set<string>>();
+    for (const f of nearCovered ?? []) {
+      const u = (f as any).user_id as string;
+      if (!coveredBy.has(u)) coveredBy.set(u, new Set());
+      coveredBy.get(u)!.add((f as any).freeze_date as string);
+    }
 
     const memberIds = (members ?? []).map((m: any) => m.user_id as string);
     const { data: profs } = memberIds.length
       ? await supabase
           .from("profiles")
-          .select("id, name, avatar_color, avatar_url")
+          .select("id, name, avatar_color, avatar_url, timezone")
           .in("id", memberIds)
       : { data: [] as any[] };
     const avatarPaths = (profs ?? [])
@@ -1292,6 +1318,9 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
       id: p.id,
       initial: (p.name ?? "?").trim().charAt(0).toUpperCase() || "•",
       checkedIn: checkedSet.has(p.id),
+      resting:
+        !checkedSet.has(p.id) &&
+        restingOn(localDateIn(p.timezone || "UTC"), checkInDatesBy.get(p.id), coveredBy.get(p.id)),
       avatarUrl: p.avatar_url ? signedMap.get(p.avatar_url) ?? null : null,
       avatarColor: p.avatar_color ?? null,
     }));

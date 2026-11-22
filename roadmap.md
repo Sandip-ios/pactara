@@ -36,3 +36,4 @@
 - [x] Waiting (search) screen: "Keep using Pactara" primary button (goes Home, search keeps running) above "Invite someone instead"
 - [x] Use state-aware Pact names across Home, Check In, Groups, Chat, Notifications, and Profile
 - [x] Fix the iPhone crash from the ••• menu on your own post: bottom sheet instead of dropdown, tap-to-top parking stands down during sheets/menus
+- [x] Groups list and check-in celebration leave resting members out of the count and show them resting (moon), never nudgeable

@@ -9,6 +9,7 @@ import { GroupOverflowMenu, inviteLinkFor, ShareInviteDrawer } from "@/component
 import { PendingInvitesRow } from "@/components/groups/PendingInvitesRow";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
+import { crewPageCounts, crewPageStatus, crewWaiting } from "@/lib/group-today-view";
 import {
   BG,
   GroupStreakChip,
@@ -85,7 +86,7 @@ function GroupsOverview() {
   // Count distinct people, not per-group rows — the same person in several
   // groups was being counted once per group.
   const waitingOn = new Set(
-    groups.flatMap((g) => g.members.filter((m) => m.status !== "done").map((m) => m.userId)),
+    groups.flatMap((g) => crewWaiting(g.members).map((m) => m.userId)),
   ).size;
 
   return (
@@ -225,8 +226,10 @@ function GroupAccountabilityCard({
   displayEmoji: string;
 }) {
   const navigate = useNavigate();
-  const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
-  const waiting = group.members.filter((m) => m.status !== "done");
+  // Members resting today aren't due: left out of "{n} of {m}" and never nudged.
+  const counts = crewPageCounts(group.members);
+  const allDone = counts.due > 0 && counts.done === counts.due;
+  const waiting = crewWaiting(group.members);
   const freqLabel = group.frequency === "daily" ? "Daily" : `${group.daysPerWeek}x / week`;
   const shown = group.members.slice(0, 5);
   const overflow = group.memberCount - shown.length;
@@ -266,7 +269,7 @@ function GroupAccountabilityCard({
       <button onClick={open} className="w-full text-left px-4 pt-4 pb-3 flex items-start gap-3">
         <div className="flex-1 min-w-0">
           <div className="text-[22px] font-black tracking-tight leading-none">
-            {group.doneCount} of {group.memberCount} showed up{allDone ? " 🎉" : " today"}
+            {counts.done} of {counts.due} showed up{allDone ? " 🎉" : " today"}
           </div>
           <div className="text-[13px] text-neutral-500 mt-1.5">
             {allDone
@@ -288,7 +291,7 @@ function GroupAccountabilityCard({
               {m.isYou ? "You" : m.firstName}
             </div>
             <MemberStreakChip streak={m.streak} />
-            <StatusPill status={m.status} />
+            <StatusPill status={crewPageStatus(m)} />
           </div>
         ))}
         {overflow > 0 && (

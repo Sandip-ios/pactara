@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Flame, Check, Clock, Hourglass, Hand } from "lucide-react";
+import { Flame, Check, Clock, Hourglass, Hand, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { nudgeMember, type MemberToday, type MemberTodayStatus } from "@/lib/group-today.functions";
 
@@ -78,7 +78,15 @@ export function LiveDot({ size = 8 }: { size?: number }) {
   );
 }
 
-export function StatusPill({ status }: { status: MemberTodayStatus }) {
+export function StatusPill({ status }: { status: MemberTodayStatus | "rest" }) {
+  if (status === "rest") {
+    return (
+      <span className="flex items-center gap-1 text-[13px] font-semibold" style={{ color: "#7C5CD6" }}>
+        <Moon size={13} style={{ color: "#A78BFA" }} aria-hidden />
+        Resting today
+      </span>
+    );
+  }
   if (status === "done") {
     return (
       <span className="flex items-center gap-1 text-[13px] font-semibold text-green-600">

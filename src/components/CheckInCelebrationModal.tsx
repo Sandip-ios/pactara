@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef } from "react";
-import { Share as ShareIcon, X } from "lucide-react";
+import { Moon, Share as ShareIcon, X } from "lucide-react";
 import { BADGE_META } from "@/lib/badges";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import { celebrationCounts } from "@/lib/group-today-view";
 
 /**
  * CheckInCelebrationModal — Pactara
@@ -39,6 +40,8 @@ const BRAND_PURPLE = "#7C3AED";
 export type Teammate = {
   initial: string;
   checkedIn: boolean;
+  /** Own today covered by a rest or freeze row: shown with a moon, not due. */
+  resting?: boolean;
   avatarUrl?: string | null;
   avatarColor?: string | null;
 };
@@ -84,7 +87,8 @@ export function CheckInCelebrationModal({
   const reduceMotion = useMemo(prefersReducedMotion, []);
   const shareBtnRef = useRef<HTMLButtonElement>(null);
 
-  const checkedInCount = teammates.filter((t) => t.checkedIn).length;
+  const counts = celebrationCounts(teammates.map((t) => ({ checkedIn: t.checkedIn, resting: !!t.resting })));
+  const checkedInCount = counts.done;
   const copy = streakCopy ?? defaultCopyForStreak(streakCount);
 
   useEffect(() => {
@@ -243,13 +247,25 @@ export function CheckInCelebrationModal({
               {groupName}
             </div>
             <div className="mt-1 text-[14px]" style={{ color: COLORS.inkSoft }}>
-              {checkedInCount} of {teammates.length} teammates checked in today
+              {checkedInCount} of {counts.due} teammates checked in today
             </div>
 
             {/* Avatars row */}
             <div className="mt-3 flex items-center justify-between">
               <div className="flex items-center -space-x-2">
-                {teammates.slice(0, 6).map((t, i) => (
+                {teammates.slice(0, 6).map((t, i) => {
+                  const rest = !t.checkedIn && !!t.resting;
+                  return rest ? (
+                    <span
+                      key={i}
+                      role="img"
+                      aria-label="Resting today"
+                      className="relative inline-flex h-9 w-9 items-center justify-center rounded-full"
+                      style={{ background: "#A78BFA", border: "2px solid #fff" }}
+                    >
+                      <Moon size={15} color="#fff" fill="#fff" aria-hidden />
+                    </span>
+                  ) : (
                   <span
                     key={i}
                     aria-label={t.checkedIn ? "Checked in" : "Not yet"}
@@ -295,7 +311,8 @@ export function CheckInCelebrationModal({
                       />
                     )}
                   </span>
-                ))}
+                  );
+                })}
 
 
               </div>

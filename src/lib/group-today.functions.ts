@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
 import { currentStreak, dayCovered, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
+import { restingOn } from "@/lib/group-today-view";
 import { alreadyNudgedResult, nudgeDecision, type NudgeResult } from "@/lib/nudge-rules";
 
 /**
@@ -249,8 +250,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         const ownToday = memberToday(uid);
         const resting =
           !post?.checkInId &&
-          !checkInsByKey.get(`${gid}:${uid}`)?.has(ownToday) &&
-          Boolean(coveredByKey.get(`${gid}:${uid}`)?.has(ownToday));
+          restingOn(ownToday, checkInsByKey.get(`${gid}:${uid}`), coveredByKey.get(`${gid}:${uid}`));
 
         const name = prof?.name ?? "Member";
         return {
