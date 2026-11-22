@@ -248,8 +248,25 @@ describe("morning check-in reminder", () => {
 describe("missed check-in cards show the day", () => {
   it("uses the member's own local dates", async () => {
     const { missedDayLabel } = await import("../streak-rules");
-    expect(missedDayLabel("2026-11-21", "2026-11-22")).toBe("Missed · yesterday");
-    expect(missedDayLabel("2026-11-17", "2026-11-22")).toBe("Missed · Tuesday");
-    expect(missedDayLabel("2026-11-03", "2026-11-22")).toBe("Missed · Nov 3");
+    expect(missedDayLabel("2026-11-21", "2026-11-22")).toBe("Yesterday");
+    expect(missedDayLabel("2026-11-17", "2026-11-22")).toBe("Tuesday");
+    expect(missedDayLabel("2026-11-03", "2026-11-22")).toBe("Nov 3");
+    expect(missedDayLabel("2026-11-22", "2026-11-22")).toBe("Today");
+  });
+
+  it("writes the sentence with the same day", async () => {
+    const { missedDaySentence } = await import("../streak-rules");
+    expect(missedDaySentence("2026-11-21", "2026-11-22")).toBe(
+      "Your group missed you yesterday.",
+    );
+    expect(missedDaySentence("2026-11-17", "2026-11-22")).toBe(
+      "Your group missed you Tuesday.",
+    );
+    expect(missedDaySentence("2026-11-03", "2026-11-22")).toBe(
+      "Your group missed you on Nov 3.",
+    );
+    expect(missedDaySentence("2026-11-22", "2026-11-22")).toBe(
+      "Your group missed you today.",
+    );
   });
 });

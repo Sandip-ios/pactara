@@ -249,17 +249,39 @@ export function dayCovered(date: string, checkIns: Set<string>, restOrFreeze: Se
 const WEEKDAY_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/**
- * Day label for a missed check-in, from the member's own local dates:
- * "Missed · yesterday", "Missed · Tuesday" within the past week, else "Missed · Nov 3".
- */
-export function missedDayLabel(localDate: string, memberToday: string): string {
+type DayLabel = {
+  kind: "today" | "yesterday" | "weekday" | "dated";
+  label: string;
+};
+
+/** The member's own local day, named the shortest useful way. */
+function dayLabelParts(localDate: string, memberToday: string): DayLabel {
   const [y, m, d] = localDate.split("-").map(Number);
   const dt = new Date(Date.UTC(y, m - 1, d));
-  if (localDate === memberToday) return "Missed · today";
-  if (addDaysIso(memberToday, -1) === localDate) return "Missed · yesterday";
+  if (localDate === memberToday) return { kind: "today", label: "Today" };
+  if (addDaysIso(memberToday, -1) === localDate) return { kind: "yesterday", label: "Yesterday" };
   if (localDate >= addDaysIso(memberToday, -6) && localDate < memberToday) {
-    return `Missed · ${WEEKDAY_LONG[dt.getUTCDay()]}`;
+    return { kind: "weekday", label: WEEKDAY_LONG[dt.getUTCDay()] };
   }
-  return `Missed · ${MONTH_SHORT[dt.getUTCMonth()]} ${dt.getUTCDate()}`;
+  return { kind: "dated", label: `${MONTH_SHORT[dt.getUTCMonth()]} ${dt.getUTCDate()}` };
+}
+
+/**
+ * Day label next to a missed or rested card, from the member's own local dates:
+ * "Today", "Yesterday", "Tuesday" within the past week, else "Nov 3".
+ */
+export function missedDayLabel(localDate: string, memberToday: string): string {
+  return dayLabelParts(localDate, memberToday).label;
+}
+
+/**
+ * The missed-card sentence: "Your group missed you yesterday." /
+ * "Your group missed you Tuesday." / "Your group missed you on Nov 3."
+ */
+export function missedDaySentence(localDate: string, memberToday: string): string {
+  const { kind, label } = dayLabelParts(localDate, memberToday);
+  if (kind === "today") return "Your group missed you today.";
+  if (kind === "yesterday") return "Your group missed you yesterday.";
+  if (kind === "weekday") return `Your group missed you ${label}.`;
+  return `Your group missed you on ${label}.`;
 }

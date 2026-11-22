@@ -374,6 +374,9 @@ export type TimelineNode =
       kind: "rested";
       id: string;
       at: string;
+      /** The rested day and the member's own "today", both in their timezone. */
+      localDate: string;
+      memberToday: string;
     }
   | {
       kind: "pending";
@@ -618,6 +621,8 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           kind: "rested",
           id: `rest-${p.id}`,
           at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
+          localDate: p.local_date,
+          memberToday: localDateFor(tz),
         });
       } else if (
         myCheckIns.length === 0 &&
