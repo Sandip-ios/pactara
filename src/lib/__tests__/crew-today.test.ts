@@ -108,9 +108,9 @@ describe("member week data", () => {
   });
 
   it("describes the dots for screen readers", () => {
-    expect(weekDotsLabel(5, 1)).toBe("5 workouts and 1 rest day this week");
-    expect(weekDotsLabel(1, 0)).toBe("1 workout and 0 rest days this week");
-    expect(weekDotsLabel(2, 1, 1)).toBe("2 workouts and 1 rest day this week, 1 missed");
+    expect(weekDotsLabel(5, 1)).toBe("5 check-ins and 1 rest day this week");
+    expect(weekDotsLabel(1, 0)).toBe("1 check-in and 0 rest days this week");
+    expect(weekDotsLabel(2, 1, 1)).toBe("2 check-ins and 1 rest day this week, 1 missed");
   });
 });
 

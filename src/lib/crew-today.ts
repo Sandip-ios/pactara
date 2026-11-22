@@ -66,7 +66,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 
 /** Screen-reader label for the 7 week dots. */
 export function weekDotsLabel(workouts: number, restDays: number, missedDays = 0): string {
-  const base = `${plural(workouts, "workout", "workouts")} and ${plural(restDays, "rest day", "rest days")}`;
+  const base = `${plural(workouts, "check-in", "check-ins")} and ${plural(restDays, "rest day", "rest days")}`;
   return missedDays > 0 ? `${base} this week, ${missedDays} missed` : `${base} this week`;
 }
 

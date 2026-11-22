@@ -1,6 +1,7 @@
 # Roadmap
 
-- [ ] Home redesign part 2: feed cards — waiting on Jose's brief for what the cards should do
+- [x] Home redesign part 2: feed cards restyle (cards, action row, comments preview, quiet rows, day groups, comments sheet, loading/empty/offline, week-dots label)
+- [ ] GIF or photo comments with no text are refused by the database — waiting on Jose's go-ahead to allow them
 
 - [x] Home part 1 follow-ups: guide pill by account age, crew bar one line ("Rest days are automatic"), Today headline leaves out members resting today, pod → crew copy (unpublished, awaiting review)
 

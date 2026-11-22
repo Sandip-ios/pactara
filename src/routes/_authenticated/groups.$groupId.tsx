@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, MessageSquare } from "lucide-react";
 import { getGroupsToday, type GroupToday, type MemberToday } from "@/lib/group-today.functions";
 import { getGroupFeed } from "@/lib/daily-posts.functions";
-import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
-import { TimelineCard } from "@/components/TimelineCard";
+import { FeedList } from "@/components/feed/FeedList";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
@@ -338,35 +337,23 @@ function MemberStatusRow({
 }
 
 function ActivityTab({ groupId }: { groupId: string }) {
-  const { data } = useQuery({
+  const { data, isPending, isError, refetch } = useQuery({
     queryKey: ["group-feed", groupId],
     queryFn: () => getGroupFeed({ data: { groupId } }).then(stabilizeSignedUrls),
     staleTime: 30_000,
   });
 
-  const cards = splitFeedIntoTimelineCards(data?.items ?? []).filter((c) =>
-    c.nodes.some((n) => n.kind !== "pending"),
-  );
-
-  if (cards.length === 0) {
-    return (
-      <div className="mx-4 mt-6 rounded-3xl bg-white p-8 flex flex-col items-center text-center">
-        <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-          <MessageSquare size={24} style={{ color: PURPLE }} />
-        </div>
-        <div className="text-[16px] font-bold">Nothing here yet</div>
-        <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
-          Commitments and check-ins from this group will show up here.
-        </div>
-      </div>
-    );
-  }
-
+  // Same day-by-day feed as Home, for this one group.
   return (
-    <div className="pt-3 pb-2">
-      {cards.map((item) => (
-        <TimelineCard key={`${item.id}-${item.localDate}`} item={item} />
-      ))}
+    <div className="pb-2">
+      <FeedList
+        items={data?.items}
+        meta={data?.meta}
+        loading={isPending}
+        refreshFailed={isError}
+        onRetry={() => void refetch()}
+        groupId={groupId}
+      />
     </div>
   );
 }

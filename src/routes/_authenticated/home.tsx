@@ -21,8 +21,7 @@ import { ShareInviteDrawer, inviteLinkFor } from "@/components/groups/GroupOverf
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
-import { TimelineCard } from "@/components/TimelineCard";
-import { splitFeedIntoTimelineCards } from "@/lib/feed-cards";
+import { FeedList } from "@/components/feed/FeedList";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { BadgeUnlockedModal } from "@/components/BadgeUnlockedModal";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
@@ -191,7 +190,12 @@ function HomePage() {
     queryKey: ["pending-checkins", selectedGroupId],
     queryFn: () => getPendingCheckIns({ data: { groupId: selectedGroupId } }),
   });
-  const { data: feedData } = useQuery({
+  const {
+    data: feedData,
+    isPending: feedLoading,
+    isError: feedFailed,
+    refetch: refetchFeed,
+  } = useQuery({
     queryKey: ["group-feed", selectedGroupId],
     queryFn: () => getGroupFeed({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
     refetchOnWindowFocus: true,
@@ -686,52 +690,18 @@ function HomePage() {
       )}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
 
-      {(() => {
-        const cards = splitFeedIntoTimelineCards(feedData?.items ?? []);
-        // Hide cards that only contain a "check-in pending" placeholder — e.g. a
-        // brand-new group where nobody has posted a ritual, thought, or check-in
-        // yet. Showing those as empty cards is noise; surface the empty state
-        // instead so members aren't greeted by pending placeholders.
-        const visibleCards = cards.filter((c) =>
-          c.nodes.some((n) => n.kind !== "pending"),
-        );
-        if (visibleCards.length === 0) {
-          return (
-            <div className="mx-4 mt-6 rounded-2xl bg-white p-8 flex flex-col items-center text-center">
-              <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-3">
-                <MessageSquare size={24} style={{ color: PURPLE }} />
-              </div>
-              <div className="text-[16px] font-bold">
-                {relationFor(selectedGroupId)?.kind === "solo" ? "Your feed starts with you." : "Your feed is empty"}
-              </div>
-              <div className="text-[13px] text-neutral-500 mt-1 max-w-[260px]">
-                {relationFor(selectedGroupId)?.kind === "solo"
-                  ? "Check in today while we find your accountability partner."
-                  : "Share what's on your mind or check in to start your streak."}
-              </div>
-            </div>
-          );
-        }
-        return (
-          <div className="pb-2">
-            {visibleCards.map((item) => (
-              // Several cards can share the same daily_post id (a day with
-              // separate "thought" cards), so the node ids must be part of the
-              // key — otherwise React reuses one card's DOM for another and an
-              // old day can stay pinned at the top after a refetch.
-              <div
-                key={`${item.id}-${item.localDate}-${item.nodes.map((n) => n.id).join("_")}`}
-                id={`post-${item.id}`}
-              >
-                <TimelineCard
-                  item={item}
-                  autoOpenComments={Boolean(search.comments) && search.post === item.id}
-                />
-              </div>
-            ))}
-          </div>
-        );
-      })()}
+      <FeedList
+        items={feedData?.items}
+        meta={feedData?.meta}
+        loading={feedLoading}
+        refreshFailed={feedFailed}
+        onRetry={() => void refetchFeed()}
+        groupId={selectedGroupId}
+        todayCounts={crew && crew.groupId === feedData?.items[0]?.groupId ? { inCount: crew.inCount, dueCount: crew.dueCount } : null}
+        deepLinkPost={search.post}
+        deepLinkComments={Boolean(search.comments)}
+        onInvite={crew ? () => setInviteOpen(true) : undefined}
+      />
 
       {/* Getting started checklist hidden for now */}
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}

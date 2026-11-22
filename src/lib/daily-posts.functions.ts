@@ -2,6 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
+import {
+  addDaysIso,
+  groupStreak as computeGroupStreak,
+  localDateIn,
+  weekCounts,
+  weeklyTarget,
+} from "./streak-rules";
+import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -397,9 +405,55 @@ export type FeedItem = {
   updatedAt: string;
   nodes: TimelineNode[];
   reactions: ReactionSummary[];
+  /** Who cheered and with which emoji (one reaction per person). */
+  reactors: Reactor[];
   commentCount: number;
   lastCommentAt: string | null;
+  /** Newest comment on this post, for the preview under the action row. */
+  latestComment: CommentPreview | null;
+  /** The member's streak in this group as of this post's local date. */
+  dayNumber: number;
+  /** Distinct check-in days in that Mon–Sun week, up to this post's date. */
+  weekCount: number;
 };
+
+export type CommentPreview = {
+  authorName: string;
+  isMine: boolean;
+  body: string;
+  mediaKind: "photo" | "gif" | "video" | null;
+  thumbUrl: string | null;
+};
+
+export type FeedMember = {
+  userId: string;
+  name: string;
+  firstName: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+  isMe: boolean;
+};
+
+export type FeedMeta = {
+  viewerToday: string;
+  weeklyTarget: number;
+  members: FeedMember[];
+  /** Per feed day: who checked in, rested or missed, members due, crew streak. */
+  days: DayStat[];
+  /** Crewmates whose own day is still open with no check-in or rest. */
+  notYet: { userId: string; closesAt: string; nudgedAt: string | null }[];
+  milestones: { id: string; userId: string; streakDays: number; localDate: string; postId: string | null }[];
+};
+
+const FEED_STREAK_LOOKBACK_DAYS = 120;
+
+function commentMediaKind(url: string | null, type: string | null): CommentPreview["mediaKind"] {
+  if (!url) return null;
+  const t = (type ?? "").toLowerCase();
+  if (t.startsWith("video/")) return "video";
+  if (t === "image/gif" || /\.gif(\?|$)/i.test(url) || /giphy|tenor/i.test(url)) return "gif";
+  return "photo";
+}
 
 export type PostComment = {
   id: string;
@@ -423,7 +477,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
   .inputValidator((input?: { groupId?: string | null }) => ({
     groupId: input?.groupId ? String(input.groupId) : null,
   }))
-  .handler(async ({ context, data }): Promise<{ items: FeedItem[] }> => {
+  .handler(async ({ context, data }): Promise<{ items: FeedItem[]; meta: FeedMeta | null }> => {
     const { supabase, userId } = context;
     let groupId: string | null = data.groupId;
     if (groupId) {
@@ -438,7 +492,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     if (!groupId) {
       ({ groupId } = await getMyGroupAndTz(supabase, userId));
     }
-    if (!groupId) return { items: [] };
+    if (!groupId) return { items: [], meta: null };
 
     const { data: posts, error } = await supabase
       .from("daily_posts")
@@ -449,59 +503,134 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false })
       .limit(50);
     if (error) throw new Error(error.message);
-    if (!posts || posts.length === 0) return { items: [] };
+    if (!posts || posts.length === 0) return { items: [], meta: null };
 
-    // Per-user timezones so we can derive "missed" without waiting for cron.
-    const { data: tzProfiles } = await supabase
-      .from("profiles")
-      .select("id, timezone")
-      .in("id", Array.from(new Set((posts ?? []).map((p) => p.user_id))));
-    const tzMap = new Map((tzProfiles ?? []).map((p) => [p.id, p.timezone ?? "UTC"]));
     const now = new Date();
-
-    const userIds = Array.from(new Set(posts.map((p) => p.user_id)));
+    const postIds = posts.map((p) => p.id);
+    const posterIds = Array.from(new Set(posts.map((p) => p.user_id)));
     const dates = Array.from(new Set(posts.map((p) => p.local_date)));
+    const minDate = dates.reduce((a, b) => (a < b ? a : b));
+    const historyStart = addDaysIso(minDate, -FEED_STREAK_LOOKBACK_DAYS);
+    const recentNudgeDay = addDaysIso(now.toISOString().slice(0, 10), -1);
 
-    const [{ data: profiles }, checkInsResult, thoughtsResult, reactionsResult, commentsResult, freezesResult] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, name, avatar_color, avatar_url")
-        .in("id", userIds),
+    const [
+      groupRes,
+      rosterRes,
+      checkInsResult,
+      thoughtsResult,
+      reactionsResult,
+      commentsResult,
+      freezesResult,
+      historyRes,
+      badgesRes,
+      nudgesRes,
+    ] = await Promise.all([
+      supabase.from("groups").select("frequency, days_per_week").eq("id", groupId).maybeSingle(),
+      supabase.from("group_members").select("user_id, joined_at").eq("group_id", groupId),
       supabase
         .from("check_ins")
         .select("id, user_id, checkin_date, mood, activity, note, photo_url, created_at")
         .eq("group_id", groupId)
-        .in("user_id", userIds)
+        .in("user_id", posterIds)
         .in("checkin_date", dates),
       (supabase as any)
         .from("daily_thoughts")
         .select("id, user_id, local_date, text, photo_url, created_at")
         .eq("group_id", groupId)
-        .in("user_id", userIds)
+        .in("user_id", posterIds)
         .in("local_date", dates),
       (supabase as any)
         .from("post_reactions")
-        .select("post_id, user_id, emoji")
-        .in("post_id", posts.map((p) => p.id)),
+        .select("post_id, user_id, emoji, created_at")
+        .in("post_id", postIds)
+        .order("created_at", { ascending: true }),
       (supabase as any)
         .from("post_comments")
-        .select("post_id, created_at")
-        .in("post_id", posts.map((p) => p.id)),
+        .select("id, post_id, user_id, body, media_url, media_type, created_at")
+        .in("post_id", postIds),
       // Rest days and streak freezes: those days are kept, never "missed".
       supabase
         .from("streak_freezes_used")
         .select("user_id, freeze_date, kind")
         .eq("group_id", groupId)
-        .in("user_id", userIds)
-        .in("freeze_date", dates),
+        .gte("freeze_date", historyStart)
+        .limit(20000),
+      // Check-in days for streaks (Day n, crew streak) and day headers.
+      supabase
+        .from("check_ins")
+        .select("user_id, checkin_date")
+        .eq("group_id", groupId)
+        .gte("checkin_date", historyStart)
+        .order("checkin_date", { ascending: false })
+        .limit(20000),
+      supabase
+        .from("earned_badges")
+        .select("id, user_id, streak_days, earned_at")
+        .eq("group_id", groupId)
+        .gte("earned_at", `${addDaysIso(minDate, -1)}T00:00:00Z`),
+      supabase
+        .from("member_nudges")
+        .select("target_id, local_date, created_at")
+        .eq("group_id", groupId)
+        .eq("nudger_id", userId)
+        .gte("local_date", recentNudgeDay),
     ]);
+
+    const schedule = {
+      frequency: (groupRes.data?.frequency as string | null) ?? null,
+      days_per_week: (groupRes.data?.days_per_week as number | null) ?? null,
+    };
+    const roster = (rosterRes.data ?? []) as { user_id: string; joined_at: string }[];
+    const rawReactions = ((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[];
+    const rawComments = ((commentsResult as any).data ?? []) as {
+      id: string; post_id: string; user_id: string; body: string | null;
+      media_url: string | null; media_type: string | null; created_at: string;
+    }[];
+
+    const commentCountByPost = new Map<string, number>();
+    const latestByPost = new Map<string, (typeof rawComments)[number]>();
+    for (const c of rawComments) {
+      commentCountByPost.set(c.post_id, (commentCountByPost.get(c.post_id) ?? 0) + 1);
+      const prev = latestByPost.get(c.post_id);
+      if (!prev || prev.created_at < c.created_at) latestByPost.set(c.post_id, c);
+    }
+
+    // One profiles read for everyone the feed names: posters, crew, cheerers, commenters.
+    const peopleIds = Array.from(
+      new Set([
+        ...posterIds,
+        ...roster.map((r) => r.user_id),
+        ...rawReactions.map((r) => r.user_id),
+        ...[...latestByPost.values()].map((c) => c.user_id),
+        userId,
+      ]),
+    );
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_color, avatar_url, timezone")
+      .in("id", peopleIds);
+    const tzMap = new Map((profiles ?? []).map((p) => [p.id, (p.timezone as string | null) || "UTC"]));
+    const viewerToday = localDateIn(tzMap.get(userId) ?? "UTC", now);
+
     const protectedKind = new Map<string, string>();
+    const coveredByUser = new Map<string, Set<string>>();
+    const checkInDaysByUser = new Map<string, Set<string>>();
+    const setFor = (map: Map<string, Set<string>>, uid: string) => {
+      let s = map.get(uid);
+      if (!s) map.set(uid, (s = new Set()));
+      return s;
+    };
     for (const f of (freezesResult.data ?? []) as { user_id: string; freeze_date: string; kind: string }[]) {
       protectedKind.set(`${f.user_id}|${f.freeze_date}`, f.kind);
+      setFor(coveredByUser, f.user_id).add(f.freeze_date);
+    }
+    for (const c of (historyRes.data ?? []) as { user_id: string; checkin_date: string }[]) {
+      setFor(checkInDaysByUser, c.user_id).add(c.checkin_date);
     }
 
     const reactionsByPost = new Map<string, ReactionSummary[]>();
-    for (const r of ((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[]) {
+    const reactorsByPost = new Map<string, { user_id: string; emoji: string }[]>();
+    for (const r of rawReactions) {
       const list = reactionsByPost.get(r.post_id) ?? [];
       const existing = list.find((x) => x.emoji === r.emoji);
       if (existing) {
@@ -511,16 +640,10 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         list.push({ emoji: r.emoji, count: 1, mine: r.user_id === userId });
       }
       reactionsByPost.set(r.post_id, list);
+      const people = reactorsByPost.get(r.post_id) ?? [];
+      if (!people.some((x) => x.user_id === r.user_id)) people.push({ user_id: r.user_id, emoji: r.emoji });
+      reactorsByPost.set(r.post_id, people);
     }
-
-    const commentCountByPost = new Map<string, number>();
-    const lastCommentAtByPost = new Map<string, string>();
-    for (const c of ((commentsResult as any).data ?? []) as { post_id: string; created_at: string }[]) {
-      commentCountByPost.set(c.post_id, (commentCountByPost.get(c.post_id) ?? 0) + 1);
-      const prev = lastCommentAtByPost.get(c.post_id);
-      if (!prev || prev < c.created_at) lastCommentAtByPost.set(c.post_id, c.created_at);
-    }
-
 
     const rawCheckIns = checkInsResult.data ?? [];
     const rawThoughts = (thoughtsResult.data ?? []) as {
@@ -528,8 +651,12 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       photo_url: string | null; created_at: string;
     }[];
     const avatarPaths = Array.from(new Set((profiles ?? []).map((p) => p.avatar_url).filter((path): path is string => !!path)));
+    const commentMediaPaths = [...latestByPost.values()]
+      .filter((c) => commentMediaKind(c.media_url, c.media_type) !== "video")
+      .map((c) => c.media_url);
     const photoPaths = Array.from(new Set([...rawCheckIns, ...rawThoughts]
-      .map((item) => item.photo_url)
+      .map((item) => item.photo_url as string | null)
+      .concat(commentMediaPaths)
       .filter((path): path is string => !!path && !path.startsWith("http"))));
     // Two requests, regardless of how many repeated assets appear in the feed.
     // Avatars and photos are resized server-side to their display size.
@@ -544,12 +671,13 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         (profiles ?? []).map((p) => [
           p.id,
           {
-            name: p.name,
-            avatar_color: p.avatar_color,
+            name: ((p.name as string | null) ?? "").trim() || "Member",
+            avatar_color: (p.avatar_color as string | null) ?? "#22C55E",
             avatar_url: p.avatar_url ? avatarUrls.get(p.avatar_url) ?? null : null,
           },
         ] as const),
     );
+    const firstNameOf = (uid: string) => (profileMap.get(uid)?.name ?? "Member").split(" ")[0] || "Member";
 
     const checkIns = rawCheckIns.map((ci) => ({
         ...ci,
@@ -622,7 +750,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           id: `rest-${p.id}`,
           at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
           localDate: p.local_date,
-          memberToday: localDateFor(tz),
+          memberToday: todayLocal,
         });
       } else if (
         myCheckIns.length === 0 &&
@@ -635,9 +763,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           id: `cm-${p.id}`,
           at: zonedWallTimeToISO(tz, p.local_date, 23, 59),
           localDate: p.local_date,
-          memberToday: localDateFor(tz),
+          memberToday: todayLocal,
         });
       }
+
+      const memberCheckIns = new Set(checkInDaysByUser.get(p.user_id) ?? []);
+      for (const c of myCheckIns) memberCheckIns.add(c.checkin_date);
+      const latest = latestByPost.get(p.id);
+      const latestKind = latest ? commentMediaKind(latest.media_url, latest.media_type) : null;
 
       return {
         id: p.id,
@@ -651,12 +784,118 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         updatedAt: p.updated_at,
         nodes,
         reactions: reactionsByPost.get(p.id) ?? [],
+        reactors: (reactorsByPost.get(p.id) ?? []).map((r) => {
+          const rp = profileMap.get(r.user_id);
+          return {
+            userId: r.user_id,
+            name: rp?.name ?? "Member",
+            firstName: firstNameOf(r.user_id),
+            avatarUrl: rp?.avatar_url ?? null,
+            avatarColor: rp?.avatar_color ?? "#22C55E",
+            emoji: r.emoji,
+            isMe: r.user_id === userId,
+          };
+        }),
         commentCount: commentCountByPost.get(p.id) ?? 0,
-        lastCommentAt: lastCommentAtByPost.get(p.id) ?? null,
+        lastCommentAt: latest?.created_at ?? null,
+        latestComment: latest
+          ? {
+              authorName: latest.user_id === userId ? "You" : firstNameOf(latest.user_id),
+              isMine: latest.user_id === userId,
+              body: latest.body ?? "",
+              mediaKind: latestKind,
+              thumbUrl: latestKind && latestKind !== "video" ? resolvePhoto(latest.media_url) : null,
+            }
+          : null,
+        dayNumber: myCheckIns.length
+          ? feedDayNumber(memberCheckIns, coveredByUser.get(p.user_id) ?? [], p.local_date)
+          : 0,
+        weekCount: weekCounts(memberCheckIns, p.local_date).thisWeek,
       };
     });
 
-    return { items };
+    // Crew-wide day stats, each member on their own local dates.
+    const crew = roster.map((r) => {
+      const tz = tzMap.get(r.user_id) ?? "UTC";
+      return {
+        userId: r.user_id,
+        tz,
+        today: localDateIn(tz, now),
+        joinedOn: localDateIn(tz, new Date(r.joined_at)),
+        checkIns: checkInDaysByUser.get(r.user_id) ?? new Set<string>(),
+        covered: coveredByUser.get(r.user_id) ?? new Set<string>(),
+      };
+    });
+    const streakInputs = crew.map((m) => ({ joinedOn: m.joinedOn, kept: new Set([...m.checkIns, ...m.covered]) }));
+    const dayDates = Array.from(new Set([...dates.map((d) => (d > viewerToday ? viewerToday : d)), viewerToday]));
+    const days: DayStat[] = dayDates.map((date) => {
+      const checkedIn: string[] = [];
+      const rested: string[] = [];
+      const missed: string[] = [];
+      let joined = 0;
+      for (const m of crew) {
+        if (m.joinedOn > date) continue;
+        joined += 1;
+        if (m.checkIns.has(date)) checkedIn.push(m.userId);
+        else if (m.covered.has(date)) rested.push(m.userId);
+        else if (date < m.today) missed.push(m.userId);
+      }
+      return {
+        date,
+        checkedIn,
+        rested,
+        missed,
+        due: joined - rested.length,
+        groupStreak: computeGroupStreak(streakInputs, date, FEED_STREAK_LOOKBACK_DAYS),
+      };
+    });
+
+    const myNudgeDay = viewerToday;
+    const nudgedAt = new Map<string, string>();
+    for (const n of (nudgesRes.data ?? []) as { target_id: string; local_date: string; created_at: string }[]) {
+      if (n.local_date === myNudgeDay) nudgedAt.set(n.target_id, n.created_at);
+    }
+    const notYet = crew
+      .filter((m) => m.userId !== userId && !m.checkIns.has(m.today) && !m.covered.has(m.today))
+      .map((m) => ({
+        userId: m.userId,
+        closesAt: zonedWallTimeToISO(m.tz, addDaysIso(m.today, 1), 0, 0),
+        nudgedAt: nudgedAt.get(m.userId) ?? null,
+      }));
+
+    // Streak badges (3 days and up); the 1-day badge is every first check-in.
+    const milestones = ((badgesRes.data ?? []) as { id: string; user_id: string; streak_days: number; earned_at: string }[])
+      .filter((b) => b.streak_days >= 3)
+      .map((b) => {
+        const localDate = localDateIn(tzMap.get(b.user_id) ?? "UTC", new Date(b.earned_at));
+        const post = posts.find((p) => p.user_id === b.user_id && p.local_date === localDate);
+        return { id: b.id, userId: b.user_id, streakDays: b.streak_days, localDate, postId: post?.id ?? null };
+      })
+      .filter((m) => m.localDate >= minDate);
+
+    const members: FeedMember[] = peopleIds.map((uid) => {
+      const prof = profileMap.get(uid);
+      return {
+        userId: uid,
+        name: prof?.name ?? "Member",
+        firstName: firstNameOf(uid),
+        avatarUrl: prof?.avatar_url ?? null,
+        avatarColor: prof?.avatar_color ?? "#22C55E",
+        isMe: uid === userId,
+      };
+    });
+
+    return {
+      items,
+      meta: {
+        viewerToday,
+        weeklyTarget: weeklyTarget(schedule),
+        members,
+        days,
+        notYet,
+        milestones,
+      },
+    };
   });
 
 export const deleteCheckIn = createServerFn({ method: "POST" })
