@@ -1,21 +1,36 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Search, X, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { GOAL_CHIPS, searchPlans, suggestNextPlan, type PlanGoal } from "@/lib/workout-plans";
-import { INK, MUTED, PURPLE, PURPLE_SOFT, PlanCard, useCrewPlans, useMyPlans, usePlans } from "./PlanBits";
+import { GOAL_CHIPS, goalLabel, plansPerGoal, searchPlans, suggestNextPlan, type PlanGoal } from "@/lib/workout-plans";
+import { GOAL_TILE, INK, MUTED, P, PURPLE, PURPLE_SOFT, PlanRow, useCrewPlans, useMyPlans, usePlans } from "./PlanBits";
 
-/** Discover → Plans: your plan, what your crew is doing, and the catalog. */
-export function PlansDiscover({ completeSlug, onCloseComplete }: { completeSlug?: string; onCloseComplete: () => void }) {
+/** Discover → Plans: your plan, what your crew is doing, goals and the catalog. Search lives in the Discover header. */
+export function PlansDiscover({
+  query,
+  onClearQuery,
+  completeSlug,
+  onCloseComplete,
+}: {
+  query: string;
+  onClearQuery: () => void;
+  completeSlug?: string;
+  onCloseComplete: () => void;
+}) {
   const navigate = useNavigate();
   const { data: plans, isLoading } = usePlans();
   const { data: mine } = useMyPlans();
   const { data: crew } = useCrewPlans();
-  const [query, setQuery] = useState("");
   const [goal, setGoal] = useState<PlanGoal | null>(null);
+  // A search looks across every plan, so it replaces the goal filter.
+  const searching = query.trim().length > 0;
+  useEffect(() => {
+    if (searching) setGoal(null);
+  }, [searching]);
 
   const list = useMemo(() => searchPlans(plans ?? [], query, goal), [plans, query, goal]);
+  const counts = useMemo(() => plansPerGoal(plans ?? []), [plans]);
   const active = mine?.active ?? null;
   const openPlan = (slug: string) => navigate({ to: "/plans/$slug", params: { slug } });
 
@@ -23,134 +38,119 @@ export function PlansDiscover({ completeSlug, onCloseComplete }: { completeSlug?
   const nextSlug = completeSlug ? suggestNextPlan(completeSlug) : null;
   const next = nextSlug ? (plans ?? []).find((p) => p.slug === nextSlug) ?? null : null;
 
-  return (
-    <div className="pb-6">
-      <div className="px-4 pt-4">
-        <label className="flex h-11 items-center gap-2 rounded-2xl bg-white px-4 shadow-sm">
-          <Search size={18} className="shrink-0" style={{ color: MUTED }} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search plans"
-            aria-label="Search plans"
-            enterKeyHint="search"
-            className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-neutral-400"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              aria-label="Clear search"
-              className="-mr-2 flex h-11 w-11 items-center justify-center"
-            >
-              <X size={16} style={{ color: MUTED }} />
-            </button>
-          )}
-        </label>
-      </div>
+  const q = query.trim();
+  const listTitle = q ? `Results for “${q}”` : goal ? `${goalLabel(goal)} plans` : "Popular plans";
+  const filtered = !!q || !!goal;
 
+  return (
+    <>
       {active && (
-        <section className="px-4 pt-4">
-          <div className="rounded-[20px] bg-white p-4 shadow-sm">
-            <div className="text-[12px] font-bold uppercase tracking-wide" style={{ color: PURPLE }}>
-              Your plan
-            </div>
-            <button type="button" onClick={() => openPlan(active.slug)} className="mt-1 block text-left">
-              <div className="text-[20px] font-black tracking-tight" style={{ color: INK }}>
-                {active.name}
-              </div>
-              <div className="text-[14px]" style={{ color: MUTED }}>
-                Week {active.currentWeek} · Day {active.nextDay} next
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate({ to: "/plans/$slug/day", params: { slug: active.slug } })}
-              className="mt-3 h-12 w-full rounded-2xl text-[16px] font-semibold text-white"
-              style={{ background: PURPLE }}
-            >
-              Start Day {active.nextDay}
-            </button>
-          </div>
+        <section className="flex flex-col gap-2 rounded-[16px] bg-white p-[14px]">
+          <span className="text-[12px] font-extrabold tracking-[0.5px]" style={{ color: P.violet }}>
+            YOUR PLAN
+          </span>
+          <button type="button" onClick={() => openPlan(active.slug)} className="flex flex-col gap-1 text-left">
+            <span className="text-[16px] font-extrabold">{active.name}</span>
+            <span className="text-[13px]" style={{ color: P.stoneDark }}>
+              Week {active.currentWeek} · Day {active.nextDay} next
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/plans/$slug/day", params: { slug: active.slug } })}
+            className="mt-1 h-12 w-full rounded-[24px] text-[15px] font-bold text-white"
+            style={{ background: P.violet }}
+          >
+            Start Day {active.nextDay}
+          </button>
         </section>
       )}
 
       {(crew ?? []).length > 0 && (
-        <section className="px-4 pt-5">
-          <h2 className="text-[17px] font-bold tracking-tight" style={{ color: INK }}>
-            Your crew is doing
-          </h2>
-          <div className="mt-2 divide-y rounded-[20px] bg-white px-4 shadow-sm" style={{ borderColor: "#F0EDE9" }}>
+        <section className="flex flex-col gap-[10px]">
+          <h2 className="mx-1 text-[17px] font-extrabold">Your crew is doing</h2>
+          <div className="grid grid-cols-2 gap-[10px]">
             {(crew ?? []).map((c) => (
-              <div key={c.userId} className="flex min-h-[60px] items-center gap-3 py-2" style={{ borderColor: "#F0EDE9" }}>
+              <button
+                key={c.userId}
+                type="button"
+                onClick={() => openPlan(c.slug)}
+                className="flex min-w-0 flex-col items-start gap-2 rounded-[16px] bg-white p-[14px] text-left"
+              >
                 <span
                   className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-[14px] font-bold text-white"
                   style={{ background: c.avatarColor }}
                 >
                   {c.avatarUrl ? <img src={c.avatarUrl} alt="" className="h-full w-full object-cover" /> : c.firstName.slice(0, 1)}
                 </span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[15px] font-semibold" style={{ color: INK }}>
-                    {c.firstName} · week {c.currentWeek} of {c.weeks}
-                  </div>
-                  <div className="truncate text-[13px]" style={{ color: MUTED }}>
-                    {c.planName}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => openPlan(c.slug)}
-                  className="h-11 shrink-0 rounded-full px-4 text-[14px] font-semibold"
-                  style={{ background: PURPLE_SOFT, color: PURPLE }}
-                >
-                  See plan
-                </button>
-              </div>
+                <span className="text-[15px] font-extrabold leading-tight">{c.planName}</span>
+                <span className="text-[12px]" style={{ color: P.stone }}>
+                  {c.firstName} · week {c.currentWeek} of {c.weeks}
+                </span>
+                <span className="text-[13px] font-bold" style={{ color: P.violet }}>
+                  Try it
+                </span>
+              </button>
             ))}
           </div>
         </section>
       )}
 
-      <section className="pt-5">
-        <h2 className="px-4 text-[17px] font-bold tracking-tight" style={{ color: INK }}>
-          Browse by goal
-        </h2>
-        <div className="mt-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="flex w-max gap-2" role="group" aria-label="Goals">
-            {GOAL_CHIPS.map((g) => {
-              const on = goal === g.goal;
-              return (
-                <button
-                  key={g.goal}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setGoal(on ? null : g.goal)}
-                  className="h-11 shrink-0 rounded-full border px-4 text-[14px] font-semibold whitespace-nowrap"
-                  style={{
-                    borderColor: on ? PURPLE : "#E7E5E4",
-                    background: on ? PURPLE_SOFT : "#FFFFFF",
-                    color: on ? PURPLE : INK,
-                  }}
-                >
-                  {g.label}
-                </button>
-              );
-            })}
-          </div>
+      <section className="flex flex-col gap-[10px]">
+        <h2 className="mx-1 text-[17px] font-extrabold">Browse by goal</h2>
+        <div className="grid grid-cols-2 gap-[10px]" role="group" aria-label="Goals">
+          {GOAL_CHIPS.map((g) => {
+            const on = goal === g.goal;
+            const t = GOAL_TILE[g.goal];
+            const n = counts[g.goal] ?? 0;
+            return (
+              <button
+                key={g.goal}
+                type="button"
+                aria-pressed={on}
+                onClick={() => {
+                  if (!on && searching) onClearQuery();
+                  setGoal(on ? null : g.goal);
+                }}
+                className="flex h-[72px] flex-col items-start justify-center gap-0.5 rounded-[16px] px-[14px] text-left"
+                style={{ background: t.tint, color: t.ink, border: `2px solid ${on ? t.ink : "transparent"}` }}
+              >
+                <span className="text-[15px] font-extrabold">{g.label}</span>
+                <span className="text-[12px] font-semibold">
+                  {n} {n === 1 ? "plan" : "plans"}
+                </span>
+              </button>
+            );
+          })}
         </div>
+      </section>
 
-        <div className="mt-3 space-y-3 px-4">
-          {isLoading &&
-            [0, 1, 2].map((i) => <div key={i} className="h-[132px] animate-pulse rounded-[20px] bg-white/70" />)}
-          {!isLoading && list.length === 0 && (
-            <div className="rounded-[20px] bg-white p-6 text-center text-[14px]" style={{ color: MUTED }}>
-              No plans match{query ? ` “${query.trim()}”` : " that goal"}.
-            </div>
+      <section className="flex flex-col gap-[10px]">
+        <div className="mx-1 flex items-baseline justify-between gap-3">
+          <h2 className="min-w-0 truncate text-[17px] font-extrabold">{listTitle}</h2>
+          {filtered && (
+            <button
+              type="button"
+              onClick={() => {
+                setGoal(null);
+                onClearQuery();
+              }}
+              className="-my-3 flex h-11 shrink-0 items-center text-[14px] font-bold"
+              style={{ color: P.violet }}
+            >
+              Clear
+            </button>
           )}
-          {list.map((p) => (
-            <PlanCard key={p.id} plan={p} onOpen={() => openPlan(p.slug)} />
-          ))}
         </div>
+        {isLoading && [0, 1, 2].map((i) => <div key={i} className="h-[84px] animate-pulse rounded-[16px] bg-white/70" />)}
+        {!isLoading && list.length === 0 && (
+          <div className="rounded-[16px] bg-white p-6 text-center text-[14px]" style={{ color: P.stone }}>
+            No plans match{q ? ` “${q}”` : " that goal"}.
+          </div>
+        )}
+        {list.map((p) => (
+          <PlanRow key={p.id} plan={p} onOpen={() => openPlan(p.slug)} />
+        ))}
       </section>
 
       <Dialog open={!!completed} onOpenChange={(o) => !o && onCloseComplete()}>
@@ -193,6 +193,6 @@ export function PlansDiscover({ completeSlug, onCloseComplete }: { completeSlug?
           </button>
         </DialogContent>
       </Dialog>
-    </div>
+    </>
   );
 }

@@ -11,7 +11,16 @@ import {
   type PlanDay,
 } from "../workout-plans";
 import { checkInMetaLine } from "../feed-view";
-import { planChipLabel } from "../workout-plans";
+import {
+  crewProofLine,
+  lighterDose,
+  moveGroup,
+  movesForWeek,
+  muscleMapLabel,
+  planChipLabel,
+  planMuscleMap,
+  plansPerGoal,
+} from "../workout-plans";
 
 const move = (name: string) => ({ name, dose: "3x10", plain: "Do it." });
 const day = (dayNumber: number, title: string, moves: string[], weekNumber: number | null = null): PlanDay => ({
@@ -21,6 +30,7 @@ const day = (dayNumber: number, title: string, moves: string[], weekNumber: numb
   minutes: null,
   note: null,
   moves: moves.map(move),
+  muscles: {},
 });
 const plan = (over: Partial<Plan>): Plan => ({
   id: over.slug ?? "p",
@@ -36,6 +46,11 @@ const plan = (over: Partial<Plan>): Plan => ({
   progressionRule: "",
   safetyNote: "",
   note: null,
+  coverUrl: null,
+  coverCredit: null,
+  focusLine: null,
+  gearShort: null,
+  weekNotes: [],
   days: [],
   ...over,
 });
@@ -158,5 +173,61 @@ describe("feed post for a plan day", () => {
   });
   it("is unchanged for ordinary check-ins", () => {
     expect(checkInMetaLine("run", 4, "7:00 pm")).toBe("🏃 Run · Day 4 · 7:00 pm");
+  });
+});
+
+describe("plan page and Discover helpers", () => {
+  it("plan body map takes the strongest level per region across days", () => {
+    const p = plan({
+      days: [
+        { ...day(1, "Push", ["Bench"]), muscles: { chest: 2, abs: 1 } },
+        { ...day(2, "Full", ["Row"]), muscles: { chest: 1, abs: 2, back: 1 } },
+      ],
+    });
+    expect(planMuscleMap(p)).toEqual({ chest: 2, abs: 2, back: 1 });
+    expect(muscleMapLabel({ chest: 2, shoulders: 2, triceps: 2, abs: 1 })).toBe(
+      "Main muscles: chest, shoulders and triceps. Also worked: core.",
+    );
+  });
+  it("a lighter week is 2 sets of everything", () => {
+    expect(lighterDose("3x8-12")).toBe("2x8-12");
+    expect(lighterDose("3x8 each leg")).toBe("2x8 each leg");
+    expect(lighterDose("2x12-15")).toBe("2x12-15");
+    expect(lighterDose("2 sets, stop 2 reps short")).toBe("2 sets, stop 2 reps short");
+    expect(lighterDose("3 sets, stop 2 reps short")).toBe("2 sets, stop 2 reps short");
+    expect(movesForWeek([move("Goblet squat")], false)[0]!.dose).toBe("3x10");
+    expect(movesForWeek([move("Goblet squat")], true)[0]!.dose).toBe("2x10");
+  });
+  it("counts plans per goal tile", () => {
+    const counts = plansPerGoal([plan({ goal: "muscle" }), plan({ goal: "run" }), plan({ goal: "muscle" })]);
+    expect(counts.muscle).toBe(2);
+    expect(counts.run).toBe(1);
+    expect(counts.glutes).toBe(0);
+  });
+  it("search finds no-equipment plans and gear", () => {
+    const home = plan({ slug: "home", name: "Home", goal: "home", gear: [] });
+    const muscle = plan({ slug: "m", name: "Build Muscle", gear: ["Pair of dumbbells"] });
+    expect(searchPlans([home, muscle], "no equipment").map((p) => p.slug)).toEqual(["home"]);
+    expect(searchPlans([home, muscle], "dumbbells").map((p) => p.slug)).toEqual(["m"]);
+  });
+  it("tags each move with a muscle group", () => {
+    expect(moveGroup("Dumbbell bench press")).toBe("CH");
+    expect(moveGroup("Dumbbell shoulder press")).toBe("SH");
+    expect(moveGroup("One-arm dumbbell row")).toBe("BK");
+    expect(moveGroup("Goblet squat")).toBe("LG");
+    expect(moveGroup("Hammer curl")).toBe("AR");
+    expect(moveGroup("Dead bug")).toBe("CO");
+    expect(moveGroup("Dumbbell hip thrust")).toBe("GL");
+  });
+  it("words the crew line on a plan page", () => {
+    const b = { firstName: "Bertille", status: "completed" as const, currentWeek: 6 };
+    const m = { firstName: "Michele", status: "completed" as const, currentWeek: 6 };
+    expect(crewProofLine([])).toBeNull();
+    expect(crewProofLine([b, m])).toEqual({ bold: "Bertille and Michele", rest: " from your crew finished this plan." });
+    expect(crewProofLine([{ ...b, status: "active", currentWeek: 3 }])).toEqual({
+      bold: "Bertille",
+      rest: " from your crew is on week 3.",
+    });
+    expect(crewProofLine([b, m, { ...b, firstName: "Ana" }])?.bold).toBe("3 people");
   });
 });

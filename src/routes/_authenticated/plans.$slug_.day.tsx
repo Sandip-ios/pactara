@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, TrendingUp, HeartPulse } from "lucide-react";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
-import { checkInActivityFor, dayForWeek } from "@/lib/workout-plans";
+import { checkInActivityFor, dayForWeek, movesForWeek, weekNoteFor } from "@/lib/workout-plans";
 import { BG, Chip, FONT, INK, MUTED, MoveList, PURPLE, PURPLE_SOFT, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 
 export const Route = createFileRoute("/_authenticated/plans/$slug_/day")({
@@ -99,7 +99,7 @@ function PlanDayPage() {
               </span>
             )}
           </div>
-          <MoveList moves={day.moves} />
+          <MoveList moves={movesForWeek(day.moves, !!weekNoteFor(plan, active.currentWeek)?.lighter)} />
         </section>
 
         <div className="flex gap-3 rounded-[20px] bg-white p-4 shadow-sm">

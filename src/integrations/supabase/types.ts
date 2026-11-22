@@ -777,6 +777,7 @@ export type Database = {
           id: string
           minutes: string | null
           moves: Json
+          muscles: Json
           note: string | null
           plan_id: string
           title: string
@@ -788,6 +789,7 @@ export type Database = {
           id?: string
           minutes?: string | null
           moves?: Json
+          muscles?: Json
           note?: string | null
           plan_id: string
           title: string
@@ -799,6 +801,7 @@ export type Database = {
           id?: string
           minutes?: string | null
           moves?: Json
+          muscles?: Json
           note?: string | null
           plan_id?: string
           title?: string
@@ -858,9 +861,13 @@ export type Database = {
       }
       plans: {
         Row: {
+          cover_credit: string | null
+          cover_url: string | null
           created_at: string
           days_per_week: number
+          focus_line: string | null
           gear: string[]
+          gear_short: string | null
           goal: string
           id: string
           is_published: boolean
@@ -873,12 +880,17 @@ export type Database = {
           slug: string
           sort_order: number
           summary: string
+          week_notes: Json
           weeks: number
         }
         Insert: {
+          cover_credit?: string | null
+          cover_url?: string | null
           created_at?: string
           days_per_week: number
+          focus_line?: string | null
           gear?: string[]
+          gear_short?: string | null
           goal: string
           id?: string
           is_published?: boolean
@@ -891,12 +903,17 @@ export type Database = {
           slug: string
           sort_order?: number
           summary: string
+          week_notes?: Json
           weeks: number
         }
         Update: {
+          cover_credit?: string | null
+          cover_url?: string | null
           created_at?: string
           days_per_week?: number
+          focus_line?: string | null
           gear?: string[]
+          gear_short?: string | null
           goal?: string
           id?: string
           is_published?: boolean
@@ -909,6 +926,7 @@ export type Database = {
           slug?: string
           sort_order?: number
           summary?: string
+          week_notes?: Json
           weeks?: number
         }
         Relationships: []
@@ -1429,6 +1447,14 @@ export type Database = {
           plan_slug: string
           user_id: string
           weeks: number
+        }[]
+      }
+      crew_on_plan: {
+        Args: { _plan_id: string }
+        Returns: {
+          current_week: number
+          status: string
+          user_id: string
         }[]
       }
       increment_badge_counts: {

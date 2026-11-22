@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { useEffect, useRef, useState } from "react";
-import { Plus, Link as LinkIcon, ChevronRight } from "lucide-react";
+import { Plus, Link as LinkIcon, ChevronRight, Search, X } from "lucide-react";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { GroupOverflowMenu, inviteLinkFor, ShareInviteDrawer } from "@/components/groups/GroupOverflowMenu";
@@ -40,33 +40,85 @@ export const Route = createFileRoute("/_authenticated/groups/")({
   component: GroupsOverview,
 });
 
-/** Discover → Plans | Crews. Defaults to Crews when you're in a crew, Plans otherwise. */
-function DiscoverTabs({ value, onChange }: { value: DiscoverTab; onChange: (t: DiscoverTab) => void }) {
+const D_INK = "#141218";
+
+/** Discover header: title, plan search, then the Plans | Crews switch. */
+function DiscoverHeader({
+  value,
+  onChange,
+  query,
+  onQuery,
+  autoFocusSearch,
+}: {
+  value: DiscoverTab;
+  onChange: (t: DiscoverTab) => void;
+  query: string;
+  onQuery: (q: string) => void;
+  autoFocusSearch: boolean;
+}) {
   return (
-    <div className="mt-3 grid grid-cols-2 rounded-full p-1" style={{ background: BG }} role="tablist" aria-label="Discover">
-      {(["plans", "crews"] as const).map((t) => {
-        const on = value === t;
-        return (
+    <>
+      <h1 className="mx-1 text-[30px] font-extrabold tracking-[-0.6px]" style={{ color: D_INK }}>
+        Discover
+      </h1>
+      <label
+        className="flex h-[50px] items-center gap-[10px] rounded-[25px] bg-white px-[14px]"
+        style={{ border: "1.5px solid #E7E3DE" }}
+      >
+        <Search size={20} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
+        <input
+          value={query}
+          onChange={(e) => onQuery(e.target.value)}
+          placeholder={'Try "no equipment" or "bad knees"'}
+          aria-label="Search plans"
+          enterKeyHint="search"
+          autoFocus={autoFocusSearch}
+          className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[#A8A29E]"
+          style={{ color: D_INK }}
+        />
+        {query && (
           <button
-            key={t}
             type="button"
-            role="tab"
-            aria-selected={on}
-            onClick={() => onChange(t)}
-            className="h-11 rounded-full text-[15px] font-semibold transition-colors"
-            style={{
-              background: on ? "#FFFFFF" : "transparent",
-              color: on ? PURPLE : "#78716C",
-              boxShadow: on ? "0 1px 3px rgba(0,0,0,0.08)" : undefined,
-            }}
+            onClick={() => onQuery("")}
+            aria-label="Clear search"
+            className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center"
           >
-            {t === "crews" ? "Crews" : "Plans"}
+            <X size={16} style={{ color: "#78716C" }} />
           </button>
-        );
-      })}
-    </div>
+        )}
+      </label>
+      <div
+        className="grid grid-cols-2 gap-1 rounded-[14px] p-1"
+        style={{ background: "#E7E3DE" }}
+        role="tablist"
+        aria-label="Discover"
+      >
+        {(["plans", "crews"] as const).map((t) => {
+          const on = value === t;
+          return (
+            <button
+              key={t}
+              type="button"
+              role="tab"
+              aria-selected={on}
+              onClick={() => onChange(t)}
+              className="h-10 rounded-[11px] text-[15px] font-bold transition-colors"
+              style={{
+                background: on ? "#FFFFFF" : "transparent",
+                color: on ? D_INK : "#44403C",
+                boxShadow: on ? "0 1px 3px rgba(20,18,24,0.12)" : undefined,
+              }}
+            >
+              {t === "crews" ? "Crews" : "Plans"}
+            </button>
+          );
+        })}
+      </div>
+    </>
   );
 }
+
+const DISCOVER_TOP = "max(56px, calc(env(safe-area-inset-top) + 12px))";
 
 function GroupsOverview() {
   useStatusBarScrollToTop();
@@ -121,27 +173,35 @@ function GroupsOverview() {
   const tab: DiscoverTab | null = tabParam ?? (inviteGroupId ? "crews" : data ? (inCrew ? "crews" : "plans") : null);
   const setTab = (t: DiscoverTab) =>
     navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t, complete: undefined }), replace: true });
+  // The search finds plans: typing on Crews switches to Plans and keeps typing there.
+  const [query, setQuery] = useState("");
+  const [focusSearch, setFocusSearch] = useState(false);
+  const onQuery = (q: string) => {
+    setQuery(q);
+    if (tab !== "plans" && q.trim()) {
+      setFocusSearch(true);
+      setTab("plans");
+    }
+  };
 
   if (tab === "plans") {
     return (
       <div
         data-scroll-root
-        className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
-        style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
+        className="fixed inset-0 w-full overflow-y-auto overscroll-none"
+        style={{ background: "#F4F2EF", fontFamily: "Inter, system-ui, sans-serif", color: D_INK }}
       >
-        <header className="bg-white px-6 pt-safe-5 pb-4">
-          <div className="text-[24px] font-black tracking-tight">
-            <span style={{ color: PURPLE }}>P</span>
-            <span>actara</span>
-          </div>
-          <DiscoverTabs value="plans" onChange={setTab} />
-        </header>
-        <PlansDiscover
-          completeSlug={completeSlug}
-          onCloseComplete={() =>
-            navigate({ to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
-          }
-        />
+        <div className="flex flex-col gap-[18px] px-4 pb-[130px]" style={{ paddingTop: DISCOVER_TOP }}>
+          <DiscoverHeader value="plans" onChange={setTab} query={query} onQuery={onQuery} autoFocusSearch={focusSearch} />
+          <PlansDiscover
+            query={query}
+            onClearQuery={() => setQuery("")}
+            completeSlug={completeSlug}
+            onCloseComplete={() =>
+              navigate({ to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
+            }
+          />
+        </div>
       </div>
     );
   }
@@ -163,12 +223,8 @@ function GroupsOverview() {
       className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: "#0A0A0A" }}
     >
-      <header className="bg-white px-6 pt-safe-5 pb-4">
-        <div className="text-[24px] font-black tracking-tight">
-          <span style={{ color: PURPLE }}>P</span>
-          <span>actara</span>
-        </div>
-        <DiscoverTabs value="crews" onChange={setTab} />
+      <header className="flex flex-col gap-[18px] px-4" style={{ paddingTop: DISCOVER_TOP }}>
+        <DiscoverHeader value="crews" onChange={setTab} query={query} onQuery={onQuery} autoFocusSearch={false} />
       </header>
 
       <PullToRefresh

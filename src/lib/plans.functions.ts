@@ -2,7 +2,17 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signAvatarThumbs } from "@/lib/media-urls";
-import { planStartAction, type Plan, type PlanDay, type PlanGoal, type PlanMove, type UserPlanRow } from "@/lib/workout-plans";
+import {
+  planStartAction,
+  type CrewOnPlan,
+  type MuscleMap,
+  type Plan,
+  type PlanDay,
+  type PlanGoal,
+  type PlanMove,
+  type UserPlanRow,
+  type WeekNote,
+} from "@/lib/workout-plans";
 
 /** The published plan catalog with every day's moves. */
 export const listPlans = createServerFn({ method: "GET" })
@@ -12,10 +22,10 @@ export const listPlans = createServerFn({ method: "GET" })
     const [plansRes, daysRes] = await Promise.all([
       supabase
         .from("plans")
-        .select("id, slug, name, goal, level, weeks, days_per_week, minutes, gear, summary, progression_rule, safety_note, note, sort_order")
+        .select("id, slug, name, goal, level, weeks, days_per_week, minutes, gear, summary, progression_rule, safety_note, note, sort_order, cover_url, cover_credit, focus_line, gear_short, week_notes")
         .eq("is_published", true)
         .order("sort_order"),
-      supabase.from("plan_days").select("plan_id, day_number, week_number, title, minutes, note, moves"),
+      supabase.from("plan_days").select("plan_id, day_number, week_number, title, minutes, note, moves, muscles"),
     ]);
     if (plansRes.error) throw new Error(plansRes.error.message);
     const daysByPlan = new Map<string, PlanDay[]>();
@@ -28,6 +38,7 @@ export const listPlans = createServerFn({ method: "GET" })
         minutes: d.minutes,
         note: d.note,
         moves: (Array.isArray(d.moves) ? d.moves : []) as unknown as PlanMove[],
+        muscles: (d.muscles && typeof d.muscles === "object" && !Array.isArray(d.muscles) ? d.muscles : {}) as MuscleMap,
       });
       daysByPlan.set(d.plan_id, list);
     }
@@ -45,6 +56,11 @@ export const listPlans = createServerFn({ method: "GET" })
       progressionRule: p.progression_rule,
       safetyNote: p.safety_note,
       note: p.note,
+      coverUrl: p.cover_url,
+      coverCredit: p.cover_credit,
+      focusLine: p.focus_line,
+      gearShort: p.gear_short,
+      weekNotes: (Array.isArray(p.week_notes) ? p.week_notes : []) as unknown as WeekNote[],
       days: (daysByPlan.get(p.id) ?? []).sort(
         (a, b) => a.dayNumber - b.dayNumber || (a.weekNumber ?? 0) - (b.weekNumber ?? 0),
       ),
@@ -192,4 +208,45 @@ export const startPlan = createServerFn({ method: "POST" })
       .single();
     if (insErr) throw new Error(insErr.message);
     return { userPlanId: created.id };
+  });
+
+export type CrewOnPlanPerson = CrewOnPlan & { userId: string; avatarUrl: string | null; avatarColor: string };
+
+/** Crewmates who are on, or finished, one plan (for the plan page). */
+export const getCrewOnPlan = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { planId: string }) => ({ planId: String(input?.planId ?? "") }))
+  .handler(async ({ data, context }): Promise<CrewOnPlanPerson[]> => {
+    const { supabase } = context;
+    const { data: rows, error } = await supabase.rpc("crew_on_plan", { _plan_id: data.planId });
+    if (error) {
+      console.error("[plans] crew on plan failed", error);
+      return [];
+    }
+    const list = (rows ?? []) as { user_id: string; status: string; current_week: number }[];
+    if (list.length === 0) return [];
+    const { data: profiles } = await supabase
+      .from("profiles")
+      .select("id, name, avatar_color, avatar_url")
+      .in("id", list.map((r) => r.user_id));
+    const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+    const avatarUrls = await signAvatarThumbs(
+      supabase as SupabaseClient,
+      (profiles ?? []).map((p) => p.avatar_url),
+      96,
+    );
+    return list
+      .map((r) => {
+        const prof = byId.get(r.user_id);
+        return {
+          userId: r.user_id,
+          firstName: ((prof?.name ?? "").trim().split(" ")[0] || "Member") as string,
+          avatarUrl: prof?.avatar_url ? avatarUrls.get(prof.avatar_url) ?? null : null,
+          avatarColor: prof?.avatar_color ?? "#7C3AED",
+          status: (r.status === "completed" ? "completed" : "active") as CrewOnPlan["status"],
+          currentWeek: r.current_week,
+        };
+      })
+      // Finished first, then by name, so the line reads the same every time.
+      .sort((a, b) => (a.status === b.status ? a.firstName.localeCompare(b.firstName) : a.status === "completed" ? -1 : 1));
   });
