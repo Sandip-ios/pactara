@@ -185,9 +185,10 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_url")
+      .select("name, avatar_url, created_at")
       .eq("id", userId)
       .maybeSingle();
+    const accountCreatedAt = (profile as { created_at?: string | null } | null)?.created_at ?? null;
 
     const firstName = (profile?.name ?? "").split(" ")[0] || "there";
     const avatarUrl = await signAvatar(
@@ -203,6 +204,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
         avatarUrl,
         group: null,
         joinedAt: null as string | null,
+        accountCreatedAt,
       };
     }
 
@@ -227,6 +229,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
       avatarUrl,
       group: group ?? null,
       joinedAt: membership.joined_at,
+      accountCreatedAt,
     };
   });
 

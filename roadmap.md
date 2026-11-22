@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Home part 1 follow-ups: guide pill by account age, crew bar one line ("Rest days are automatic"), Today headline leaves out members resting today, pod → crew copy (unpublished, awaiting review)
+
 - [x] Home redesign part 1: header pill only for new members (+ settings row), crew bar, single Today card, Crew today row with per-member week dots and nudges, skeletons (unpublished, awaiting review)
 
 - [x] Paywall (no reviews, crews, yearly default), nudges once a day + covered check, missed cards show the day, morning reminder per group, 8 PM defers to 9 PM (unpublished, awaiting review)

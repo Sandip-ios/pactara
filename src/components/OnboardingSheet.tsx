@@ -82,7 +82,7 @@ function StepProof() {
         Check in with proof
       </h2>
       <p className="mt-3 text-center text-[15px] text-neutral-500 leading-relaxed px-2">
-        Record a quick video when you follow through. A real check-in beats a checkbox — your pod sees the actual work, not just a claim.
+        Record a quick video when you follow through. A real check-in beats a checkbox — your crew sees the actual work, not just a claim.
       </p>
     </div>
   );
@@ -113,7 +113,7 @@ function StepSupport() {
       </div>
 
       <h2 className="mt-7 text-center text-[26px] leading-tight" style={{ fontFamily: SERIF, color: INK }}>
-        Support your pod
+        Support your crew
       </h2>
       <p className="mt-3 text-center text-[15px] text-neutral-500 leading-relaxed px-2">
         Cheer on your group when they check in. The accountability goes both ways — showing up for them keeps you showing up too.

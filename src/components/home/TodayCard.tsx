@@ -5,7 +5,7 @@ import { Camera, Check, Moon } from "lucide-react";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { CheckInShareModal } from "@/components/CheckInShareModal";
 import type { MoodId } from "@/routes/_authenticated/check-in.index";
-import { todayHeadline, weekFooterNote } from "@/lib/crew-today";
+import { todayCheckedInSubtitle, todayHeadline, weekFooterNote } from "@/lib/crew-today";
 
 const PURPLE = "#7C3AED";
 
@@ -17,7 +17,7 @@ export function TodayCard({
   groupId,
   streak,
   inCount,
-  crewSize,
+  dueCount,
   solo,
   week,
   myCheckIn,
@@ -26,7 +26,8 @@ export function TodayCard({
   groupId: string | null;
   streak: number;
   inCount: number;
-  crewSize: number;
+  /** Crew members due today (resting members left out). */
+  dueCount: number;
   solo: boolean;
   week: { workouts: number; target: number; restLeft: number } | null;
   myCheckIn: { mood: string | null; activity: string | null; note: string; photoUrl: string | null } | null;
@@ -80,10 +81,10 @@ export function TodayCard({
           </span>
           <div className="min-w-0">
             <h2 className="text-[20px] font-extrabold leading-tight text-neutral-900">
-              {todayHeadline({ inCount, crewSize, solo, checkedIn: true })}
+              {todayHeadline({ inCount, dueCount, solo, checkedIn: true })}
             </h2>
             <p className="mt-0.5 text-[14px] text-neutral-500">
-              {solo ? "Nice work. See you tomorrow." : `${inCount} of ${crewSize} in so far.`}
+              {todayCheckedInSubtitle({ inCount, dueCount, solo })}
             </p>
           </div>
         </div>
@@ -102,7 +103,7 @@ export function TodayCard({
       <div className="flex flex-col gap-[14px] px-[18px] pt-[18px]">
         {label}
         <h2 className="text-pretty text-[20px] font-extrabold leading-tight text-neutral-900">
-          {todayHeadline({ inCount, crewSize, solo, checkedIn: false })}
+          {todayHeadline({ inCount, dueCount, solo, checkedIn: false })}
         </h2>
         <button
           type="button"

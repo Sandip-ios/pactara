@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  crewDueToday,
   crewMemberWeek,
   crewTodayStatus,
   orderCrew,
   streakChipLabel,
+  todayCheckedInSubtitle,
   todayHeadline,
   weekDotsLabel,
   weekFooterNote,
@@ -125,14 +127,40 @@ describe("crew order and copy", () => {
   });
 
   it("writes the Today headline from who is in", () => {
-    expect(todayHeadline({ inCount: 0, crewSize: 4, solo: false, checkedIn: false })).toBe("Be the first one in today.");
-    expect(todayHeadline({ inCount: 2, crewSize: 4, solo: false, checkedIn: false })).toBe(
+    expect(todayHeadline({ inCount: 0, dueCount: 4, solo: false, checkedIn: false })).toBe("Be the first one in today.");
+    expect(todayHeadline({ inCount: 2, dueCount: 4, solo: false, checkedIn: false })).toBe(
       "2 of 4 are in. Don't be the one.",
     );
-    expect(todayHeadline({ inCount: 0, crewSize: 1, solo: true, checkedIn: false })).toBe(
+    expect(todayHeadline({ inCount: 0, dueCount: 1, solo: true, checkedIn: false })).toBe(
       "Check in with proof and keep your streak alive.",
     );
-    expect(todayHeadline({ inCount: 3, crewSize: 4, solo: false, checkedIn: true })).toBe("You're in for today.");
+    expect(todayHeadline({ inCount: 3, dueCount: 4, solo: false, checkedIn: true })).toBe("You're in for today.");
+  });
+
+  it("leaves members resting today out of the due count", () => {
+    expect(crewDueToday(["done", "not_yet", "rest", "not_yet"])).toBe(3);
+    expect(crewDueToday(["working_out", "rest", "rest"])).toBe(1);
+    expect(crewDueToday(["done", "done"])).toBe(2);
+  });
+
+  it("uses the due count in the headline: 1 in, 1 resting, 4-person crew -> 1 of 3", () => {
+    const dueCount = crewDueToday(["not_yet", "done", "rest", "not_yet"]);
+    expect(todayHeadline({ inCount: 1, dueCount, solo: false, checkedIn: false })).toBe("1 of 3 are in. Don't be the one.");
+    expect(todayCheckedInSubtitle({ inCount: 2, dueCount, solo: false })).toBe("2 of 3 in so far.");
+  });
+
+  it("says Be the first one in when nobody due is in yet, even with someone resting", () => {
+    const dueCount = crewDueToday(["not_yet", "rest", "not_yet"]);
+    expect(todayHeadline({ inCount: 0, dueCount, solo: false, checkedIn: false })).toBe("Be the first one in today.");
+  });
+
+  it("says You're the only one due today when everyone else is resting", () => {
+    const dueCount = crewDueToday(["not_yet", "rest", "rest", "rest"]);
+    expect(dueCount).toBe(1);
+    expect(todayHeadline({ inCount: 0, dueCount, solo: false, checkedIn: false })).toBe("You're the only one due today.");
+    expect(todayCheckedInSubtitle({ inCount: 1, dueCount: crewDueToday(["done", "rest"]), solo: false })).toBe(
+      "You're the only one due today.",
+    );
   });
 
   it("shows rest days left, goal hit or over goal in the footer", () => {

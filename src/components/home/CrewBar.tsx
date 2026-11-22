@@ -63,15 +63,17 @@ export function CrewBar({
         <div className="h-full rounded-full" style={{ width: `${pct}%`, background: PURPLE }} />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      {/* One line only: when the helper text doesn't fit next to a long chip it
+          wraps onto a second line that this fixed-height row clips away. */}
+      <div className="flex h-7 flex-wrap content-start items-center gap-x-2 overflow-hidden">
         <span
-          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[13px] font-bold"
+          className="inline-flex h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold"
           style={{ background: "#FFF1E7", color: "#9A3412" }}
         >
           <Flame size={14} style={{ color: "#EA580C" }} fill="#EA580C" />
           {streakChipLabel(streak, solo)}
         </span>
-        <span className="text-[13px] text-neutral-500">Rest days apply on their own</span>
+        <span className="whitespace-nowrap text-[13px] leading-7 text-neutral-500">Rest days are automatic</span>
       </div>
 
       <p className="text-[13px] text-neutral-700">
@@ -90,7 +92,7 @@ export function CrewBarSkeleton() {
       </div>
       <div className="h-1.5 w-full animate-pulse rounded-full bg-neutral-200" />
       <div className="flex items-center gap-2">
-        <div className="h-[26px] w-36 animate-pulse rounded-full bg-neutral-200" />
+        <div className="h-7 w-36 animate-pulse rounded-full bg-neutral-200" />
         <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
       </div>
       <div className="h-4 w-56 animate-pulse rounded-md bg-neutral-200" />

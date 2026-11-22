@@ -106,17 +106,33 @@ export function activityLabel(activity: string | null | undefined): string | nul
   return ACTIVITY_LABELS[id.toLowerCase()] ?? id.charAt(0).toUpperCase() + id.slice(1);
 }
 
-/** Today card title. */
+/**
+ * Members due today: everyone except those whose day is already covered by a
+ * rest or freeze row (a check-in today always counts as due and in).
+ */
+export function crewDueToday(statuses: CrewTodayStatus[]): number {
+  return statuses.filter((s) => s !== "rest").length;
+}
+
+/** Today card title. `dueCount` leaves out members resting today. */
 export function todayHeadline(input: {
   inCount: number;
-  crewSize: number;
+  dueCount: number;
   solo: boolean;
   checkedIn: boolean;
 }): string {
   if (input.checkedIn) return "You're in for today.";
   if (input.solo) return "Check in with proof and keep your streak alive.";
+  if (input.dueCount <= 1) return "You're the only one due today.";
   if (input.inCount <= 0) return "Be the first one in today.";
-  return `${input.inCount} of ${input.crewSize} are in. Don't be the one.`;
+  return `${input.inCount} of ${input.dueCount} are in. Don't be the one.`;
+}
+
+/** Today card line under "You're in for today." */
+export function todayCheckedInSubtitle(input: { inCount: number; dueCount: number; solo: boolean }): string {
+  if (input.solo) return "Nice work. See you tomorrow.";
+  if (input.dueCount <= 1) return "You're the only one due today.";
+  return `${input.inCount} of ${input.dueCount} in so far.`;
 }
 
 /** Today card footer suffix after "{workouts} of {target} this week". */

@@ -13,6 +13,7 @@ import {
 } from "@/lib/streak-rules";
 import {
   activityLabel,
+  crewDueToday,
   crewMemberWeek,
   orderCrew,
   weekDotsLabel,
@@ -52,6 +53,8 @@ export type HomeCrew = {
   weeklyTarget: number;
   memberCount: number;
   inCount: number;
+  /** Members not covered by a rest/freeze row today. */
+  dueCount: number;
   groupStreak: number;
   myStreak: number;
   members: HomeCrewMember[];
@@ -281,6 +284,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
       weeklyTarget: weeklyTarget(schedule),
       memberCount: members.length,
       inCount: members.filter((m) => m.status === "done").length,
+      dueCount: crewDueToday(members.map((m) => m.status)),
       groupStreak,
       myStreak: mine?.streak ?? 0,
       members: orderCrew(members),

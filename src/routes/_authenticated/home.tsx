@@ -31,6 +31,7 @@ import { loadCheckInDraft, clearCheckInDraft, type CheckInDraft } from "@/lib/ch
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PartnerBanner } from "@/components/PartnerBanner";
 import { relationForGroup } from "@/lib/group-display";
+import { isNewMember as isNewAccount } from "@/lib/new-member";
 import { getPartnerState } from "@/lib/partners.functions";
 import { useServerFn as usePartnerServerFn } from "@tanstack/react-start";
 import { useQuery as usePartnerQuery } from "@tanstack/react-query";
@@ -273,14 +274,12 @@ function HomePage() {
   }, []);
 
   // One-time "How Pactara works" popover pointing at the header button.
-  // Only new members (joined within the last 21 days) see it; long-time
+  // Only new members (account created within the last 21 days) see it; long-time
   // users get permanently marked as seen so it never appears for them.
   const [showHowItWorksTip, setShowHowItWorksTip] = useState(false);
   // Same 21-day rule as the tooltip: only new members see the header pill;
   // everyone can open the guide from Account settings.
-  const isNewMember = Boolean(
-    status?.joinedAt && new Date(status.joinedAt).getTime() > Date.now() - 21 * 24 * 60 * 60 * 1000,
-  );
+  const isNewMember = isNewAccount(status?.accountCreatedAt);
   const dismissHowItWorksTip = () => {
     if (typeof localStorage !== "undefined") {
       localStorage.setItem("how-pactara-works-tip-seen", "1");
@@ -293,9 +292,7 @@ function HomePage() {
     // The full guide is about to open for a new signup; don't show its tooltip over it.
     if (sessionStorage.getItem("show-welcome") === "1") return;
     if (!status) return;
-    const joinedAt = status.joinedAt ? new Date(status.joinedAt).getTime() : 0;
-    const isNewMember = joinedAt > Date.now() - 21 * 24 * 60 * 60 * 1000;
-    if (!isNewMember) {
+    if (!isNewAccount(status.accountCreatedAt)) {
       localStorage.setItem("how-pactara-works-tip-seen", "1");
       return;
     }
@@ -488,7 +485,7 @@ function HomePage() {
               groupId={null}
               streak={0}
               inCount={0}
-              crewSize={1}
+              dueCount={1}
               solo
               week={null}
               myCheckIn={null}
@@ -539,7 +536,7 @@ function HomePage() {
               groupId={crew.groupId}
               streak={crew.myStreak}
               inCount={crew.inCount}
-              crewSize={crew.memberCount}
+              dueCount={crew.dueCount}
               solo={solo}
               week={weekInfo ? { workouts: weekInfo.workouts, target: weekInfo.target, restLeft: weekInfo.restLeft } : null}
               myCheckIn={crew.myCheckIn}
