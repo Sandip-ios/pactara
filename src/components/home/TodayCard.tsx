@@ -126,8 +126,8 @@ export function TodayCard({
       {state === "rest" ? body : <WorkoutCard groupId={groupId} streak={streak} embedded fallback={body} />}
       <div className="mx-[18px] mt-[14px] border-t pb-[18px] pt-[14px] text-[13px]" style={{ borderColor: "#F0EDE9" }}>
         {week && note ? (
-          <span className="font-semibold text-neutral-700">
-            {week.workouts} of {week.target} this week{" "}
+          <span className="whitespace-nowrap font-semibold text-neutral-700">
+            {week.workouts} of {week.target} check-ins this week{" "}
             <span className={note.tone === "green" ? "font-bold" : "font-normal text-neutral-500"} style={note.tone === "green" ? { color: "#15803D" } : undefined}>
               · {note.text}
             </span>

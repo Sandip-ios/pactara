@@ -77,7 +77,7 @@ function MemberColumn({ member, groupId }: { member: HomeCrewMember; groupId: st
             {member.activityLabel ?? "Done"}
           </span>
         ) : member.status === "working_out" ? (
-          <span className="flex items-center gap-1.5 text-[12px] font-semibold" style={{ color: PURPLE }}>
+          <span className="flex items-center gap-1 whitespace-nowrap text-[11px] font-semibold" style={{ color: PURPLE }}>
             <LiveDot size={7} />
             Working out
           </span>

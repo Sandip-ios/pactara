@@ -77,7 +77,7 @@ export function CrewBar({
       </div>
 
       <p className="text-[13px] text-neutral-700">
-        Crew rule: <span className="font-bold text-neutral-900">{weeklyTarget} {weeklyTarget === 1 ? "workout" : "workouts"} a week</span>, any workout
+        Crew rule: <span className="font-bold text-neutral-900">{weeklyTarget} {weeklyTarget === 1 ? "check-in" : "check-ins"} a week</span>, any activity
       </p>
     </section>
   );
