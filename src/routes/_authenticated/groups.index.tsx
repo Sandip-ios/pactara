@@ -40,11 +40,11 @@ export const Route = createFileRoute("/_authenticated/groups/")({
   component: GroupsOverview,
 });
 
-/** Discover → Crews | Plans. Defaults to Crews when you're in a crew, Plans otherwise. */
+/** Discover → Plans | Crews. Defaults to Crews when you're in a crew, Plans otherwise. */
 function DiscoverTabs({ value, onChange }: { value: DiscoverTab; onChange: (t: DiscoverTab) => void }) {
   return (
     <div className="mt-3 grid grid-cols-2 rounded-full p-1" style={{ background: BG }} role="tablist" aria-label="Discover">
-      {(["crews", "plans"] as const).map((t) => {
+      {(["plans", "crews"] as const).map((t) => {
         const on = value === t;
         return (
           <button

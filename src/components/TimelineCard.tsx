@@ -11,7 +11,8 @@ import {
 import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Flame, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Flame, ListChecks, MessageCircle, MoreHorizontal } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import { deleteCheckIn, setPostReaction, togglePostReaction } from "@/lib/daily-posts.functions";
 import type { CheckInNode, UpdateNode } from "@/lib/feed-days";
@@ -19,13 +20,13 @@ import {
   cheerSentence,
   cheerSummary,
   checkInMetaLine,
-  checkInMetaParts,
   orderReactors,
   showQuickReplies,
   viewCommentsLabel,
   type Reactor,
 } from "@/lib/feed-view";
 import { hapticLight } from "@/lib/native";
+import { planChipLabel } from "@/lib/workout-plans";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { CheckInShareModal } from "@/components/CheckInShareModal";
@@ -572,7 +573,7 @@ export function TimelineCard(props: PostCardProps) {
   const metaPlan = props.kind === "checkins" ? current?.plan ?? null : null;
   const meta =
     props.kind === "checkins"
-      ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "", metaPlan)
+      ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "")
       : props.node.kind === "ritual"
         ? `Commitment · ${clock(props.node.at)}`
         : `Update · ${clock(props.node.at)}`;
@@ -597,14 +598,7 @@ export function TimelineCard(props: PostCardProps) {
         </MemberProfileLink>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-bold text-neutral-900">{item.isMe ? "You" : item.name}</div>
-          {metaPlan && current ? (
-            <PlanMetaLine
-              label={meta}
-              parts={checkInMetaParts(current.activity, item.dayNumber, clock(current.at), metaPlan)}
-            />
-          ) : (
-            <div className="truncate text-[13px]" style={{ color: MUTED }}>{meta}</div>
-          )}
+          <div className="truncate text-[13px]" style={{ color: MUTED }}>{meta}</div>
         </div>
         {item.isMe && current && <OwnPostMenu checkIn={current} />}
       </header>
@@ -649,6 +643,7 @@ export function TimelineCard(props: PostCardProps) {
         />
       ) : null}
 
+      {metaPlan && <PlanChip plan={metaPlan} />}
       <div className="mt-1">
         <ActionRow
           item={item}
@@ -697,26 +692,21 @@ export function TimelineCardSkeleton() {
   );
 }
 
-/**
- * One-line meta with a plan. On narrow cards the activity word gives way first,
- * then the plan name truncates; the emoji, W#D#, Day n and time always show.
- */
-function PlanMetaLine({ label, parts }: { label: string; parts: ReturnType<typeof checkInMetaParts> }) {
-  const [emoji, ...words] = (parts.lead ?? "").split(" ");
+/** The workout plan day a check-in finished; opens that plan's page. */
+function PlanChip({ plan }: { plan: { name: string; slug: string; week: number; day: number } }) {
   return (
-    <div className="flex min-w-0 overflow-hidden whitespace-nowrap text-[13px]" style={{ color: MUTED }} aria-label={label}>
-      {parts.lead && (
-        <>
-          <span className="shrink-0">{emoji}</span>
-          {words.length > 0 && <span className="min-w-0 shrink-[8] truncate">&nbsp;{words.join(" ")}</span>}
-          <span className="shrink-0">&nbsp;·&nbsp;</span>
-        </>
-      )}
-      <span className="min-w-[2.5rem] truncate">{parts.plan?.name}</span>
-      <span className="shrink-0">
-        &nbsp;{parts.plan?.code}
-        {parts.tail ? <>&nbsp;·&nbsp;{parts.tail}</> : null}
-      </span>
+    <div className="flex px-4 pt-3">
+      <Link
+        to="/plans/$slug"
+        params={{ slug: plan.slug }}
+        aria-label={`${planChipLabel(plan.name, plan.week, plan.day)}. Open plan`}
+        className="relative flex h-7 max-w-full items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-semibold before:absolute before:inset-x-0 before:-inset-y-2 before:content-['']"
+        style={{ background: "#F5F0FF", color: "#5B21B6" }}
+      >
+        <ListChecks size={14} className="shrink-0" aria-hidden />
+        <span className="min-w-0 truncate">{plan.name}</span>
+        <span className="shrink-0">· Week {plan.week}, Day {plan.day}</span>
+      </Link>
     </div>
   );
 }

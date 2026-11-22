@@ -117,9 +117,9 @@ export function checkInActivityFor(day: Pick<PlanDay, "moves">): "run" | "workou
   return day.moves.some((m) => /\brun\b|\b5k\b/i.test(m.name)) ? "run" : "workout";
 }
 
-/** "Build Muscle W3D2" for the feed meta line. */
-export function planTag(name: string, week: number, day: number): string {
-  return `${name} W${week}D${day}`;
+/** "Build Muscle · Week 3, Day 2" for the plan chip on a feed post. */
+export function planChipLabel(name: string, week: number, day: number): string {
+  return `${name} · Week ${week}, Day ${day}`;
 }
 
 export type UserPlanRow = { id: string; planId: string; status: "active" | "completed" | "stopped" };

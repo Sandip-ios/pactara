@@ -66,16 +66,16 @@ export async function logPlanWorkout(
 export async function planTagsForCheckIns(
   supabase: SupabaseClient,
   checkInIds: string[],
-): Promise<Map<string, { name: string; week: number; day: number }>> {
-  const out = new Map<string, { name: string; week: number; day: number }>();
+): Promise<Map<string, { name: string; slug: string; week: number; day: number }>> {
+  const out = new Map<string, { name: string; slug: string; week: number; day: number }>();
   if (checkInIds.length === 0) return out;
   const { data, error } = await supabase.rpc("plan_tags_for_check_ins", { _check_in_ids: checkInIds });
   if (error) {
     console.error("[plans] plan tags failed", error);
     return out;
   }
-  for (const r of (data ?? []) as { check_in_id: string; plan_name: string; week: number; day_number: number }[]) {
-    out.set(r.check_in_id, { name: r.plan_name, week: r.week, day: r.day_number });
+  for (const r of (data ?? []) as { check_in_id: string; plan_name: string; plan_slug: string; week: number; day_number: number }[]) {
+    out.set(r.check_in_id, { name: r.plan_name, slug: r.plan_slug, week: r.week, day: r.day_number });
   }
   return out;
 }

@@ -386,7 +386,7 @@ export type TimelineNode =
       mood: string | null;
       activity: string | null;
       /** Set when the check-in finished a workout plan day. */
-      plan?: { name: string; week: number; day: number } | null;
+      plan?: { name: string; slug: string; week: number; day: number } | null;
       note: string | null;
       photoUrl: string | null;
       posterUrl?: string | null;

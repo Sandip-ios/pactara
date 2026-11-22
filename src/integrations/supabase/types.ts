@@ -1452,6 +1452,7 @@ export type Database = {
           check_in_id: string
           day_number: number
           plan_name: string
+          plan_slug: string
           week: number
         }[]
       }

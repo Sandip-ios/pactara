@@ -11,6 +11,7 @@ import {
   type PlanDay,
 } from "../workout-plans";
 import { checkInMetaLine } from "../feed-view";
+import { planChipLabel } from "../workout-plans";
 
 const move = (name: string) => ({ name, dose: "3x10", plain: "Do it." });
 const day = (dayNumber: number, title: string, moves: string[], weekNumber: number | null = null): PlanDay => ({
@@ -150,11 +151,10 @@ describe("plan days", () => {
   });
 });
 
-describe("feed meta line for a plan day", () => {
-  it("adds the plan between the activity and the streak day", () => {
-    expect(checkInMetaLine("workout", 12, "6:10 am", { name: "Build Muscle", week: 3, day: 2 })).toBe(
-      "💪 Workout · Build Muscle W3D2 · Day 12 · 6:10 am",
-    );
+describe("feed post for a plan day", () => {
+  it("keeps the normal meta line; the plan goes in its own chip", () => {
+    expect(checkInMetaLine("workout", 12, "6:10 am")).toBe("💪 Workout · Day 12 · 6:10 am");
+    expect(planChipLabel("Build Muscle", 3, 2)).toBe("Build Muscle · Week 3, Day 2");
   });
   it("is unchanged for ordinary check-ins", () => {
     expect(checkInMetaLine("run", 4, "7:00 pm")).toBe("🏃 Run · Day 4 · 7:00 pm");

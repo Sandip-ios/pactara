@@ -156,32 +156,7 @@ export function activityMeta(activity: string | null | undefined): string | null
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
 
-export type MetaPlan = { name: string; week: number; day: number };
-
-/**
- * "💪 Workout · Day 12 · 5:27 am" (activity part left out when untagged); a
- * plan-day check-in adds its plan: "💪 Workout · Build Muscle W3D2 · Day 12 · 6:10 am".
- */
-export function checkInMetaLine(
-  activity: string | null | undefined,
-  dayNumber: number,
-  time: string,
-  plan: MetaPlan | null = null,
-): string {
-  const m = checkInMetaParts(activity, dayNumber, time, plan);
-  return [m.lead, m.plan ? `${m.plan.name} ${m.plan.code}` : null, m.tail].filter(Boolean).join(" · ");
-}
-
-/** The same line in pieces, so the plan name alone can truncate to keep one line. */
-export function checkInMetaParts(
-  activity: string | null | undefined,
-  dayNumber: number,
-  time: string,
-  plan: MetaPlan | null = null,
-): { lead: string | null; plan: { name: string; code: string } | null; tail: string } {
-  return {
-    lead: activityMeta(activity),
-    plan: plan ? { name: plan.name, code: `W${plan.week}D${plan.day}` } : null,
-    tail: [dayNumber > 0 ? `Day ${dayNumber}` : null, time].filter(Boolean).join(" · "),
-  };
+/** "💪 Workout · Day 12 · 5:27 am" (activity part left out when untagged). */
+export function checkInMetaLine(activity: string | null | undefined, dayNumber: number, time: string): string {
+  return [activityMeta(activity), dayNumber > 0 ? `Day ${dayNumber}` : null, time].filter(Boolean).join(" · ");
 }
