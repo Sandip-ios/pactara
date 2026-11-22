@@ -37,6 +37,8 @@ export type MemberToday = {
   /** Set while this member has a live workout session running. */
   workoutStartedAt: string | null;
   workoutSessionId: string | null;
+  /** Own today (member's timezone) covered by a rest or freeze row, with no check-in. */
+  resting: boolean;
 };
 
 export type GroupToday = {
@@ -158,6 +160,14 @@ export const getGroupsToday = createServerFn({ method: "GET" })
 
     // group -> user -> set of check-in dates
     const daysByGroupUser = new Map<string, Map<string, Set<string>>>();
+    // Check-ins only, and rest/freeze rows only, to tell a rest day apart.
+    const checkInsByKey = new Map<string, Set<string>>();
+    const coveredByKey = new Map<string, Set<string>>();
+    const addTo = (map: Map<string, Set<string>>, key: string, date: string) => {
+      let set = map.get(key);
+      if (!set) map.set(key, (set = new Set()));
+      set.add(date);
+    };
     for (const row of checkinsRes.data ?? []) {
       const g = row.group_id as string;
       const u = row.user_id as string;
@@ -165,6 +175,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       const byUser = daysByGroupUser.get(g)!;
       if (!byUser.has(u)) byUser.set(u, new Set());
       byUser.get(u)!.add(row.checkin_date as string);
+      addTo(checkInsByKey, `${g}:${u}`, row.checkin_date as string);
     }
     for (const row of freezesRes.data ?? []) {
       const g = row.group_id as string;
@@ -173,6 +184,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       const byUser = daysByGroupUser.get(g)!;
       if (!byUser.has(u)) byUser.set(u, new Set());
       byUser.get(u)!.add(row.freeze_date as string);
+      addTo(coveredByKey, `${g}:${u}`, row.freeze_date as string);
     }
 
 
@@ -234,6 +246,12 @@ export const getGroupsToday = createServerFn({ method: "GET" })
         else if (post?.missed) status = "missed";
         else if (post?.ritualText) status = "committed";
 
+        const ownToday = memberToday(uid);
+        const resting =
+          !post?.checkInId &&
+          !checkInsByKey.get(`${gid}:${uid}`)?.has(ownToday) &&
+          Boolean(coveredByKey.get(`${gid}:${uid}`)?.has(ownToday));
+
         const name = prof?.name ?? "Member";
         return {
           userId: uid,
@@ -249,6 +267,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
           streak: currentStreak(days, memberToday(uid)),
           workoutStartedAt: workout?.startedAt ?? null,
           workoutSessionId: workout?.id ?? null,
+          resting,
         };
       });
 

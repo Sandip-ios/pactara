@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ChevronLeft, MessageSquare } from "lucide-react";
+import { ChevronLeft, MessageSquare, Moon } from "lucide-react";
+import { crewPageCanNudge, crewPageCounts, crewPageStatus } from "@/lib/group-today-view";
 import { getGroupsToday, type GroupToday, type MemberToday } from "@/lib/group-today.functions";
 import { FeedList } from "@/components/feed/FeedList";
 import { useGroupFeed } from "@/components/feed/use-group-feed";
@@ -189,8 +190,13 @@ function DetailHeader({ title, onBack }: { title: string; onBack: () => void }) 
 }
 
 function TodayTab({ group, displayName, onCheer }: { group: GroupToday; displayName: string; onCheer: (sessionId: string) => void }) {
-  const allDone = group.memberCount > 0 && group.doneCount === group.memberCount;
-  const waiting = group.members.filter((m) => m.status !== "done");
+  // Members resting today aren't due, so they're left out of "{n} of {m}".
+  const counts = crewPageCounts(group.members);
+  const allDone = counts.due > 0 && counts.done === counts.due;
+  const waiting = group.members.filter((m) => {
+    const s = crewPageStatus(m);
+    return s !== "done" && s !== "rest";
+  });
   const [confetti, setConfetti] = useState(false);
 
   // Celebrate once per group per day when the final member checks in.
@@ -223,7 +229,7 @@ function TodayTab({ group, displayName, onCheer }: { group: GroupToday; displayN
              {displayName} showed up
           </div>
           <div className="mt-1.5 text-[26px] font-black tracking-tight">
-            {group.doneCount} of {group.memberCount} completed today
+            {counts.done} of {counts.due} completed today
           </div>
           <div className="mt-1.5 text-[14px] text-white/80">Everyone kept their commitment.</div>
           {group.groupStreak > 0 && (
@@ -236,7 +242,7 @@ function TodayTab({ group, displayName, onCheer }: { group: GroupToday; displayN
       ) : (
         <div className="mx-4 rounded-3xl bg-white px-5 py-5 shadow-sm">
           <div className="text-[28px] font-black tracking-tight leading-none">
-            {group.doneCount} of {group.memberCount} showed up
+            {counts.done} of {counts.due} showed up
           </div>
           <div className="text-[14px] text-neutral-500 mt-2">
             {waiting.length === 1 ? "One person left 👀" : `${waiting.length} people still to go`}
@@ -280,11 +286,12 @@ function MemberStatusRow({
   onCheer: (sessionId: string) => void;
 }) {
   const time = formatTime(member.committedAt);
-  const canNudge = !member.isYou && (member.status === "not_committed" || member.status === "committed" || member.status === "in_progress");
-  const liveWorkout = member.status === "working_out" && member.workoutSessionId;
+  const status = crewPageStatus(member);
+  const canNudge = crewPageCanNudge(status, member.isYou);
+  const liveWorkout = status === "working_out" && member.workoutSessionId;
 
-  let secondary = statusLabel(member.status);
-  if (member.status === "committed" && time) secondary = `Committed at ${time}`;
+  let secondary = status === "rest" ? "Resting today" : statusLabel(status);
+  if (status === "committed" && time) secondary = `Committed at ${time}`;
 
   return (
     <div className="px-4 py-3.5 flex items-center gap-3">
@@ -294,30 +301,41 @@ function MemberStatusRow({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[15px] font-bold truncate">{member.isYou ? "You" : member.name}</span>
-          {member.status === "done" && <MemberStreakChip streak={member.streak} />}
+          {status === "done" && <MemberStreakChip streak={member.streak} />}
         </div>
         <div
           className="text-[13px] mt-0.5 truncate"
           style={{
             color:
-              member.status === "done" || member.status === "working_out"
+              status === "done" || status === "working_out"
                 ? "#16A34A"
-                : member.status === "committed"
-                  ? "#D97706"
-                  : "#8A8580",
+                : status === "rest"
+                  ? "#7C5CD6"
+                  : status === "committed"
+                    ? "#D97706"
+                    : "#8A8580",
           }}
         >
-          {member.status === "done" ? "✓ Already checked in" : secondary}
+          {status === "done" ? (
+            "✓ Already checked in"
+          ) : status === "rest" ? (
+            <span className="inline-flex items-center gap-1 font-semibold">
+              <Moon size={13} style={{ color: "#A78BFA" }} aria-hidden />
+              Resting today
+            </span>
+          ) : (
+            secondary
+          )}
         </div>
-        {member.status === "working_out" && (
+        {status === "working_out" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">
             {elapsedLabel(member.workoutStartedAt) ?? "Started just now"}
           </div>
         )}
-        {member.status === "committed" && (
+        {status === "committed" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">⏳ Waiting to check in</div>
         )}
-        {member.status === "missed" && (
+        {status === "missed" && (
           <div className="text-[12px] text-neutral-400 mt-0.5">Tomorrow is a fresh start.</div>
         )}
       </div>
