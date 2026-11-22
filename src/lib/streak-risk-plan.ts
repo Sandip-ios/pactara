@@ -177,8 +177,16 @@ export function eveningReminderMessage(hour: number, groups: { groupId: string; 
   if (streaky.length > 0 && others.length === 0) {
     body = `Don't break your ${streakWord} in ${allNames} — check in before bed.`;
   } else if (streaky.length > 0) {
-    // Mixed: at-risk crews first with the streak warning, then every crew still waiting.
-    body = `Don't break your ${streakWord} in ${joinNames(streaky.map((g) => g.name))} — check in for ${allNames} before bed.`;
+    // Mixed: at-risk crews with the streak warning, then every crew still waiting.
+    const atRiskPart =
+      streaky.length === 1
+        ? `Your ${joinNames(streaky.map((g) => g.name))} streak is on the line.`
+        : `Your ${joinNames(streaky.map((g) => g.name))} streaks are on the line.`;
+    const waitingPart =
+      others.length === 1
+        ? `${joinNames(others.map((g) => g.name))} is waiting on you too.`
+        : `${joinNames(others.map((g) => g.name))} are waiting on you too.`;
+    body = `${atRiskPart} ${waitingPart}`;
   }
   return { title: "Last call to check in 🌙", body, url };
 }

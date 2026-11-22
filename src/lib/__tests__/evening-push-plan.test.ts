@@ -95,9 +95,7 @@ describe("one evening push per member per local day", () => {
     const groups = [lastCall("g2", "Runners"), atRisk("g1", "Fit Uxers")];
     const eight = planEveningPush({ hour: 20, timezone: TZ, groups, hasFreeze: false, now: eightPm })!;
     expect(eight.groupIds).toEqual(["g1", "g2"]);
-    expect(eight.message.body).toBe(
-      "Don't break your streak in Fit Uxers — check in for Fit Uxers and Runners before bed.",
-    );
+    expect(eight.message.body).toBe("Your Fit Uxers streak is on the line. Runners is waiting on you too.");
     expect((await sendEveningPush(deps, "u1", TZ, eight, eightPm)).claimed).toBe(true);
     const nine = planEveningPush({ hour: 21, timezone: TZ, groups, hasFreeze: false, now: ninePm })!;
     expect((await sendEveningPush(deps, "u1", TZ, nine, ninePm)).claimed).toBe(false);

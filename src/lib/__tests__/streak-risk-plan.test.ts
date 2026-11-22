@@ -188,8 +188,26 @@ describe("8 PM reminder and the 9 PM streak warning", () => {
     expect(groups.map((g) => g.groupId)).toEqual(["a", "b"]);
     const msg = eveningReminderMessage(20, groups);
     expect(msg.title).toBe("Last call to check in 🌙");
-    expect(msg.body).toBe("Don't break your streak in Fit Uxers — check in for Fit Uxers and Prim + Jose before bed.");
+    expect(msg.body).toBe("Your Fit Uxers streak is on the line. Prim + Jose is waiting on you too.");
     expect(msg.url).toBe("/check-in");
+  });
+
+  it("mixed crews with several waiting: names them naturally", () => {
+    const second = { ...noStreak, groupId: "c", name: "Runners" };
+    const groups = eveningReminderGroups(20, TZ, [noStreak, second, withStreak], eightChicago);
+    expect(groups.map((g) => g.groupId)).toEqual(["a", "b", "c"]);
+    expect(eveningReminderMessage(20, groups).body).toBe(
+      "Your Fit Uxers streak is on the line. Prim + Jose and Runners are waiting on you too.",
+    );
+  });
+
+  it("mixed crews with several at risk: says streaks are on the line", () => {
+    const secondRisk = { ...withStreak, groupId: "c", name: "Runners" };
+    const groups = eveningReminderGroups(20, TZ, [noStreak, withStreak, secondRisk], eightChicago);
+    expect(groups.map((g) => g.groupId)).toEqual(["a", "c", "b"]);
+    expect(eveningReminderMessage(20, groups).body).toBe(
+      "Your Fit Uxers and Runners streaks are on the line. Prim + Jose is waiting on you too.",
+    );
   });
 
   it("a 1-day streak counts as no streak", () => {
