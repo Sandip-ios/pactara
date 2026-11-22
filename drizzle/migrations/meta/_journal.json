@@ -197,6 +197,13 @@
       "when": 1795371879584,
       "tag": "0027_crew_can_view_group_badges",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1795372412074,
+      "tag": "0028_allow_media_only_comments",
+      "breakpoints": true
     }
   ]
 }
