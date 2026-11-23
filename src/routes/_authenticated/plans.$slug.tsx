@@ -36,6 +36,7 @@ import {
 } from "@/lib/workout-plans";
 import { BG, FONT, P, PURPLE, PURPLE_SOFT, planBadge, useCrewOnPlan, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { BodyMap } from "@/components/plans/BodyMap";
+import { PlanSharePanel } from "@/components/plans/PlanSharePanel";
 
 export const Route = createFileRoute("/_authenticated/plans/$slug")({
   head: () => ({
@@ -75,6 +76,7 @@ function PlanDetailPage() {
   const [starting, setStarting] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const back = () => {
     if (window.history.length > 1) router.history.back();
@@ -147,24 +149,6 @@ function PlanDetailPage() {
   const proof = crewProofLine(crewOnPlan ?? []);
   const gear = plan.gear.length ? plan.gear : ["No equipment"];
 
-  const share = async () => {
-    const url = `${window.location.origin}/plans/${plan.slug}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: plan.name, text: `${plan.name}, a Pactara plan`, url });
-        return;
-      }
-    } catch (e) {
-      if (e instanceof DOMException && e.name === "AbortError") return;
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success("Link copied");
-    } catch {
-      toast.error("Couldn't share this plan.");
-    }
-  };
-
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none" data-scroll-root style={{ background: P.pageBg, fontFamily: FONT, color: P.ink }}>
       <div className="relative h-[380px] overflow-hidden" style={{ background: "#1C1A22" }}>
@@ -191,7 +175,7 @@ function PlanDetailPage() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={share}
+              onClick={() => setShareOpen(true)}
               aria-label="Share plan"
               className="flex h-11 w-11 items-center justify-center rounded-full text-white"
               style={{ background: "rgba(20,18,24,.6)" }}
@@ -489,6 +473,8 @@ function PlanDetailPage() {
           </button>
         )}
       </div>
+
+      <PlanSharePanel open={shareOpen} plan={plan} onClose={() => setShareOpen(false)} />
 
       {onThisPlan && (
         <PlanOptionsSheet

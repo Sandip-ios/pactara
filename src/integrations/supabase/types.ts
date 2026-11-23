@@ -493,6 +493,7 @@ export type Database = {
           group_id: string
           id: string
           image_url: string | null
+          shared_plan_slug: string | null
           shared_workout_code: string | null
           user_id: string
         }
@@ -502,6 +503,7 @@ export type Database = {
           group_id: string
           id?: string
           image_url?: string | null
+          shared_plan_slug?: string | null
           shared_workout_code?: string | null
           user_id: string
         }
@@ -511,6 +513,7 @@ export type Database = {
           group_id?: string
           id?: string
           image_url?: string | null
+          shared_plan_slug?: string | null
           shared_workout_code?: string | null
           user_id?: string
         }
@@ -521,6 +524,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "groups"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_messages_shared_plan_slug_fkey"
+            columns: ["shared_plan_slug"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["slug"]
           },
           {
             foreignKeyName: "group_messages_shared_workout_code_fkey"
@@ -1255,6 +1265,38 @@ export type Database = {
           tiktok_followers?: number
         }
         Relationships: []
+      }
+      shared_plans: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          owner_id: string
+          plan_slug: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          plan_slug: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          plan_slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_plans_plan_slug_fkey"
+            columns: ["plan_slug"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["slug"]
+          },
+        ]
       }
       shared_workouts: {
         Row: {

@@ -109,24 +109,7 @@ export function WorkoutSharePanel({
           {!isLoading && (
             <section className="flex flex-col gap-2">
               <SectionLabel>ANYONE ELSE</SectionLabel>
-              <button
-                type="button"
-                onClick={onShareLink}
-                disabled={linkBusy}
-                className="flex min-h-[60px] w-full items-center gap-3 rounded-[16px] px-3 text-left disabled:opacity-60"
-                style={{ border: `1.5px solid ${W.divider}` }}
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: W.chip }} aria-hidden>
-                  {linkBusy ? <Loader2 size={17} className="animate-spin" /> : <Share size={17} />}
-                </span>
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="text-[15px] font-bold">Share a link</span>
-                  <span className="text-[13px]" style={{ color: W.muted }}>
-                    Messages, WhatsApp, copy link…
-                  </span>
-                </span>
-                <ChevronRight size={18} style={{ color: W.disabled }} aria-hidden />
-              </button>
+              <ShareLinkRow onClick={onShareLink} busy={linkBusy} />
             </section>
           )}
 
@@ -144,7 +127,7 @@ export function WorkoutSharePanel({
   );
 }
 
-function SectionLabel({ children }: { children: string }) {
+export function SectionLabel({ children }: { children: string }) {
   return (
     <h3 className="text-[12px] font-bold tracking-[0.6px]" style={{ color: W.muted }}>
       {children}
@@ -152,7 +135,7 @@ function SectionLabel({ children }: { children: string }) {
   );
 }
 
-function CrewRow({
+export function CrewRow({
   crew,
   first,
   display,
@@ -224,5 +207,29 @@ function CrewRow({
         </button>
       )}
     </li>
+  );
+}
+
+/** "Share a link · Messages, WhatsApp, copy link…" (opens the share sheet). */
+export function ShareLinkRow({ onClick, busy }: { onClick: () => void; busy: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="flex min-h-[60px] w-full items-center gap-3 rounded-[16px] px-3 text-left disabled:opacity-60"
+      style={{ border: `1.5px solid ${W.divider}` }}
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full" style={{ background: W.chip }} aria-hidden>
+        {busy ? <Loader2 size={17} className="animate-spin" /> : <Share size={17} />}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-[15px] font-bold">Share a link</span>
+        <span className="text-[13px]" style={{ color: W.muted }}>
+          Messages, WhatsApp, copy link…
+        </span>
+      </span>
+      <ChevronRight size={18} style={{ color: W.disabled }} aria-hidden />
+    </button>
   );
 }

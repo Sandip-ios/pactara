@@ -32,15 +32,17 @@ App Store build too (that one still shows its black splash until hidden). The
 new native build stops hiding the splash on a timer and relies on the web app
 to hide it, so it must not ship before the web publish.
 
-# Shared-workout links open in the app (needs a native rebuild)
+# Shared-workout and shared-plan links open in the app (needs a native rebuild)
 
-`https://pactara.lovable.app/w/<code>` links (and the existing `/join/<id>`
-invite links) open straight in the app once this build ships. Until then they
+`https://pactara.lovable.app/w/<code>` and `/p/<plan>` links (and the
+existing `/join/<id>` invite links) open straight in the app once this build
+ships. The same Associated Domains capability covers all three; nothing
+extra is needed for `/p/`. Until then they
 open in Safari, where the page works signed in or out and saving still works.
 
 The web side is already live with a web publish:
 `https://pactara.lovable.app/.well-known/apple-app-site-association` lists
-`/join/*` and `/w/*` for `44274JYF42.app.pactara`, served as
+`/join/*`, `/w/*` and `/p/*` for `44274JYF42.app.pactara`, served as
 `application/json` with no redirect. The app already sends every opened link
 (`appUrlOpen`, and the link that cold-launched it) to the right screen.
 
@@ -56,7 +58,8 @@ In Xcode:
    **Associated Domains** turned on (Xcode does this when automatic signing
    is on; with manual signing, regenerate the provisioning profile after).
 3. Build and run. Check on a real iPhone: paste a `/w/<code>` link in Notes
-   and tap it; it should open Pactara on the shared workout. iOS fetches the
+   and tap it; it should open Pactara on the shared workout. A `/p/<plan>`
+   link should open that plan's page. iOS fetches the
    association file when the app is installed, so delete and reinstall the
    app if it still opens Safari.
 

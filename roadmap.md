@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Plan sharing: Share panel on plan pages (send to a crew once, Share a link), plan card in crew chat (View plan, sender can delete, push + notification), public /p/<plan> page (signed in → plan page; signed out preview with sharer's first name, join/sign in keeps the plan and Home opens it), link previews with the plan cover; /p/ in the app-link file and launch links (unpublished)
+- [ ] /p/ links open in the iPhone app — same Associated Domains native build as /w/ (steps in native-assets/ios/README.md)
+
 - [x] Share your win: purple button/kicker, one streak number for badge + cards, no duplicate count; full-screen share screen (Story/Post, live video preview with card, Edit card switches remembered per card type, Instagram/Facebook Stories, Save video, More) rendering the MP4 on the phone (unpublished)
 - [x] Share your win everywhere: own feed posts and Home Today card open the same screen with that post's own numbers; photo posts share as images; old picture card removed (unpublished)
 - [ ] Instagram/Facebook Stories with movable sticker + direct Save to Photos — needs the PactaraShare plugin in Xcode, a native build and the Meta App ID (steps in native-assets/ios/README.md)

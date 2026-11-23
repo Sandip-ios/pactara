@@ -6,8 +6,8 @@
  * Priority:
  *  1. an invite link (existing behaviour, signed in or not)
  *  2. signed out → /login in the app (the web keeps its landing page),
- *     except a shared-workout link (/w/…), which works signed out
- *  3. a notification tap or deep link (including /w/…) → that screen
+ *     except a shared-workout or shared-plan link (/w/…, /p/…), which works signed out
+ *  3. a notification tap or deep link (including /w/… and /p/…) → that screen
  *  4. signup left part-way → resume it
  *  5. unfinished goal → /goal, unsigned pact → /pact, match waiting for you → /partner
  *  6. otherwise Home
@@ -35,9 +35,10 @@ export type LaunchDestination =
   | { to: "partner" }
   | { to: "home" };
 
-/** Links that open the same page signed in or out (a shared workout). */
+/** Links that open a page signed in or out (a shared workout or plan). */
 export function isPublicLinkPath(path: string | null | undefined): boolean {
-  return !!path && /^\/w\/[A-Za-z0-9]{8}\/?(\?|#|$)/.test(path);
+  if (!path) return false;
+  return /^\/w\/[A-Za-z0-9]{8}\/?(\?|#|$)/.test(path) || /^\/p\/[a-z0-9]+(?:-[a-z0-9]+)*\/?(\?|#|$)/.test(path);
 }
 
 export function decideLaunch(f: LaunchFacts): LaunchDestination {

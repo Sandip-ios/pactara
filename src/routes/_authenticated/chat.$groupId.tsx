@@ -1,12 +1,13 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Dumbbell, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus, Trash2 } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Dumbbell, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus, Trash2 } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction, deleteGroupMessage } from "@/lib/chat.functions";
 import { ExerciseThumb } from "@/components/workout/WorkoutBits";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
 import { showTopError } from "@/components/workout/savedToast";
 import { chatShareLabel, firstNameOf, sharedMeta } from "@/lib/workout-share";
+import { chatPlanShareLabel, planCoverAt, planMetaLine, type ChatPlanCard as PlanCardData } from "@/lib/plan-share";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
@@ -413,6 +414,8 @@ function GroupChatPage() {
               const mine = m.userId === currentUserId;
               const initial = (m.authorName || "U").slice(0, 1).toUpperCase();
               const isWorkout = !!m.sharedWorkoutCode;
+              const isPlan = !isWorkout && !!m.sharedPlanSlug;
+              const isCard = isWorkout || isPlan;
               return (
                 <li key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                   {!mine && (
@@ -434,10 +437,10 @@ function GroupChatPage() {
                     </MemberProfileLink>
                   )}
 
-                  <div className={`${isWorkout ? "max-w-[calc(100%-40px)]" : "max-w-[78%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}>
-                    {isWorkout ? (
+                  <div className={`${isCard ? "max-w-[calc(100%-40px)]" : "max-w-[78%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}>
+                    {isCard ? (
                       <span className={`text-[12px] mb-1 ${mine ? "mr-2" : "ml-2"}`} style={{ color: "#78716C" }}>
-                        {chatShareLabel(firstNameOf(m.authorName), mine)}
+                        {isPlan ? chatPlanShareLabel(firstNameOf(m.authorName), mine) : chatShareLabel(firstNameOf(m.authorName), mine)}
                       </span>
                     ) : (
                       !mine && <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
@@ -467,7 +470,7 @@ function GroupChatPage() {
                         >
                           <Plus size={18} className="text-neutral-600" />
                         </button>
-                        {mine && isWorkout && (
+                        {mine && isCard && (
                           <button
                             type="button"
                             aria-label="Delete message"
@@ -509,7 +512,8 @@ function GroupChatPage() {
                           />
                       )}
                       {isWorkout && <ChatWorkoutCard code={m.sharedWorkoutCode!} card={m.sharedWorkout} />}
-                      {!isWorkout && m.body && (
+                      {isPlan && <ChatPlanCard card={m.sharedPlan} />}
+                      {!isCard && m.body && (
                         <div
                           className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
                             mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
@@ -720,6 +724,52 @@ function ChatWorkoutCard({ code, card }: { code: string; card: ChatCard }) {
         >
           View workout <ChevronRight size={18} aria-hidden />
         </Link>
+      )}
+    </div>
+  );
+}
+
+/** A plan shared into the chat: cover, level, name and size; opens the plan page. */
+function ChatPlanCard({ card }: { card: PlanCardData | null }) {
+  const cover = card ? planCoverAt(card.coverUrl, 540, 240) : null;
+  return (
+    <div
+      className="w-[270px] max-w-full overflow-hidden rounded-[20px] bg-white text-left"
+      style={{ boxShadow: "0 1px 3px rgba(20,18,24,.08)", color: "#141218", fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      {card ? (
+        <>
+          <div className="relative h-[120px] w-full" style={{ background: "#2E1065" }}>
+            {cover && <img src={cover} alt="" draggable={false} className="absolute inset-0 h-full w-full object-cover" />}
+            <span className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(20,18,24,0) 40%, rgba(46,16,101,.7) 100%)" }} aria-hidden />
+            <span
+              className="absolute bottom-2.5 left-3 rounded-full px-2.5 py-1 text-[11px] font-extrabold tracking-[0.4px] text-white"
+              style={{ background: "rgba(20,18,24,.55)" }}
+            >
+              PLAN · {card.level.toUpperCase()}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1 px-4 pb-3.5 pt-3">
+            <span className="text-[18px] font-extrabold leading-tight break-words">{card.name}</span>
+            <span className="flex items-center gap-1.5 text-[13px]" style={{ color: "#78716C" }}>
+              <CalendarDays size={14} aria-hidden className="shrink-0" />
+              {planMetaLine(card)}
+            </span>
+          </div>
+          <Link
+            to="/plans/$slug"
+            params={{ slug: card.slug }}
+            draggable={false}
+            className="flex min-h-12 items-center justify-between px-4 text-[15px] font-bold"
+            style={{ borderTop: "1px solid #F0EDE9", color: "#6D28D9", WebkitTouchCallout: "none" }}
+          >
+            View plan <ChevronRight size={18} aria-hidden />
+          </Link>
+        </>
+      ) : (
+        <div className="px-4 py-3.5 text-[15px] font-semibold" style={{ color: "#78716C" }}>
+          This plan isn't available
+        </div>
       )}
     </div>
   );

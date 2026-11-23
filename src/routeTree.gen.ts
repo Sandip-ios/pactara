@@ -40,6 +40,7 @@ import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
+import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as WCodeRouteImport } from './routes/w.$code'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
@@ -230,6 +231,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
 const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
   id: '/join/$groupId',
   path: '/join/$groupId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PSlugRoute = PSlugRouteImport.update({
+  id: '/p/$slug',
+  path: '/p/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RSlugRoute = RSlugRouteImport.update({
@@ -463,6 +469,7 @@ export interface FileRoutesByFullPath {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/p/$slug': typeof PSlugRoute
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -529,6 +536,7 @@ export interface FileRoutesByTo {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/p/$slug': typeof PSlugRoute
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin': typeof AdminIndexRoute
@@ -598,6 +606,7 @@ export interface FileRoutesById {
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
+  '/p/$slug': typeof PSlugRoute
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
@@ -667,6 +676,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/p/$slug'
     | '/r/$slug'
     | '/w/$code'
     | '/admin/'
@@ -733,6 +743,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/p/$slug'
     | '/r/$slug'
     | '/w/$code'
     | '/admin'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/admin/revenue'
     | '/admin/settings'
     | '/join/$groupId'
+    | '/p/$slug'
     | '/r/$slug'
     | '/w/$code'
     | '/admin/'
@@ -855,6 +867,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
+  PSlugRoute: typeof PSlugRoute
   RSlugRoute: typeof RSlugRoute
   WCodeRoute: typeof WCodeRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
@@ -1087,6 +1100,13 @@ declare module '@tanstack/react-router' {
       path: '/join/$groupId'
       fullPath: '/join/$groupId'
       preLoaderRoute: typeof JoinGroupIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$slug': {
+      id: '/p/$slug'
+      path: '/p/$slug'
+      fullPath: '/p/$slug'
+      preLoaderRoute: typeof PSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/r/$slug': {
@@ -1454,6 +1474,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotwellKnownAppleAppSiteAssociationRoute:
     DotwellKnownAppleAppSiteAssociationRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
+  PSlugRoute: PSlugRoute,
   RSlugRoute: RSlugRoute,
   WCodeRoute: WCodeRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,

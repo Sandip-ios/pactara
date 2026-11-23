@@ -145,6 +145,15 @@ export function postDayLabel(postDate: string, viewerToday: string): string {
 
 // ---- Sharing into a crew's chat ----
 
+/** A crew in a Share panel (workouts and plans). */
+export type ShareCrew = {
+  id: string;
+  name: string;
+  emoji: string;
+  memberCount: number;
+  others: { id: string; name: string; avatarColor: string; avatarUrl: string | null }[];
+};
+
 /** Above the chat card: "Ana shared a workout" ("You shared a workout" on your own). */
 export const chatShareLabel = (firstName: string, mine: boolean) => `${mine ? "You" : firstName} shared a workout`;
 

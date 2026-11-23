@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { ChatPlanCard } from "@/lib/plan-share";
 
 export const getUnreadChatCounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -75,7 +76,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
 
     const { data: messages, error: mErr } = await supabase
       .from("group_messages")
-      .select("id, user_id, body, image_url, created_at, shared_workout_code")
+      .select("id, user_id, body, image_url, created_at, shared_workout_code, shared_plan_slug")
       .eq("group_id", data.groupId)
       .order("created_at", { ascending: true })
       .limit(200);
@@ -104,6 +105,28 @@ export const getGroupChat = createServerFn({ method: "GET" })
     const shareCodes = (messages ?? []).map((m) => m.shared_workout_code as string | null).filter((c): c is string => !!c);
     const { loadChatWorkoutCards } = await import("@/lib/shared-workouts.server");
     const cards = shareCodes.length ? await loadChatWorkoutCards(shareCodes) : new Map();
+
+    // Plan cards: public plan fields only.
+    const planSlugs = [...new Set((messages ?? []).map((m) => m.shared_plan_slug as string | null).filter((s): s is string => !!s))];
+    const planCards = new Map<string, ChatPlanCard>();
+    if (planSlugs.length) {
+      const { data: planRows } = await supabase
+        .from("plans")
+        .select("slug, name, level, weeks, days_per_week, minutes, cover_url")
+        .in("slug", planSlugs)
+        .eq("is_published", true);
+      for (const p of planRows ?? []) {
+        planCards.set(p.slug as string, {
+          slug: p.slug as string,
+          name: p.name as string,
+          level: p.level as string,
+          weeks: p.weeks as number,
+          daysPerWeek: p.days_per_week as number,
+          minutes: p.minutes as string,
+          coverUrl: (p.cover_url as string | null) ?? null,
+        });
+      }
+    }
 
     const { data: memberRows } = await supabase
       .from("group_members")
@@ -155,6 +178,8 @@ export const getGroupChat = createServerFn({ method: "GET" })
         imageUrl: m.image_url,
         sharedWorkoutCode: (m.shared_workout_code as string | null) ?? null,
         sharedWorkout: m.shared_workout_code ? (cards.get(m.shared_workout_code) ?? null) : null,
+        sharedPlanSlug: (m.shared_plan_slug as string | null) ?? null,
+        sharedPlan: m.shared_plan_slug ? (planCards.get(m.shared_plan_slug as string) ?? null) : null,
         createdAt: m.created_at,
         authorName: profiles[m.user_id]?.name ?? "User",
         authorColor: profiles[m.user_id]?.avatarColor ?? "#7C3AED",
@@ -234,7 +259,7 @@ export const toggleMessageReaction = createServerFn({ method: "POST" })
     return { ok: true, added: true };
   });
 
-/** Delete one of your own chat messages (a shared workout card included). */
+/** Delete one of your own chat messages (a shared workout or plan card included). */
 export const deleteGroupMessage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { messageId: string }) => {

@@ -274,6 +274,13 @@
       "when": 1795412719564,
       "tag": "0038_chat_shared_workouts",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1795418751866,
+      "tag": "0039_plan_sharing",
+      "breakpoints": true
     }
   ]
 }
