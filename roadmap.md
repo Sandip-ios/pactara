@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Plan day as a full page (markup), tile pictures, full-screen how-to, change workout, start in logger; old preview sheet removed (unpublished)
+
 - [x] Build-your-own workouts + weight tracking + exercise library: RepDB library (708, images in our storage), plan moves mapped, custom exercises, Start a workout, picker, set logger with prefill/tips/PRs/rest timer/minimize bar, Workout done, feed summary + sheet, exercise progress, profile Lifts, lb/kg + RepDB credit in settings (unpublished, awaiting review)
 
 - [x] Mixed crews get one 8 PM push naming all (at-risk first); a personal reminder set 8:00–9:59 PM counts as the night's evening push; celebration judges teammates by their own today (unpublished, awaiting review)

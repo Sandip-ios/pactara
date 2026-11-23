@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -38,6 +39,7 @@ function WorkoutDone() {
 }
 
 function Done({ fw }: { fw: FinishedWorkout }) {
+  const scrollRef = useOpenAtTop();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const saveFn = useServerFn(saveWorkoutTemplate);
@@ -112,7 +114,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   ];
 
   return (
-    <div className="fixed inset-0 overflow-y-auto pb-[calc(150px+env(safe-area-inset-bottom))]" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
+    <div ref={scrollRef} className="fixed inset-0 overflow-y-auto pb-[calc(150px+env(safe-area-inset-bottom))]" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       <div className="px-5 pb-[22px] pt-[calc(env(safe-area-inset-top)+12px)] text-white" style={{ background: W.violetDeep }}>
         <span className="text-[12px] font-bold tracking-[0.6px]" style={{ color: "#DDD6FE" }}>
           {fw.title.toUpperCase()} · {WEEKDAYS[new Date(fw.finishedAt).getDay()]}

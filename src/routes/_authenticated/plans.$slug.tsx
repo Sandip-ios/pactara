@@ -37,9 +37,8 @@ import {
   restDaysFor,
   scheduleForWeek,
   weekNoteFor,
-  type PlanDay,
 } from "@/lib/workout-plans";
-import { BG, DayPreviewSheet, FONT, P, PURPLE, PURPLE_SOFT, useCrewOnPlan, useMyPlans, usePlans } from "@/components/plans/PlanBits";
+import { BG, FONT, P, PURPLE, PURPLE_SOFT, useCrewOnPlan, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { BodyMap } from "@/components/plans/BodyMap";
 
 export const Route = createFileRoute("/_authenticated/plans/$slug")({
@@ -67,7 +66,6 @@ function PlanDetailPage() {
 
   const [week, setWeek] = useState<number | null>(null);
   const shownWeek = week ?? (onThisPlan ? active.currentWeek : 1);
-  const [preview, setPreview] = useState<PlanDay | null>(null);
   const [checking, setChecking] = useState(false);
   const [paywall, setPaywall] = useState<{ firstName: string | null } | null>(null);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
@@ -138,7 +136,6 @@ function PlanDetailPage() {
 
   const schedule = scheduleForWeek(plan, shownWeek);
   const shownNote = weekNoteFor(plan, shownWeek);
-  const lighter = !!shownNote?.lighter;
   const busy = checking || starting;
   const currentWeek = onThisPlan ? active.currentWeek : null;
   const proof = crewProofLine(crewOnPlan ?? []);
@@ -335,7 +332,7 @@ function PlanDetailPage() {
               <button
                 key={`${d.dayNumber}-${d.weekNumber ?? 0}`}
                 type="button"
-                onClick={() => setPreview(d)}
+                onClick={() => navigate({ to: "/plans/$slug/day", params: { slug: plan.slug }, search: { week: shownWeek, day: d.dayNumber } })}
                 className="flex w-full items-center gap-[14px] rounded-[18px] bg-white py-[10px] pl-[10px] pr-[14px] text-left"
                 style={{ boxShadow: isNext ? `0 1px 2px rgba(20,18,24,.06), inset 0 0 0 2px ${P.purple}` : "0 1px 2px rgba(20,18,24,.06)" }}
               >
@@ -386,8 +383,6 @@ function PlanDetailPage() {
           {busy ? "One moment…" : onThisPlan ? `Start Day ${active.nextDay}` : "Start this plan"}
         </button>
       </div>
-
-      <DayPreviewSheet plan={plan} day={preview} week={shownWeek} lighter={lighter} onClose={() => setPreview(null)} />
 
       <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
         <AlertDialogContent className="max-w-[340px] rounded-[20px]">

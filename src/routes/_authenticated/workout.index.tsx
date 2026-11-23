@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useState } from "react";
 import { Play, Plus, X } from "lucide-react";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/workout/")({
 });
 
 function StartWorkout() {
+  const scrollRef = useOpenAtTop();
   const navigate = useNavigate();
   const { data: plans } = usePlans();
   const { data: mine } = useMyPlans();
@@ -67,7 +69,7 @@ function StartWorkout() {
   };
 
   return (
-    <div className="fixed inset-0 overflow-y-auto pb-10" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
+    <div ref={scrollRef} className="fixed inset-0 overflow-y-auto pb-10" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       <header className="flex items-center justify-between px-4 pt-[calc(env(safe-area-inset-top)+4px)]">
         <h1 className="text-[26px] font-extrabold tracking-[-0.6px]">Start a workout</h1>
         <button

@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -66,6 +67,7 @@ function WorkoutLogger() {
 }
 
 function Logger({ w }: { w: ActiveWorkout }) {
+  const scrollRef = useOpenAtTop();
   const navigate = useNavigate();
   const qc = useQueryClient();
   const now = useNow(1000);
@@ -242,7 +244,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
   const elapsed = (now - w.startedAt) / 1000;
 
   return (
-    <div className="fixed inset-0 overflow-y-auto" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
+    <div ref={scrollRef} className="fixed inset-0 overflow-y-auto" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       <div className="sticky top-0 z-10 bg-white" style={{ borderBottom: `1px solid ${W.line}` }}>
         <header className="flex items-center gap-2 pb-2.5 pl-2 pr-3 pt-[env(safe-area-inset-top)]">
           <button type="button" aria-label="Minimize workout" onClick={minimize} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full">

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -32,6 +33,7 @@ const dateLabel = (iso: string) => {
 };
 
 function ExerciseProgressPage() {
+  const scrollRef = useOpenAtTop();
   const { exerciseId } = Route.useParams();
   const navigate = useNavigate();
   const fetchFn = useServerFn(getExerciseProgress);
@@ -65,7 +67,7 @@ function ExerciseProgressPage() {
   const t = ex ? tintFor(ex.primary) : tintFor([]);
 
   return (
-    <div className="fixed inset-0 overflow-y-auto pb-12" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
+    <div ref={scrollRef} className="fixed inset-0 overflow-y-auto pb-12" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       <header className="flex items-center justify-between px-2 pt-[env(safe-area-inset-top)]">
         <button type="button" aria-label="Back" onClick={back} className="flex h-11 w-11 items-center justify-center rounded-full">
           <ChevronLeft size={24} />

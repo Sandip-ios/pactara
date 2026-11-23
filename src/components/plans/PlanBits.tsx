@@ -1,42 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { getCrewOnPlan, getCrewPlans, getMyPlans, listPlans } from "@/lib/plans.functions";
-import {
-  dayMinutes,
-  moveGroup,
-  movesForWeek,
-  type MoveGroup,
-  type Plan,
-  type PlanDay,
-  type PlanGoal,
-  type PlanMove,
-} from "@/lib/workout-plans";
-import { BodyMap } from "./BodyMap";
-import { useExerciseMap } from "@/lib/exercise-library";
-
-/** RepDB start image when the move is matched; otherwise the lettered move tile. */
-function MoveThumb({ move, size = 48 }: { move: PlanMove; size?: number }) {
-  const { map } = useExerciseMap();
-  const ex = move.exercise_id ? map.get(move.exercise_id) : undefined;
-  if (ex?.imageStart) {
-    return (
-      <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ width: size, height: size, background: "#F4F2EF" }} aria-hidden>
-        <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />
-      </span>
-    );
-  }
-  const g = moveGroup(move.name);
-  const t = MOVE_TILE[g];
-  return (
-    <span
-      className="flex shrink-0 items-center justify-center rounded-[12px] text-[13px] font-extrabold"
-      style={{ width: size, height: size, background: t.tint, color: t.ink }}
-      aria-hidden
-    >
-      {g}
-    </span>
-  );
-}
+import type { Plan, PlanGoal } from "@/lib/workout-plans";
 
 export const BG = "#F5F2EE";
 export const PURPLE = "#7C3AED";
@@ -80,16 +44,6 @@ const PLAN_BADGE: Record<string, { tint: string; ink: string }> = {
   "first-5k": { tint: "#FEF9C3", ink: "#854D0E" },
 };
 export const planBadge = (slug: string) => PLAN_BADGE[slug] ?? { tint: "#EDE7FB", ink: "#5B21B6" };
-
-const MOVE_TILE: Record<MoveGroup, { tint: string; ink: string }> = {
-  CH: { tint: "#EDE7FB", ink: "#5B21B6" },
-  SH: { tint: "#EEF2FF", ink: "#3730A3" },
-  BK: { tint: "#E8F6EC", ink: "#166534" },
-  LG: { tint: "#FEF9C3", ink: "#854D0E" },
-  AR: { tint: "#FFF1E7", ink: "#9A3412" },
-  CO: { tint: "#E0F2FE", ink: "#075985" },
-  GL: { tint: "#FCE7F3", ink: "#9D174D" },
-};
 
 export function usePlans() {
   return useQuery({ queryKey: ["plans"], queryFn: () => listPlans(), staleTime: 10 * 60_000 });
@@ -144,117 +98,5 @@ export function PlanRow({ plan, onOpen }: { plan: Plan; onOpen: () => void }) {
         </span>
       </span>
     </button>
-  );
-}
-
-export function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full px-2.5 py-1 text-[12px] font-medium" style={{ background: BG, color: "#44403C" }}>
-      {children}
-    </span>
-  );
-}
-
-/** Moves with dose and the plain-English how-to (plan day screen). */
-export function MoveList({ moves }: { moves: PlanMove[] }) {
-  return (
-    <ol className="divide-y" style={{ borderColor: "#F0EDE9" }}>
-      {moves.map((m, i) => (
-        <li key={`${m.name}-${i}`} className="flex gap-3 py-3 first:pt-0 last:pb-0" style={{ borderColor: "#F0EDE9" }}>
-          <MoveThumb move={m} size={44} />
-          <div className="min-w-0 flex-1">
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[15px] font-bold" style={{ color: INK }}>
-              {m.name}
-            </span>
-            <span className="shrink-0 text-right text-[13px] font-semibold" style={{ color: PURPLE }}>
-              {m.dose}
-            </span>
-          </div>
-          <p className="mt-1 text-[14px] leading-snug" style={{ color: MUTED }}>
-            {m.plain}
-          </p>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}
-
-/** Read-only preview of one day (browsing is free). */
-export function DayPreviewSheet({
-  plan,
-  day,
-  week,
-  lighter,
-  onClose,
-}: {
-  plan: Plan;
-  day: PlanDay | null;
-  week: number;
-  lighter: boolean;
-  onClose: () => void;
-}) {
-  const moves = day ? movesForWeek(day.moves, lighter) : [];
-  return (
-    <Drawer open={!!day} onOpenChange={(o) => !o && onClose()} shouldScaleBackground={false}>
-      <DrawerContent
-        className="max-h-[92dvh] rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
-        style={{ fontFamily: FONT, color: P.ink }}
-      >
-        {day && (
-          <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 pt-4">
-            <div className="flex items-start gap-3">
-              <div className="flex min-w-0 flex-1 flex-col gap-1 pt-1">
-                <span className="text-[12px] font-bold" style={{ color: P.violet }}>
-                  WEEK {week} · DAY {day.dayNumber}
-                </span>
-                <DrawerTitle className="text-[22px] font-extrabold leading-tight tracking-tight">{day.title}</DrawerTitle>
-                <DrawerDescription className="text-[13px]" style={{ color: P.stone }}>
-                  {day.moves.length} {day.moves.length === 1 ? "move" : "moves"} · {dayMinutes(day, plan)} min
-                  {lighter ? " · Lighter week" : ""}
-                  {day.note ? ` · ${day.note}` : ""}
-                </DrawerDescription>
-              </div>
-              <span className="flex shrink-0 items-center justify-center rounded-[16px] p-1.5" style={{ background: P.tile }}>
-                <BodyMap muscles={day.muscles} width={120} height={114} />
-              </span>
-            </div>
-            <ol className="rounded-[16px]" style={{ border: `1.5px solid ${P.line}` }}>
-              {moves.map((m, i) => {
-                return (
-                  <li
-                    key={`${m.name}-${i}`}
-                    className="flex gap-3 p-3"
-                    style={{ borderTop: i ? `1px solid ${P.line}` : undefined }}
-                  >
-                    <MoveThumb move={m} />
-                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                      <span className="flex items-baseline justify-between gap-2">
-                        <span className="text-[15px] font-bold">{m.name}</span>
-                        <span className="shrink-0 text-right text-[13px] font-bold" style={{ color: P.violet }}>
-                          {m.dose}
-                        </span>
-                      </span>
-                      <span className="text-[13px] leading-snug" style={{ color: P.stone }}>
-                        {m.plain}
-                      </span>
-                    </span>
-                  </li>
-                );
-              })}
-            </ol>
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-12 w-full shrink-0 rounded-full bg-white text-[15px] font-bold"
-              style={{ border: `1.5px solid ${P.line}`, color: P.ink }}
-            >
-              Close
-            </button>
-          </div>
-        )}
-      </DrawerContent>
-    </Drawer>
   );
 }

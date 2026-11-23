@@ -58,11 +58,18 @@ export function useStartWorkout() {
       }
       begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, untracked: [], exercises });
     },
-    async startPlan(plan: Plan, active: MyActivePlan) {
+    /**
+     * A plan day in the logger with its doses prefilled. Only your plan's next
+     * day carries the plan tag (and moves the plan on); any other day you pick
+     * logs the same moves as a normal workout.
+     */
+    async startPlan(plan: Plan, active: MyActivePlan | null, pos?: { week: number; day: number }) {
       const { lib, hist } = await load();
-      const day = dayForWeek(plan, active.nextDay, active.currentWeek);
+      const week = pos?.week ?? active?.currentWeek ?? 1;
+      const dayNumber = pos?.day ?? active?.nextDay ?? 1;
+      const day = dayForWeek(plan, dayNumber, week);
       if (!day) return;
-      const lighter = weekNoteFor(plan, active.currentWeek)?.lighter ?? false;
+      const lighter = weekNoteFor(plan, week)?.lighter ?? false;
       const exercises: LiveExercise[] = [];
       const untracked: { name: string; dose: string }[] = [];
       for (const m of movesForWeek(day.moves, lighter)) {
@@ -74,20 +81,24 @@ export function useStartWorkout() {
         const live = buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, target: parseDose(m.dose), isPlan: true });
         exercises.push(live);
       }
+      const isNext = !!active && active.planId === plan.id && active.currentWeek === week && active.nextDay === dayNumber;
       begin({
         title: day.title,
         workoutId: null,
         unit: hist.unit,
         untracked,
         exercises,
-        plan: {
-          userPlanId: active.id,
-          slug: plan.slug,
-          planName: plan.name,
-          week: active.currentWeek,
-          day: active.nextDay,
-          activity: checkInActivityFor(day),
-        },
+        plan:
+          isNext && active
+            ? {
+                userPlanId: active.id,
+                slug: plan.slug,
+                planName: plan.name,
+                week,
+                day: dayNumber,
+                activity: checkInActivityFor(day),
+              }
+            : null,
       });
     },
   };
