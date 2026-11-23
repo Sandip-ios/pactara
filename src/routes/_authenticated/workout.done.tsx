@@ -3,14 +3,16 @@ import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Trophy, Video } from "lucide-react";
+import { Dumbbell, Trophy, Video } from "lucide-react";
 import { FONT, Switch, W } from "@/components/workout/WorkoutBits";
+import { FeedAvatar } from "@/components/feed/FeedMedia";
+import { checkInMetaLine } from "@/lib/feed-view";
 import { getPostPreviewDay, saveWorkoutTemplate } from "@/lib/lifts.functions";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
 import { clearFinishedWorkout, getFinishedWorkout, setWorkoutCheckIn, type FinishedWorkout } from "@/lib/active-workout";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
-import { doneKicker, fmtNum, plural, repsLabel, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
+import { doneKicker, fmtNum, prFeedLabel, repsLabel, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
 
 export const Route = createFileRoute("/_authenticated/workout/done")({
   head: () => ({
@@ -56,6 +58,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   });
   const s = fw.summary;
   const prs = s.prs;
+  const topPr = prs[0] ?? null;
   const title = save && name.trim() ? name.trim() : fw.title;
 
   const persistTemplate = async () => {
@@ -201,29 +204,37 @@ function Done({ fw }: { fw: FinishedWorkout }) {
           <span className="text-[12px] font-bold tracking-[0.6px]" style={{ color: W.muted }}>
             YOUR CREW WILL SEE
           </span>
-          <div className="flex items-center gap-3 rounded-[20px] bg-white px-4 py-3">
-            <span className="h-10 w-10 shrink-0 overflow-hidden rounded-full" style={{ background: W.purple }}>
-              {status?.avatarUrl ? (
-                <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <span className="flex h-full w-full items-center justify-center text-[15px] font-bold text-white">{(status?.firstName ?? "Y").slice(0, 1)}</span>
-              )}
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-[15px] font-bold">You</div>
-              <div className="truncate text-[13px]" style={{ color: W.muted }}>
-                💪 Workout
-                {preview && preview.dayNumber > 0 ? ` · Day ${preview.dayNumber}` : ""}
-              </div>
-              <div className="truncate text-[13px] font-semibold" style={{ color: W.stone }}>
-                {summaryLine(s)}
+          <div className="overflow-hidden rounded-[20px] bg-white shadow-sm">
+            <div className="flex items-center gap-3 px-4 pt-3.5">
+              <FeedAvatar url={status?.avatarUrl ?? null} color={W.purple} name={status?.firstName ?? "You"} size={36} />
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[15px] font-bold text-neutral-900">You</div>
+                <div className="truncate text-[13px]" style={{ color: W.stone }}>
+                  {checkInMetaLine("workout", preview?.dayNumber ?? 0, "now")}
+                </div>
               </div>
             </div>
-            {prs.length > 0 && (
-              <span className="shrink-0 rounded-full px-2.5 py-1 text-[12px] font-extrabold" style={{ background: W.gold, color: W.goldText }}>
-                {plural(prs.length, "PR")}
+            <div
+              className="mx-[14px] mt-[14px] flex h-[120px] flex-col items-center justify-center gap-1.5 rounded-[14px]"
+              style={{ border: `2px dashed ${W.ring}`, background: W.bg }}
+            >
+              <Video size={22} aria-hidden style={{ color: W.muted }} />
+              <span className="text-[13px] font-semibold" style={{ color: W.muted }}>
+                Your video goes here
               </span>
-            )}
+            </div>
+            <div className="flex min-h-7 max-w-full flex-wrap items-center gap-x-2 gap-y-1.5 px-4 pb-[14px] pt-[14px]">
+              <span className="flex items-center gap-1.5 text-[13px] font-semibold" style={{ color: W.stoneDark }}>
+                <Dumbbell size={14} className="shrink-0" aria-hidden />
+                {summaryLine(s)}
+              </span>
+              {topPr && (
+                <span className="inline-flex h-7 min-w-0 max-w-full items-center gap-1 rounded-full px-2.5 text-[12px] font-extrabold" style={{ background: W.gold, color: W.goldText }}>
+                  <Trophy size={12} className="shrink-0" aria-hidden />
+                  <span className="truncate">New PR: {prFeedLabel(topPr)}</span>
+                </span>
+              )}
+            </div>
           </div>
         </section>
         {err && (

@@ -471,6 +471,11 @@ export function summaryLine(s: { exercises: number; sets: number; minutes: numbe
   return `${plural(s.exercises, "exercise")} · ${plural(s.sets, "set")} · ${s.minutes} min`;
 }
 
+/** Feed PR pill: "Bench Press 135 lb × 8"; reps only when there is no weight. */
+export function prFeedLabel(p: { name: string; weight: number; unit: string; reps: number }): string {
+  return p.weight > 0 ? `${p.name} ${fmtNum(p.weight)} ${p.unit} × ${p.reps}` : `${p.name} × ${p.reps}`;
+}
+
 // ---------- "Just check in with a video" memory ----------
 
 export const QUICK_CHECKIN_LIMIT = 3;

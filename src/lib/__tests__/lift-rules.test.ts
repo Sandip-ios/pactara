@@ -7,6 +7,7 @@ import {
   nextTimeTip,
   parseDose,
   prefillSets,
+  prFeedLabel,
   progression,
   setsShort,
   skipsStartScreen,
@@ -231,5 +232,14 @@ describe("tip grammar for one set", () => {
   });
   it("single rep is singular", () => {
     expect(setsShort([{ weight: null, reps: 1, seconds: null, unit: "lb" }], "lb")).toBe("1 rep");
+  });
+});
+
+describe("feed PR pill", () => {
+  it("reads exercise, weight and reps", () => {
+    expect(prFeedLabel({ name: "Bench Press", weight: 135, unit: "lb", reps: 8 })).toBe("Bench Press 135 lb × 8");
+  });
+  it("drops the weight when the PR is reps only", () => {
+    expect(prFeedLabel({ name: "Push Up", weight: 0, unit: "lb", reps: 21 })).toBe("Push Up × 21");
   });
 });
