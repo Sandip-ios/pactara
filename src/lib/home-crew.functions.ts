@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
-import { signAvatarThumbs, signFeedMedia, signVideoPosters, isVideoPath } from "@/lib/media-urls";
+import { signAvatarThumbs } from "@/lib/media-urls";
 import {
   addDaysIso,
   currentStreak,
@@ -58,12 +58,8 @@ export type HomeCrew = {
   groupStreak: number;
   myStreak: number;
   members: HomeCrewMember[];
-  myCheckIn: {
-    mood: string | null;
-    activity: string | null;
-    note: string;
-    photoUrl: string | null;
-  } | null;
+  /** Today's own newest check-in that has a video or photo, for "Share your check-in". */
+  myCheckIn: { id: string } | null;
 };
 
 const STREAK_LOOKBACK_DAYS = 120;
@@ -127,7 +123,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
       supabase.from("profiles").select("id, name, avatar_color, avatar_url, timezone").in("id", safeIds),
       supabase
         .from("check_ins")
-        .select("user_id, checkin_date, activity, mood, note, photo_url")
+        .select("id, user_id, checkin_date, activity, mood, note, photo_url, created_at")
         .eq("group_id", groupId)
         .gte("checkin_date", windowStart)
         .lte("checkin_date", windowEnd)
@@ -257,24 +253,11 @@ export const getHomeCrew = createServerFn({ method: "GET" })
       (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86400000,
     );
 
-    // Today's own check-in, for "Share your check-in".
-    const myRow = (checkInsRes.data ?? []).find(
-      (r) => r.user_id === userId && r.checkin_date === today,
-    );
-    let myCheckIn: HomeCrew["myCheckIn"] = null;
-    if (myRow) {
-      const path = (myRow.photo_url as string | null) ?? null;
-      let photoUrl: string | null = null;
-      if (path?.startsWith("http")) photoUrl = path;
-      else if (path && isVideoPath(path)) photoUrl = (await signVideoPosters(supabase, [path])).get(path) ?? null;
-      else if (path) photoUrl = (await signFeedMedia(supabase, [path])).get(path) ?? null;
-      myCheckIn = {
-        mood: (myRow.mood as string | null) ?? null,
-        activity: (myRow.activity as string | null) ?? null,
-        note: (myRow.note as string | null) ?? "",
-        photoUrl,
-      };
-    }
+    // Today's own newest check-in with media, for "Share your check-in".
+    const myRow = (checkInsRes.data ?? [])
+      .filter((r) => r.user_id === userId && r.checkin_date === today && r.photo_url)
+      .sort((x, y) => String(y.created_at ?? "").localeCompare(String(x.created_at ?? "")))[0];
+    const myCheckIn: HomeCrew["myCheckIn"] = myRow ? { id: myRow.id as string } : null;
 
     const mine = members.find((m) => m.isYou);
     return {

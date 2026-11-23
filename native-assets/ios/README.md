@@ -65,14 +65,15 @@ rule); tapping it from Messages, Notes, Mail etc. does.
 
 # Share your win: Instagram / Facebook Stories + Save to Photos (needs a native rebuild)
 
-The Share your win screen (after a check-in) renders the check-in video with
-the card on the phone. What works before and after this build:
+The Share your win screen (after a check-in, from your own feed posts and
+from the Home Today card) renders the check-in video, or the photo on older
+posts, with the card on the phone. What works before and after this build:
 
 | Button | Current App Store build (after web publish) | After this native build |
 | --- | --- | --- |
-| Instagram Stories | iPhone share sheet with the MP4 (Instagram is in it) | Opens Instagram Stories with the video as background and the card as a movable sticker |
+| Instagram Stories | iPhone share sheet with the MP4 / JPEG (Instagram is in it) | Opens Instagram Stories with the video (or photo) as background and the card as a movable sticker |
 | Facebook Stories | Same share sheet (Facebook is in it) | Opens Facebook Stories the same way |
-| Save video | Share sheet; tap **Save Video** | Saves straight to Photos, toast "Saved to Photos" |
+| Save video (Save image on photo posts) | Share sheet; tap **Save Video** / **Save Image** | Saves straight to Photos, toast "Saved to Photos" |
 | More | Share sheet with the MP4 | Same |
 
 If the Meta App ID isn't set yet, or Instagram/Facebook isn't installed, the
@@ -104,7 +105,7 @@ In Xcode:
      <string>fb</string>
    </array>
    <key>NSPhotoLibraryAddUsageDescription</key>
-   <string>Pactara saves your check-in videos to Photos when you tap Save video.</string>
+   <string>Pactara saves your check-in videos and photos to Photos when you tap Save.</string>
    ```
 4. Meta App ID `28899098959786133` is already set in `src/lib/meta-config.ts`
    (`META_APP_ID`) and in the Info.plist snippet above (`FacebookAppID`). The

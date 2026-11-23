@@ -8,7 +8,6 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
-import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { WorkoutSummaryRow } from "@/components/workout/FeedWorkout";
@@ -30,8 +29,7 @@ import { hapticLight } from "@/lib/native";
 import { planChipLabel } from "@/lib/workout-plans";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
-import { CheckInShareModal } from "@/components/CheckInShareModal";
-import type { MoodId } from "@/routes/_authenticated/check-in.index";
+import { ShareCheckInScreen } from "@/components/share/ShareCheckInScreen";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import {
@@ -381,7 +379,8 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
     },
     onError: (e: Error) => toast.error(e.message || "Couldn't delete check-in"),
   });
-  const shareImage = checkIn.photoUrl && isVideoUrl(checkIn.photoUrl) ? checkIn.posterUrl ?? null : checkIn.photoUrl;
+  // Share your win needs the post's own video or photo.
+  const canShare = !!checkIn.photoUrl;
   return (
     <>
       <button
@@ -408,18 +407,24 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
         <DrawerContent className="p-0 pb-[max(env(safe-area-inset-bottom),12px)]">
           <DrawerHeader className="pb-2 pt-3">
             <DrawerTitle className="text-center text-[17px] font-bold">Your check-in</DrawerTitle>
-            <DrawerDescription className="sr-only">Share or delete this check-in</DrawerDescription>
+            <DrawerDescription className="sr-only">
+              {canShare ? "Share or delete this check-in" : "Delete this check-in"}
+            </DrawerDescription>
           </DrawerHeader>
           <div className="px-4">
             <div className="overflow-hidden rounded-2xl" style={{ background: "#F7F5F2" }}>
-              <button
-                type="button"
-                onClick={() => choose("share")}
-                className="flex h-[52px] w-full items-center px-4 text-left text-[16px] font-semibold text-neutral-900 active:bg-black/5"
-              >
-                Share to story
-              </button>
-              <div className="h-px" style={{ background: "#ECE8E3" }} />
+              {canShare && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => choose("share")}
+                    className="flex h-[52px] w-full items-center px-4 text-left text-[16px] font-semibold text-neutral-900 active:bg-black/5"
+                  >
+                    Share to story
+                  </button>
+                  <div className="h-px" style={{ background: "#ECE8E3" }} />
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => choose("delete")}
@@ -462,20 +467,7 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      {sharing &&
-        createPortal(
-          <CheckInShareModal
-            data={{
-              mood: (checkIn.mood as MoodId | null) ?? null,
-              activity: checkIn.activity,
-              note: checkIn.note ?? "",
-              photoUrl: shareImage,
-              photoBlob: null,
-            }}
-            onClose={() => setSharing(false)}
-          />,
-          document.body,
-        )}
+      {sharing && <ShareCheckInScreen checkInId={checkIn.id.replace(/^c-/, "")} onClose={() => setSharing(false)} />}
     </>
   );
 }

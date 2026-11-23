@@ -174,7 +174,8 @@ export function saveCardPrefs(prefs: ShareCardPrefs) {
   }
 }
 
-export const shareFileName = (streak: number) => `Pactara - Day ${Math.max(1, Math.round(streak))}.mp4`;
+export const shareFileName = (streak: number, kind: "video" | "photo" = "video") =>
+  `Pactara - Day ${Math.max(1, Math.round(streak))}.${kind === "photo" ? "jpg" : "mp4"}`;
 
 /** "0:12", "1:05". */
 export function formatClipDuration(seconds: number): string {

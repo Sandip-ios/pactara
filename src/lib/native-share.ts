@@ -1,5 +1,5 @@
 /**
- * Getting a rendered share video out of the app.
+ * Getting a rendered share video (or image, for photo check-ins) out of the app.
  *
  * - The `PactaraShare` native plugin (App Store build, see
  *   native-assets/ios/README.md) saves straight to Photos and hands the video
@@ -17,12 +17,14 @@ type PactaraSharePlugin = {
   shareToStories(o: {
     app: StoriesApp;
     appId: string;
-    backgroundVideo: string;
+    backgroundVideo?: string;
+    backgroundImage?: string;
     stickerImage?: string;
     topColor: string;
     bottomColor: string;
   }): Promise<void>;
   saveVideo(o: { data: string; fileName: string }): Promise<void>;
+  saveImage(o: { data: string; fileName: string }): Promise<void>;
 };
 
 const PactaraShare = registerPlugin<PactaraSharePlugin>("PactaraShare");
@@ -49,6 +51,10 @@ export async function saveVideoToPhotos(blob: Blob, fileName: string): Promise<v
   await PactaraShare.saveVideo({ data: await toBase64(blob), fileName });
 }
 
+export async function saveImageToPhotos(blob: Blob, fileName: string): Promise<void> {
+  await PactaraShare.saveImage({ data: await toBase64(blob), fileName });
+}
+
 /** Stories sharing works only with the plugin, a Meta App ID and the app installed. */
 export async function storiesReady(app: StoriesApp): Promise<boolean> {
   if (!hasNativeShare() || !META_APP_ID) return false;
@@ -59,11 +65,13 @@ export async function storiesReady(app: StoriesApp): Promise<boolean> {
   }
 }
 
+/** Background is the video (or, for photo check-ins, the image) without the card. */
 export async function shareToStories(app: StoriesApp, background: Blob, sticker: Blob | null): Promise<void> {
+  const bg = await toBase64(background);
   await PactaraShare.shareToStories({
     app,
     appId: META_APP_ID,
-    backgroundVideo: await toBase64(background),
+    ...(background.type.startsWith("image/") ? { backgroundImage: bg } : { backgroundVideo: bg }),
     ...(sticker ? { stickerImage: await toBase64(sticker) } : {}),
     topColor: "#141218",
     bottomColor: "#141218",
@@ -83,11 +91,12 @@ export function openStoriesApp(app: StoriesApp) {
 export type SheetResult = "shared" | "cancelled" | "downloaded";
 
 /**
- * The iPhone share sheet with the MP4 as a real video file (video/mp4, .mp4
- * name, no extra text item). Desktop browsers without file sharing download it.
+ * The iPhone share sheet with a real file (video/mp4 + .mp4, or image/jpeg +
+ * .jpg; no extra text item). Desktop browsers without file sharing download it.
  */
-export async function shareVideoFile(blob: Blob, fileName: string): Promise<SheetResult> {
-  const file = new File([blob], fileName, { type: "video/mp4" });
+export async function shareMediaFile(blob: Blob, fileName: string): Promise<SheetResult> {
+  const type = blob.type.startsWith("image/") ? "image/jpeg" : "video/mp4";
+  const file = new File([blob], fileName, { type });
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
   const payload: ShareData = { files: [file] };
   if (typeof nav.share === "function" && (!nav.canShare || nav.canShare(payload))) {

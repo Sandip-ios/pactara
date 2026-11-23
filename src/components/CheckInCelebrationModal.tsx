@@ -56,7 +56,8 @@ export type CheckInCelebrationModalProps = {
   teammates: Teammate[];
   streakCopy?: string;
   newBadges?: number[];
-  onShare: () => void;
+  /** Left out when the check-in has no video or photo to share. */
+  onShare?: () => void;
   onDismiss: () => void;
   onInvite?: () => void;
   open?: boolean;
@@ -344,15 +345,17 @@ export function CheckInCelebrationModal({
 
         {/* Actions */}
         <div className="mt-5 flex flex-col gap-3">
-          <button
-            ref={shareBtnRef}
-            onClick={onShare}
-            className="h-14 w-full rounded-2xl text-[16px] font-semibold flex items-center justify-center gap-2"
-            style={{ background: COLORS.primary, color: "#fff" }}
-          >
-            <ShareIcon size={18} />
-            Share your win
-          </button>
+          {onShare && (
+            <button
+              ref={shareBtnRef}
+              onClick={onShare}
+              className="h-14 w-full rounded-2xl text-[16px] font-semibold flex items-center justify-center gap-2"
+              style={{ background: COLORS.primary, color: "#fff" }}
+            >
+              <ShareIcon size={18} />
+              Share your win
+            </button>
+          )}
           <button
             onClick={onDismiss}
             className="h-14 w-full rounded-2xl text-[16px] font-semibold"

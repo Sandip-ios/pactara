@@ -392,24 +392,9 @@ function NotesPage() {
     }, 1500);
   };
 
-  const handleShareWin = async () => {
-    // Videos open the Share your win screen (rendered MP4 with the card).
-    if (shareData?.media?.type.startsWith("video/")) {
-      setShareScreenOpen(true);
-      return;
-    }
-    // A photo check-in: share the photo itself as a proper image file.
-    try {
-      const blob = shareData?.media;
-      if (!blob) return;
-      const ext = (blob.type.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
-      const file = new File([blob], `Pactara - Day ${shareData.streak}.${ext}`, { type: blob.type.split(";")[0] || "image/jpeg" });
-      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
-      const payload: ShareData = { files: [file] };
-      if (nav.share && (!nav.canShare || nav.canShare(payload))) await nav.share(payload);
-    } catch (e) {
-      if ((e as DOMException)?.name !== "AbortError") console.error("share failed", e);
-    }
+  // Video or photo, the same Share your win screen as the feed and Home.
+  const handleShareWin = () => {
+    if (shareData?.media) setShareScreenOpen(true);
   };
 
   const shareInput: ShareCardInput | null = (() => {
@@ -582,12 +567,16 @@ function NotesPage() {
           groupName={celebrationGroupName ?? shareData.celebration.groupName}
           teammates={shareData.celebration.teammates}
           newBadges={shareData.newBadges}
-          onShare={handleShareWin}
+          {...(shareData.media ? { onShare: handleShareWin } : {})}
           onDismiss={handleShareClose}
         />
       )}
       {shareData && shareScreenOpen && shareData.media && shareInput && (
-        <ShareWinScreen video={shareData.media} input={shareInput} onClose={() => setShareScreenOpen(false)} />
+        <ShareWinScreen
+          media={{ blob: shareData.media, kind: shareData.media.type.startsWith("video/") ? "video" : "photo" }}
+          input={shareInput}
+          onClose={() => setShareScreenOpen(false)}
+        />
       )}
     </div>
   );

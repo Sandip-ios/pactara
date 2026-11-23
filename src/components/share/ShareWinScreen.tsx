@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2, Download, MoreHorizontal, SlidersHorizontal, X } from "lucide-react";
+import { CheckCircle2, Download, Loader2, MoreHorizontal, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
@@ -20,12 +20,15 @@ import {
 } from "@/lib/share-card";
 import { drawCardOverlay, ensureCardFonts, overlayCanvas, stickerPng } from "@/lib/share-card-draw";
 import { canRenderOnDevice, probeClip, renderShareVideo } from "@/lib/share-video-render";
+import { loadPhoto, renderShareImage } from "@/lib/share-image-render";
+import type { ShareMediaKind } from "@/lib/share-post";
 import {
   hasNativeShare,
   openStoriesApp,
+  saveImageToPhotos,
   saveVideoToPhotos,
+  shareMediaFile,
   shareToStories,
-  shareVideoFile,
   storiesReady,
   type StoriesApp,
 } from "@/lib/native-share";
@@ -43,29 +46,33 @@ const DARK_TOAST = {
   fontWeight: 600,
   fontFamily: "Inter, system-ui, sans-serif",
 } as const;
-const ERROR_COPY = "Couldn't prepare your video. Try again.";
 
 type Action = "instagram" | "facebook" | "save" | "more";
 
+export type ShareMedia = { blob: Blob; kind: ShareMediaKind };
+
+const shownToasts = new Set<string | number>();
 function darkToast(message: string, ok = true) {
-  toast(message, {
+  const id = toast(message, {
     position: "bottom-center",
     ...(ok ? { icon: <CheckCircle2 size={18} style={{ color: "#4ADE80" }} aria-hidden /> } : {}),
     style: DARK_TOAST,
   });
+  shownToasts.add(id);
 }
 
 /**
- * "Share your win": the member's check-in video with a small card on top,
- * shared as a real MP4 rendered on the phone (Story 9:16 or Post 1:1).
+ * "Share your win": the member's check-in video (or, for older posts, photo)
+ * with a small card on top, rendered on the phone as a real MP4 / JPEG in
+ * Story 9:16 or Post 1:1. `media` / `input` are null while a past post loads.
  */
 export function ShareWinScreen({
-  video,
+  media,
   input,
   onClose,
 }: {
-  video: Blob;
-  input: ShareCardInput;
+  media: ShareMedia | null;
+  input: ShareCardInput | null;
   onClose: () => void;
 }) {
   useHideBottomTabs(true, false);
@@ -74,38 +81,64 @@ export function ShareWinScreen({
   const [editing, setEditing] = useState(false);
   const [busy, setBusy] = useState<{ action: Action; progress: number } | null>(null);
   const [clip, setClip] = useState<{ width: number; height: number; duration: number } | null>(null);
+  const [photo, setPhoto] = useState<ImageBitmap | null>(null);
   const [canRender, setCanRender] = useState<boolean | null>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
 
-  const kind = cardKind(input);
-  const lines = useMemo(() => shareCardLines(input, prefs), [input, prefs]);
-  const toggles = useMemo(() => cardToggles(input), [input]);
-  const fileName = shareFileName(input.streak);
+  const isPhoto = media?.kind === "photo";
+  const ready = !!media && !!input;
+  const kind = cardKind(input ?? { workout: null });
+  const lines = useMemo(() => (input ? shareCardLines(input, prefs) : []), [input, prefs]);
+  const toggles = useMemo(() => (input ? cardToggles(input) : []), [input]);
+  const fileName = shareFileName(input?.streak ?? 1, isPhoto ? "photo" : "video");
+  const errorCopy = isPhoto ? "Couldn't prepare your image. Try again." : "Couldn't prepare your video. Try again.";
 
   // Created in an effect so a remount never plays a revoked URL.
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
   useEffect(() => {
-    const url = URL.createObjectURL(video);
-    setVideoUrl(url);
+    if (!media) return;
+    const url = URL.createObjectURL(media.blob);
+    setMediaUrl(url);
     return () => URL.revokeObjectURL(url);
-  }, [video]);
+  }, [media]);
 
   useEffect(() => {
     let alive = true;
     void ensureCardFonts().then(() => alive && setFontsLoaded(true));
-    void probeClip(video).then((c) => alive && setClip(c));
-    void canRenderOnDevice().then((ok) => alive && setCanRender(ok));
     return () => {
       alive = false;
     };
-  }, [video]);
+  }, []);
 
-  // Body stays still under the full-screen page.
+  useEffect(() => {
+    if (!media) return;
+    let alive = true;
+    if (media.kind === "photo") {
+      setCanRender(true);
+      void loadPhoto(media.blob)
+        .then((b) => {
+          if (!alive) return;
+          setPhoto(b);
+          setClip({ width: b.width, height: b.height, duration: 0 });
+        })
+        .catch(() => alive && setCanRender(false));
+    } else {
+      void probeClip(media.blob).then((c) => alive && setClip(c));
+      void canRenderOnDevice().then((ok) => alive && setCanRender(ok));
+    }
+    return () => {
+      alive = false;
+    };
+  }, [media]);
+
+  // Body stays still under the full-screen page; this screen's toasts leave with it.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
+      for (const id of shownToasts) toast.dismiss(id);
+      shownToasts.clear();
     };
   }, []);
 
@@ -128,7 +161,7 @@ export function ShareWinScreen({
   const boxW = Math.max(0, Math.floor(Math.min(area.w, area.h * ratio)));
   const boxH = Math.floor(boxW / ratio);
 
-  // ---- overlay preview, drawn exactly like the rendered video ----
+  // ---- overlay preview, drawn exactly like the rendered file ----
   const out = outputSize(format, clip ? Math.min(clip.width, clip.height) : 1080);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -138,7 +171,7 @@ export function ShareWinScreen({
     c.width = out.width;
     c.height = out.height;
     drawCardOverlay(ctx, lines, out.width, out.height, { wordmark: true, gradient: true, block: true });
-  }, [lines, out.width, out.height, fontsLoaded]);
+  }, [lines, out.width, out.height, fontsLoaded, ready]);
 
   // ---- renders (cached per size + card) ----
   const cache = useRef(new Map<string, Promise<Blob>>());
@@ -154,78 +187,91 @@ export function ShareWinScreen({
 
   const prepared = useCallback(
     (variant: "full" | "background", onProgress: (p: number) => void): Promise<Blob> => {
+      if (!media) return Promise.reject(new Error("not ready"));
       const key = `${format}|${variant}|${JSON.stringify(lines)}`;
       const hit = cache.current.get(key);
       if (hit) return hit;
       const parts = { wordmark: true, gradient: true, block: variant === "full" };
-      const job = renderShareVideo({
-        source: video,
-        format,
-        overlay: (w, h) => overlayCanvas(lines as CardLine[], w, h, parts),
-        onProgress,
-        ...(abort.current ? { signal: abort.current.signal } : {}),
-      }).then((r) => {
-        console.info(`[share] rendered ${format} ${r.width}x${r.height} in ${r.ms}ms`);
-        return r.blob;
-      });
+      const overlay = (w: number, h: number) => overlayCanvas(lines as CardLine[], w, h, parts);
+      const job =
+        media.kind === "photo"
+          ? (photo ? Promise.resolve(photo) : loadPhoto(media.blob)).then((bmp) =>
+              renderShareImage({ photo: bmp, format, overlay }),
+            )
+          : renderShareVideo({
+              source: media.blob,
+              format,
+              overlay,
+              onProgress,
+              ...(abort.current ? { signal: abort.current.signal } : {}),
+            }).then((r) => {
+              console.info(`[share] rendered ${format} ${r.width}x${r.height} in ${r.ms}ms`);
+              return r.blob;
+            });
       job.catch(() => cache.current.delete(key));
       cache.current.set(key, job);
       return job;
     },
-    [format, lines, video],
+    [format, lines, media, photo],
   );
 
-  /** The file to hand out: the rendered video, or the original clip on phones that can't render. */
+  /** The file to hand out: the rendered file, or the original clip on phones that can't render video. */
   const fileFor = async (variant: "full" | "background", action: Action): Promise<{ blob: Blob; name: string }> => {
-    if (canRender === false) {
-      const ext = video.type.includes("webm") ? "webm" : video.type.includes("quicktime") ? "mov" : "mp4";
-      return { blob: video, name: fileName.replace(/\.mp4$/, `.${ext}`) };
+    if (!media) throw new Error("not ready");
+    if (canRender === false && media.kind === "video") {
+      const v = media.blob;
+      const ext = v.type.includes("webm") ? "webm" : v.type.includes("quicktime") ? "mov" : "mp4";
+      return { blob: v, name: fileName.replace(/\.mp4$/, `.${ext}`) };
     }
     const blob = await prepared(variant, (p) => setBusy({ action, progress: p }));
     return { blob, name: fileName };
   };
 
+  const saveToPhotos = (blob: Blob, name: string) =>
+    isPhoto ? saveImageToPhotos(blob, name) : saveVideoToPhotos(blob, name);
+  const downloadedCopy = isPhoto ? "Image downloaded" : "Video downloaded";
+
   const run = async (action: Action) => {
-    if (busy) return;
+    if (busy || !ready) return;
     setBusy({ action, progress: 0 });
     try {
       if (action === "save") {
         const { blob, name } = await fileFor("full", action);
         if (hasNativeShare()) {
-          await saveVideoToPhotos(blob, name);
+          await saveToPhotos(blob, name);
           darkToast("Saved to Photos");
         } else {
-          // Current App Store build / web: the share sheet's "Save Video".
-          const r = await shareVideoFile(blob, name);
-          if (r === "downloaded") darkToast("Video downloaded");
+          // Current App Store build / web: the share sheet's "Save Video" / "Save Image".
+          const r = await shareMediaFile(blob, name);
+          if (r === "downloaded") darkToast(downloadedCopy);
         }
       } else if (action === "more") {
         const { blob, name } = await fileFor("full", action);
-        const r = await shareVideoFile(blob, name);
-        if (r === "downloaded") darkToast("Video downloaded");
+        const r = await shareMediaFile(blob, name);
+        if (r === "downloaded") darkToast(downloadedCopy);
       } else {
         const app: StoriesApp = action;
         if (canRender !== false && (await storiesReady(app))) {
-          // Meta "Sharing to Stories": video behind, the card as a movable sticker.
+          // Meta "Sharing to Stories": media behind, the card as a movable sticker.
           const bg = await prepared("background", (p) => setBusy({ action, progress: p }));
           const sticker = await stickerPng(lines, out.width);
           await shareToStories(app, bg, sticker);
         } else if (hasNativeShare()) {
           const { blob, name } = await fileFor("full", action);
-          await saveVideoToPhotos(blob, name);
+          await saveToPhotos(blob, name);
           darkToast("Saved to Photos. Pick it in your story.");
           openStoriesApp(app);
         } else {
           // No native plugin yet: the share sheet lists Instagram / Facebook.
           const { blob, name } = await fileFor("full", action);
-          const r = await shareVideoFile(blob, name);
-          if (r === "downloaded") darkToast("Video downloaded");
+          const r = await shareMediaFile(blob, name);
+          if (r === "downloaded") darkToast(downloadedCopy);
         }
       }
     } catch (e) {
       if ((e as DOMException)?.name !== "AbortError") {
         console.error("[share] failed", e);
-        darkToast(ERROR_COPY, false);
+        darkToast(errorCopy, false);
       }
     } finally {
       setBusy(null);
@@ -240,7 +286,7 @@ export function ShareWinScreen({
     });
   };
 
-  const duration = clip?.duration ?? null;
+  const duration = isPhoto ? null : clip?.duration ?? null;
 
   return (
     <div
@@ -280,7 +326,7 @@ export function ShareWinScreen({
                 type="button"
                 role="tab"
                 aria-selected={on}
-                disabled={!!busy}
+                disabled={!!busy || !ready}
                 onClick={() => setFormat(f)}
                 className="rounded-[9px] text-[14px] font-bold transition-colors"
                 style={{
@@ -303,16 +349,24 @@ export function ShareWinScreen({
           style={{ width: boxW, height: boxH, background: INK }}
           data-testid="share-preview"
         >
-          <video
-            src={videoUrl ?? undefined}
-            muted
-            loop
-            autoPlay
-            playsInline
-            preload="auto"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />
+          {!ready ? (
+            <span className="absolute inset-0 flex items-center justify-center" aria-label="Loading your check-in">
+              <Loader2 size={28} className="animate-spin" style={{ color: "rgba(255,255,255,.7)" }} />
+            </span>
+          ) : isPhoto ? (
+            <img src={mediaUrl ?? undefined} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <video
+              src={mediaUrl ?? undefined}
+              muted
+              loop
+              autoPlay
+              playsInline
+              preload="auto"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          )}
+          {ready && <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden />}
           {duration != null && duration > 0 && (
             <span
               className="absolute right-3 top-3 rounded-full px-2 py-[3px] text-[11px] font-bold tabular-nums"
@@ -337,14 +391,14 @@ export function ShareWinScreen({
             <button
               type="button"
               onClick={() => setEditing(true)}
-              disabled={!!busy}
+              disabled={!!busy || !ready}
               className="flex h-11 items-center gap-2 rounded-full bg-white px-5 text-[14px] font-bold"
               style={{ color: INK, boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}
             >
               <SlidersHorizontal size={16} />
               Edit card
             </button>
-            {canRender === false && (
+            {canRender === false && !isPhoto && (
               <p className="mt-2 text-center text-[12px]" style={{ color: "#6B6570" }}>
                 This phone can't add the card to videos, so your clip is shared as is.
               </p>
@@ -360,28 +414,28 @@ export function ShareWinScreen({
                 label="Instagram Stories"
                 icon={<InstagramGlyph size={28} />}
                 busy={busy?.action === "instagram" ? busy.progress : null}
-                disabled={!!busy}
+                disabled={!!busy || !ready}
                 onClick={() => void run("instagram")}
               />
               <ShareButton
                 label="Facebook Stories"
                 icon={<FacebookLogo size={30} />}
                 busy={busy?.action === "facebook" ? busy.progress : null}
-                disabled={!!busy}
+                disabled={!!busy || !ready}
                 onClick={() => void run("facebook")}
               />
               <ShareButton
-                label="Save video"
+                label={isPhoto ? "Save image" : "Save video"}
                 icon={<Download size={24} color={INK} />}
                 busy={busy?.action === "save" ? busy.progress : null}
-                disabled={!!busy}
+                disabled={!!busy || !ready}
                 onClick={() => void run("save")}
               />
               <ShareButton
                 label="More"
                 icon={<MoreHorizontal size={24} color={INK} />}
                 busy={busy?.action === "more" ? busy.progress : null}
-                disabled={!!busy}
+                disabled={!!busy || !ready}
                 onClick={() => void run("more")}
               />
             </div>

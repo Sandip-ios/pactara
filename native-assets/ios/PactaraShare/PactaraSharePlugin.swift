@@ -3,7 +3,7 @@ import Photos
 import UIKit
 
 /// "Share your win" native helpers (JS name: PactaraShare, see src/lib/native-share.ts).
-/// - saveVideo: writes the rendered MP4 straight to Photos.
+/// - saveVideo / saveImage: writes the rendered MP4 (or JPEG, photo check-ins) straight to Photos.
 /// - canShareToStories / shareToStories: Meta "Sharing to Stories" for
 ///   Instagram and Facebook (video background + movable sticker).
 @objc(PactaraSharePlugin)
@@ -14,6 +14,7 @@ public class PactaraSharePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "canShareToStories", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "shareToStories", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "saveVideo", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "saveImage", returnType: CAPPluginReturnPromise),
     ]
 
     private func scheme(_ app: String) -> String {
@@ -37,17 +38,21 @@ public class PactaraSharePlugin: CAPPlugin, CAPBridgedPlugin {
         guard let appId = [call.getString("appId"), plistId].compactMap({ $0 }).first(where: { !$0.isEmpty }) else {
             call.reject("Missing Meta App ID"); return
         }
-        guard let b64 = call.getString("backgroundVideo"),
-              let video = Data(base64Encoded: b64, options: .ignoreUnknownCharacters) else {
-            call.reject("Missing video"); return
+        // Video check-ins send backgroundVideo; older photo check-ins send backgroundImage.
+        let decode = { (key: String) in call.getString(key).flatMap { Data(base64Encoded: $0, options: .ignoreUnknownCharacters) } }
+        let video = decode("backgroundVideo")
+        let image = decode("backgroundImage")
+        guard video != nil || image != nil else {
+            call.reject("Missing background"); return
         }
-        let sticker = call.getString("stickerImage").flatMap { Data(base64Encoded: $0, options: .ignoreUnknownCharacters) }
+        let sticker = decode("stickerImage")
         let prefix = app == "facebook" ? "com.facebook.sharedSticker" : "com.instagram.sharedSticker"
         var item: [String: Any] = [
-            "\(prefix).backgroundVideo": video,
             "\(prefix).backgroundTopColor": call.getString("topColor") ?? "#141218",
             "\(prefix).backgroundBottomColor": call.getString("bottomColor") ?? "#141218",
         ]
+        if let video { item["\(prefix).backgroundVideo"] = video }
+        else if let image { item["\(prefix).backgroundImage"] = image }
         if let sticker { item["\(prefix).stickerImage"] = sticker }
         if app == "facebook" { item["com.facebook.sharedSticker.appID"] = appId }
 
@@ -88,6 +93,24 @@ public class PactaraSharePlugin: CAPPlugin, CAPBridgedPlugin {
             }) { ok, error in
                 try? FileManager.default.removeItem(at: fileURL)
                 ok ? call.resolve() : call.reject(error?.localizedDescription ?? "Couldn't save the video")
+            }
+        }
+    }
+
+    @objc func saveImage(_ call: CAPPluginCall) {
+        guard let b64 = call.getString("data"),
+              let data = Data(base64Encoded: b64, options: .ignoreUnknownCharacters),
+              let image = UIImage(data: data) else {
+            call.reject("Missing image"); return
+        }
+        PHPhotoLibrary.requestAuthorization(for: .addOnly) { status in
+            guard status == .authorized || status == .limited else {
+                call.reject("Photos access was denied", "DENIED"); return
+            }
+            PHPhotoLibrary.shared().performChanges({
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }) { ok, error in
+                ok ? call.resolve() : call.reject(error?.localizedDescription ?? "Couldn't save the image")
             }
         }
     }

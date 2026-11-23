@@ -16,6 +16,7 @@ import {
 } from "./streak-rules";
 import { memberOwnToday } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
+import { activityLabelFor, postShareNumbers, shareMediaKind, type ShareMediaKind } from "./share-post";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -1467,3 +1468,89 @@ function celebrationWorkout(row: { title?: string | null; summary?: unknown } | 
   };
 }
 
+
+/** Everything the Share your win screen needs for one of the member's own past check-ins. */
+export type CheckInShareData = {
+  groupId: string;
+  crewName: string;
+  activityLabel: string | null;
+  /** Streak and week as of the post's own date, not today. */
+  streak: number;
+  week: { done: number; target: number; days: WeekDayState[] };
+  workout: CelebrationWorkout | null;
+  /** Full-size media, signed for a few minutes; null when the check-in has none. */
+  media: { url: string; kind: ShareMediaKind } | null;
+};
+
+export const getCheckInShareData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { checkInId: string }) => ({
+    checkInId: String(input?.checkInId ?? "").replace(/^c-/, "").slice(0, 64),
+  }))
+  .handler(async ({ context, data }): Promise<CheckInShareData> => {
+    const { supabase, userId } = context;
+    // Own check-ins only: another member's video never leaves Pactara.
+    const { data: ci } = await supabase
+      .from("check_ins")
+      .select("id, user_id, group_id, checkin_date, activity, photo_url")
+      .eq("id", data.checkInId)
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!ci || !ci.group_id) throw new Error("You can only share your own check-ins.");
+    const groupId = ci.group_id as string;
+    const date = ci.checkin_date as string;
+
+    const [{ data: days }, { data: frozen }, { data: group }, { data: session }] = await Promise.all([
+      supabase
+        .from("check_ins")
+        .select("checkin_date")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .lte("checkin_date", date)
+        .order("checkin_date", { ascending: false })
+        .limit(400),
+      supabase
+        .from("streak_freezes_used")
+        .select("freeze_date")
+        .eq("user_id", userId)
+        .eq("group_id", groupId)
+        .lte("freeze_date", date)
+        .limit(400),
+      supabase.from("groups").select("name, frequency, days_per_week").eq("id", groupId).maybeSingle(),
+      supabase
+        .from("workout_sessions")
+        .select("title, summary")
+        .eq("user_id", userId)
+        .contains("check_in_ids", [ci.id as string])
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+    const numbers = postShareNumbers({
+      checkInDates: (days ?? []).map((r: any) => r.checkin_date as string),
+      coveredDates: (frozen ?? []).map((r: any) => r.freeze_date as string),
+      date,
+      target: weeklyTarget((group ?? {}) as { frequency?: string | null; days_per_week?: number | null }),
+    });
+
+    const path = (ci.photo_url as string | null) ?? null;
+    const kind = shareMediaKind(path);
+    let media: CheckInShareData["media"] = null;
+    if (path && kind) {
+      if (path.startsWith("http")) media = { url: path, kind };
+      else {
+        const { data: signed } = await supabase.storage.from("chat-photos").createSignedUrl(path, 900);
+        if (signed?.signedUrl) media = { url: signed.signedUrl, kind };
+      }
+    }
+
+    return {
+      groupId,
+      crewName: (group?.name as string | undefined) ?? "Your crew",
+      activityLabel: activityLabelFor(ci.activity as string | null),
+      streak: numbers.streak,
+      week: numbers.week,
+      workout: celebrationWorkout(session as { title?: string | null; summary?: unknown } | null),
+      media,
+    };
+  });

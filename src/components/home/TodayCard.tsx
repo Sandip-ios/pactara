@@ -1,11 +1,9 @@
 import { useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { Camera, Check, Dumbbell, Moon } from "lucide-react";
 import { getActiveWorkout } from "@/lib/active-workout";
 import { WorkoutCard } from "@/components/WorkoutCard";
-import { CheckInShareModal } from "@/components/CheckInShareModal";
-import type { MoodId } from "@/routes/_authenticated/check-in.index";
+import { ShareCheckInScreen } from "@/components/share/ShareCheckInScreen";
 import { todayCheckedInSubtitle, todayHeadline, weekFooterNote } from "@/lib/crew-today";
 
 const PURPLE = "#7C3AED";
@@ -31,7 +29,8 @@ export function TodayCard({
   dueCount: number;
   solo: boolean;
   week: { workouts: number; target: number; restLeft: number } | null;
-  myCheckIn: { mood: string | null; activity: string | null; note: string; photoUrl: string | null } | null;
+  /** Today's own check-in with a video or photo, for Share your win. */
+  myCheckIn: { id: string } | null;
 }) {
   const navigate = useNavigate();
   const [sharing, setSharing] = useState(false);
@@ -146,22 +145,7 @@ export function TodayCard({
           <span className="block h-4 w-44 animate-pulse rounded-md bg-neutral-200" />
         )}
       </div>
-      {sharing &&
-        myCheckIn &&
-        // Portaled so the full-screen share card isn't clipped by the scrolling page.
-        createPortal(
-        <CheckInShareModal
-          data={{
-            mood: (myCheckIn.mood as MoodId | null) ?? null,
-            activity: myCheckIn.activity,
-            note: myCheckIn.note,
-            photoUrl: myCheckIn.photoUrl,
-            photoBlob: null,
-          }}
-          onClose={() => setSharing(false)}
-        />,
-          document.body,
-        )}
+      {sharing && myCheckIn && <ShareCheckInScreen checkInId={myCheckIn.id} onClose={() => setSharing(false)} />}
     </section>
   );
 }
