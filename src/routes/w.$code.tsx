@@ -209,7 +209,7 @@ function SharedWorkoutPage() {
               ) : !status ? (
                 <PrimaryButton disabled>Save to my workouts</PrimaryButton>
               ) : isOwner ? (
-                <PrimaryButton onClick={() => openEdit(status.ownWorkoutId)}>Open</PrimaryButton>
+                <PrimaryButton onClick={() => openEdit(status.ownWorkoutId)}>Open in My workouts</PrimaryButton>
               ) : status.savedWorkoutId ? (
                 <>
                   <button
