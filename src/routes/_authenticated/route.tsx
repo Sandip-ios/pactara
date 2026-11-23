@@ -105,9 +105,10 @@ function AuthLayout() {
     pathname === "/partner" ||
     pathname === "/new-pactara" ||
     pathname.startsWith("/plans/") ||
-    pathname.startsWith("/workout") ||
+    pathname === "/workout" ||
+    pathname.startsWith("/workout/") ||
     pathname.startsWith("/exercises/") ||
-    /^\/chat\/[^/]+/.test(pathname);
+    pathname.startsWith("/chat");
 
   const [trialState, setTrialState] = useState<{
     expired: boolean;

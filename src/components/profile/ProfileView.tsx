@@ -31,7 +31,6 @@ import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { ProfilePlans } from "@/components/plans/ProfilePlans";
-import { ProfileLifts } from "@/components/workout/ProfileLifts";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -320,7 +319,6 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             )}
           </div>
           {isOwn && <ProfilePlans />}
-          {isOwn && <ProfileLifts />}
 
         </section>
 

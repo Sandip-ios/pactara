@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Workouts tab replaces Chat (dumbbell tab; chat button in Home header with unread badge), Workouts page (plan card + options, this week tiles, My workouts, Recent + sheet + do again, Your lifts), Lifts off Profile, leave/pick up/start over/switch plans, toasts above bottom bar (unpublished)
+
 - [x] Builder follow-ups: "Discard changes?" sheet when leaving with unsaved edits, sets control wraps under the name instead of cutting the equipment label, picker line "reorder on the next screen" (unpublished)
 - [x] Build-your-own: picker opens a New workout screen (name, drag order, sets) to save for later or Start now; My workouts rows open Edit workout (save changes, start, delete); only an explicit Start begins a workout; Workout done shows Update for saved workouts, Save as a workout for plan days/unsaved (unpublished)
 

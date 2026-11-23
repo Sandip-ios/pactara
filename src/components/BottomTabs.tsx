@@ -1,14 +1,26 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { Home, Compass, Zap, MessageCircle } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { Home, Compass, Zap } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
-import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
+import { useToastAbove } from "@/lib/toast-offset";
 
-
-const PURPLE = "#7C3AED";
+const PURPLE = "#6D28D9";
 const AVATAR_BG = "#7C3AED";
+
+/** Simple dumbbell for the Workouts tab. */
+function DumbbellIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6.5 7v10" />
+      <path d="M17.5 7v10" />
+      <path d="M3.5 9.5v5" />
+      <path d="M20.5 9.5v5" />
+      <path d="M6.5 12h11" />
+    </svg>
+  );
+}
 
 export function BottomTabs() {
   const navigate = useNavigate();
@@ -20,26 +32,20 @@ export function BottomTabs() {
     queryFn: () => getMyGroupStatus(),
     staleTime: 60_000,
   });
-  const { data: unread } = useQuery({
-    queryKey: ["unread-chat-counts"],
-    queryFn: () => getUnreadChatCounts(),
-    refetchInterval: 30_000,
-    refetchOnWindowFocus: true,
-  });
-  const unreadTotal = unread?.total ?? 0;
-  const hasUnread = unreadTotal > 0;
+  const navRef = useRef<HTMLElement>(null);
+  useToastAbove(navRef);
   const initial = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const isProfile = pathname === "/profile";
 
 
 
   const isActive = (path: string) =>
-    path === "/home" ? pathname === "/home" : pathname.startsWith(path);
+    path === "/home" || path === "/workout" ? pathname === path || pathname.startsWith(`${path}/`) : pathname.startsWith(path);
 
   // Warm every tab's code so switching is instant, not a chunk download.
   useEffect(() => {
     const warm = () => {
-      for (const to of ["/home", "/groups", "/workout", "/check-in", "/chat", "/profile"]) {
+      for (const to of ["/home", "/groups", "/workout", "/check-in", "/workouts", "/profile"]) {
         router.preloadRoute({ to }).catch(() => {});
       }
     };
@@ -54,6 +60,7 @@ export function BottomTabs() {
 
   return (
     <nav
+      ref={navRef}
       data-bottom-tabs
       className="fixed bottom-0 left-0 right-0 z-[60] w-full bg-white border-t border-neutral-200 px-2 pt-2 grid grid-cols-5 items-end"
       style={{ transform: "translateZ(0)", paddingBottom: "1.5rem" }}
@@ -87,20 +94,11 @@ export function BottomTabs() {
         }}
       />
       <TabItem
-        icon={
-          <span className="relative inline-flex">
-            <MessageCircle size={22} />
-            {hasUnread && (
-              <span className="absolute -top-2 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
-                {unreadTotal > 99 ? "99+" : unreadTotal}
-              </span>
-            )}
-          </span>
-        }
-        label="Chat"
-        active={isActive("/chat")}
-        onPointerDown={preload("/chat")}
-        onClick={() => navigate({ to: "/chat" })}
+        icon={<DumbbellIcon size={22} />}
+        label="Workouts"
+        active={pathname === "/workouts"}
+        onPointerDown={preload("/workouts")}
+        onClick={() => navigate({ to: "/workouts" })}
       />
       <button
         onPointerDown={preload("/profile")}
@@ -141,6 +139,7 @@ function TabItem({
     <button
       onPointerDown={onPointerDown}
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className="flex flex-col items-center gap-1"
       style={{ color: active ? PURPLE : "#A3A3A3" }}
     >

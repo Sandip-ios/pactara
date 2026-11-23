@@ -1,17 +1,18 @@
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
-import { createFileRoute, useNavigate, useRouterState } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { parseFeedDeepLink } from "@/lib/feed-deeplink";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MessageSquare, Image as ImageIcon, Send, Zap, Bell, X } from "lucide-react";
+import { MessageSquare, MessageCircle, Image as ImageIcon, Send, Zap, Bell, X } from "lucide-react";
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
 import { getHomeCrew } from "@/lib/home-crew.functions";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
+import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
 import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { CrewBar, CrewBarSkeleton } from "@/components/home/CrewBar";
@@ -86,6 +87,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 function HomePage() {
   useStatusBarScrollToTop();
   const navigate = useNavigate();
+  const router = useRouter();
   // Deep link from a notification: /home?group=<id>&post=<id>[&comments=1]
   // Read reactively so a tap while already on the feed still switches groups.
   const searchStr = useRouterState({ select: (s) => s.location.searchStr });
@@ -145,6 +147,14 @@ function HomePage() {
     refetchOnWindowFocus: true,
   });
   const notifUnread = notifCount?.total ?? 0;
+  // Crew chat lives in the header now (no Chat tab): badge = unread chat messages.
+  const { data: chatUnread } = useQuery({
+    queryKey: ["unread-chat-counts"],
+    queryFn: () => getUnreadChatCounts(),
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+  });
+  const chatUnreadTotal = chatUnread?.total ?? 0;
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -371,31 +381,40 @@ function HomePage() {
   return (
     <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-24" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
       <header
-        className="bg-white px-4 pb-3 flex items-center justify-between"
+        className="bg-white px-5 pb-3"
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)" }}
       >
-        <div className="text-[24px] font-black tracking-tight">
-          <span style={{ color: PURPLE }}>P</span><span>actara</span>
+        <div className="flex items-center justify-between">
+        <div className="text-[28px] font-extrabold tracking-[-0.5px]">
+          <span style={{ color: "#6D28D9" }}>P</span><span>actara</span>
         </div>
-        <div className="flex items-center gap-1">
-          {isNewMember && (
-            <button
-              type="button"
-              onClick={() => {
-                dismissHowItWorksTip();
-                setShowOnboarding(true);
-              }}
-              className="flex h-11 items-center"
-            >
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              // One crew: straight into its chat. Several: the Messages list (unread per crew).
+              const only = myGroups.length === 1 ? myGroups[0] : null;
+              if (only) navigate({ to: "/chat/$groupId", params: { groupId: only.id } });
+              else navigate({ to: "/chat" });
+            }}
+            onPointerDown={() => {
+              const only = myGroups.length === 1 ? myGroups[0] : null;
+              (only ? router.preloadRoute({ to: "/chat/$groupId", params: { groupId: only.id } }) : router.preloadRoute({ to: "/chat" })).catch(() => {});
+            }}
+            aria-label={chatUnreadTotal > 0 ? `Crew chat, ${chatUnreadTotal} unread` : "Crew chat"}
+            className="relative flex h-11 w-11 items-center justify-center rounded-[22px]"
+            style={{ background: "#EDE7FB", color: "#6D28D9" }}
+          >
+            <MessageCircle size={20} />
+            {chatUnreadTotal > 0 && (
               <span
-                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
-                style={{ background: "#EDE6FE", color: PURPLE }}
+                className="absolute flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] px-1 text-[11px] font-bold leading-none"
+                style={{ top: 4, right: 4, background: "#B91C1C", color: "#FFFFFF" }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-                How Pactara works
+                {chatUnreadTotal > 99 ? "99+" : chatUnreadTotal}
               </span>
-            </button>
-          )}
+            )}
+          </button>
           <button
             type="button"
             onClick={() => navigate({ to: "/notifications" })}
@@ -415,7 +434,28 @@ function HomePage() {
             </span>
           </button>
         </div>
-
+        </div>
+        {/* New members: the guide pill gets its own row so the chat and bell fit at 375px. */}
+        {isNewMember && (
+          <div className="mt-1 flex">
+            <button
+              type="button"
+              onClick={() => {
+                dismissHowItWorksTip();
+                setShowOnboarding(true);
+              }}
+              className="flex h-11 items-center"
+            >
+              <span
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-bold"
+                style={{ background: "#EDE6FE", color: PURPLE }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                How Pactara works
+              </span>
+            </button>
+          </div>
+        )}
       </header>
       <PartnerBanner />
 
@@ -425,12 +465,12 @@ function HomePage() {
       {showHowItWorksTip &&
         createPortal(
           <div
-            className="fixed inset-x-0 z-40 flex justify-end pr-4"
-            style={{ top: "calc(env(safe-area-inset-top) + 58px)" }}
+            className="fixed inset-x-0 z-40 flex justify-start pl-5"
+            style={{ top: "calc(env(safe-area-inset-top) + 124px)" }}
           >
             <div className="relative">
               {/* Caret pointing up at the header button */}
-              <div className="absolute -top-[7px] right-[145px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-[#1B1A21]" />
+              <div className="absolute -top-[7px] left-[40px] h-3.5 w-3.5 rotate-45 rounded-[3px] bg-[#1B1A21]" />
               <div className="relative block max-w-[248px] rounded-2xl bg-[#1B1A21] px-4 py-3 pr-9 text-left shadow-xl">
                 <button
                   type="button"

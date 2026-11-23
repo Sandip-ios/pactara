@@ -4,6 +4,7 @@ import type { LibraryExercise } from "@/lib/exercise-library";
 import { EQUIPMENT_LABEL } from "@/lib/lift-rules";
 import { MAX_SETS, MIN_SETS, canSave, clampSets, draftMeta, draftSignature, moveItem, type DraftItem } from "@/lib/workout-builder";
 import { hapticLight } from "@/lib/native";
+import { useToastAbove } from "@/lib/toast-offset";
 import { ExerciseThumb, FONT, W } from "./WorkoutBits";
 
 const SHADOW = "0 1px 2px rgba(20,18,24,.06)";
@@ -47,6 +48,8 @@ export function WorkoutBuilder({
 }) {
   const ready = canSave(name, items) && !busy;
   const isEdit = mode === "edit";
+  const barRef = useRef<HTMLDivElement>(null);
+  useToastAbove(barRef);
   // Nothing changed yet: "Save changes" has nothing to save.
   const changed = !isEdit || draftSignature(name, items) !== initial;
   const saveReady = ready && changed;
@@ -259,7 +262,7 @@ export function WorkoutBuilder({
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-white px-4 pb-[calc(30px+env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${W.line}` }}>
+      <div ref={barRef} className="fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-white px-4 pb-[calc(30px+env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${W.line}` }}>
         <button
           type="button"
           disabled={!saveReady}

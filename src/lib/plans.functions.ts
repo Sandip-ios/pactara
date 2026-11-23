@@ -3,7 +3,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { signAvatarThumbs } from "@/lib/media-urls";
 import {
+  latestLeftRun,
   planStartAction,
+  planWorkoutsDone,
   type CrewOnPlan,
   type MuscleMap,
   type Plan,
@@ -77,11 +79,17 @@ export type MyActivePlan = {
   weeks: number;
   daysPerWeek: number;
   startedAt: string;
+  /** Plan days checked in on this run. */
+  workoutsDone: number;
 };
+
+/** The run you left most recently, per plan (what "Pick up at week N" resumes). */
+export type MyLeftPlan = { id: string; planId: string; slug: string; name: string; weeks: number; currentWeek: number; workoutsDone: number };
 
 export type MyPlans = {
   active: MyActivePlan | null;
   completed: { id: string; slug: string; name: string; weeks: number; completedAt: string | null }[];
+  left: MyLeftPlan[];
 };
 
 /** Your active plan (if any) and the plans you've finished, newest first. */
@@ -91,33 +99,76 @@ export const getMyPlans = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data, error } = await supabase
       .from("user_plans")
-      .select("id, plan_id, status, current_week, next_day, started_at, completed_at, plans(slug, name, weeks, days_per_week)")
+      .select("id, plan_id, status, current_week, next_day, started_at, completed_at, updated_at, plans(slug, name, weeks, days_per_week)")
       .eq("user_id", userId)
-      .in("status", ["active", "completed"])
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    let active: MyActivePlan | null = null;
-    const completed: MyPlans["completed"] = [];
-    for (const r of data ?? []) {
-      const p = (r as any).plans as { slug: string; name: string; weeks: number; days_per_week: number } | null;
-      if (!p) continue;
-      if (r.status === "active" && !active) {
-        active = {
-          id: r.id,
-          planId: r.plan_id,
-          slug: p.slug,
-          name: p.name,
-          currentWeek: r.current_week,
-          nextDay: r.next_day,
-          weeks: p.weeks,
-          daysPerWeek: p.days_per_week,
-          startedAt: r.started_at,
-        };
-      } else if (r.status === "completed") {
-        completed.push({ id: r.id, slug: p.slug, name: p.name, weeks: p.weeks, completedAt: r.completed_at });
-      }
+    const rows = (data ?? []).filter((r) => (r as any).plans);
+    type P = { slug: string; name: string; weeks: number; days_per_week: number };
+    const plan = (r: (typeof rows)[number]) => (r as any).plans as P;
+    const activeRow = rows.find((r) => r.status === "active") ?? null;
+    const leftRows: typeof rows = [];
+    for (const planId of new Set(rows.map((r) => r.plan_id))) {
+      if (activeRow?.plan_id === planId) continue;
+      const run = latestLeftRun(
+        rows.map((r) => ({ ...r, planId: r.plan_id, status: r.status as UserPlanRow["status"], updatedAt: r.updated_at })),
+        planId,
+      );
+      if (run) leftRows.push(rows.find((r) => r.id === run.id)!);
     }
-    return { active, completed };
+    const counted = [activeRow, ...leftRows].filter((r): r is NonNullable<typeof r> => !!r).map((r) => r.id);
+    const done = new Map<string, number>();
+    if (counted.length) {
+      const { data: logs } = await supabase.from("plan_workout_logs").select("user_plan_id, week, day_number").in("user_plan_id", counted);
+      for (const id of counted) done.set(id, planWorkoutsDone((logs ?? []).filter((l) => l.user_plan_id === id)));
+    }
+    const active: MyActivePlan | null = activeRow
+      ? {
+          id: activeRow.id,
+          planId: activeRow.plan_id,
+          slug: plan(activeRow).slug,
+          name: plan(activeRow).name,
+          currentWeek: activeRow.current_week,
+          nextDay: activeRow.next_day,
+          weeks: plan(activeRow).weeks,
+          daysPerWeek: plan(activeRow).days_per_week,
+          startedAt: activeRow.started_at,
+          workoutsDone: done.get(activeRow.id) ?? 0,
+        }
+      : null;
+    const completed: MyPlans["completed"] = rows
+      .filter((r) => r.status === "completed")
+      .map((r) => ({ id: r.id, slug: plan(r).slug, name: plan(r).name, weeks: plan(r).weeks, completedAt: r.completed_at }));
+    const left: MyLeftPlan[] = leftRows.map((r) => ({
+      id: r.id,
+      planId: r.plan_id,
+      slug: plan(r).slug,
+      name: plan(r).name,
+      weeks: plan(r).weeks,
+      currentWeek: r.current_week,
+      workoutsDone: done.get(r.id) ?? 0,
+    }));
+    return { active, completed, left };
+  });
+
+/**
+ * Leave your plan: it stops being active (no plan card, no plan tag on new
+ * check-ins). Progress, logged workouts and past posts' plan chips stay; the
+ * subscription isn't touched.
+ */
+export const leavePlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { userPlanId: string }) => ({ userPlanId: String(input?.userPlanId ?? "") }))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("user_plans")
+      .update({ status: "stopped", updated_at: new Date().toISOString() })
+      .eq("id", data.userPlanId)
+      .eq("user_id", userId)
+      .eq("status", "active");
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export type CrewPlan = {
@@ -177,27 +228,29 @@ export const getCrewPlans = createServerFn({ method: "GET" })
  */
 export const startPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { planId: string }) => ({ planId: String(input?.planId ?? "") }))
+  .inputValidator((input: { planId: string; fresh?: boolean }) => ({ planId: String(input?.planId ?? ""), fresh: input?.fresh === true }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: plan } = await supabase.from("plans").select("id").eq("id", data.planId).eq("is_published", true).maybeSingle();
     if (!plan) throw new Error("That plan isn't available.");
     const { data: rows, error } = await supabase
       .from("user_plans")
-      .select("id, plan_id, status")
+      .select("id, plan_id, status, updated_at")
       .eq("user_id", userId);
     if (error) throw new Error(error.message);
+    // "Start over from week 1" starts a fresh run; the left one keeps its history.
     const action = planStartAction(
-      (rows ?? []).map((r) => ({ id: r.id, planId: r.plan_id, status: r.status as UserPlanRow["status"] })),
+      (rows ?? []).map((r) => ({ id: r.id, planId: r.plan_id, status: r.status as UserPlanRow["status"], updatedAt: r.updated_at })),
       data.planId,
+      { fresh: data.fresh },
     );
     if (action.stopIds.length) {
-      const { error: stopErr } = await supabase.from("user_plans").update({ status: "stopped" }).in("id", action.stopIds);
+      const { error: stopErr } = await supabase.from("user_plans").update({ status: "stopped", updated_at: new Date().toISOString() }).in("id", action.stopIds);
       if (stopErr) throw new Error(stopErr.message);
     }
     if (action.alreadyActiveId) return { userPlanId: action.alreadyActiveId };
     if (action.resumeId) {
-      const { error: resumeErr } = await supabase.from("user_plans").update({ status: "active" }).eq("id", action.resumeId);
+      const { error: resumeErr } = await supabase.from("user_plans").update({ status: "active", updated_at: new Date().toISOString() }).eq("id", action.resumeId);
       if (resumeErr) throw new Error(resumeErr.message);
       return { userPlanId: action.resumeId };
     }

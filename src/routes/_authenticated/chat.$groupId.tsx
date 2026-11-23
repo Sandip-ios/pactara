@@ -323,7 +323,8 @@ function GroupChatPage() {
 
       <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
         <button
-          onClick={() => navigate({ to: "/chat" })}
+          // Chat opens from the Home header (no Chat tab): go back where you came from.
+          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/home" }))}
           aria-label="Back"
           className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center"
         >

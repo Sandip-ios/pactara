@@ -6,16 +6,7 @@ import { Check, ChevronLeft, ChevronRight, Info, Play, RotateCw } from "lucide-r
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { SwitchPlanSheet } from "@/components/plans/PlanSheets";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
 import { getActiveWorkout } from "@/lib/active-workout";
@@ -271,27 +262,16 @@ function PlanDayPage() {
         }}
       />
 
-      <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-        <AlertDialogContent className="max-w-[340px] rounded-[20px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Switch to {plan.name}?</AlertDialogTitle>
-            <AlertDialogDescription>Your progress on {active?.name} is kept.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="h-11"
-              style={{ background: C.violet }}
-              onClick={() => {
-                setConfirmSwitch(false);
-                void beginPlanThenLaunch();
-              }}
-            >
-              Switch
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <SwitchPlanSheet
+        open={confirmSwitch}
+        toName={plan.name}
+        current={active}
+        onClose={() => setConfirmSwitch(false)}
+        onSwitch={() => {
+          setConfirmSwitch(false);
+          void beginPlanThenLaunch();
+        }}
+      />
 
       {paywall && (
         <TrialEndedPaywall

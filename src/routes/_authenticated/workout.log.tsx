@@ -169,6 +169,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
       setActiveWorkout(null);
       void qc.invalidateQueries({ queryKey: LIFT_HISTORY_KEY });
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
+      void qc.invalidateQueries({ queryKey: ["workouts-overview"] });
       void qc.invalidateQueries({ queryKey: ["home-crew"] });
       void qc.invalidateQueries({ queryKey: ["groups-today"] });
     } catch (e) {

@@ -44,7 +44,8 @@ export function useStartWorkout() {
   };
 
   return {
-    async startSaved(workout: SavedWorkout) {
+    /** A saved workout, or a past session done again (`id: null` when it isn't saved). */
+    async startSaved(workout: Pick<SavedWorkout, "name" | "exercises"> & { id: string | null }) {
       const { lib, hist } = await load();
       const exercises: LiveExercise[] = [];
       for (const it of workout.exercises) {

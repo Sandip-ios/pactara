@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import {
@@ -11,6 +11,8 @@ import {
   Dumbbell,
   Footprints,
   House,
+  MoreHorizontal,
+  Pause,
   RectangleHorizontal,
   Share,
   type LucideIcon,
@@ -18,16 +20,9 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { LeavePlanSheet, PlanOptionsSheet, SwitchPlanSheet, planWeekTitle } from "@/components/plans/PlanSheets";
+import { getMyGroupStatus } from "@/lib/groups.functions";
+import { initials, plural } from "@/lib/lift-rules";
 import { hasActiveMembership } from "@/lib/membership";
 import { startPlan } from "@/lib/plans.functions";
 import {
@@ -38,7 +33,7 @@ import {
   scheduleForWeek,
   weekNoteFor,
 } from "@/lib/workout-plans";
-import { BG, FONT, P, PURPLE, PURPLE_SOFT, useCrewOnPlan, useMyPlans, usePlans } from "@/components/plans/PlanBits";
+import { BG, FONT, P, PURPLE, PURPLE_SOFT, planBadge, useCrewOnPlan, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { BodyMap } from "@/components/plans/BodyMap";
 
 export const Route = createFileRoute("/_authenticated/plans/$slug")({
@@ -62,14 +57,21 @@ function PlanDetailPage() {
   const plan = (plans ?? []).find((p) => p.slug === slug) ?? null;
   const active = mine?.active ?? null;
   const onThisPlan = !!active && active.slug === slug;
+  // The run of this plan you left (only when you're not on it now).
+  const left = onThisPlan ? null : (mine?.left ?? []).find((l) => l.slug === slug) ?? null;
+  const otherActive = active && !onThisPlan ? active : null;
   const { data: crewOnPlan } = useCrewOnPlan(plan?.id ?? null);
+  const { data: me } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
 
   const [week, setWeek] = useState<number | null>(null);
-  const shownWeek = week ?? (onThisPlan ? active.currentWeek : 1);
+  const shownWeek = week ?? (onThisPlan ? active.currentWeek : left ? left.currentWeek : 1);
   const [checking, setChecking] = useState(false);
-  const [paywall, setPaywall] = useState<{ firstName: string | null } | null>(null);
-  const [confirmSwitch, setConfirmSwitch] = useState(false);
+  const [paywall, setPaywall] = useState<{ firstName: string | null; fresh: boolean } | null>(null);
+  // Switching from another plan: carries whether it's a fresh start (Start over).
+  const [confirmSwitch, setConfirmSwitch] = useState<null | { fresh: boolean }>(null);
   const [starting, setStarting] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
 
   const back = () => {
     if (window.history.length > 1) router.history.back();
@@ -96,10 +98,10 @@ function PlanDetailPage() {
     );
   }
 
-  const doStart = async () => {
+  const doStart = async (fresh = false) => {
     setStarting(true);
     try {
-      await start({ data: { planId: plan.id } });
+      await start({ data: { planId: plan.id, fresh } });
       await queryClient.invalidateQueries({ queryKey: ["my-plans"] });
       queryClient.invalidateQueries({ queryKey: ["crew-plans"] });
       navigate({ to: "/plans/$slug/day", params: { slug: plan.slug } });
@@ -111,11 +113,12 @@ function PlanDetailPage() {
   };
 
   // Starting needs an active trial or subscription; browsing stays free.
-  const onStartTap = async () => {
+  const onStartTap = async (fresh = false) => {
     if (onThisPlan) {
       navigate({ to: "/plans/$slug/day", params: { slug: plan.slug } });
       return;
     }
+    if (checking || starting) return;
     setChecking(true);
     try {
       const { data: auth } = await supabase.auth.getUser();
@@ -124,11 +127,11 @@ function PlanDetailPage() {
       const member = await hasActiveMembership(uid);
       if (!member) {
         const first = ((auth.user?.user_metadata?.name as string | undefined) ?? "").split(" ")[0] || null;
-        setPaywall({ firstName: first });
+        setPaywall({ firstName: first, fresh });
         return;
       }
-      if (active) setConfirmSwitch(true);
-      else await doStart();
+      if (active) setConfirmSwitch({ fresh });
+      else await doStart(fresh);
     } finally {
       setChecking(false);
     }
@@ -182,15 +185,28 @@ function PlanDetailPage() {
           >
             <ChevronLeft size={24} />
           </button>
-          <button
-            type="button"
-            onClick={share}
-            aria-label="Share plan"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-white"
-            style={{ background: "rgba(20,18,24,.6)" }}
-          >
-            <Share size={20} />
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={share}
+              aria-label="Share plan"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-white"
+              style={{ background: "rgba(20,18,24,.6)" }}
+            >
+              <Share size={20} />
+            </button>
+            {onThisPlan && (
+              <button
+                type="button"
+                onClick={() => setOptionsOpen(true)}
+                aria-label="Plan options"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-white"
+                style={{ background: "rgba(20,18,24,.45)" }}
+              >
+                <MoreHorizontal size={22} />
+              </button>
+            )}
+          </div>
         </div>
         <div className="absolute bottom-5 left-5 right-5 flex flex-col gap-2 text-white">
           <span className="self-start rounded-full px-2.5 py-[5px] text-[12px] font-bold tracking-[0.4px]" style={{ background: "rgba(255,255,255,.18)" }}>
@@ -215,7 +231,69 @@ function PlanDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-[22px] px-4 pb-[130px] pt-[22px]">
+      <div className="flex flex-col gap-[22px] px-4 pt-[22px]" style={{ paddingBottom: left ? 180 : 130 }}>
+        {onThisPlan && (
+          <section className="flex flex-col gap-3 rounded-[20px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full text-[15px] font-bold text-white"
+                style={{ background: PURPLE }}
+                aria-hidden
+              >
+                {me?.avatarUrl ? <img src={me.avatarUrl} alt="" className="h-full w-full object-cover" /> : (me?.firstName ?? "Y").slice(0, 1).toUpperCase()}
+              </span>
+              <span className="min-w-0">
+                <span className="block text-[15px] font-extrabold">You're on this plan</span>
+                <span className="block text-[13px]" style={{ color: P.stone }}>
+                  Week {active.currentWeek} of {plan.weeks} · {plural(active.workoutsDone, "workout")} done
+                </span>
+              </span>
+            </div>
+            <span
+              className="block h-1.5 overflow-hidden rounded-full"
+              style={{ background: "#EDE6FE" }}
+              role="progressbar"
+              aria-label="Plan progress"
+              aria-valuemin={0}
+              aria-valuemax={plan.weeks * plan.daysPerWeek}
+              aria-valuenow={active.workoutsDone}
+            >
+              <span
+                className="block h-full rounded-full"
+                style={{ background: P.purple, width: `${Math.min(100, (active.workoutsDone / Math.max(1, plan.weeks * plan.daysPerWeek)) * 100)}%` }}
+              />
+            </span>
+          </section>
+        )}
+        {left && (
+          <section className="flex items-center gap-3 rounded-[20px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "#F4F2EF", color: P.stone }} aria-hidden>
+              <Pause size={18} fill="currentColor" />
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[15px] font-extrabold">You left this plan at week {left.currentWeek}</span>
+              <span className="block text-[13px]" style={{ color: P.stone }}>
+                {left.workoutsDone > 0
+                  ? `Your ${plural(left.workoutsDone, "workout")} ${left.workoutsDone === 1 ? "is" : "are"} still in your history.`
+                  : "No workouts logged on it yet."}
+              </span>
+            </span>
+          </section>
+        )}
+        {otherActive && (
+          <section className="flex items-center gap-3 rounded-[20px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
+            <span
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-[13px] font-extrabold"
+              style={{ background: planBadge(otherActive.slug).tint, color: planBadge(otherActive.slug).ink }}
+              aria-hidden
+            >
+              {initials(otherActive.name)}
+            </span>
+            <span className="min-w-0 text-[14px] leading-snug">
+              You're on <strong className="font-extrabold">{otherActive.name}</strong> (week {otherActive.currentWeek}). Starting this plan switches you over.
+            </span>
+          </section>
+        )}
         {proof && (
           <section
             className="flex items-center gap-3 rounded-[18px] bg-white px-[14px] py-3"
@@ -375,49 +453,61 @@ function PlanDetailPage() {
       >
         <button
           type="button"
-          onClick={onStartTap}
+          onClick={() => void onStartTap(false)}
           disabled={busy}
           className="h-14 w-full rounded-[28px] text-[16px] font-bold text-white disabled:opacity-60"
           style={{ background: P.violet, boxShadow: "0 8px 20px rgba(109,40,217,.3)" }}
         >
-          {busy ? "One moment…" : onThisPlan ? `Start Day ${active.nextDay}` : "Start this plan"}
+          {busy ? "One moment…" : onThisPlan ? "Start today's workout" : left ? `Pick up at week ${left.currentWeek}` : "Start this plan"}
         </button>
+        {left && (
+          <button
+            type="button"
+            onClick={() => void onStartTap(true)}
+            disabled={busy}
+            className="mt-1 h-11 w-full text-[15px] font-bold disabled:opacity-60"
+            style={{ color: P.violet }}
+          >
+            Start over from week 1
+          </button>
+        )}
       </div>
 
-      <AlertDialog open={confirmSwitch} onOpenChange={setConfirmSwitch}>
-        <AlertDialogContent className="max-w-[340px] rounded-[20px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Switch to {plan.name}?</AlertDialogTitle>
-            <AlertDialogDescription>Your progress on {active?.name} is kept.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="h-11">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              className="h-11"
-              style={{ background: PURPLE }}
-              onClick={() => {
-                setConfirmSwitch(false);
-                void doStart();
-              }}
-            >
-              Switch
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {onThisPlan && (
+        <PlanOptionsSheet
+          open={optionsOpen}
+          title={planWeekTitle({ name: plan.name, currentWeek: active.currentWeek, weeks: plan.weeks })}
+          rows={[{ label: "Leave plan", danger: true, onClick: () => setLeaveOpen(true) }]}
+          onClose={() => setOptionsOpen(false)}
+        />
+      )}
+      <LeavePlanSheet plan={onThisPlan ? active : null} open={leaveOpen} onClose={() => setLeaveOpen(false)} />
+
+      <SwitchPlanSheet
+        open={!!confirmSwitch}
+        toName={plan.name}
+        current={otherActive}
+        onClose={() => setConfirmSwitch(null)}
+        onSwitch={() => {
+          const fresh = confirmSwitch?.fresh ?? false;
+          setConfirmSwitch(null);
+          void doStart(fresh);
+        }}
+      />
 
       {paywall && (
         <TrialEndedPaywall
           firstName={paywall.firstName}
           mode="intro"
           onDismiss={() => {
+            const fresh = paywall.fresh;
             setPaywall(null);
             // Bought from the paywall? Carry straight on with starting the plan.
             void (async () => {
               const { data: auth } = await supabase.auth.getUser();
               if (auth.user && (await hasActiveMembership(auth.user.id))) {
-                if (active) setConfirmSwitch(true);
-                else await doStart();
+                if (active) setConfirmSwitch({ fresh });
+                else await doStart(fresh);
               }
             })();
           }}

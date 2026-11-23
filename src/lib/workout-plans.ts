@@ -169,24 +169,37 @@ export function planChipLabel(name: string, week: number, day: number): string {
   return `${name} · Week ${week}, Day ${day}`;
 }
 
-export type UserPlanRow = { id: string; planId: string; status: "active" | "completed" | "stopped" };
+export type UserPlanRow = { id: string; planId: string; status: "active" | "completed" | "stopped"; updatedAt?: string };
 
 /**
  * What starting `planId` does to someone's plans (one active plan at a time):
  * - already on it → nothing changes;
  * - any other active plan is stopped (its progress is kept);
- * - a stopped run of this plan resumes where it left off, otherwise a new run starts.
+ * - the most recently left run of this plan resumes where it left off,
+ *   otherwise (or with `fresh`, "Start over from week 1") a new run starts.
  */
-export function planStartAction(rows: UserPlanRow[], planId: string): {
+export function planStartAction(rows: UserPlanRow[], planId: string, opts: { fresh?: boolean } = {}): {
   alreadyActiveId: string | null;
   stopIds: string[];
   resumeId: string | null;
 } {
   const active = rows.filter((r) => r.status === "active");
   const same = active.find((r) => r.planId === planId);
-  if (same) return { alreadyActiveId: same.id, stopIds: active.filter((r) => r.id !== same.id).map((r) => r.id), resumeId: null };
-  const resume = rows.find((r) => r.planId === planId && r.status === "stopped") ?? null;
+  if (same && !opts.fresh) return { alreadyActiveId: same.id, stopIds: active.filter((r) => r.id !== same.id).map((r) => r.id), resumeId: null };
+  const resume = opts.fresh ? null : latestLeftRun(rows, planId);
   return { alreadyActiveId: null, stopIds: active.map((r) => r.id), resumeId: resume?.id ?? null };
+}
+
+/** The run of a plan you left most recently (what "Pick up at week N" resumes). */
+export function latestLeftRun<T extends UserPlanRow>(rows: T[], planId: string): T | null {
+  const stopped = rows.filter((r) => r.planId === planId && r.status === "stopped");
+  if (stopped.length === 0) return null;
+  return stopped.reduce((a, b) => ((b.updatedAt ?? "") > (a.updatedAt ?? "") ? b : a));
+}
+
+/** Plan days done on one run: each (week, day) once, however many crews the check-in went to. */
+export function planWorkoutsDone(logs: { week: number; day_number: number }[]): number {
+  return new Set(logs.map((l) => `${l.week}-${l.day_number}`)).size;
 }
 
 /** A gentle next step once a plan is finished. */

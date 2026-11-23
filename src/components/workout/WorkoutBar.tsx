@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useToastAbove } from "@/lib/toast-offset";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { fmtClock } from "@/lib/lift-rules";
 import { getActiveWorkout, updateActiveWorkout, useActiveWorkout } from "@/lib/active-workout";
@@ -44,9 +45,13 @@ export function WorkoutBar({ tabsVisible }: { tabsVisible: boolean }) {
     return () => ro.disconnect();
   }, [tabsVisible, w?.id]);
 
-  if (!w || fromLogger || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera")) return null;
+  const hidden = !w || fromLogger || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera");
+  const barRef = useRef<HTMLButtonElement>(null);
+  useToastAbove(barRef, !hidden);
+  if (hidden) return null;
   return (
     <button
+      ref={barRef}
       type="button"
       data-workout-bar
       onClick={() => navigate({ to: "/workout/log" })}

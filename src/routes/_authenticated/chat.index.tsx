@@ -5,11 +5,22 @@ import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { PullToRefresh } from "@/components/PullToRefresh";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
+import { ChevronLeft } from "lucide-react";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
 
 export const Route = createFileRoute("/_authenticated/chat/")({
+  head: () => ({
+    meta: [
+      { title: "Messages · Pactara" },
+      { name: "description", content: "Chat with your Pactara crews." },
+      { property: "og:title", content: "Messages · Pactara" },
+      { property: "og:description", content: "Chat with your Pactara crews." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   component: ChatPage,
 });
 
@@ -49,6 +60,16 @@ function ChatPage() {
 
 
       <section className="px-6 pt-safe-5 pb-4 border-b border-neutral-100">
+        <button
+          type="button"
+          onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/home" }))}
+          aria-label="Back"
+          className="-ml-2 mb-2 h-11 w-11 rounded-xl flex items-center justify-center"
+        >
+          <span className="h-10 w-10 rounded-xl bg-neutral-100 flex items-center justify-center">
+            <ChevronLeft size={20} className="text-neutral-700" />
+          </span>
+        </button>
         <h1 className="text-[28px] font-black tracking-tight">Messages</h1>
         <div className="text-[14px] text-neutral-500 mt-1">
           {isLoading ? " " : `${groups.length} ${groups.length === 1 ? "group" : "groups"}`}

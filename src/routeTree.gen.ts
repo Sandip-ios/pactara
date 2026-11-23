@@ -29,6 +29,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedWorkoutsRouteImport } from './routes/_authenticated/workouts'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
 import { Route as AdminEventsRouteImport } from './routes/admin/events'
@@ -173,6 +174,11 @@ const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedWorkoutsRoute = AuthenticatedWorkoutsRouteImport.update({
+  id: '/workouts',
+  path: '/workouts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
@@ -441,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/funnel': typeof AdminFunnelRoute
@@ -505,6 +512,7 @@ export interface FileRoutesByTo {
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/funnel': typeof AdminFunnelRoute
@@ -572,6 +580,7 @@ export interface FileRoutesById {
   '/_authenticated/partner': typeof AuthenticatedPartnerRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
   '/admin/funnel': typeof AdminFunnelRoute
@@ -639,6 +648,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/plan'
     | '/profile'
+    | '/workouts'
     | '/admin/accountability'
     | '/admin/events'
     | '/admin/funnel'
@@ -703,6 +713,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/plan'
     | '/profile'
+    | '/workouts'
     | '/admin/accountability'
     | '/admin/events'
     | '/admin/funnel'
@@ -769,6 +780,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
+    | '/_authenticated/workouts'
     | '/admin/accountability'
     | '/admin/events'
     | '/admin/funnel'
@@ -985,6 +997,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/workouts': {
+      id: '/_authenticated/workouts'
+      path: '/workouts'
+      fullPath: '/workouts'
+      preLoaderRoute: typeof AuthenticatedWorkoutsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/admin/': {
@@ -1305,6 +1324,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedWorkoutsRoute: typeof AuthenticatedWorkoutsRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
   AuthenticatedAccountSettingsNameRoute: typeof AuthenticatedAccountSettingsNameRoute
   AuthenticatedAccountSettingsNotificationsRoute: typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -1336,6 +1356,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPartnerRoute: AuthenticatedPartnerRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedWorkoutsRoute: AuthenticatedWorkoutsRoute,
   AuthenticatedAccountSettingsEmailRoute:
     AuthenticatedAccountSettingsEmailRoute,
   AuthenticatedAccountSettingsNameRoute: AuthenticatedAccountSettingsNameRoute,

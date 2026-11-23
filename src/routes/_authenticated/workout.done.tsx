@@ -69,6 +69,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
       },
     });
     void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
+    void qc.invalidateQueries({ queryKey: ["workouts-overview"] });
   };
 
   const leave = async (checkIn: boolean) => {
