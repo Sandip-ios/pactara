@@ -172,7 +172,7 @@ function PlanDetailPage() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(20,18,24,.35) 0%, rgba(20,18,24,0) 30%, rgba(30,12,64,.55) 62%, rgba(46,16,101,.96) 100%)",
+              "linear-gradient(180deg, rgba(20,18,24,.5) 0%, rgba(20,18,24,0) 30%, rgba(30,12,64,.55) 62%, rgba(46,16,101,.96) 100%)",
           }}
         />
         <div className="absolute left-3 right-3 flex justify-between" style={{ top: "calc(env(safe-area-inset-top) + 12px)" }}>
@@ -181,7 +181,7 @@ function PlanDetailPage() {
             onClick={back}
             aria-label="Back"
             className="flex h-11 w-11 items-center justify-center rounded-full text-white"
-            style={{ background: "rgba(20,18,24,.45)" }}
+            style={{ background: "rgba(20,18,24,.6)" }}
           >
             <ChevronLeft size={24} />
           </button>
@@ -190,7 +190,7 @@ function PlanDetailPage() {
             onClick={share}
             aria-label="Share plan"
             className="flex h-11 w-11 items-center justify-center rounded-full text-white"
-            style={{ background: "rgba(20,18,24,.45)" }}
+            style={{ background: "rgba(20,18,24,.6)" }}
           >
             <Share size={20} />
           </button>

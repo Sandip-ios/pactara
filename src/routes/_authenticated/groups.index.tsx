@@ -69,7 +69,7 @@ function DiscoverHeader({
         <input
           value={query}
           onChange={(e) => onQuery(e.target.value)}
-          placeholder={'Try "no equipment" or "bad knees"'}
+          placeholder={'Try "no equipment" or "glutes"'}
           aria-label="Search plans"
           enterKeyHint="search"
           autoFocus={autoFocusSearch}
@@ -102,7 +102,7 @@ function DiscoverHeader({
               role="tab"
               aria-selected={on}
               onClick={() => onChange(t)}
-              className="h-10 rounded-[11px] text-[15px] font-bold transition-colors"
+              className="h-11 rounded-[11px] text-[15px] font-bold transition-colors"
               style={{
                 background: on ? "#FFFFFF" : "transparent",
                 color: on ? D_INK : "#44403C",
@@ -169,8 +169,8 @@ function GroupsOverview() {
   }, [inviteGroupId, data, navigate, partnerState]);
 
   // "In a crew" = at least one group with someone else in it.
-  const inCrew = (data?.groups ?? []).some((g) => g.memberCount >= 2);
-  const tab: DiscoverTab | null = tabParam ?? (inviteGroupId ? "crews" : data ? (inCrew ? "crews" : "plans") : null);
+  // Discover always opens on Plans; crew deep links still land on Crews.
+  const tab: DiscoverTab | null = tabParam ?? (inviteGroupId ? "crews" : "plans");
   const setTab = (t: DiscoverTab) =>
     navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t, complete: undefined }), replace: true });
   // The search finds plans: typing on Crews switches to Plans and keeps typing there.
