@@ -171,16 +171,20 @@ function CrewRow({
   const emoji = display?.emoji ?? crew.emoji;
   return (
     <li className="flex min-h-[60px] items-center gap-3 px-3 py-2" style={{ borderTop: first ? undefined : `1px solid ${W.divider}` }}>
-      <span className="flex shrink-0 -space-x-2.5" aria-hidden>
-        {crew.others.map((m) => (
-          <span
-            key={m.id}
-            className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-bold text-white ring-2 ring-white"
-            style={{ background: m.avatarColor }}
-          >
-            {m.avatarUrl ? <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" /> : (m.name[0] ?? "?").toUpperCase()}
-          </span>
-        ))}
+      {/* Fixed slot: 3 overlapping 32px avatars (32 + 22 + 22) so every crew
+          name starts at the same x whether the crew shows 1 photo or 3. */}
+      <span className="flex w-[76px] shrink-0 justify-start" aria-hidden>
+        <span className="flex -space-x-2.5">
+          {crew.others.map((m) => (
+            <span
+              key={m.id}
+              className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[12px] font-bold text-white ring-2 ring-white"
+              style={{ background: m.avatarColor }}
+            >
+              {m.avatarUrl ? <img src={m.avatarUrl} alt="" className="h-full w-full object-cover" /> : (m.name[0] ?? "?").toUpperCase()}
+            </span>
+          ))}
+        </span>
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="truncate text-[15px] font-bold">
