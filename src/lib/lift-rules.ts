@@ -207,28 +207,19 @@ const onAllSets = (n: number) => (n > 1 ? ` on all ${n} sets` : "");
 /** "10 on all 3 sets" / "10 reps" for one set. */
 const goalPhrase = (top: number, n: number) => (n > 1 ? `${top}${onAllSets(n)}` : repsLabel(top));
 
-/**
- * The rep goal when there's no plan range: the rep count you did most often
- * (ties go to the higher one). 10, 10, 8 → 10; 10, 10, 11 → 10.
- */
-export function repGoal(reps: number[]): number {
-  const counts = new Map<number, number>();
-  for (const r of reps) if (r > 0) counts.set(r, (counts.get(r) ?? 0) + 1);
-  let best = 0;
-  let bestCount = 0;
-  for (const [r, c] of counts) {
-    if (c > bestCount || (c === bestCount && r > best)) {
-      best = r;
-      bestCount = c;
-    }
-  }
-  return best;
-}
+/** Outside a plan every move aims for 8–12 reps; 12+ on every set earns the next step up. */
+export const DEFAULT_REPS_LO = 8;
+export const DEFAULT_REPS_HI = 12;
+
+/** "on every set", or nothing for a single set. */
+const onEverySet = (n: number) => (n > 1 ? " on every set" : "");
 
 /**
- * What to aim for, from the last session of this exercise:
- * top of the range on all sets → go up a step next time.
- * `target` is the plan's dose; without one the top is last time's usual rep count.
+ * What to aim for, from the last session of this exercise.
+ * Plan moves use the plan's rep range; everything else uses 8–12.
+ * Top of the range on every set → go up a step (5 lb / 2.5 kg) next time;
+ * otherwise same weight. Bodyweight moves follow the same rule on reps only,
+ * timed moves just aim to beat last time.
  */
 export function progression(input: {
   last: LastSession | null;
@@ -246,45 +237,60 @@ export function progression(input: {
     return { tip: null, nextWeight: null, allTop: false };
   }
   if (logType === "timed") {
-    const secs = last.sets.map((s) => s.seconds ?? 0).filter((s) => s > 0);
-    if (!secs.length) return { tip: null, nextWeight: null, allTop: false };
-    return { tip: `Last time you held ${joinReps(secs.map(fmtDurationShort))}.`, nextWeight: null, allTop: false };
+    const longest = Math.max(0, ...last.sets.map((s) => s.seconds ?? 0));
+    if (!longest) return { tip: null, nextWeight: null, allTop: false };
+    return { tip: `Beat ${fmtDurationShort(longest)}.`, nextWeight: null, allTop: false };
   }
   const reps = last.sets.map((s) => s.reps ?? 0);
-  const n = target?.sets ?? last.sets.length;
-  const top = target?.repsHi ?? repGoal(reps);
-  const counted = reps.slice(0, n);
-  const allTop = top > 0 && counted.length >= n && counted.every((r) => r >= top);
   const lastWeight = Math.max(0, ...last.sets.map((s) => (s.weight == null ? 0 : convertWeight(s.weight, s.unit, unit))));
-  if (!loadable || lastWeight <= 0) {
+
+  if (target?.repsHi) {
+    // Plan rule: the plan's own range and set count.
+    const n = target.sets ?? last.sets.length;
+    const top = target.repsHi;
+    const counted = reps.slice(0, n);
+    const allTop = counted.length >= n && counted.every((r) => r >= top);
+    if (!loadable || lastWeight <= 0) {
+      return {
+        tip: allTop
+          ? `Last time you hit ${joinReps(reps)}. Add a rep or two today.`
+          : `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)}.`,
+        nextWeight: null,
+        allTop,
+      };
+    }
+    if (allTop) {
+      const next = lastWeight + weightStep(unit);
+      return { tip: `You hit ${goalPhrase(top, n)} last time. Go up to ${fmtWeight(next, unit)} today.`, nextWeight: next, allTop };
+    }
     return {
-      tip: allTop
-        ? `Last time you hit ${joinReps(reps)}. Add a rep or two today.`
-        : `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)}.`,
-      nextWeight: null,
+      tip: `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)} and go up to ${fmtWeight(lastWeight + weightStep(unit), unit)} next time.`,
+      nextWeight: lastWeight,
       allTop,
     };
+  }
+
+  // Default 8–12: every checked set at 12+ reps.
+  const n = last.sets.length;
+  const top = DEFAULT_REPS_HI;
+  const allTop = reps.every((r) => r >= top);
+  const hit = n > 1 ? `You hit ${top} on every set.` : `You hit ${repsLabel(top)}.`;
+  const aim = `Aim for ${repsLabel(top)}${onEverySet(n)}.`;
+  if (!loadable || lastWeight <= 0) {
+    return { tip: allTop ? `${hit} Add a rep or two, or add weight.` : aim, nextWeight: null, allTop };
   }
   if (allTop) {
     const next = lastWeight + weightStep(unit);
-    return {
-      tip: `You hit ${goalPhrase(top, n)} last time. Go up to ${fmtWeight(next, unit)} today.`,
-      nextWeight: next,
-      allTop,
-    };
+    return { tip: `${hit} Try ${fmtWeight(next, unit)} next time.`, nextWeight: next, allTop };
   }
-  return {
-    tip: `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)} and go up to ${fmtWeight(lastWeight + weightStep(unit), unit)} next time.`,
-    nextWeight: lastWeight,
-    allTop,
-  };
+  return { tip: `Next time: ${fmtWeight(lastWeight, unit)} again. ${aim}`, nextWeight: lastWeight, allTop };
 }
 
 /**
  * Starting values for each set: last session's sets (repeating its last set
- * when there are more sets today). Plan workouts apply the plan's rule, so
- * after hitting the top of the range everywhere the weight goes up a step and
- * the reps restart at the bottom of the range.
+ * when there are more sets today). When the progression rule says go up
+ * (top of the plan's range, or 12+ on every set outside a plan), the weight
+ * goes up a step and the reps restart at the bottom of the range.
  */
 export function prefillSets(input: {
   last: LastSession | null;
@@ -295,10 +301,11 @@ export function prefillSets(input: {
   isPlan: boolean;
   count?: number;
 }): SetEntry[] {
-  const { last, target, unit, logType, loadable, isPlan } = input;
+  const { last, target, unit, logType, loadable } = input;
   const count = input.count ?? target?.sets ?? (last?.sets.length || 3);
   const prog = progression({ last, target, unit, logType, loadable });
-  const bump = isPlan && prog.allTop && prog.nextWeight != null;
+  const bump = prog.allTop && prog.nextWeight != null;
+  const restartReps = target?.repsHi ? (target.repsLo ?? null) : DEFAULT_REPS_LO;
   const out: SetEntry[] = [];
   for (let i = 0; i < count; i++) {
     const src = last?.sets[i] ?? last?.sets[last.sets.length - 1] ?? null;
@@ -307,23 +314,21 @@ export function prefillSets(input: {
       out.push({ weight: loadable ? lastW : null, reps: null, seconds: src?.seconds ?? target?.seconds ?? null, unit });
       continue;
     }
-    const reps = bump ? (target?.repsLo ?? src?.reps ?? null) : (src?.reps ?? target?.repsLo ?? null);
+    const reps = bump ? (restartReps ?? src?.reps ?? null) : (src?.reps ?? target?.repsLo ?? null);
     out.push({ weight: bump ? prog.nextWeight : lastW, reps, seconds: null, unit });
   }
   return out;
 }
 
-/** Exercise progress page: "Next time: 40 lb. You got 10 reps on all 3 sets today." */
-export function nextTimeTip(last: LastSession | null, unit: WeightUnit): { text: string; weight: number | null } | null {
+/** Exercise progress page "Next time" tip and the chart's dashed next-weight dot: same rule as the logger. */
+export function nextTimeTip(
+  last: LastSession | null,
+  unit: WeightUnit,
+  opts: { logType?: LogType; loadable?: boolean } = {},
+): { text: string; weight: number | null } | null {
   if (!last || !last.sets.length) return null;
-  const p = progression({ last, target: null, unit, logType: "reps", loadable: true });
-  const reps = last.sets.map((s) => s.reps ?? 0);
-  const top = repGoal(reps);
-  if (p.nextWeight == null) return null;
-  if (p.allTop) {
-    return { text: `Next time: ${fmtWeight(p.nextWeight, unit)}. You got ${repsLabel(top)}${onAllSets(reps.length)} today.`, weight: p.nextWeight };
-  }
-  return { text: `Next time: stay at ${fmtWeight(p.nextWeight, unit)}. Aim for ${repsLabel(top)}${onAllSets(reps.length)}.`, weight: p.nextWeight };
+  const p = progression({ last, target: null, unit, logType: opts.logType ?? "reps", loadable: opts.loadable ?? true });
+  return p.tip ? { text: p.tip, weight: p.nextWeight } : null;
 }
 
 // ---------- Labels ----------

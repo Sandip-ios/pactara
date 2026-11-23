@@ -87,10 +87,45 @@ describe("prefill", () => {
 });
 
 describe("progression suggestion", () => {
-  it("not every set at the top: aim for it, then go up 5 lb", () => {
-    const p = progression({ last: { date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 8)] }, target: null, unit: "lb", logType: "reps", loadable: true });
-    expect(p.tip).toBe("Last time you hit 10, 10, 8. Get 10 on all 3 sets and go up to 40 lb next time.");
+  const prog = (sets: SetEntry[], extra: Partial<Parameters<typeof progression>[0]> = {}) =>
+    progression({ last: { date: "x", sets }, target: null, unit: "lb", logType: "reps", loadable: true, ...extra });
+
+  it("no plan: 12+ reps on every set suggests +5 lb", () => {
+    const p = prog([lb(35, 12), lb(35, 13), lb(35, 12)]);
+    expect(p.allTop).toBe(true);
+    expect(p.nextWeight).toBe(40);
+    expect(p.tip).toBe("You hit 12 on every set. Try 40 lb next time.");
+  });
+  it("no plan: any set under 12 keeps the same weight", () => {
+    const p = prog([lb(35, 12), lb(35, 12), lb(35, 11)]);
     expect(p.allTop).toBe(false);
+    expect(p.nextWeight).toBe(35);
+    expect(p.tip).toBe("Next time: 35 lb again. Aim for 12 reps on every set.");
+  });
+  it("no plan: the old 'most common rep count' rule is gone (10, 10, 11 is not enough)", () => {
+    expect(prog([lb(35, 10), lb(35, 10), lb(35, 11)]).nextWeight).toBe(35);
+  });
+  it("no plan, one set: 'Aim for 12 reps.'", () => {
+    expect(prog([lb(35, 5)]).tip).toBe("Next time: 35 lb again. Aim for 12 reps.");
+  });
+  it("kg mode steps up 2.5 kg", () => {
+    const kg = (w: number, r: number): SetEntry => ({ weight: w, reps: r, seconds: null, unit: "kg" });
+    const p = prog([kg(20, 12), kg(20, 12)], { unit: "kg" });
+    expect(p.nextWeight).toBe(22.5);
+    expect(p.tip).toBe("You hit 12 on every set. Try 22.5 kg next time.");
+  });
+  it("bodyweight: 12+ on every set → add a rep or two, or add weight; no weight suggestion", () => {
+    const p = prog([lb(null, 12), lb(null, 15)], { loadable: false });
+    expect(p.tip).toBe("You hit 12 on every set. Add a rep or two, or add weight.");
+    expect(p.nextWeight).toBeNull();
+  });
+  it("bodyweight below 12: aim for 12", () => {
+    expect(prog([lb(null, 10), lb(null, 12)], { loadable: false }).tip).toBe("Aim for 12 reps on every set.");
+  });
+  it("timed: just beat last time, no weight", () => {
+    const p = progression({ last: { date: "x", sets: [{ weight: null, reps: null, seconds: 40, unit: "lb" }, { weight: null, reps: null, seconds: 45, unit: "lb" }] }, target: null, unit: "lb", logType: "timed", loadable: false });
+    expect(p.tip).toBe("Beat 45 sec.");
+    expect(p.nextWeight).toBeNull();
   });
   it("plan rule: top of the range on all sets suggests +5 lb", () => {
     const p = progression({ last: { date: "x", sets: [lb(35, 12), lb(35, 12), lb(35, 12)] }, target: parseDose("3x8-12"), unit: "lb", logType: "reps", loadable: true });
@@ -102,20 +137,34 @@ describe("progression suggestion", () => {
     expect(p.allTop).toBe(false);
     expect(p.nextWeight).toBe(35);
   });
-  it("kg steps are 2.5", () => {
-    const kg = (w: number, r: number): SetEntry => ({ weight: w, reps: r, seconds: null, unit: "kg" });
-    const p = progression({ last: { date: "x", sets: [kg(20, 10), kg(20, 10)] }, target: null, unit: "kg", logType: "reps", loadable: true });
-    expect(p.nextWeight).toBe(22.5);
+  it("plan rule keeps the plan's own range: 10 on every set of 3x6-10 goes up", () => {
+    const p = progression({ last: { date: "x", sets: [lb(50, 10), lb(50, 10), lb(50, 10)] }, target: parseDose("3x6-10"), unit: "lb", logType: "reps", loadable: true });
+    expect(p.nextWeight).toBe(55);
   });
-  it("no plan: an extra rep on the last set still counts as hitting the goal on every set", () => {
-    const p = progression({ last: { date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 11)] }, target: null, unit: "lb", logType: "reps", loadable: true });
-    expect(p.allTop).toBe(true);
-    expect(p.nextWeight).toBe(40);
+  it("exercise page tip and chart dot follow the same rule", () => {
+    expect(nextTimeTip({ date: "x", sets: [lb(35, 12), lb(35, 12), lb(35, 12)] }, "lb")).toEqual({ text: "You hit 12 on every set. Try 40 lb next time.", weight: 40 });
+    expect(nextTimeTip({ date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 10)] }, "lb")).toEqual({ text: "Next time: 35 lb again. Aim for 12 reps on every set.", weight: 35 });
   });
-  it("exercise page tip after all sets at the top", () => {
-    expect(nextTimeTip({ date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 10)] }, "lb")?.text).toBe(
-      "Next time: 40 lb. You got 10 reps on all 3 sets today.",
-    );
+  it("exercise page: bodyweight tip has no dashed dot", () => {
+    expect(nextTimeTip({ date: "x", sets: [lb(null, 12)] }, "lb", { loadable: false })).toEqual({ text: "You hit 12 reps. Add a rep or two, or add weight.", weight: null });
+  });
+});
+
+describe("prefill follows the progression rule outside plans", () => {
+  it("12+ on every set: +5 lb and reps restart at 8", () => {
+    const last = { date: "x", sets: [lb(35, 12), lb(35, 12), lb(35, 12)] };
+    const sets = prefillSets({ last, target: null, unit: "lb", logType: "reps", loadable: true, isPlan: false });
+    expect(sets.map((s) => [s.weight, s.reps])).toEqual([[40, 8], [40, 8], [40, 8]]);
+  });
+  it("below 12 on any set: same weight and reps as last time", () => {
+    const last = { date: "x", sets: [lb(35, 12), lb(35, 12), lb(35, 9)] };
+    const sets = prefillSets({ last, target: null, unit: "lb", logType: "reps", loadable: true, isPlan: false });
+    expect(sets.map((s) => [s.weight, s.reps])).toEqual([[35, 12], [35, 12], [35, 9]]);
+  });
+  it("bodyweight never gets a weight", () => {
+    const last = { date: "x", sets: [lb(null, 12), lb(null, 12)] };
+    const sets = prefillSets({ last, target: null, unit: "lb", logType: "reps", loadable: false, isPlan: false });
+    expect(sets.map((s) => [s.weight, s.reps])).toEqual([[null, 12], [null, 12]]);
   });
 });
 
@@ -173,17 +222,12 @@ describe("workout dates use the member's saved timezone", () => {
 
 describe("tip grammar for one set", () => {
   const one = (weight: number, reps: number): import("@/lib/lift-rules").LastSession => ({ date: "2026-11-22", sets: [{ weight, reps, seconds: null, unit: "lb" }] });
-  it("progress page tip: one set reads 'You got 5 reps today.'", () => {
-    expect(nextTimeTip(one(35, 5), "lb")?.text).toBe("Next time: 40 lb. You got 5 reps today.");
+  it("one set at 12+ reads 'You hit 12 reps.'", () => {
+    expect(nextTimeTip(one(35, 12), "lb")?.text).toBe("You hit 12 reps. Try 40 lb next time.");
   });
-  it("progress page tip: three sets keep 'on all 3 sets'", () => {
-    const last = { date: "2026-11-22", sets: [10, 10, 10].map((reps) => ({ weight: 35, reps, seconds: null, unit: "lb" as const })) };
-    expect(nextTimeTip(last, "lb")?.text).toBe("Next time: 40 lb. You got 10 reps on all 3 sets today.");
-  });
-  it("logger tip never says 'all 1 sets'", () => {
+  it("tips never say 'all 1 sets' or 'every set' for one set", () => {
     const tip = progression({ last: one(35, 5), target: null, unit: "lb", logType: "reps", loadable: true }).tip ?? "";
-    expect(tip).not.toMatch(/all 1 sets/);
-    expect(tip).toBe("You hit 5 reps last time. Go up to 40 lb today.");
+    expect(tip).toBe("Next time: 35 lb again. Aim for 12 reps.");
   });
   it("single rep is singular", () => {
     expect(setsShort([{ weight: null, reps: 1, seconds: null, unit: "lb" }], "lb")).toBe("1 rep");

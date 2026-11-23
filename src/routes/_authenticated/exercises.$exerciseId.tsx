@@ -53,7 +53,9 @@ function ExerciseProgressPage() {
   const change = first && points.length > 1 ? best - first.w : 0;
   const weeks = first ? Math.max(1, Math.round((Date.parse(points[points.length - 1]!.date) - Date.parse(first.date)) / (7 * 86400000))) : 0;
   const latest = sessions[0] ?? null;
-  const tip = !timed && latest ? nextTimeTip({ date: latest.date, sets: latest.sets }, unit) : null;
+  const loadable = ex ? ex.equipment !== "bodyweight" && ex.equipment !== "band" : true;
+  const tip = latest ? nextTimeTip({ date: latest.date, sets: latest.sets }, unit, { logType: timed ? "timed" : "reps", loadable }) : null;
+  const showChart = !timed && points.some((p) => p.w > 0);
   const t = ex ? tintFor(ex.primary) : tintFor([]);
 
   return (
@@ -97,7 +99,13 @@ function ExerciseProgressPage() {
               <Stat value={String(sessions.length)} label={sessions.length === 1 ? "session" : "sessions"} />
             </div>
 
-            {!timed && points.some((p) => p.w > 0) && (
+            {!showChart && tip && (
+              <div className="rounded-[12px] px-3 py-2 text-[13px] font-semibold" style={{ background: W.tint, color: W.violetText }}>
+                {tip.text}
+              </div>
+            )}
+
+            {showChart && (
               <section className="rounded-[20px] bg-white px-4 py-3.5">
                 <h2 className="text-[16px] font-extrabold">Heaviest set each session</h2>
                 <Chart points={points} next={tip?.weight ?? null} unit={unit} />
