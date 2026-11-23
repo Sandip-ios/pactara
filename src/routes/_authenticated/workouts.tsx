@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ChevronRight, MoreHorizontal, Play, Plus, Trophy } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, Trophy } from "lucide-react";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
@@ -15,7 +15,6 @@ import { dayForWeek, dayMinutes, movesForWeek, weekNoteFor } from "@/lib/workout
 import { localDateIn } from "@/lib/streak-rules";
 import { LIFTS_SHOWN, fmtLiftTime, liftsToggleLabel, recentDate, recentMeta, sessionKicker } from "@/lib/workouts-tab";
 import { getWorkoutsOverview, type RecentSession } from "@/lib/workouts-tab.functions";
-import { useNavigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authenticated/workouts")({
   head: () => ({
@@ -36,7 +35,6 @@ const CARD_SHADOW = "0 1px 2px rgba(20,18,24,.06)";
 function WorkoutsTab() {
   const scrollRef = useOpenAtTop();
   useStatusBarScrollToTop();
-  const navigate = useNavigate();
   const { data: plans } = usePlans();
   const { data: mine } = useMyPlans();
   const { data: workouts } = useMyWorkouts();
@@ -76,7 +74,7 @@ function WorkoutsTab() {
             <Link to="/plans/$slug/day" params={{ slug: plan.slug }} className="flex flex-col gap-3.5 p-[18px]" aria-label={`Today's plan workout: ${day.title}`}>
               <span className="flex min-h-7 items-center gap-2 pr-11">
                 <span className="text-[12px] font-bold tracking-[0.6px]" style={{ color: "#DDD6FE" }}>
-                  WEEK {active.currentWeek} · DAY {active.nextDay}
+                  TODAY'S WORKOUT
                 </span>
                 <span className="min-w-0 truncate rounded-full px-2.5 py-1 text-[12px] font-bold" style={{ background: "rgba(255,255,255,.16)" }}>
                   {plan.name}
@@ -89,9 +87,27 @@ function WorkoutsTab() {
                     {plural(moves.length, "exercise")} · about {dayMinutes(day, plan)} min
                   </span>
                 </span>
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white" style={{ color: W.violetDeep }} aria-hidden>
-                  <Play size={20} fill="currentColor" />
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white"
+                  style={{ background: "rgba(255,255,255,.16)" }}
+                  aria-hidden
+                >
+                  <ChevronRight size={22} />
                 </span>
+              </span>
+            </Link>
+            <Link
+              to="/plans/$slug"
+              params={{ slug: plan.slug }}
+              className="flex min-h-12 items-center justify-between gap-3 px-[18px]"
+              style={{ borderTop: "1px solid rgba(255,255,255,.14)" }}
+            >
+              <span className="text-[14px] font-semibold" style={{ color: "#EDE9FE" }}>
+                Week {active.currentWeek} of {plan.weeks}
+              </span>
+              <span className="flex items-center gap-0.5 text-[14px] font-bold text-white">
+                See full plan
+                <ChevronRight size={16} aria-hidden />
               </span>
             </Link>
             <button
@@ -328,7 +344,6 @@ function WorkoutsTab() {
           open={optionsOpen}
           title={planWeekTitle(active)}
           rows={[
-            { label: "See plan", onClick: () => navigate({ to: "/plans/$slug", params: { slug: active.slug } }) },
             { label: "Leave plan", danger: true, onClick: () => setLeaveOpen(true) },
           ]}
           onClose={() => setOptionsOpen(false)}

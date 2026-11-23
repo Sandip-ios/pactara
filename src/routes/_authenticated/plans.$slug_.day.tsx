@@ -191,9 +191,15 @@ function PlanDayPage() {
         ) : (
           <>
             <div className="flex flex-col gap-1.5 px-1">
-              <div className="text-[12px] font-bold tracking-[0.6px]" style={{ color: C.violet }}>
+              <Link
+                to="/plans/$slug"
+                params={{ slug: plan.slug }}
+                className="-my-2 flex min-h-8 items-center gap-0.5 self-start text-[12px] font-bold tracking-[0.6px]"
+                style={{ color: C.violet }}
+              >
                 {planDayKicker(plan.name, pos.week, pos.day)}
-              </div>
+                <ChevronRight size={14} aria-hidden />
+              </Link>
               <h1 className="m-0 text-[28px] font-extrabold leading-tight tracking-[-0.5px]">{day.title}</h1>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {chips.map((c) => (

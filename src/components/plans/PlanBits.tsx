@@ -71,7 +71,7 @@ export function gearText(plan: Pick<Plan, "gear">): string {
 }
 
 /** Discover plan row: WEEKS badge, name, schedule, short gear and level. */
-export function PlanRow({ plan, onOpen }: { plan: Plan; onOpen: () => void }) {
+export function PlanRow({ plan, onOpen, mine = false }: { plan: Plan; onOpen: () => void; mine?: boolean }) {
   const badge = planBadge(plan.slug);
   return (
     <button
@@ -87,8 +87,18 @@ export function PlanRow({ plan, onOpen }: { plan: Plan; onOpen: () => void }) {
         <span className="mt-[3px] text-[10px] font-bold">WEEKS</span>
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-[16px] font-extrabold" style={{ color: P.ink }}>
-          {plan.name}
+        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-[16px] font-extrabold" style={{ color: P.ink }}>
+            {plan.name}
+          </span>
+          {mine && (
+            <span
+              className="shrink-0 rounded-full px-2 py-[2px] text-[11px] font-extrabold tracking-[0.3px]"
+              style={{ background: "#EDE7FB", color: "#5B21B6" }}
+            >
+              YOUR PLAN
+            </span>
+          )}
         </span>
         <span className="text-[13px]" style={{ color: P.stoneDark }}>
           {plan.daysPerWeek} days a week · {plan.minutes} min

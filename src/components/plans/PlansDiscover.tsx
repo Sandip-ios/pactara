@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { GOAL_CHIPS, goalLabel, plansPerGoal, searchPlans, suggestNextPlan, type PlanGoal } from "@/lib/workout-plans";
 import { GOAL_TILE, INK, MUTED, P, PURPLE, PURPLE_SOFT, PlanRow, useCrewPlans, useMyPlans, usePlans } from "./PlanBits";
 
-/** Discover → Plans: your plan, what your crew is doing, goals and the catalog. Search lives in the Discover header. */
+/** Discover → Plans: what your crew is doing, goals and the catalog. Search lives in the Discover header. */
 export function PlansDiscover({
   query,
   onClearQuery,
@@ -44,28 +44,6 @@ export function PlansDiscover({
 
   return (
     <>
-      {active && (
-        <section className="flex flex-col gap-2 rounded-[16px] bg-white p-[14px]">
-          <span className="text-[12px] font-extrabold tracking-[0.5px]" style={{ color: P.violet }}>
-            YOUR PLAN
-          </span>
-          <button type="button" onClick={() => openPlan(active.slug)} className="flex flex-col gap-1 text-left">
-            <span className="text-[16px] font-extrabold">{active.name}</span>
-            <span className="text-[13px]" style={{ color: P.stoneDark }}>
-              Week {active.currentWeek} · Day {active.nextDay} next
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/plans/$slug/day", params: { slug: active.slug } })}
-            className="mt-1 h-12 w-full rounded-[24px] text-[15px] font-bold text-white"
-            style={{ background: P.violet }}
-          >
-            Start Day {active.nextDay}
-          </button>
-        </section>
-      )}
-
       {(crew ?? []).length > 0 && (
         <section className="flex flex-col gap-[10px]">
           <h2 className="mx-1 text-[17px] font-extrabold">Your crew is doing</h2>
@@ -149,7 +127,7 @@ export function PlansDiscover({
           </div>
         )}
         {list.map((p) => (
-          <PlanRow key={p.id} plan={p} onOpen={() => openPlan(p.slug)} />
+          <PlanRow key={p.id} plan={p} mine={active?.slug === p.slug} onOpen={() => openPlan(p.slug)} />
         ))}
       </section>
 

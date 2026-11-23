@@ -470,7 +470,7 @@ function PlanDetailPage() {
           {busy
             ? "One moment…"
             : onThisPlan
-              ? "Start today's workout"
+              ? "Today's workout"
               : left
                 ? leftProgress
                   ? `Pick up at week ${left.currentWeek}`
