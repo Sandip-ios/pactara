@@ -56,8 +56,8 @@ export const Route = createFileRoute("/_authenticated/find-plan")({
 const PURPLE = "#7C3AED";
 const ORANGE = "#C2410C";
 const TOP = "max(16px, calc(env(safe-area-inset-top) + 8px))";
-/** The quiz's own button bar sits just above the app's bottom bar. */
-const ABOVE_TABS = "calc(var(--toast-bottom, 93px) - 12px)";
+/** The quiz has no bottom bar: its button bar sits above the home indicator. */
+const ABOVE_HOME = "max(16px, calc(env(safe-area-inset-bottom) + 12px))";
 
 function FindPlanPage() {
   const scrollRef = useOpenAtTop();
@@ -113,7 +113,7 @@ function FindPlanPage() {
       className="fixed inset-0 w-full overflow-y-auto overscroll-none"
       style={{ background: P.pageBg, color: P.ink, fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <div className="flex min-h-full flex-col px-4 pb-[230px]" style={{ paddingTop: TOP }}>
+      <div className="flex min-h-full flex-col px-4 pb-[calc(190px+env(safe-area-inset-bottom))]" style={{ paddingTop: TOP }}>
         {step <= QUIZ_STEPS ? (
           <>
             <QuizTopBar step={step} onBack={back} onClose={close} />
@@ -292,7 +292,7 @@ function ExperienceStep({ value, onPick }: { value?: QuizAnswers["experience"]; 
 
 function BottomBar({ children, tight = false }: { children: React.ReactNode; tight?: boolean }) {
   return (
-    <div className={`fixed inset-x-0 z-[55] px-4 pb-3 ${tight ? "pt-3" : "pt-6"}`} style={{ bottom: ABOVE_TABS, background: `linear-gradient(to bottom, rgba(245,242,238,0), ${P.pageBg} 40%)` }}>
+    <div className={`fixed inset-x-0 bottom-0 z-[55] px-4 ${tight ? "pt-3" : "pt-6"}`} style={{ paddingBottom: ABOVE_HOME, background: `linear-gradient(to bottom, rgba(245,242,238,0), ${P.pageBg} 40%)` }}>
       {children}
     </div>
   );

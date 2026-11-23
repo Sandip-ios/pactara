@@ -105,6 +105,7 @@ function AuthLayout() {
     pathname.startsWith("/goal/") ||
     pathname === "/partner" ||
     pathname === "/new-pactara" ||
+    pathname === "/find-plan" ||
     pathname.startsWith("/plans/") ||
     pathname === "/workout" ||
     pathname.startsWith("/workout/") ||
