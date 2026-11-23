@@ -215,6 +215,9 @@ function Done({ fw }: { fw: FinishedWorkout }) {
                 💪 Workout
                 {preview && preview.dayNumber > 0 ? ` · Day ${preview.dayNumber}` : ""}
               </div>
+              <div className="truncate text-[13px] font-semibold" style={{ color: W.stone }}>
+                {summaryLine(s)}
+              </div>
             </div>
             {prs.length > 0 && (
               <span className="shrink-0 rounded-full px-2.5 py-1 text-[12px] font-extrabold" style={{ background: W.gold, color: W.goldText }}>
