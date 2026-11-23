@@ -3,9 +3,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "app.pactara",
   appName: "Pactara",
-  // The app background is white so the iOS safe-area insets (status bar,
-  // bottom home indicator area) blend with the light app UI. The native
-  // splash screen itself stays black via the SplashScreen plugin below.
+  // White everywhere (webview, safe areas, native splash) so launch never
+  // flashes black.
   backgroundColor: "#FFFFFF",
   includePlugins: [
     "@capacitor-firebase/messaging",
@@ -40,10 +39,12 @@ const config: CapacitorConfig = {
   },
   plugins: {
     SplashScreen: {
-      launchAutoHide: true,
-      launchShowDuration: 1200,
-      backgroundColor: "#000000",
+      // The web launch screen (src/components/SplashScreen.tsx) looks
+      // identical and hides this one as soon as it is painted — no fixed timer.
+      launchAutoHide: false,
+      backgroundColor: "#FFFFFF",
       showSpinner: false,
+      launchFadeOutDuration: 0,
     },
     StatusBar: {
       // LIGHT = black icons/text on the white background.

@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { infiniteQueryOptions, useInfiniteQuery } from "@tanstack/react-query";
 import { getGroupFeed } from "@/lib/daily-posts.functions";
 import { mergeFeedPages } from "@/lib/feed-days";
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
@@ -9,15 +9,18 @@ import { stabilizeSignedUrls } from "@/lib/stable-urls";
  * older days each time the reader nears the bottom. Home and a crew's Activity
  * tab share the ["group-feed", groupId] cache, so both must use this hook.
  */
-export function useGroupFeed(groupId: string | null, options?: { staleTime?: number; refetchOnWindowFocus?: boolean }) {
-  const query = useInfiniteQuery({
+export function groupFeedQuery(groupId: string | null) {
+  return infiniteQueryOptions({
     queryKey: ["group-feed", groupId],
     queryFn: ({ pageParam }) =>
       getGroupFeed({ data: { groupId, before: pageParam } }).then(stabilizeSignedUrls),
     initialPageParam: null as string | null,
     getNextPageParam: (last) => last.nextBefore ?? undefined,
-    ...options,
   });
+}
+
+export function useGroupFeed(groupId: string | null, options?: { staleTime?: number; refetchOnWindowFocus?: boolean }) {
+  const query = useInfiniteQuery({ ...groupFeedQuery(groupId), ...options });
   const { fetchNextPage } = query;
   // Never restart a page that is already loading.
   const loadMore = useCallback(() => void fetchNextPage({ cancelRefetch: false }), [fetchNextPage]);

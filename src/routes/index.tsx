@@ -1,56 +1,38 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { DesktopLanding } from "@/components/DesktopLanding";
-import { isNative } from "@/lib/native";
-import { getPendingInvite, setPendingInvite, wasInviteConsumed } from "@/lib/pending-invite";
-import { getLaunchInviteGroupId } from "@/lib/native-launch";
-import { claimDeferredInvite } from "@/lib/deferred-invite";
-import { hasCheckedInToday } from "@/lib/groups.functions";
-import { getSignupResume } from "@/lib/signup-resume";
+import { resolveLaunch } from "@/lib/launch-start";
+import { markEntryIsDestination } from "@/lib/launch-screen";
 
 
 export const Route = createFileRoute("/")({
   ssr: false,
-  beforeLoad: async () => {
-    // On a cold native launch this guard runs before NativeBootstrap mounts.
-    // Resolve the launch URL here so the normal signed-in redirect cannot send
-    // an invite recipient to Check In before the deep link is processed.
-    if (isNative()) {
-      const launchGroupId = await getLaunchInviteGroupId();
-      if (launchGroupId) {
-        setPendingInvite(launchGroupId);
-        throw redirect({ to: "/join/$groupId", params: { groupId: launchGroupId } });
-      }
-
-      // Installed from the App Store after tapping an invite in Safari: the
-      // launch URL is empty, so ask the server for the deferred invite before
-      // the onboarding slides render.
-      const pending = getPendingInvite();
-      if (pending && !wasInviteConsumed(pending)) {
-        throw redirect({ to: "/join/$groupId", params: { groupId: pending } });
-      }
-      const claimed = await claimDeferredInvite();
-      if (claimed && !wasInviteConsumed(claimed)) {
-        setPendingInvite(claimed);
-        throw redirect({ to: "/join/$groupId", params: { groupId: claimed } });
-      }
-    }
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      // Left signup part-way (e.g. on the invite screen) → pick up where they
-      // stopped instead of dropping them into the app.
-      const resume = getSignupResume();
-      if (resume?.onPartner) throw redirect({ to: "/partner", search: { solo: resume.groupId } });
-      if (resume) throw redirect({ to: "/signup" });
-      // Already checked in today → open Home; otherwise open the check-in flow.
-      let checkedIn = false;
-      try {
-        checkedIn = (await hasCheckedInToday()).checkedIn;
-      } catch {
-        // On any lookup failure, fall back to the check-in flow.
-      }
-      throw redirect({ to: checkedIn ? "/home" : "/check-in" });
+  // The cold-launch entry: everything runs in parallel while the launch screen
+  // is up, then this sends the member straight to their first screen.
+  beforeLoad: async ({ context }) => {
+    const dest = await resolveLaunch(context.queryClient);
+    switch (dest.to) {
+      case "join":
+        throw redirect({ to: "/join/$groupId", params: { groupId: dest.groupId } });
+      case "login":
+        throw redirect({ to: "/login" });
+      case "link":
+        throw redirect({ href: dest.href });
+      case "signup-partner":
+        throw redirect({ to: "/partner", search: { solo: dest.groupId ?? undefined } });
+      case "signup":
+        throw redirect({ to: "/signup" });
+      case "goal":
+        throw redirect({ to: "/goal/$groupId", params: { groupId: dest.groupId } });
+      case "pact":
+        throw redirect({ to: "/pact/$groupId", params: { groupId: dest.groupId } });
+      case "partner":
+        throw redirect({ to: "/partner", search: { solo: undefined } });
+      case "home":
+        throw redirect({ to: "/home" });
+      case "landing":
+        markEntryIsDestination();
+        return;
     }
   },
 

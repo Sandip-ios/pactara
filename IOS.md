@@ -150,6 +150,14 @@ npx cap open ios
 Web-only changes need nothing on your Mac — publish from Lovable and the app
 picks them up on next launch.
 
+## Launch screen
+
+The native launch screen must match the web one (white, centered "Pactara"
+wordmark). The storyboard, wordmark images and Info.plist keys live in
+`native-assets/ios/` — follow `native-assets/ios/README.md` once, then
+`npx cap sync ios`. Publish the web app before shipping that native build:
+the native splash no longer hides itself on a timer, the web app hides it.
+
 ## Submitting to the App Store
 
 1. In Xcode: **Product → Archive**

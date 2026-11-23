@@ -10,6 +10,7 @@ import { getPendingPact } from "@/lib/pact.functions";
 import { getPendingGoal } from "@/lib/member-goal.functions";
 import { getPartnerState } from "@/lib/partners.functions";
 import { hasActiveMembership } from "@/lib/membership";
+import { didStartupChecksRun, useLaunchHold } from "@/lib/launch-screen";
 
 const TRIAL_DAYS = 7;
 
@@ -23,57 +24,58 @@ export const Route = createFileRoute("/_authenticated")({
   component: AuthLayout,
 });
 
-// Once the pact check has resolved in this session we never show the splash
-// again — later navigations re-check silently in the background.
+// Once the start-up check has resolved in this session it re-runs silently on
+// later navigations. On a cold launch the entry screen already ran it (in
+// parallel, behind the launch screen), so the first run here is skipped.
 let pactCheckResolved = false;
 // Checked once per app launch so users can still leave the match screen.
 let matchCheckDone = false;
-
-function PactSplash() {
-  return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <div className="text-2xl font-bold tracking-tight text-foreground">Pactara</div>
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
-      </div>
-    </div>
-  );
-}
+// The launch's own run of the checks stands in for the first run here.
+let launchChecksConsumed = false;
 
 function AuthLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const onGoalRoute = pathname.startsWith("/goal/");
   const onPactRoute = pathname.startsWith("/pact/") || onGoalRoute;
-  const [pactChecked, setPactChecked] = useState(pactCheckResolved);
+  const [pactChecked, setPactChecked] = useState(() => pactCheckResolved || didStartupChecksRun());
+  // Opened straight onto an app screen (not via the entry): keep the launch
+  // screen up until this check says where to go, so nothing flashes first.
+  useLaunchHold(!onPactRoute && !pactChecked);
 
   // Everyone sets a personal goal, then signs the group pact, before the app.
   useEffect(() => {
     if (onPactRoute) return;
+    if (didStartupChecksRun() && !launchChecksConsumed) {
+      launchChecksConsumed = true;
+      pactCheckResolved = true;
+      matchCheckDone = true;
+      setPactChecked(true);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
-        const goalRes = await getPendingGoal();
+        const checkMatch = !matchCheckDone && pathname !== "/partner";
+        if (checkMatch) matchCheckDone = true;
+        const [goalRes, res, ps] = await Promise.all([
+          getPendingGoal().catch(() => null),
+          getPendingPact().catch(() => null),
+          checkMatch ? getPartnerState().catch(() => null) : Promise.resolve(null),
+        ]);
         if (cancelled) return;
         if (goalRes?.groupId) {
           navigate({ to: "/goal/$groupId", params: { groupId: goalRes.groupId }, replace: true });
           return;
         }
-        const res = await getPendingPact();
-        if (cancelled) return;
         if (res?.groupId) {
           navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });
           return;
         }
         // App reopened with a match waiting for this user → show the match.
-        if (!matchCheckDone && pathname !== "/partner") {
-          matchCheckDone = true;
-          const ps = await getPartnerState();
-          if (cancelled) return;
-          if (ps?.status === "pending" && ps.partnership && !ps.partnership.iAccepted) {
-            navigate({ to: "/partner", search: { solo: undefined }, replace: true });
-            return;
-          }
+        if (ps?.status === "pending" && ps.partnership && !ps.partnership.iAccepted) {
+          navigate({ to: "/partner", search: { solo: undefined }, replace: true });
+          return;
         }
       } catch {
         /* ignore — never block the app on this check */
@@ -86,8 +88,6 @@ function AuthLayout() {
       cancelled = true;
     };
   }, [pathname, onPactRoute, navigate]);
-
-  const showPactSplash = !onPactRoute && !pactChecked;
 
   // New members see the intro offer once, after the pact / partner screens.
   const [introPaywall, setIntroPaywall] = useState(false);
@@ -178,9 +178,8 @@ function AuthLayout() {
     <>
       <TimezoneSync />
       <Outlet />
-      {showPactSplash && <PactSplash />}
-      {!hideTabs && !showPactSplash && <BottomTabs />}
-      {!showPactSplash && <WorkoutBar tabsVisible={!hideTabs} />}
+      {!hideTabs && <BottomTabs />}
+      <WorkoutBar tabsVisible={!hideTabs} />
       {introPaywall && !(trialState?.expired) && (
         <TrialEndedPaywall
           firstName={trialState?.firstName ?? null}

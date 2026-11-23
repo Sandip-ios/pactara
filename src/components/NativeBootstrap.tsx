@@ -12,6 +12,8 @@ import { getLaunchInviteGroupId } from "@/lib/native-launch";
 import { claimDeferredInvite } from "@/lib/deferred-invite";
 import { claimReferralInstall, linkReferralInstall } from "@/lib/referral";
 import { trackInvite } from "@/lib/invite-analytics";
+import { openAppLink, setAppLinkNavigator } from "@/lib/launch-links";
+import { launchScreenUp } from "@/lib/launch-screen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,9 +43,16 @@ export function NativeBootstrap() {
 
     const platform = nativePlatform() === "android" ? "android" : "ios";
 
+    // Taps and links while the app is running navigate in place (no reload).
+    setAppLinkNavigator((href) => {
+      if (!cancelled) void navigate({ href });
+    });
+
     const openIncomingUrl = (value: string): boolean => {
+      if (cancelled) return false;
       const groupId = parseInviteUrl(value);
-      if (!groupId || cancelled) return false;
+      // Any other link into the app opens that screen in place.
+      if (!groupId) return openAppLink(value);
 
       // Keep the invite pending until the user actually joins. Marking it as
       // consumed here made a failed cold-start navigation impossible to retry.
@@ -126,7 +135,8 @@ export function NativeBootstrap() {
           }),
         );
         const launchGroupId = await getLaunchInviteGroupId();
-        if (launchGroupId) {
+        // The launch normally opened the invite already; only navigate if not.
+        if (launchGroupId && !window.location.pathname.startsWith(`/join/${launchGroupId}`)) {
           setPendingInvite(launchGroupId);
           void navigate({ to: "/join/$groupId", params: { groupId: launchGroupId }, replace: true });
         }
@@ -153,12 +163,18 @@ export function NativeBootstrap() {
         // ignore
       }
 
-      try {
-        const { SplashScreen } = await import("@capacitor/splash-screen");
-        await SplashScreen.hide();
-      } catch {
-        // ignore
-      }
+      // The native splash is hidden by the launch screen itself (SplashScreen.tsx)
+      // once the identical web one is painted; this is only the fallback.
+      const hideNativeSplash = async () => {
+        try {
+          const { SplashScreen } = await import("@capacitor/splash-screen");
+          await SplashScreen.hide({ fadeOutDuration: 0 });
+        } catch {
+          // ignore
+        }
+      };
+      if (!launchScreenUp()) void hideNativeSplash();
+      else window.addEventListener("pactara:launch-done", () => void hideNativeSplash(), { once: true });
 
       try {
         const { FirebaseMessaging } = await import("@capacitor-firebase/messaging");
@@ -178,14 +194,8 @@ export function NativeBootstrap() {
           }),
         );
 
-        listenerHandles.push(
-          FirebaseMessaging.addListener("notificationActionPerformed", (event) => {
-            const url = (event?.notification?.data as { url?: string } | undefined)?.url;
-            if (url && typeof window !== "undefined") {
-              window.location.assign(url);
-            }
-          }),
-        );
+        // Notification taps are handled by launch-links.ts (registered at launch
+        // so a cold-start tap opens its screen first, not Home).
       } catch (err) {
         console.warn("[push] Firebase Messaging listeners failed", err);
       }

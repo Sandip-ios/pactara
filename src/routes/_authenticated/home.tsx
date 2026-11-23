@@ -1,4 +1,3 @@
-import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { createFileRoute, useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { parseFeedDeepLink } from "@/lib/feed-deeplink";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,8 +8,9 @@ import { MessageSquare, MessageCircle, Image as ImageIcon, Send, Zap, Bell, X } 
 import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 
 import { toast } from "sonner";
-import { getMyGroupStatus, getPendingCheckIns, listMyGroups } from "@/lib/groups.functions";
-import { getHomeCrew } from "@/lib/home-crew.functions";
+import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
+import { homeCrewQuery, myGroupsQuery } from "@/lib/home-queries";
+import { useLaunchHold } from "@/lib/launch-screen";
 import { getUnreadNotificationCount } from "@/lib/notifications.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
 import { postThought, type FeedItem, type TimelineNode } from "@/lib/daily-posts.functions";
@@ -155,11 +155,7 @@ function HomePage() {
     refetchOnWindowFocus: true,
   });
   const chatUnreadTotal = chatUnread?.total ?? 0;
-  const { data: groupsData } = useQuery({
-    queryKey: ["my-groups"],
-    queryFn: () => listMyGroups(),
-    staleTime: 60_000,
-  });
+  const { data: groupsData } = useQuery(myGroupsQuery());
   const myGroups = groupsData?.groups ?? [];
   const fetchPartnerState = usePartnerServerFn(getPartnerState);
   const { data: partnerState } = usePartnerQuery({ queryKey: ["partner-state"], queryFn: () => fetchPartnerState(), staleTime: 30_000 });
@@ -204,13 +200,14 @@ function HomePage() {
   const groupFeed = useGroupFeed(selectedGroupId, { refetchOnWindowFocus: true });
   const feedData = groupFeed.feed;
   const { data: crew, isPending: crewLoading } = useQuery({
-    queryKey: ["home-crew", selectedGroupId],
-    queryFn: () => getHomeCrew({ data: { groupId: selectedGroupId } }).then(stabilizeSignedUrls),
+    ...homeCrewQuery(selectedGroupId),
     enabled: Boolean(selectedGroupId),
-    staleTime: 30_000,
     refetchInterval: 60_000,
     refetchOnWindowFocus: true,
   });
+  // On a cold launch the launch screen stays up until Home's top section has
+  // its data (or the 2.5s cap passes and the skeleton shows instead).
+  useLaunchHold(!groupsData || (myGroups.length > 0 && (crewLoading || !crew)));
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
   const { data: restInfo } = useQuery({

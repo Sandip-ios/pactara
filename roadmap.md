@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] One light launch screen (web + native config + iOS storyboard), no fixed timers (ready or 2.5s cap, 200ms fade), PactSplash removed, start-up checks in parallel, launch routes straight to login / notification or link / goal / pact / partner / Home; warm resume untouched (unpublished)
+- [ ] Install the new iOS launch screen in Xcode and ship a native build — needs the Mac/Xcode project (files ready in native-assets/ios)
+
 - [x] Workouts tab replaces Chat (dumbbell tab; chat button in Home header with unread badge), Workouts page (plan card + options, this week tiles, My workouts, Recent + sheet + do again, Your lifts), Lifts off Profile, leave/pick up/start over/switch plans, toasts above bottom bar (unpublished)
 
 - [x] Builder follow-ups: "Discard changes?" sheet when leaving with unsaved edits, sets control wraps under the name instead of cutting the equipment label, picker line "reorder on the next screen" (unpublished)

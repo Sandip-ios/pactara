@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useLaunchHold } from "@/lib/launch-screen";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { Video } from "lucide-react";
@@ -205,6 +206,11 @@ export function FeedList({
     deepLinkTries.current += 1;
     onLoadMore?.();
   }, [deepLinkMissing, hasMore, loadingMore, loadMoreFailed, onLoadMore]);
+  // Opened from a notification on a cold start: keep the launch screen up
+  // until the linked post is on screen (and its comments open), not Home first.
+  useLaunchHold(
+    Boolean(deepLinkPost) && (!items || loading || (deepLinkMissing && hasMore && !loadMoreFailed && deepLinkTries.current < 4)),
+  );
 
   const listRef = useRef<HTMLDivElement>(null);
 

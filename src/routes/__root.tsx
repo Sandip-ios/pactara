@@ -5,15 +5,17 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { SplashScreen } from "@/components/SplashScreen";
+import { ensureLaunchScreenGone, launchScreenUp, markLaunchRouteSettled } from "@/lib/launch-screen";
 import { InAppNotifications } from "@/components/InAppNotifications";
 import { NativeBootstrap } from "@/components/NativeBootstrap";
 import { PostHogProvider } from "@/components/PostHogProvider";
@@ -140,17 +142,54 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  // The launch screen covers pages the server can't draw (the entry and the
+  // signed-in app); server-drawn public pages (invites, legal) show directly.
+  // Decided once per page load, identically on server and client.
+  const [showLaunch] = useState(() =>
+    router.state.matches.some((m) => {
+      const route = (router.routesById as unknown as Record<string, { options?: { ssr?: unknown } } | undefined>)[m.routeId];
+      const ssr = route?.options?.ssr;
+      return ssr === false;
+    }),
+  );
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
+        <SplashScreen show={showLaunch} />
         {children}
         <Scripts />
       </body>
     </html>
   );
+}
+
+/** Fades the launch screen once the router has settled on the first screen. */
+function LaunchController() {
+  const router = useRouter();
+  // While the launch decides where to go, load the likeliest screens' code.
+  useEffect(() => {
+    if (!launchScreenUp()) return;
+    for (const id of ["/_authenticated", "/_authenticated/home"]) {
+      const route = (router.routesById as unknown as Record<string, unknown>)[id];
+      if (route) void Promise.resolve(router.loadRouteChunk(route as never)).catch(() => undefined);
+    }
+  }, [router]);
+  const settledAt = useRouterState({
+    select: (s) => (s.status === "idle" && !s.isLoading ? s.location.pathname : null),
+  });
+  useEffect(() => {
+    if (settledAt !== null) markLaunchRouteSettled(settledAt);
+    ensureLaunchScreenGone();
+  }, [settledAt]);
+  useEffect(() => {
+    window.addEventListener("pactara:launch-done", ensureLaunchScreenGone);
+    return () => window.removeEventListener("pactara:launch-done", ensureLaunchScreenGone);
+  }, []);
+  return null;
 }
 
 function RootComponent() {
@@ -191,7 +230,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <Toaster />
-        <SplashScreen />
+        <LaunchController />
         <NativeBootstrap />
         <InAppNotifications />
       </PostHogProvider>
