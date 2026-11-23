@@ -26,6 +26,8 @@ import {
 } from "@/lib/plan-filters";
 import { GOAL_TILE, INK, MUTED, P, PURPLE, PURPLE_SOFT, PlanCard, useMyPlans, usePlans } from "./PlanBits";
 import { PlanFilterSheet } from "./PlanFilterSheet";
+import { QuizMatchCard, useSavedQuiz } from "./QuizMatchCard";
+import { showQuizMatchCard } from "@/lib/plan-quiz-saved";
 
 /** Discover: goal tiles, then All plans with filter chips. Search lives in the Discover header. */
 export function PlansDiscover({
@@ -50,6 +52,7 @@ export function PlansDiscover({
   const navigate = useNavigate();
   const { data: plans, isLoading } = usePlans();
   const { data: mine } = useMyPlans();
+  const { data: savedQuiz, isPending: quizPending } = useSavedQuiz();
   const [sheet, setSheet] = useState<FilterKey | null>(null);
   const allRef = useRef<HTMLElement>(null);
   const daysOn = filters.days.length > 0;
@@ -98,7 +101,8 @@ export function PlansDiscover({
 
   return (
     <>
-      {mine && !mine.active && (
+      {mine && !quizPending && savedQuiz && showQuizMatchCard(savedQuiz, !!mine.active) && <QuizMatchCard saved={savedQuiz} />}
+      {mine && !mine.active && !quizPending && !savedQuiz && (
         <Link
           to="/find-plan"
           className="flex items-center gap-3 rounded-[16px] p-[14px]"

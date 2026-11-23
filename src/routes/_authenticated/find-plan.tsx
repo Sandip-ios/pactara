@@ -25,6 +25,7 @@ import {
 import type { EquipmentKey, Plan, PlanGoal } from "@/lib/workout-plans";
 import { GOAL_TILE, P, usePlans } from "@/components/plans/PlanBits";
 import { MemberAvatar } from "@/components/groups/AccountabilityBits";
+import { useSaveQuizResult } from "@/components/plans/QuizMatchCard";
 
 type QuizSearch = { step?: number; goal?: string; exp?: string; gear?: string; days?: number };
 
@@ -105,6 +106,14 @@ function FindPlanPage() {
 
   const answers: QuizAnswers | null =
     goal && experience && equipment.length && pickedDays ? { goal, experience, equipment, days: pickedDays } : null;
+
+  // Reaching the results saves the answers, so Discover and Workouts can show the match card.
+  const saveResult = useSaveQuizResult();
+  const answersKey = answers ? `${answers.goal}|${answers.experience}|${answers.equipment.join(",")}|${answers.days}` : null;
+  useEffect(() => {
+    if (step > QUIZ_STEPS && answers) void saveResult(answers);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, answersKey]);
 
   return (
     <div

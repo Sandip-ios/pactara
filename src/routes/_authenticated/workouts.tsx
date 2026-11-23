@@ -5,6 +5,8 @@ import { ChevronRight, MoreHorizontal, Plus, Sparkles, Trophy } from "lucide-rea
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
+import { QuizMatchCard, useSavedQuiz } from "@/components/plans/QuizMatchCard";
+import { showQuizMatchCard } from "@/lib/plan-quiz-saved";
 import { LeavePlanSheet, PlanOptionsSheet, planWeekTitle } from "@/components/plans/PlanSheets";
 import { SavedRow, useMyWorkoutsFlow } from "@/components/workout/MyWorkoutsFlow";
 import { ExerciseThumb, FONT, W } from "@/components/workout/WorkoutBits";
@@ -37,6 +39,7 @@ function WorkoutsTab() {
   useStatusBarScrollToTop();
   const { data: plans } = usePlans();
   const { data: mine } = useMyPlans();
+  const { data: savedQuiz, isPending: quizPending } = useSavedQuiz();
   const { data: workouts, isFetching: workoutsFetching } = useMyWorkouts();
   const { data: history } = useLiftHistory();
   const { data: overview } = useQuery({ queryKey: ["workouts-overview"], queryFn: () => getWorkoutsOverview(), staleTime: 0 });
@@ -133,6 +136,8 @@ function WorkoutsTab() {
               <MoreHorizontal size={22} />
             </button>
           </div>
+        ) : mine && !active && quizPending ? null : mine && savedQuiz && showQuizMatchCard(savedQuiz, !!active) ? (
+          <QuizMatchCard saved={savedQuiz} />
         ) : mine && !active ? (
           <div className="flex flex-col gap-3.5 rounded-[20px] bg-white p-4" style={{ boxShadow: CARD_SHADOW }}>
             <div className="flex items-center gap-3.5">

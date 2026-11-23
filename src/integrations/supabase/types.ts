@@ -1145,6 +1145,7 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          plan_quiz: Json | null
           streak_freezes_available: number
           timezone: string
           weight_unit: string
@@ -1156,6 +1157,7 @@ export type Database = {
           created_at?: string
           id: string
           name?: string
+          plan_quiz?: Json | null
           streak_freezes_available?: number
           timezone?: string
           weight_unit?: string
@@ -1167,6 +1169,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          plan_quiz?: Json | null
           streak_freezes_available?: number
           timezone?: string
           weight_unit?: string
