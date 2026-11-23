@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildHowTo, cleanSteps, easierInGroup, planMoveFor } from "../how-to-view";
+import { buildHowTo, cleanSteps, easierInGroup, fitCardTarget, planMoveFor } from "../how-to-view";
 import type { LibraryExercise } from "../exercise-library";
 
 const lib = (id: string, over: Partial<LibraryExercise> = {}): LibraryExercise => ({
@@ -85,5 +85,21 @@ describe("library-only exercises", () => {
     expect(v.plain).toBe("A shoulder press.");
     expect(v.tips).toEqual(["Go slow."]);
     expect(v.mistakes).toBeNull();
+  });
+});
+
+describe("fitCardTarget (no dead ends)", () => {
+  const library = [lib("db-bench-press"), lib("chest-press-machine")];
+  it("a card naming a real exercise opens that exercise's How to", () => {
+    expect(fitCardTarget({ name: "Machine chest press", note: "Or use lighter dumbbells", exerciseId: "chest-press-machine" }, library, "db-bench-press")).toBe("chest-press-machine");
+  });
+  it("a tip-only card leads nowhere, so it is not tappable", () => {
+    expect(fitCardTarget({ name: "Lower for 4 seconds", note: "Or go up 5 lb", exerciseId: null }, library, "db-bench-press")).toBeNull();
+  });
+  it("an exercise id missing from the library is not tappable", () => {
+    expect(fitCardTarget({ name: "Gone", note: null, exerciseId: "not-there" }, library, "db-bench-press")).toBeNull();
+  });
+  it("a card pointing back at the same exercise is not tappable", () => {
+    expect(fitCardTarget({ name: "Same", note: null, exerciseId: "db-bench-press" }, library, "db-bench-press")).toBeNull();
   });
 });

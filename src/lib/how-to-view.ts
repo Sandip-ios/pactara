@@ -97,3 +97,13 @@ export function buildHowTo(input: {
     harder: null,
   };
 }
+
+/**
+ * Where a "Make it fit you" card leads: the How to page of the exercise it
+ * names, or nothing when it's just a tip (no library exercise behind it).
+ */
+export function fitCardTarget(option: FitOption, library: LibraryExercise[], currentId?: string): string | null {
+  const id = option.exerciseId;
+  if (!id || id === currentId) return null;
+  return library.some((e) => e.id === id) ? id : null;
+}

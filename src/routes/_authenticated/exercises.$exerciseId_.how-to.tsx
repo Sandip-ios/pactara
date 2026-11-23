@@ -1,11 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Check, Pause, Play, X } from "lucide-react";
+import { Check, ChevronRight, Pause, Play, X } from "lucide-react";
 import { FONT } from "@/components/workout/WorkoutBits";
 import { usePlans } from "@/components/plans/PlanBits";
 import { buildLiveExercise, updateActiveWorkout, useActiveWorkout } from "@/lib/active-workout";
 import { useExerciseDetail, useExerciseLibrary, useLiftHistory, type LibraryExercise } from "@/lib/exercise-library";
-import { buildHowTo, planMoveFor, type FitOption } from "@/lib/how-to-view";
+import { buildHowTo, fitCardTarget, planMoveFor, type FitOption } from "@/lib/how-to-view";
 import { EQUIPMENT_LABEL, initials } from "@/lib/lift-rules";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
@@ -168,8 +168,8 @@ function HowToPage() {
           <section className="flex flex-col gap-3">
             <h2 className="m-0 text-[17px] font-extrabold">Make it fit you</h2>
             <div className="grid grid-cols-2 gap-2.5">
-              {view.easier && <FitCard kind="easier" option={view.easier} swap={swap} library={library ?? []} />}
-              {view.harder && <FitCard kind="harder" option={view.harder} swap={swap} library={library ?? []} />}
+              {view.easier && <FitCard kind="easier" option={view.easier} swap={swap} library={library ?? []} currentId={exerciseId} />}
+              {view.harder && <FitCard kind="harder" option={view.harder} swap={swap} library={library ?? []} currentId={exerciseId} />}
             </div>
           </section>
         )}
@@ -192,7 +192,7 @@ function HowToPage() {
   );
 }
 
-function FitCard({ kind, option, swap, library }: { kind: "easier" | "harder"; option: FitOption; swap: string | undefined; library: LibraryExercise[] }) {
+function FitCard({ kind, option, swap, library, currentId }: { kind: "easier" | "harder"; option: FitOption; swap: string | undefined; library: LibraryExercise[]; currentId: string }) {
   const body = (
     <>
       <span className="text-[12px] font-bold" style={{ color: kind === "easier" ? "#15803D" : "#B45309" }}>
@@ -208,12 +208,26 @@ function FitCard({ kind, option, swap, library }: { kind: "easier" | "harder"; o
       )}
     </>
   );
-  const cls = "flex flex-col gap-1 rounded-[14px] p-3 text-left";
-  const style = { border: `1.5px solid ${C.line}` };
-  const target = option.exerciseId && library.some((e) => e.id === option.exerciseId) ? option.exerciseId : null;
-  if (!target) return <div className={cls} style={style}>{body}</div>;
+  // Only a card naming a real library exercise opens anything; a plain tip is static.
+  const target = fitCardTarget(option, library, currentId);
+  const cls = "relative flex flex-col gap-1 rounded-[14px] p-3 text-left";
+  if (!target) {
+    return (
+      <div className={cls} style={{ background: "#F4F2EF" }}>
+        {body}
+      </div>
+    );
+  }
   return (
-    <Link to="/exercises/$exerciseId/how-to" params={{ exerciseId: target }} search={swap ? { swap } : {}} className={cls} style={style}>
+    <Link
+      to="/exercises/$exerciseId/how-to"
+      params={{ exerciseId: target }}
+      search={swap ? { swap } : {}}
+      className={`${cls} pr-7`}
+      style={{ background: "#fff", border: `1.5px solid ${C.line}` }}
+      aria-label={`${kind === "easier" ? "Too hard?" : "Too easy?"} ${option.name}: see how to do it`}
+    >
+      <ChevronRight size={16} className="absolute right-2.5 top-3" style={{ color: "#A8A29E" }} aria-hidden />
       {body}
     </Link>
   );
