@@ -6,9 +6,9 @@ import { launchScreenUp } from "@/lib/launch-screen";
 import { anyOverlayOnScreen, getLayoutOverlayState } from "@/lib/app-overlays";
 import {
   WHATS_NEW_ITEMS,
-  WHATS_NEW_LOCAL_KEY,
   WHATS_NEW_VERSION,
   shouldShowWhatsNew,
+  whatsNewLocalKey,
   type WhatsNewState,
 } from "@/lib/whats-new";
 
@@ -16,9 +16,9 @@ const PURPLE = "#7C3AED";
 const INK = "#141218";
 export const WHATS_NEW_KEY = ["whats-new-state"] as const;
 
-function readLocalSeen(): string | null {
+function readLocalSeen(userId: string): string | null {
   try {
-    return typeof localStorage === "undefined" ? null : localStorage.getItem(WHATS_NEW_LOCAL_KEY);
+    return typeof localStorage === "undefined" ? null : localStorage.getItem(whatsNewLocalKey(userId));
   } catch {
     return null;
   }
@@ -27,27 +27,27 @@ function readLocalSeen(): string | null {
 async function loadWhatsNewState(): Promise<WhatsNewState & { userId: string | null }> {
   const { data: s } = await supabase.auth.getSession();
   const userId = s.session?.user.id ?? null;
-  if (!userId) return { userId, accountCreatedAt: null, seenOnProfile: null, seenLocally: readLocalSeen() };
+  if (!userId) return { userId, accountCreatedAt: null, seenOnProfile: null, seenLocally: null };
   const { data } = await supabase.from("profiles").select("created_at, whats_new_seen").eq("id", userId).maybeSingle();
   return {
     userId,
     accountCreatedAt: data?.created_at ?? null,
     seenOnProfile: data?.whats_new_seen ?? null,
-    seenLocally: readLocalSeen(),
+    seenLocally: readLocalSeen(userId),
   };
 }
 
 /** Save "seen" on the profile (works across devices); local storage keeps it if that write fails. */
 async function markWhatsNewSeen(): Promise<void> {
   try {
-    localStorage.setItem(WHATS_NEW_LOCAL_KEY, WHATS_NEW_VERSION);
-  } catch {
-    /* ignore */
-  }
-  try {
     const { data: s } = await supabase.auth.getSession();
     const userId = s.session?.user.id;
     if (!userId) return;
+    try {
+      localStorage.setItem(whatsNewLocalKey(userId), WHATS_NEW_VERSION);
+    } catch {
+      /* ignore */
+    }
     await supabase.from("profiles").update({ whats_new_seen: WHATS_NEW_VERSION }).eq("id", userId);
   } catch {
     /* the local copy covers this device */

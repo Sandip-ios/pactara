@@ -6,9 +6,15 @@
  */
 export const WHATS_NEW_VERSION = "2026-11";
 /** Accounts created at or after this moment are new to the app and skip the sheet. */
-export const WHATS_NEW_CUTOFF = "2026-11-23T09:40:00Z";
-/** Local fallback when saving the seen version on the profile fails. */
-export const WHATS_NEW_LOCAL_KEY = "whats-new-seen";
+export const WHATS_NEW_CUTOFF = "2026-11-23T17:31:00Z";
+/**
+ * Local fallback when saving the seen version on the profile fails. Scoped to
+ * the account: a device-wide flag let one account's dismissal hide the sheet
+ * from every other account signed in on the same browser or phone.
+ */
+export function whatsNewLocalKey(userId: string): string {
+  return `whats-new-seen:${userId}`;
+}
 
 export type WhatsNewState = {
   accountCreatedAt: string | null | undefined;

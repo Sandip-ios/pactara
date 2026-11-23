@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldShowWhatsNew, WHATS_NEW_VERSION } from "@/lib/whats-new";
+import { shouldShowWhatsNew, WHATS_NEW_VERSION, whatsNewLocalKey } from "@/lib/whats-new";
 
 const CUT = "2026-11-23T09:40:00Z";
 const base = { seenOnProfile: null, seenLocally: null };
@@ -22,5 +22,12 @@ describe("shouldShowWhatsNew", () => {
   });
   it("uses the 2026-11 version", () => {
     expect(WHATS_NEW_VERSION).toBe("2026-11");
+  });
+});
+
+describe("whatsNewLocalKey", () => {
+  it("keeps one account's dismissal from hiding the sheet for another account on the same device", () => {
+    expect(whatsNewLocalKey("user-a")).not.toBe(whatsNewLocalKey("user-b"));
+    expect(whatsNewLocalKey("user-a")).not.toBe("whats-new-seen");
   });
 });
