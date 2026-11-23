@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Search, X } from "lucide-react";
@@ -28,11 +28,14 @@ type Section = { key: string; label: string; items: LibraryExercise[] };
 export function ExercisePicker({
   open,
   single = false,
+  initialPicked,
   onClose,
   onDone,
 }: {
   open: boolean;
   single?: boolean;
+  /** Picks to show as already chosen when it opens (going back from New workout). */
+  initialPicked?: string[];
   onClose: () => void;
   onDone: (picked: LibraryExercise[]) => void;
 }) {
@@ -44,6 +47,11 @@ export function ExercisePicker({
   const [equip, setEquip] = useState<Equipment | null>(null);
   const [picked, setPicked] = useState<string[]>([]);
   const [creating, setCreating] = useState(false);
+  useEffect(() => {
+    if (open) setPicked(initialPicked ?? []);
+    // Only when it opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const sections = useMemo<Section[]>(() => {
     const q = norm(query);

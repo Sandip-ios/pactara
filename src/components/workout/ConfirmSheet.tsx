@@ -11,6 +11,7 @@ export function ConfirmSheet({
   onConfirm,
   onCancel,
   extra,
+  cancelOutlined = false,
 }: {
   open: boolean;
   title: string;
@@ -21,6 +22,7 @@ export function ConfirmSheet({
   onConfirm: () => void;
   onCancel: () => void;
   extra?: { label: string; onClick: () => void; danger?: boolean };
+  cancelOutlined?: boolean;
 }) {
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onCancel()} shouldScaleBackground={false}>
@@ -49,7 +51,12 @@ export function ConfirmSheet({
                 {extra.label}
               </button>
             )}
-            <button type="button" onClick={onCancel} className="h-[52px] rounded-[26px] text-[16px] font-bold" style={{ color: W.ink }}>
+            <button
+              type="button"
+              onClick={onCancel}
+              className="h-[52px] rounded-[26px] text-[16px] font-bold"
+              style={cancelOutlined ? { color: W.ink, border: `1.5px solid ${W.line}`, background: "#FFFFFF" } : { color: W.ink }}
+            >
               {cancelLabel}
             </button>
           </div>

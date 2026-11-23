@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateIn } from "@/lib/streak-rules";
 import { feedDayNumber } from "@/lib/feed-view";
+import { clampSets, sortMyWorkouts } from "@/lib/workout-builder";
 import {
   bestOf,
   convertWeight,
@@ -127,6 +128,7 @@ export type SavedWorkout = {
   name: string;
   exercises: { exerciseId: string; sets: number; restSeconds?: number }[];
   lastDoneAt: string | null;
+  createdAt: string;
 };
 
 export const getMyWorkouts = createServerFn({ method: "GET" })
@@ -140,12 +142,72 @@ export const getMyWorkouts = createServerFn({ method: "GET" })
       .order("last_done_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return (data ?? []).map((w) => ({
-      id: w.id,
-      name: w.name,
-      exercises: (Array.isArray(w.exercises) ? w.exercises : []) as SavedWorkout["exercises"],
-      lastDoneAt: w.last_done_at,
-    }));
+    return sortMyWorkouts(
+      (data ?? []).map((w) => ({
+        id: w.id,
+        name: w.name,
+        exercises: (Array.isArray(w.exercises) ? w.exercises : []) as SavedWorkout["exercises"],
+        lastDoneAt: w.last_done_at,
+        createdAt: w.created_at,
+      })),
+    );
+  });
+
+/**
+ * Saves a workout built ahead of time (New / Edit workout). Doesn't count as
+ * doing it: "last done" is left alone.
+ */
+export const saveBuiltWorkout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { workoutId?: string | null; name: string; exercises: { exerciseId: string; sets: number; restSeconds?: number }[] }) => {
+    const name = String(input?.name ?? "").trim().slice(0, 60);
+    if (!name) throw new Error("Give your workout a name");
+    const exercises = (Array.isArray(input?.exercises) ? input.exercises : []).slice(0, 40).map((e) => {
+      const out: { exerciseId: string; sets: number; restSeconds?: number } = {
+        exerciseId: String(e.exerciseId).slice(0, 120),
+        sets: clampSets(Number(e.sets) || 3),
+      };
+      if (e.restSeconds != null) out.restSeconds = Math.max(15, Math.min(600, Math.round(Number(e.restSeconds) || 90)));
+      return out;
+    });
+    if (!exercises.length) throw new Error("Add at least one exercise");
+    return { workoutId: input?.workoutId ?? null, name, exercises };
+  })
+  .handler(async ({ context, data }): Promise<{ workout: SavedWorkout }> => {
+    const { supabase, userId } = context;
+    const cols = "id, name, exercises, last_done_at, created_at";
+    const res = data.workoutId
+      ? await supabase
+          .from("workouts")
+          .update({ name: data.name, exercises: data.exercises as never, updated_at: new Date().toISOString() })
+          .eq("id", data.workoutId)
+          .eq("user_id", userId)
+          .select(cols)
+          .maybeSingle()
+      : await supabase.from("workouts").insert({ user_id: userId, name: data.name, exercises: data.exercises as never }).select(cols).single();
+    if (res.error) throw new Error(res.error.message);
+    if (!res.data) throw new Error("That workout is gone. Go back and build it again.");
+    const w = res.data;
+    return {
+      workout: {
+        id: w.id,
+        name: w.name,
+        exercises: (Array.isArray(w.exercises) ? w.exercises : []) as SavedWorkout["exercises"],
+        lastDoneAt: w.last_done_at,
+        createdAt: w.created_at,
+      },
+    };
+  });
+
+/** Takes a workout off My workouts. Logged sets and personal bests stay. */
+export const deleteSavedWorkout = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { workoutId: string }) => ({ workoutId: String(input?.workoutId ?? "") }))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase.from("workouts").delete().eq("id", data.workoutId).eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 async function resolveGroup(supabase: SupabaseClient, userId: string, groupId: string | null) {

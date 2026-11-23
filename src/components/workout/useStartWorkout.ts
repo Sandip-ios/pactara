@@ -2,9 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { getLiftHistory, startLoggedSession, type SavedWorkout } from "@/lib/lifts.functions";
-import { EXERCISE_LIBRARY_KEY, LIFT_HISTORY_KEY, fetchExerciseLibrary, type LibraryExercise } from "@/lib/exercise-library";
+import { EXERCISE_LIBRARY_KEY, LIFT_HISTORY_KEY, fetchExerciseLibrary } from "@/lib/exercise-library";
 import { buildLiveExercise, setActiveWorkout, uid, updateActiveWorkout, type ActiveWorkout, type LiveExercise } from "@/lib/active-workout";
-import { parseDose, suggestWorkoutName } from "@/lib/lift-rules";
+import { parseDose } from "@/lib/lift-rules";
 import { checkInActivityFor, dayForWeek, movesForWeek, weekNoteFor, type Plan } from "@/lib/workout-plans";
 import type { MyActivePlan } from "@/lib/plans.functions";
 
@@ -16,7 +16,7 @@ const activeGroupId = () => {
   }
 };
 
-/** Builds a workout (new, saved or today's plan day) and opens the logger. */
+/** Starts a saved workout or a plan day and opens the logger (only ever on an explicit Start). */
 export function useStartWorkout() {
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -44,11 +44,6 @@ export function useStartWorkout() {
   };
 
   return {
-    async startPicked(picked: LibraryExercise[]) {
-      const { hist } = await load();
-      const exercises = picked.map((e) => buildLiveExercise(e, hist.byExercise[e.id], { unit: hist.unit }));
-      begin({ title: suggestWorkoutName(picked), workoutId: null, unit: hist.unit, plan: null, untracked: [], exercises });
-    },
     async startSaved(workout: SavedWorkout) {
       const { lib, hist } = await load();
       const exercises: LiveExercise[] = [];

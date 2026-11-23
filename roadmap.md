@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Build-your-own: picker opens a New workout screen (name, drag order, sets) to save for later or Start now; My workouts rows open Edit workout (save changes, start, delete); only an explicit Start begins a workout; Workout done shows Update for saved workouts, Save as a workout for plan days/unsaved (unpublished)
+
 - [x] Workouts follow-ups: Home "Log a workout" opens Start a workout; plan day bottom bar is only Start workout + caption; Workout done weekday and exercise history dates use the member's saved timezone (unpublished)
 
 - [x] Exercise How to full page (markup): two-pose hero with pause and reduced motion, muscles, description, steps, tips/mistakes, too hard/too easy with swap into a live workout; only real-exercise fit cards tappable, tip cards static, no form-check button (unpublished)

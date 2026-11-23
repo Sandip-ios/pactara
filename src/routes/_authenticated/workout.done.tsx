@@ -42,9 +42,10 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   const qc = useQueryClient();
   const saveFn = useServerFn(saveWorkoutTemplate);
   const previewFn = useServerFn(getPostPreviewDay);
-  const isNew = !fw.workoutId && !fw.plan;
+  // Already in My workouts: offer to update it. Plan days and unsaved sessions: offer to save.
+  const isNew = !fw.workoutId;
   const [save, setSave] = useState(!fw.plan);
-  const [name, setName] = useState(() => (isNew ? suggestWorkoutName(fw.template) : fw.title));
+  const [name, setName] = useState(() => (fw.plan || !isNew ? fw.title : suggestWorkoutName(fw.template)));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const { data: status } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
@@ -58,7 +59,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   const title = save && name.trim() ? name.trim() : fw.title;
 
   const persistTemplate = async () => {
-    if (!save || fw.plan) return;
+    if (!save) return;
     await saveFn({
       data: {
         workoutId: fw.workoutId,
@@ -170,16 +171,16 @@ function Done({ fw }: { fw: FinishedWorkout }) {
           ))}
         </section>
 
-        {!fw.plan && (
+        {fw.template.length > 0 && (
           <section className="flex flex-col gap-3 rounded-[20px] bg-white px-4 py-3.5">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[16px] font-extrabold">{isNew ? "Save as a workout" : `Update "${fw.title}"`}</div>
+                <div className="text-[16px] font-extrabold">{isNew ? "Save as a workout" : `Update “${fw.title}”`}</div>
                 <div className="text-[13px]" style={{ color: W.stone }}>
                   Next time starts with today's weights.
                 </div>
               </div>
-              <Switch on={save} onChange={setSave} label={isNew ? "Save as a workout" : `Update ${fw.title}`} />
+              <Switch on={save} onChange={setSave} label={isNew ? "Save as a workout" : `Update “${fw.title}”`} />
             </div>
             {isNew && save && (
               <input
