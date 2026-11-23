@@ -62,3 +62,53 @@ In Xcode:
 
 Typing the link into Safari's address bar never opens the app (Apple's
 rule); tapping it from Messages, Notes, Mail etc. does.
+
+# Share your win: Instagram / Facebook Stories + Save to Photos (needs a native rebuild)
+
+The Share your win screen (after a check-in) renders the check-in video with
+the card on the phone. What works before and after this build:
+
+| Button | Current App Store build (after web publish) | After this native build |
+| --- | --- | --- |
+| Instagram Stories | iPhone share sheet with the MP4 (Instagram is in it) | Opens Instagram Stories with the video as background and the card as a movable sticker |
+| Facebook Stories | Same share sheet (Facebook is in it) | Opens Facebook Stories the same way |
+| Save video | Share sheet; tap **Save Video** | Saves straight to Photos, toast "Saved to Photos" |
+| More | Share sheet with the MP4 | Same |
+
+If the Meta App ID isn't set yet, or Instagram/Facebook isn't installed, the
+Stories buttons save the video to Photos, open the app and show "Saved to
+Photos. Pick it in your story."
+
+In Xcode:
+
+1. Copy `PactaraShare/PactaraSharePlugin.swift` and
+   `PactaraShare/MainViewController.swift` into `ios/App/App/` and add both to
+   the **App** target (File → Add Files…, tick "App").
+2. Open `ios/App/App/Base.lproj/Main.storyboard`, select the Bridge View
+   Controller, and in the Identity inspector set **Class** to
+   `MainViewController` (module: App). If the project already has its own
+   `CAPBridgeViewController` subclass, don't add a second one: put the
+   `bridge?.registerPluginInstance(PactaraSharePlugin())` line into its
+   `capacitorDidLoad()`.
+3. `ios/App/App/Info.plist`, inside the top-level `<dict>` (merge into an
+   existing `LSApplicationQueriesSchemes` array if there is one):
+
+   ```xml
+   <key>LSApplicationQueriesSchemes</key>
+   <array>
+     <string>instagram-stories</string>
+     <string>facebook-stories</string>
+     <string>instagram</string>
+     <string>fb</string>
+   </array>
+   <key>NSPhotoLibraryAddUsageDescription</key>
+   <string>Pactara saves your check-in videos to Photos when you tap Save video.</string>
+   ```
+4. Meta App ID: put it in `src/lib/meta-config.ts` (`META_APP_ID = "…"`).
+   That file is web code, so the ID goes live with a web publish; no rebuild
+   needed for it. In the Meta developer app, add the iOS platform with bundle
+   ID `app.pactara`.
+5. `npx cap sync ios`, build and run on a real iPhone with Instagram and
+   Facebook installed: check in with a video → Share your win → Instagram
+   Stories should open Instagram's story editor with the video and the card
+   sticker; Save video should ask for Photos access once, then save.

@@ -68,6 +68,7 @@
     "html-to-image": "^1.11.13",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.575.0",
+    "mediabunny": "^1.66.2",
     "posthog-js": "^1.404.1",
     "qrcode": "^1.5.4",
     "react": "^19.2.0",

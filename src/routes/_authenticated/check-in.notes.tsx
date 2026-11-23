@@ -10,6 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { clearCheckInPhoto, getCheckInPhoto, setCheckInPhotoBlob } from "@/lib/checkin-photo-store";
 import { saveCheckInDraft, loadCheckInDraft, clearCheckInDraft } from "@/lib/checkin-draft-store";
 import CheckInCelebrationModal from "@/components/CheckInCelebrationModal";
+import ShareWinScreen from "@/components/share/ShareWinScreen";
+import type { ShareCardInput } from "@/lib/share-card";
 import { requestAppStoreReview } from "@/lib/app-review";
 import { listMyGroups } from "@/lib/groups.functions";
 import { AllGroupsToggle } from "./check-in.index";
@@ -203,8 +205,18 @@ function NotesPage() {
     };
   }, []);
 
-  type ShareState = { photoUrl: string | null; celebration: CelebrationData; newBadges: number[] };
+  type ShareState = {
+    photoUrl: string | null;
+    media: Blob | null;
+    celebration: CelebrationData;
+    /** Badges this check-in unlocked in the celebrated group. */
+    newBadges: number[];
+    /** The one streak number the badge, the card and the share card all show. */
+    streak: number;
+    activity: string | null;
+  };
   const [shareData, setShareData] = useState<ShareState | null>(null);
+  const [shareScreenOpen, setShareScreenOpen] = useState(false);
 
   const getCelebrationFn = useServerFn(getCheckInCelebrationData);
   // Warm the celebration data in the background so the modal opens with real numbers.
@@ -311,12 +323,25 @@ function NotesPage() {
         return;
       }
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
-      const celebration = await withTimeout(
-        getCelebrationFn({ data: { groupId: activeGroupId } }),
+      const celebration: CelebrationData = await withTimeout(
+        getCelebrationFn({ data: { groupId: activeGroupId, workoutSessionId: workout?.sessionId ?? null } }),
         CELEBRATION_TIMEOUT_MS,
         "Celebration loading timed out",
-      ).catch(() => ({ streakCount: 1, groupName: "Your group", teammates: [] }));
-      setShareData({ photoUrl: photoForShare, celebration, newBadges });
+      ).catch(() => ({ groupId: activeGroupId, streakCount: 1, groupName: "Your group", teammates: [] }));
+      // One streak value everywhere: the number the badges were awarded on
+      // for the celebrated group (same rule as the celebration data).
+      const posted = result as { streakByGroup?: Record<string, number>; badgesByGroup?: Record<string, number[]> } | undefined;
+      const celebratedGroup = celebration.groupId ?? activeGroupId;
+      const streak = (celebratedGroup && posted?.streakByGroup?.[celebratedGroup]) || celebration.streakCount;
+      const groupBadges = celebratedGroup ? posted?.badgesByGroup?.[celebratedGroup] : undefined;
+      setShareData({
+        photoUrl: photoForShare,
+        media: photo?.blob ?? null,
+        celebration: { ...celebration, streakCount: streak },
+        newBadges: groupBadges ?? newBadges,
+        streak,
+        activity: activity ?? null,
+      });
     } catch (err) {
       console.error("check-in submit failed", err);
       setSubmitError(
@@ -368,29 +393,38 @@ function NotesPage() {
   };
 
   const handleShareWin = async () => {
+    // Videos open the Share your win screen (rendered MP4 with the card).
+    if (shareData?.media?.type.startsWith("video/")) {
+      setShareScreenOpen(true);
+      return;
+    }
+    // A photo check-in: share the photo itself as a proper image file.
     try {
-      const text = `Day ${shareData?.celebration.streakCount} on Pactara — show up, every day.`;
-      const nav = navigator as Navigator & {
-        share?: (d: ShareData) => Promise<void>;
-        canShare?: (d: ShareData) => boolean;
-      };
-      if (shareData?.photoUrl) {
-        const res = await fetch(shareData.photoUrl);
-        const blob = await res.blob();
-        const file = new File([blob], "pactara-checkin.png", { type: blob.type || "image/png" });
-        const payload: ShareData = { files: [file], text };
-        if (nav.share && (!nav.canShare || nav.canShare(payload))) {
-          await nav.share(payload);
-          return;
-        }
-      }
-      if (nav.share) await nav.share({ text });
+      const blob = shareData?.media;
+      if (!blob) return;
+      const ext = (blob.type.split("/")[1]?.split(";")[0] || "jpg").replace("jpeg", "jpg");
+      const file = new File([blob], `Pactara - Day ${shareData.streak}.${ext}`, { type: blob.type.split(";")[0] || "image/jpeg" });
+      const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
+      const payload: ShareData = { files: [file] };
+      if (nav.share && (!nav.canShare || nav.canShare(payload))) await nav.share(payload);
     } catch (e) {
       if ((e as DOMException)?.name !== "AbortError") console.error("share failed", e);
     }
   };
 
-
+  const shareInput: ShareCardInput | null = (() => {
+    if (!shareData) return null;
+    const c = shareData.celebration;
+    const relation = relationForGroup(c.groupId ?? getActiveGroupId(), partnerState);
+    return {
+      streak: shareData.streak,
+      crewName: celebrationGroupName ?? c.groupName,
+      relation: relation?.kind === "partner" ? "partner" : relation?.kind === "solo" ? "solo" : "crew",
+      activityLabel: ACTIVITIES.find((a) => a.id === shareData.activity)?.label ?? null,
+      week: c.week ?? null,
+      workout: c.workout ?? null,
+    };
+  })();
 
   const isBusy = submitting || mutation.isPending;
 
@@ -543,13 +577,17 @@ function NotesPage() {
         <CheckInCelebrationModal
           open
           userPhoto={shareData.photoUrl}
-          streakCount={shareData.celebration.streakCount}
+          userPhotoIsVideo={!!shareData.media?.type.startsWith("video/")}
+          streakCount={shareData.streak}
           groupName={celebrationGroupName ?? shareData.celebration.groupName}
           teammates={shareData.celebration.teammates}
           newBadges={shareData.newBadges}
           onShare={handleShareWin}
           onDismiss={handleShareClose}
         />
+      )}
+      {shareData && shareScreenOpen && shareData.media && shareInput && (
+        <ShareWinScreen video={shareData.media} input={shareInput} onClose={() => setShareScreenOpen(false)} />
       )}
     </div>
   );

@@ -32,3 +32,13 @@ export function newlyEarnedMilestones(
 ): number[] {
   return BADGE_MILESTONES.filter((m) => m > prevBest && m <= newBest);
 }
+
+/**
+ * Milestones a check-in unlocks: only the streak the member is on right now
+ * (the same number the celebration card and share card show), never an older
+ * run that ended before today.
+ */
+export function milestonesReached(streak: number, already: Iterable<number>): number[] {
+  const have = new Set(already);
+  return BADGE_MILESTONES.filter((m) => m <= streak && !have.has(m));
+}

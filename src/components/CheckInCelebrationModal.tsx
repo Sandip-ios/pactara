@@ -15,7 +15,8 @@ import { celebrationCounts } from "@/lib/group-today-view";
  *  - Row of small circular avatar markers: filled blue w/ green dot if
  *    checked in today; outlined gray if not yet. Initials only.
  *  - One short line of escalating copy
- *  - Primary blue "Share your win", secondary gray "Keep it private"
+ *  - Primary purple "Share your win" (opens the Share your win screen),
+ *    secondary gray "Keep it private"
  *
  * NOTE: real implementation should gate teammate display on group consent
  * before rendering identifying info on a shareable card.
@@ -26,8 +27,8 @@ const COLORS = {
   ink: "#0B1220",
   inkSoft: "#5B6573",
   border: "#E5E7EB",
-  primary: "#1A73E8", // Pactara blue
-  primaryHover: "#1565C9",
+  primary: "#7C3AED", // Pactara purple
+  kicker: "#6D28D9",
   secondary: "#EFF0F2",
   checked: "#1A73E8",
   checkedDot: "#22C55E",
@@ -48,6 +49,8 @@ export type Teammate = {
 
 export type CheckInCelebrationModalProps = {
   userPhoto: string | null;
+  /** The check-in media is a video (shown playing, muted). */
+  userPhotoIsVideo?: boolean;
   streakCount: number;
   groupName: string;
   teammates: Teammate[];
@@ -74,6 +77,7 @@ function prefersReducedMotion() {
 
 export function CheckInCelebrationModal({
   userPhoto,
+  userPhotoIsVideo = false,
   streakCount,
   groupName,
   teammates,
@@ -165,7 +169,7 @@ export function CheckInCelebrationModal({
               className="h-12 w-12 shrink-0"
             />
             <div className="min-w-0">
-              <div className="text-[11px] font-bold tracking-[0.14em]" style={{ color: COLORS.primary }}>
+              <div className="text-[11px] font-bold tracking-[0.14em]" style={{ color: COLORS.kicker }}>
                 {newBadges.length > 1 ? "NEW BADGES UNLOCKED" : "NEW BADGE UNLOCKED"}
               </div>
               <div className="text-[15px] font-bold truncate" style={{ color: COLORS.ink }}>
@@ -189,7 +193,18 @@ export function CheckInCelebrationModal({
               background: `linear-gradient(160deg, #1E2350, #3A3F66)`,
             }}
           >
-            {userPhoto ? (
+            {userPhoto && userPhotoIsVideo ? (
+              <video
+                src={userPhoto}
+                muted
+                autoPlay
+                loop
+                playsInline
+                preload="auto"
+                className="h-full w-full object-cover"
+                aria-label="Your check-in"
+              />
+            ) : userPhoto ? (
               <img
                 src={userPhoto}
                 alt="Your check-in"
@@ -251,7 +266,7 @@ export function CheckInCelebrationModal({
             </div>
 
             {/* Avatars row */}
-            <div className="mt-3 flex items-center justify-between">
+            <div className="mt-3 flex items-center">
               <div className="flex items-center -space-x-2">
                 {teammates.slice(0, 6).map((t, i) => {
                   const rest = !t.checkedIn && !!t.resting;
@@ -315,9 +330,6 @@ export function CheckInCelebrationModal({
                 })}
 
 
-              </div>
-              <div className="text-[13px]" style={{ color: COLORS.inkSoft }}>
-                {checkedInCount} checked in
               </div>
             </div>
 

@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Share your win: purple button/kicker, one streak number for badge + cards, no duplicate count; full-screen share screen (Story/Post, live video preview with card, Edit card switches remembered per card type, Instagram/Facebook Stories, Save video, More) rendering the MP4 on the phone (unpublished)
+- [ ] Instagram/Facebook Stories with movable sticker + direct Save to Photos — needs the PactaraShare plugin in Xcode, a native build and the Meta App ID (steps in native-assets/ios/README.md)
+
 - [x] Workout sharing: save a crewmate's logged workout from the feed sheet; share a saved workout by link (/w/<code>, signed in/out/owner/bad link, auto-save after signup or sign in, link previews); /w/ links count as launch deep links; app-link file lists /w/* (unpublished)
 - [ ] Shared-workout links open in the iPhone app — needs the Associated Domains capability in Xcode and a native build (steps in native-assets/ios/README.md)
 

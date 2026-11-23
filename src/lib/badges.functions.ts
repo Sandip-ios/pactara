@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { BADGE_MILESTONES } from "./badges";
+import { BADGE_MILESTONES, milestonesReached } from "./badges";
 
 function bestStreakFromDates(dates: string[]): number {
   if (dates.length === 0) return 0;
@@ -24,43 +24,47 @@ function bestStreakFromDates(dates: string[]): number {
   return best;
 }
 
-/** Compute user's best streak within a specific group and insert any newly earned milestone badges for that group. */
+/** Days kept in this group (check-ins plus rest/freeze rows), as local dates. */
+export async function keptDaysInGroup(
+  supabase: SupabaseClient,
+  userId: string,
+  groupId: string,
+): Promise<{ checkIns: Set<string>; covered: Set<string>; kept: Set<string> }> {
+  const [{ data: rows }, { data: freezeRows }] = await Promise.all([
+    supabase.from("check_ins").select("checkin_date").eq("user_id", userId).eq("group_id", groupId),
+    // Rest and freeze rows keep a streak alive, exactly as on Home and the profile.
+    supabase.from("streak_freezes_used").select("freeze_date").eq("user_id", userId).eq("group_id", groupId),
+  ]);
+  const checkIns = new Set(((rows ?? []) as { checkin_date: string }[]).map((r) => r.checkin_date));
+  const covered = new Set(((freezeRows ?? []) as { freeze_date: string }[]).map((r) => r.freeze_date));
+  return { checkIns, covered, kept: new Set([...checkIns, ...covered]) };
+}
+
+/**
+ * Inserts any newly earned milestone badges for this group.
+ * - With `streak` (a check-in): only milestones up to the member's current streak.
+ * - Without (badge list backfill): milestones up to their best run ever.
+ */
 export async function awardBadgesForUser(
   supabase: SupabaseClient,
   userId: string,
   groupId: string,
+  opts: { streak?: number } = {},
 ): Promise<number[]> {
-  const { data: rows } = await supabase
-    .from("check_ins")
-    .select("checkin_date")
-    .eq("user_id", userId)
-    .eq("group_id", groupId);
-  const dates = ((rows ?? []) as { checkin_date: string }[]).map(
-    (r) => r.checkin_date,
-  );
-  // Streak freezes keep a streak alive, so they count toward badge milestones
-  // exactly as they do for the streak shown on Home and the profile.
-  const { data: freezeRows } = await supabase
-    .from("streak_freezes_used")
-    .select("freeze_date")
-    .eq("user_id", userId)
-    .eq("group_id", groupId);
-  const frozen = ((freezeRows ?? []) as { freeze_date: string }[]).map(
-    (r) => r.freeze_date,
-  );
-  const bestOverall = bestStreakFromDates([...dates, ...frozen]);
+  let reached = opts.streak;
+  if (reached == null) {
+    const { kept } = await keptDaysInGroup(supabase, userId, groupId);
+    reached = bestStreakFromDates([...kept]);
+  }
 
   const { data: existing } = await supabase
     .from("earned_badges")
     .select("streak_days")
     .eq("user_id", userId)
     .eq("group_id", groupId);
-  const already = new Set(
+  const toInsert = milestonesReached(
+    reached,
     ((existing ?? []) as { streak_days: number }[]).map((e) => e.streak_days),
-  );
-
-  const toInsert = BADGE_MILESTONES.filter(
-    (m) => m <= bestOverall && !already.has(m),
   );
   if (toInsert.length === 0) return [];
 

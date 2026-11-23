@@ -5,10 +5,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
 import {
   addDaysIso,
+  currentStreak,
   groupStreak as computeGroupStreak,
   localDateIn,
   weekCounts,
+  weekDayStates,
   weeklyTarget,
+  weekStartIso,
+  type WeekDayState,
 } from "./streak-rules";
 import { memberOwnToday } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
@@ -279,6 +283,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
 
     const today = localDateFor(timezone);
     const newBadgeSet = new Set<number>();
+    const streakByGroup: Record<string, number> = {};
+    const badgesByGroup: Record<string, number[]> = {};
     const postedCheckInIds: string[] = [];
 
     for (const groupId of groupIds) {
@@ -326,8 +332,14 @@ export const recordCheckIn = createServerFn({ method: "POST" })
 
 
       try {
-        const { awardBadgesForUser } = await import("./badges.functions");
-        const earned = await awardBadgesForUser(supabase, userId, groupId);
+        // Badges follow the streak the member is on now (same number as the
+        // celebration and share cards), never an older run.
+        const { awardBadgesForUser, keptDaysInGroup } = await import("./badges.functions");
+        const { kept } = await keptDaysInGroup(supabase as SupabaseClient, userId, groupId);
+        const streak = Math.max(1, currentStreak(kept, today));
+        streakByGroup[groupId] = streak;
+        const earned = await awardBadgesForUser(supabase as SupabaseClient, userId, groupId, { streak });
+        badgesByGroup[groupId] = earned;
         for (const b of earned) newBadgeSet.add(b);
       } catch (err) {
         console.error("badge award failed", err);
@@ -368,7 +380,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true, newBadges: Array.from(newBadgeSet), groupCount: groupIds.length, plan };
+    return { ok: true, newBadges: Array.from(newBadgeSet), streakByGroup, badgesByGroup, groupCount: groupIds.length, plan };
 
   });
 
@@ -1290,28 +1302,43 @@ export type CelebrationTeammate = {
   avatarUrl: string | null;
   avatarColor: string | null;
 };
+/** A logged workout's numbers for the share card (only the poster's own session). */
+export type CelebrationWorkout = {
+  title: string;
+  minutes: number;
+  volume: number;
+  unit: "lb" | "kg";
+  sets: number;
+  pr: { name: string; weight: number; unit: "lb" | "kg"; reps: number } | null;
+};
 export type CelebrationData = {
+  /** The group these numbers are for (badges shown must come from this group too). */
+  groupId?: string | null;
   streakCount: number;
   groupName: string;
   teammates: CelebrationTeammate[];
+  /** This Mon–Sun week in the member's timezone, for the share card. */
+  week?: { done: number; target: number; days: WeekDayState[] } | null;
+  workout?: CelebrationWorkout | null;
 };
 
 export const getCheckInCelebrationData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input?: { groupId?: string | null }) => ({
+  .inputValidator((input?: { groupId?: string | null; workoutSessionId?: string | null }) => ({
     groupId: input?.groupId ?? null,
+    workoutSessionId:
+      typeof input?.workoutSessionId === "string" ? input.workoutSessionId.slice(0, 64) : null,
   }))
   .handler(async ({ context, data }): Promise<CelebrationData> => {
     const { supabase, userId } = context;
     const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, data.groupId);
     if (!groupId) {
-      return { streakCount: 1, groupName: "Your group", teammates: [] };
+      return { groupId: null, streakCount: 1, groupName: "Your group", teammates: [] };
     }
 
     const today = localDateFor(timezone);
 
-    // Compute current streak: walk back day-by-day while a check-in or applied freeze exists.
-    const [{ data: recent }, { data: frozen }] = await Promise.all([
+    const [{ data: recent }, { data: frozen }, { data: sessionRow }] = await Promise.all([
       supabase
         .from("check_ins")
         .select("checkin_date")
@@ -1327,28 +1354,27 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
         .eq("group_id", groupId)
         .lte("freeze_date", today)
         .limit(400),
+      data.workoutSessionId
+        ? supabase
+            .from("workout_sessions")
+            .select("title, summary")
+            .eq("id", data.workoutSessionId)
+            .eq("user_id", userId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
-    const days = new Set<string>([
-      ...((recent ?? []).map((r: any) => r.checkin_date as string)),
-      ...((frozen ?? []).map((r: any) => r.freeze_date as string)),
-    ]);
-    let streak = 0;
-    const cursor = new Date(`${today}T12:00:00Z`);
-    // walk in UTC days; "good enough" — the local-day strings are already TZ-correct for today.
-    while (true) {
-      const iso = cursor.toISOString().slice(0, 10);
-      if (days.has(iso)) {
-        streak += 1;
-        cursor.setUTCDate(cursor.getUTCDate() - 1);
-      } else break;
-    }
-    if (streak === 0) streak = 1; // we just checked in
+    const checkInDays = new Set<string>((recent ?? []).map((r: any) => r.checkin_date as string));
+    const coveredDays = new Set<string>((frozen ?? []).map((r: any) => r.freeze_date as string));
+    // Same rule as Home, the profile and the badge award (src/lib/streak-rules.ts).
+    const streak = Math.max(1, currentStreak(new Set([...checkInDays, ...coveredDays]), today));
+
+    const workout = celebrationWorkout(sessionRow as { title?: string | null; summary?: unknown } | null);
 
     // Teammates' own today can be up to two days either side of yours.
     const dayBefore = addDaysIso(today, -2);
     const dayAfter = addDaysIso(today, 2);
     const [{ data: group }, { data: members }, { data: nearCheckIns }, { data: nearCovered }] = await Promise.all([
-      supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
+      supabase.from("groups").select("name, frequency, days_per_week").eq("id", groupId).maybeSingle(),
       supabase.from("group_members").select("user_id").eq("group_id", groupId),
       supabase
         .from("check_ins")
@@ -1406,10 +1432,38 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
     });
 
 
+    const week = group
+      ? {
+          done: weekCounts(checkInDays, today).thisWeek,
+          target: weeklyTarget(group as { frequency?: string | null; days_per_week?: number | null }),
+          days: weekDayStates(weekStartIso(today), checkInDays, coveredDays).map((d) => d.state),
+        }
+      : null;
+
     return {
+      groupId,
       streakCount: streak,
       groupName: group?.name ?? "Your group",
       teammates,
+      week,
+      workout,
     };
   });
+
+function celebrationWorkout(row: { title?: string | null; summary?: unknown } | null): CelebrationWorkout | null {
+  const sum = row?.summary as Partial<import("./lifts.functions").WorkoutSummary> | null | undefined;
+  if (!row || !sum) return null;
+  const unit = sum.unit === "kg" ? "kg" : "lb";
+  const prs = Array.isArray(sum.prs) ? sum.prs : [];
+  // The heaviest personal best leads the card.
+  const top = [...prs].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))[0];
+  return {
+    title: (row.title ?? "").trim() || "Workout",
+    minutes: Math.max(0, Math.round(Number(sum.minutes) || 0)),
+    volume: Math.max(0, Math.round(Number(sum.volume) || 0)),
+    unit,
+    sets: Math.max(0, Math.round(Number(sum.sets) || 0)),
+    pr: top ? { name: top.name, weight: top.weight, unit: top.unit === "kg" ? "kg" : "lb", reps: top.reps } : null,
+  };
+}
 
