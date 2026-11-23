@@ -1,7 +1,7 @@
-import { useMemo, useRef, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Trophy, X } from "lucide-react";
+import { ChevronDown, ChevronRight, Sparkles, Trophy, X } from "lucide-react";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { listMyGroups } from "@/lib/groups.functions";
@@ -35,6 +35,8 @@ export function PlansDiscover({
   onFiltersChange,
   completeSlug,
   onCloseComplete,
+  scrollToList = false,
+  onScrolledToList,
 }: {
   query: string;
   onClearQuery: () => void;
@@ -42,6 +44,8 @@ export function PlansDiscover({
   onFiltersChange: (f: PlanFilters) => void;
   completeSlug?: string;
   onCloseComplete: () => void;
+  scrollToList?: boolean;
+  onScrolledToList?: () => void;
 }) {
   const navigate = useNavigate();
   const { data: plans, isLoading } = usePlans();
@@ -57,6 +61,16 @@ export function PlansDiscover({
   });
 
   const all = plans ?? [];
+
+  // Arriving from the quiz with its answers as filters: open at the All plans list.
+  useEffect(() => {
+    if (!scrollToList || isLoading) return;
+    requestAnimationFrame(() => {
+      allRef.current?.scrollIntoView({ block: "start" });
+      onScrolledToList?.();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scrollToList, isLoading]);
   const searched = useMemo(() => searchPlans(all, query), [all, query]);
   const activeSlug = mine?.active?.slug ?? null;
   const list = useMemo(() => sortForDiscover(filterPlans(searched, filters), activeSlug), [searched, filters, activeSlug]);
@@ -84,6 +98,27 @@ export function PlansDiscover({
 
   return (
     <>
+      {mine && !mine.active && (
+        <Link
+          to="/find-plan"
+          className="flex items-center gap-3 rounded-[16px] p-[14px]"
+          style={{ background: "#EDE7FB" }}
+        >
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: "#7C3AED" }} aria-hidden>
+            <Sparkles size={22} color="#FFFFFF" />
+          </span>
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[16px] font-extrabold" style={{ color: "#4C1D95" }}>
+              Not sure? Find your plan
+            </span>
+            <span className="text-[13px] font-medium" style={{ color: "#5B21B6" }}>
+              4 quick questions, then we pick for you
+            </span>
+          </span>
+          <ChevronRight size={20} className="shrink-0" style={{ color: "#5B21B6" }} aria-hidden />
+        </Link>
+      )}
+
       <section className="flex flex-col gap-[10px]">
         <h2 className="mx-1 text-[17px] font-extrabold">Browse by goal</h2>
         <div className="grid grid-cols-2 gap-[10px]" role="group" aria-label="Goals">

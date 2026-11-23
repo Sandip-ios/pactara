@@ -23,6 +23,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as AuthenticatedFindPlanRouteImport } from './routes/_authenticated/find-plan'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -147,6 +148,11 @@ const DotwellKnownAppleAppSiteAssociationRoute =
     path: '/.well-known/apple-app-site-association',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedFindPlanRoute = AuthenticatedFindPlanRouteImport.update({
+  id: '/find-plan',
+  path: '/find-plan',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -453,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/find-plan': typeof AuthenticatedFindPlanRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -520,6 +527,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/find-plan': typeof AuthenticatedFindPlanRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -590,6 +598,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/_authenticated/find-plan': typeof AuthenticatedFindPlanRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -660,6 +669,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/find-plan'
     | '/home'
     | '/new-pactara'
     | '/notifications'
@@ -727,6 +737,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/find-plan'
     | '/home'
     | '/new-pactara'
     | '/notifications'
@@ -796,6 +807,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/_authenticated/find-plan'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
     | '/_authenticated/notifications'
@@ -982,6 +994,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.well-known/apple-app-site-association'
       preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/find-plan': {
+      id: '/_authenticated/find-plan'
+      path: '/find-plan'
+      fullPath: '/find-plan'
+      preLoaderRoute: typeof AuthenticatedFindPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
       id: '/_authenticated/home'
@@ -1358,6 +1377,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedFindPlanRoute: typeof AuthenticatedFindPlanRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1390,6 +1410,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedFindPlanRoute: AuthenticatedFindPlanRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,

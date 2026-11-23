@@ -76,7 +76,7 @@ export function BottomTabs() {
       <TabItem
         icon={<Compass size={22} />}
         label="Discover"
-        active={isActive("/groups") || isActive("/plans")}
+        active={isActive("/groups") || isActive("/plans") || isActive("/find-plan")}
         onPointerDown={preload("/groups")}
         onClick={() => navigate({ to: "/groups" })}
       />

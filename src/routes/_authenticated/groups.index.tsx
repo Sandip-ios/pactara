@@ -9,6 +9,8 @@ type DiscoverSearch = {
   invite?: string;
   tab?: "plans" | "crews";
   complete?: string;
+  /** "1": open scrolled to All plans (from the quiz's "Browse all plans with my answers"). */
+  list?: string;
 } & Partial<Record<FilterKey, string>>;
 
 const listParam = (v: unknown) => (typeof v === "number" ? String(v) : typeof v === "string" && v ? v : undefined);
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     invite: typeof s.invite === "string" && s.invite ? s.invite : undefined,
     tab: s.tab === "crews" || s.tab === "plans" ? s.tab : undefined,
     complete: typeof s.complete === "string" && s.complete ? s.complete : undefined,
+    list: listParam(s.list),
     days: listParam(s.days),
     minutes: listParam(s.minutes),
     equipment: listParam(s.equipment),
@@ -110,6 +113,10 @@ function DiscoverPage() {
           filters={filters}
           onFiltersChange={setFilters}
           completeSlug={completeSlug}
+          scrollToList={!!search.list}
+          onScrolledToList={() =>
+            navigate({ to: "/groups", search: (prev) => ({ ...prev, list: undefined }), replace: true, resetScroll: false })
+          }
           onCloseComplete={() =>
             navigate({ to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
           }

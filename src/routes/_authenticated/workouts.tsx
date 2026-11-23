@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ChevronRight, MoreHorizontal, Plus, Trophy } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, Sparkles, Trophy } from "lucide-react";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
@@ -134,23 +134,36 @@ function WorkoutsTab() {
             </button>
           </div>
         ) : mine && !active ? (
-          <Link
-            to="/groups"
-            search={{ tab: "plans" }}
-            className="flex items-center gap-3.5 rounded-[20px] bg-white p-4"
-            style={{ boxShadow: CARD_SHADOW }}
-          >
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[22px]" style={{ background: W.lilacSoft }} aria-hidden>
-              🗺️
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-[16px] font-extrabold">Follow a plan</span>
-              <span className="block text-[13px]" style={{ color: W.stone }}>
-                Browse plans in Discover.
+          <div className="flex flex-col gap-3.5 rounded-[20px] bg-white p-4" style={{ boxShadow: CARD_SHADOW }}>
+            <div className="flex items-center gap-3.5">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[22px]" style={{ background: W.lilacSoft }} aria-hidden>
+                🗺️
               </span>
-            </span>
-            <ChevronRight size={20} style={{ color: W.disabled }} aria-hidden />
-          </Link>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[16px] font-extrabold">Follow a plan</span>
+                <span className="block text-[13px]" style={{ color: W.stone }}>
+                  A plan tells you what to do each day.
+                </span>
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                to="/find-plan"
+                className="flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-[14px] font-extrabold text-white"
+                style={{ background: "#7C3AED" }}
+              >
+                <Sparkles size={16} aria-hidden />
+                Find your plan
+              </Link>
+              <Link
+                to="/groups"
+                className="flex h-11 items-center justify-center rounded-[14px] text-[14px] font-extrabold"
+                style={{ background: "#EDE7FB", color: "#5B21B6" }}
+              >
+                {plans ? `Browse ${plans.length} ${plans.length === 1 ? "plan" : "plans"}` : "Browse plans"}
+              </Link>
+            </div>
+          </div>
         ) : null}
 
         <div className="grid grid-cols-3 gap-2" aria-label="This week">
