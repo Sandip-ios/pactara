@@ -212,7 +212,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
             <div className="min-w-0 flex-1">
               <div className="text-[15px] font-bold">You</div>
               <div className="truncate text-[13px]" style={{ color: W.muted }}>
-                💪 Workout · {title}
+                💪 Workout
                 {preview && preview.dayNumber > 0 ? ` · Day ${preview.dayNumber}` : ""}
               </div>
             </div>
