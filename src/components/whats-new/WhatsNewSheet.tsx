@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouteContext } from "@tanstack/react-router";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
 import { launchScreenUp } from "@/lib/launch-screen";
@@ -14,7 +15,12 @@ import {
 
 const PURPLE = "#7C3AED";
 const INK = "#141218";
-export const WHATS_NEW_KEY = ["whats-new-state"] as const;
+/** Per account: a cached state from another account signed in on this tab must never decide. */
+const whatsNewKey = (userId: string) => ["whats-new-state", userId] as const;
+
+function useSignedInUserId(): string {
+  return useRouteContext({ from: "/_authenticated" }).user.id;
+}
 
 function readLocalSeen(userId: string): string | null {
   try {
@@ -60,7 +66,9 @@ async function markWhatsNewSeen(): Promise<void> {
  * something is, skip until the next Home visit.
  */
 export function useWhatsNewOnHome(homeBlocked: boolean) {
-  const { data } = useQuery({ queryKey: WHATS_NEW_KEY, queryFn: loadWhatsNewState, staleTime: 5 * 60_000 });
+  const userId = useSignedInUserId();
+  const { data: loaded } = useQuery({ queryKey: whatsNewKey(userId), queryFn: loadWhatsNewState, staleTime: 5 * 60_000 });
+  const data = loaded && loaded.userId === userId ? loaded : undefined;
   const [open, setOpen] = useState(false);
   const decided = useRef(false);
   const blockedRef = useRef(homeBlocked);
@@ -99,10 +107,11 @@ export function useWhatsNewOnHome(homeBlocked: boolean) {
 
 export function WhatsNewSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const queryClient = useQueryClient();
+  const userId = useSignedInUserId();
   const handleChange = (next: boolean) => {
     onOpenChange(next);
     if (next) return;
-    queryClient.setQueryData(WHATS_NEW_KEY, (prev: WhatsNewState | undefined) =>
+    queryClient.setQueryData(whatsNewKey(userId), (prev: WhatsNewState | undefined) =>
       prev ? { ...prev, seenOnProfile: WHATS_NEW_VERSION, seenLocally: WHATS_NEW_VERSION } : prev,
     );
     void markWhatsNewSeen();
