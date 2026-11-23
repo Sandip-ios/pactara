@@ -38,6 +38,7 @@ import { useServerFn as usePartnerServerFn } from "@tanstack/react-start";
 import { useQuery as usePartnerQuery } from "@tanstack/react-query";
 import { useClaimSharedWorkout } from "@/components/workout/useClaimSharedWorkout";
 import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
+import { WhatsNewSheet, useWhatsNewOnHome } from "@/components/whats-new/WhatsNewSheet";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -396,6 +397,12 @@ function HomePage() {
   const dismissOnboarding = () => {
     setShowOnboarding(false);
   };
+
+  // One-time "What's new" for members from before this release; waits for
+  // the next Home visit if any other sheet or the paywall is up.
+  const whatsNew = useWhatsNewOnHome(
+    showOnboarding || showHowItWorksTip || Boolean(pendingBadges?.length) || switcherOpen || inviteOpen,
+  );
 
   const initials = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const firstName = status?.firstName || "there";
@@ -787,6 +794,7 @@ function HomePage() {
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />
       )}
       {showConfetti && <ConfettiBurst onDone={() => setShowConfetti(false)} />}
+      <WhatsNewSheet open={whatsNew.open} onOpenChange={whatsNew.onOpenChange} />
     </div>
   );
 }

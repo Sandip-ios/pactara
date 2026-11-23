@@ -295,6 +295,13 @@
       "when": 1795424441189,
       "tag": "0041_more_workout_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1795426684674,
+      "tag": "0042_profiles_whats_new_seen",
+      "breakpoints": true
     }
   ]
 }

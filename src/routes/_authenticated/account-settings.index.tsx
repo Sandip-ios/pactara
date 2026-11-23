@@ -16,6 +16,7 @@ import {
   HelpCircle,
   Scale,
   Info,
+  Sparkles,
 } from "lucide-react";
 import { setWeightUnit } from "@/lib/lifts.functions";
 import { LIFT_HISTORY_KEY, useLiftHistory } from "@/lib/exercise-library";
@@ -23,6 +24,7 @@ import type { WeightUnit } from "@/lib/lift-rules";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/profile.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
+import { WhatsNewSheet } from "@/components/whats-new/WhatsNewSheet";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -40,6 +42,7 @@ function AccountSettingsHub() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   const deleteFn = useServerFn(deleteMyAccount);
   const unitFn = useServerFn(setWeightUnit);
@@ -180,6 +183,14 @@ function AccountSettingsHub() {
             onClick={() => setShowGuide(true)}
           />
           <Divider />
+          <Row
+            icon={<Sparkles size={18} style={{ color: PURPLE }} />}
+            iconBg={PURPLE_SOFT}
+            title="What's new"
+            subtitle="The latest in Pactara"
+            onClick={() => setShowWhatsNew(true)}
+          />
+          <Divider />
           <button
             onClick={handleSignOut}
             className="w-full flex items-center gap-4 px-4 py-4 text-left"
@@ -271,6 +282,7 @@ function AccountSettingsHub() {
         </div>
       </section>
       {showGuide && <OnboardingSheet firstName="" onClose={() => setShowGuide(false)} />}
+      <WhatsNewSheet open={showWhatsNew} onOpenChange={setShowWhatsNew} />
     </div>
   );
 }

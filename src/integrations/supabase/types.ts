@@ -1148,6 +1148,7 @@ export type Database = {
           streak_freezes_available: number
           timezone: string
           weight_unit: string
+          whats_new_seen: string | null
         }
         Insert: {
           avatar_color?: string
@@ -1158,6 +1159,7 @@ export type Database = {
           streak_freezes_available?: number
           timezone?: string
           weight_unit?: string
+          whats_new_seen?: string | null
         }
         Update: {
           avatar_color?: string
@@ -1168,6 +1170,7 @@ export type Database = {
           streak_freezes_available?: number
           timezone?: string
           weight_unit?: string
+          whats_new_seen?: string | null
         }
         Relationships: []
       }

@@ -11,6 +11,7 @@ import { getPendingGoal } from "@/lib/member-goal.functions";
 import { getPartnerState } from "@/lib/partners.functions";
 import { hasActiveMembership } from "@/lib/membership";
 import { didStartupChecksRun, useLaunchHold } from "@/lib/launch-screen";
+import { setLayoutOverlayState } from "@/lib/app-overlays";
 
 const TRIAL_DAYS = 7;
 
@@ -173,6 +174,14 @@ function AuthLayout() {
       cancelled = true;
     };
   }, []);
+
+  // Lets Home hold one-time sheets while a paywall is up or still being decided.
+  useEffect(() => {
+    setLayoutOverlayState({
+      pending: !trialState || trialState.loading,
+      blocking: introPaywall || Boolean(trialState?.expired),
+    });
+  }, [trialState, introPaywall]);
 
   return (
     <>
