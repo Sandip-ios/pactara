@@ -327,3 +327,11 @@ export function crewProofLine(people: CrewOnPlan[]): { bold: string; rest: strin
   const o = on[0]!;
   return { bold: `${d.firstName} and ${o.firstName}`, rest: ` from your crew: ${d.firstName} finished it, ${o.firstName} is on week ${o.currentWeek}.` };
 }
+
+/**
+ * A plan you left has something to pick up only when it moved past week 1 day 1
+ * or logged a workout; otherwise "Pick up" and "Start over" would do the same.
+ */
+export function leftRunHasProgress(run: { currentWeek: number; nextDay: number; workoutsDone: number }): boolean {
+  return run.currentWeek > 1 || run.nextDay > 1 || run.workoutsDone > 0;
+}

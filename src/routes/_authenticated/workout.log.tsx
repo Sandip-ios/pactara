@@ -147,6 +147,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
           groupId: w.groupId,
           title: w.title,
           workoutId: w.workoutId,
+          plan: w.plan ? { name: w.plan.planName, week: w.plan.week, day: w.plan.day } : null,
           startedAt: new Date(w.startedAt).toISOString(),
           exercises: payload,
         },

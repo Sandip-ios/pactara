@@ -288,6 +288,8 @@ export type FinishInput = {
   groupId?: string | null;
   title: string;
   workoutId?: string | null;
+  /** The plan day this workout was started from (only the plan's next day). */
+  plan?: { name: string; week: number; day: number } | null;
   startedAt: string;
   exercises: {
     exerciseId: string;
@@ -313,6 +315,8 @@ export type WorkoutSummary = {
   unit: WeightUnit;
   items: { exerciseId: string; name: string; line: string }[];
   prs: WorkoutPr[];
+  /** Set when the workout was a plan day, so history can say "{Plan} · week N" even if it was never posted. */
+  plan?: { name: string; week: number; day: number };
 };
 
 const num = (v: unknown, max: number) => {
@@ -328,6 +332,10 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
     groupId: input?.groupId ?? null,
     title: String(input?.title ?? "Workout").trim().slice(0, 60) || "Workout",
     workoutId: input?.workoutId ?? null,
+    plan:
+      input?.plan && Number.isFinite(input.plan.week) && Number.isFinite(input.plan.day)
+        ? { name: String(input.plan.name).slice(0, 80), week: Math.max(1, Math.round(input.plan.week)), day: Math.max(1, Math.round(input.plan.day)) }
+        : null,
     startedAt: String(input?.startedAt ?? new Date().toISOString()),
     exercises: (Array.isArray(input?.exercises) ? input.exercises : []).slice(0, 40).map((e) => ({
       exerciseId: String(e.exerciseId).slice(0, 120),
@@ -406,7 +414,7 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
       Number.isFinite(minutes) ? Math.min(minutes, 600) : 0,
       unit,
     );
-    const summary: WorkoutSummary = { ...totals, unit, items, prs };
+    const summary: WorkoutSummary = { ...totals, unit, items, prs, ...(data.plan ? { plan: data.plan } : {}) };
 
     // The session row: today's live one, or a new one when that never started.
     let sessionId = data.sessionId ?? null;

@@ -418,20 +418,19 @@ function HomePage() {
           <button
             type="button"
             onClick={() => navigate({ to: "/notifications" })}
-            aria-label={notifUnread > 0 ? `Notifications, ${notifUnread} unread` : "Notifications"}
-            className="relative flex h-11 w-11 items-center justify-center"
+            aria-label={notifUnread > 0 ? `Notifications, ${notifUnread} new` : "Notifications"}
+            className="relative flex h-11 w-11 items-center justify-center rounded-[22px]"
+            style={{ background: "#EDE7FB", color: "#6D28D9" }}
           >
-            <span
-              className="relative flex h-9 w-9 items-center justify-center rounded-full"
-              style={{ background: "#EDE6FE", color: PURPLE }}
-            >
-              <Bell size={18} />
-              {notifUnread > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 ring-2 ring-white text-white text-[10px] font-bold leading-none flex items-center justify-center">
-                  {notifUnread > 99 ? "99+" : notifUnread}
-                </span>
-              )}
-            </span>
+            <Bell size={20} />
+            {notifUnread > 0 && (
+              <span
+                className="absolute flex h-[18px] min-w-[18px] items-center justify-center rounded-[9px] px-1 text-[11px] font-bold leading-none"
+                style={{ top: 4, right: 4, background: "#B91C1C", color: "#FFFFFF" }}
+              >
+                {notifUnread > 99 ? "99+" : notifUnread}
+              </span>
+            )}
           </button>
         </div>
         </div>

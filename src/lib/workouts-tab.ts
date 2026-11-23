@@ -111,3 +111,34 @@ export const LIFTS_SHOWN = 3;
 export function liftsToggleLabel(total: number, expanded: boolean): string {
   return expanded ? "Show fewer" : `Show all ${total} lifts`;
 }
+
+export type PlanRunForHistory = {
+  name: string;
+  startedAt: string;
+  currentWeek: number;
+  dayTitles: readonly string[];
+  /** When this run last logged a plan day (null = never). */
+  lastLogAt: string | null;
+};
+
+/**
+ * Plan meta for a logged workout that carries no plan record (finished before
+ * plans were stored on the workout, or never posted). Matched by the plan day's
+ * title within a run that had started by then; the week is the run's current
+ * week, which only counts when the run hasn't logged a day since (so the week
+ * can't have moved). Several matches: the most recently started run.
+ */
+export function planForUntaggedSession(
+  session: { title: string; loggedAt: string },
+  runs: readonly PlanRunForHistory[],
+): { name: string; week: number } | null {
+  const title = session.title.trim().toLowerCase();
+  if (!title) return null;
+  const at = Date.parse(session.loggedAt);
+  const hit = runs
+    .filter((r) => Date.parse(r.startedAt) <= at)
+    .filter((r) => r.lastLogAt == null || Date.parse(r.lastLogAt) <= at)
+    .filter((r) => r.dayTitles.some((t) => t.trim().toLowerCase() === title))
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+  return hit ? { name: hit.name, week: hit.currentWeek } : null;
+}

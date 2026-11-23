@@ -84,7 +84,7 @@ export type MyActivePlan = {
 };
 
 /** The run you left most recently, per plan (what "Pick up at week N" resumes). */
-export type MyLeftPlan = { id: string; planId: string; slug: string; name: string; weeks: number; currentWeek: number; workoutsDone: number };
+export type MyLeftPlan = { id: string; planId: string; slug: string; name: string; weeks: number; currentWeek: number; nextDay: number; workoutsDone: number };
 
 export type MyPlans = {
   active: MyActivePlan | null;
@@ -146,6 +146,7 @@ export const getMyPlans = createServerFn({ method: "GET" })
       name: plan(r).name,
       weeks: plan(r).weeks,
       currentWeek: r.current_week,
+      nextDay: r.next_day,
       workoutsDone: done.get(r.id) ?? 0,
     }));
     return { active, completed, left };

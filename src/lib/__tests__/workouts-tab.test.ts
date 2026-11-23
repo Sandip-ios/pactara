@@ -99,3 +99,40 @@ describe("toasts sit above the bottom bar", () => {
     expect(toastBottomFor([])).toBeNull();
   });
 });
+
+import { leftRunHasProgress } from "@/lib/workout-plans";
+import { planForUntaggedSession, type PlanRunForHistory } from "@/lib/workouts-tab";
+
+describe("plan page after leaving", () => {
+  it("week 1, day 1, nothing logged: no progress, so a single Start this plan again", () => {
+    expect(leftRunHasProgress({ currentWeek: 1, nextDay: 1, workoutsDone: 0 })).toBe(false);
+  });
+  it("past week 1 day 1: Pick up and Start over both show", () => {
+    expect(leftRunHasProgress({ currentWeek: 1, nextDay: 2, workoutsDone: 1 })).toBe(true);
+    expect(leftRunHasProgress({ currentWeek: 3, nextDay: 1, workoutsDone: 7 })).toBe(true);
+  });
+});
+
+describe("Recent: plan meta for a plan day that was never posted", () => {
+  const buildMuscle: PlanRunForHistory = {
+    name: "Build Muscle",
+    startedAt: "2026-11-23T01:08:42.545326+00:00",
+    currentWeek: 1,
+    dayTitles: ["Push: chest + shoulders", "Pull: back + biceps"],
+    lastLogAt: null,
+  };
+  const session = { title: "Push: chest + shoulders", loggedAt: "2026-11-23T02:43:24.269+00:00" };
+
+  it("matches the plan day title in a run that had started", () => {
+    expect(planForUntaggedSession(session, [buildMuscle])).toEqual({ name: "Build Muscle", week: 1 });
+  });
+  it("ignores a run started after the workout (a later Start over)", () => {
+    expect(planForUntaggedSession(session, [{ ...buildMuscle, startedAt: "2026-11-23T04:02:45+00:00" }])).toBeNull();
+  });
+  it("skips a run that logged a day since, because its week may have moved", () => {
+    expect(planForUntaggedSession(session, [{ ...buildMuscle, lastLogAt: "2026-11-24T12:00:00+00:00" }])).toBeNull();
+  });
+  it("a workout with a name that isn't a plan day stays a normal workout", () => {
+    expect(planForUntaggedSession({ ...session, title: "Chest day" }, [buildMuscle])).toBeNull();
+  });
+});

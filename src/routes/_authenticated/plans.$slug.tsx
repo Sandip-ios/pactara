@@ -28,6 +28,7 @@ import { startPlan } from "@/lib/plans.functions";
 import {
   crewProofLine,
   dayMinutes,
+  leftRunHasProgress,
   planMuscleMap,
   restDaysFor,
   scheduleForWeek,
@@ -60,6 +61,8 @@ function PlanDetailPage() {
   // The run of this plan you left (only when you're not on it now).
   const left = onThisPlan ? null : (mine?.left ?? []).find((l) => l.slug === slug) ?? null;
   const otherActive = active && !onThisPlan ? active : null;
+  // Left with nothing to pick up: one "Start this plan again" instead of two buttons that do the same.
+  const leftProgress = !!left && leftRunHasProgress(left);
   const { data: crewOnPlan } = useCrewOnPlan(plan?.id ?? null);
   const { data: me } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
 
@@ -231,7 +234,7 @@ function PlanDetailPage() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-[22px] px-4 pt-[22px]" style={{ paddingBottom: left ? 180 : 130 }}>
+      <div className="flex flex-col gap-[22px] px-4 pt-[22px]" style={{ paddingBottom: leftProgress ? 180 : 130 }}>
         {onThisPlan && (
           <section className="flex flex-col gap-3 rounded-[20px] bg-white p-4" style={{ boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
             <div className="flex items-center gap-3">
@@ -271,12 +274,18 @@ function PlanDetailPage() {
               <Pause size={18} fill="currentColor" />
             </span>
             <span className="min-w-0">
-              <span className="block text-[15px] font-extrabold">You left this plan at week {left.currentWeek}</span>
-              <span className="block text-[13px]" style={{ color: P.stone }}>
-                {left.workoutsDone > 0
-                  ? `Your ${plural(left.workoutsDone, "workout")} ${left.workoutsDone === 1 ? "is" : "are"} still in your history.`
-                  : "No workouts logged on it yet."}
-              </span>
+              {leftProgress ? (
+                <>
+                  <span className="block text-[15px] font-extrabold">You left this plan at week {left.currentWeek}</span>
+                  <span className="block text-[13px]" style={{ color: P.stone }}>
+                    {left.workoutsDone > 0
+                      ? `Your ${plural(left.workoutsDone, "workout")} ${left.workoutsDone === 1 ? "is" : "are"} still in your history.`
+                      : `You were on week ${left.currentWeek}, day ${left.nextDay}.`}
+                  </span>
+                </>
+              ) : (
+                <span className="block text-[15px] font-extrabold">You left this plan.</span>
+              )}
             </span>
           </section>
         )}
@@ -458,9 +467,17 @@ function PlanDetailPage() {
           className="h-14 w-full rounded-[28px] text-[16px] font-bold text-white disabled:opacity-60"
           style={{ background: P.violet, boxShadow: "0 8px 20px rgba(109,40,217,.3)" }}
         >
-          {busy ? "One moment…" : onThisPlan ? "Start today's workout" : left ? `Pick up at week ${left.currentWeek}` : "Start this plan"}
+          {busy
+            ? "One moment…"
+            : onThisPlan
+              ? "Start today's workout"
+              : left
+                ? leftProgress
+                  ? `Pick up at week ${left.currentWeek}`
+                  : "Start this plan again"
+                : "Start this plan"}
         </button>
-        {left && (
+        {leftProgress && (
           <button
             type="button"
             onClick={() => void onStartTap(true)}

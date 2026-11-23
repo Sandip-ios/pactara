@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateIn } from "@/lib/streak-rules";
 import type { LogType, WeightUnit } from "@/lib/lift-rules";
-import { bestSetLabel, liftChange30, weekStats, type DatedSet } from "@/lib/workouts-tab";
+import { bestSetLabel, liftChange30, planForUntaggedSession, weekStats, type DatedSet, type PlanRunForHistory } from "@/lib/workouts-tab";
 import type { WorkoutSummary } from "@/lib/lifts.functions";
 
 export type RecentSession = {
@@ -84,6 +84,30 @@ export const getWorkoutsOverview = createServerFn({ method: "GET" })
         if (t.check_in_id && name) planByCheckIn.set(t.check_in_id, { name, week: t.week });
       }
     }
+    // Plan days logged without a post (or before plans were stored on the workout).
+    const tagOf = (s: (typeof top)[number]) =>
+      ((s.row.check_in_ids as string[] | null) ?? []).map((id) => planByCheckIn.get(id)).find(Boolean) ??
+      (s.summary?.plan ? { name: s.summary.plan.name, week: s.summary.plan.week } : null);
+    let runs: PlanRunForHistory[] = [];
+    if (top.some((s) => !tagOf(s))) {
+      const { data: ups } = await supabase.from("user_plans").select("id, plan_id, started_at, current_week, plans(name)").eq("user_id", userId);
+      const planIds = [...new Set((ups ?? []).map((u) => u.plan_id))];
+      const runIds = (ups ?? []).map((u) => u.id);
+      const [{ data: days }, { data: runLogs }] = await Promise.all([
+        planIds.length ? supabase.from("plan_days").select("plan_id, title").in("plan_id", planIds) : Promise.resolve({ data: [] as { plan_id: string; title: string }[] }),
+        runIds.length ? supabase.from("plan_workout_logs").select("user_plan_id, completed_at").in("user_plan_id", runIds) : Promise.resolve({ data: [] as { user_plan_id: string; completed_at: string }[] }),
+      ]);
+      runs = (ups ?? []).map((u) => {
+        const last = (runLogs ?? []).filter((l) => l.user_plan_id === u.id).map((l) => l.completed_at).sort().pop() ?? null;
+        return {
+          name: ((u as any).plans?.name as string | undefined) ?? "",
+          startedAt: u.started_at,
+          currentWeek: u.current_week,
+          dayTitles: (days ?? []).filter((d) => d.plan_id === u.plan_id).map((d) => d.title),
+          lastLogAt: last,
+        };
+      }).filter((r) => r.name);
+    }
     const savedIds = new Set<string>();
     const wanted = top.map((s) => s.row.workout_id).filter((x): x is string => !!x);
     if (wanted.length) {
@@ -98,7 +122,9 @@ export const getWorkoutsOverview = createServerFn({ method: "GET" })
         if (last && last.exerciseId === l.exercise_id) last.sets += 1;
         else again.push({ exerciseId: l.exercise_id, sets: 1 });
       }
-      const plan = ((row.check_in_ids as string[] | null) ?? []).map((id) => planByCheckIn.get(id)).find(Boolean) ?? null;
+      const plan =
+        tagOf({ row, summary, minutes, localDate }) ??
+        planForUntaggedSession({ title: (row.title as string | null) ?? "", loggedAt: row.logged_at as string }, runs);
       return {
         id: row.id,
         title: (row.title as string | null) || "Workout",
