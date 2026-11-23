@@ -32,7 +32,9 @@ public class PactaraSharePlugin: CAPPlugin, CAPBridgedPlugin {
 
     @objc func shareToStories(_ call: CAPPluginCall) {
         let app = call.getString("app") ?? "instagram"
-        guard let appId = call.getString("appId"), !appId.isEmpty else {
+        // Web sends META_APP_ID; Info.plist FacebookAppID is the fallback.
+        let plistId = Bundle.main.object(forInfoDictionaryKey: "FacebookAppID") as? String
+        guard let appId = [call.getString("appId"), plistId].compactMap({ $0 }).first(where: { !$0.isEmpty }) else {
             call.reject("Missing Meta App ID"); return
         }
         guard let b64 = call.getString("backgroundVideo"),

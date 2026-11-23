@@ -94,6 +94,8 @@ In Xcode:
    existing `LSApplicationQueriesSchemes` array if there is one):
 
    ```xml
+   <key>FacebookAppID</key>
+   <string>28899098959786133</string>
    <key>LSApplicationQueriesSchemes</key>
    <array>
      <string>instagram-stories</string>
@@ -104,10 +106,12 @@ In Xcode:
    <key>NSPhotoLibraryAddUsageDescription</key>
    <string>Pactara saves your check-in videos to Photos when you tap Save video.</string>
    ```
-4. Meta App ID: put it in `src/lib/meta-config.ts` (`META_APP_ID = "…"`).
-   That file is web code, so the ID goes live with a web publish; no rebuild
-   needed for it. In the Meta developer app, add the iOS platform with bundle
-   ID `app.pactara`.
+4. Meta App ID `28899098959786133` is already set in `src/lib/meta-config.ts`
+   (`META_APP_ID`) and in the Info.plist snippet above (`FacebookAppID`). The
+   app sends it as `source_application` for Instagram Stories and as
+   `com.facebook.sharedSticker.appID` (plus `source_application`) for Facebook
+   Stories. It is public; the app secret is not used anywhere. In the Meta
+   developer app, add the iOS platform with bundle ID `app.pactara`.
 5. `npx cap sync ios`, build and run on a real iPhone with Instagram and
    Facebook installed: check in with a video → Share your win → Instagram
    Stories should open Instagram's story editor with the video and the card
