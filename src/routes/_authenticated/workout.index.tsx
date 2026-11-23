@@ -16,7 +16,7 @@ import { FONT, W, tintFor } from "@/components/workout/WorkoutBits";
 import { MY_WORKOUTS_KEY, useExerciseMap, useLiftHistory, useMyWorkouts, type LibraryExercise } from "@/lib/exercise-library";
 import { getActiveWorkout, recordQuickPick, setActiveWorkout, uid } from "@/lib/active-workout";
 import { initials, plural, shortDay, suggestWorkoutName } from "@/lib/lift-rules";
-import { clampSets, defaultSets, pickedIdsOf, sortMyWorkouts, syncPicks, type DraftItem } from "@/lib/workout-builder";
+import { clampSets, defaultSets, discardBody, draftChanged, draftSignature, pickedIdsOf, sortMyWorkouts, syncPicks, type DraftItem } from "@/lib/workout-builder";
 import { dayForWeek, dayMinutes, movesForWeek, weekNoteFor } from "@/lib/workout-plans";
 import { localDateIn } from "@/lib/streak-rules";
 import type { SavedWorkout } from "@/lib/lifts.functions";
@@ -43,6 +43,8 @@ type Draft = {
   name: string;
   nameTouched: boolean;
   items: DraftItem[];
+  /** Edit workout: what it looked like when opened (to spot unsaved changes). */
+  initial: string;
 };
 
 function StartWorkout() {
@@ -64,6 +66,15 @@ function StartWorkout() {
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmLeave, setConfirmLeave] = useState(false);
+  // Leave the builder; ask first when that would lose unsaved changes.
+  const leaveBuilder = () => {
+    if (draft && draftChanged(draft)) {
+      toast.dismiss(); // a "saved" message would sit on top of the sheet
+      setConfirmLeave(true);
+    }
+    else setDraft(null);
+  };
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<null | (() => Promise<void>)>(null);
 
@@ -107,7 +118,7 @@ function StartWorkout() {
         named(
           d
             ? { ...d, items: syncPicks(d.items, ids, freshItem) }
-            : { mode: "new", workoutId: null, savedName: "", name: "", nameTouched: false, items: ids.map(freshItem) },
+            : { mode: "new", workoutId: null, savedName: "", name: "", nameTouched: false, items: ids.map(freshItem), initial: "" },
         ),
       );
     }
@@ -117,19 +128,23 @@ function StartWorkout() {
 
   const editWorkout = (wk: SavedWorkout) => {
     setSaveErr(null);
+    const items = wk.exercises
+      .filter((e) => lib.has(e.exerciseId))
+      .map((e) => {
+        const it: DraftItem = { key: uid(), exerciseId: e.exerciseId, sets: clampSets(e.sets) };
+        if (e.restSeconds != null) it.restSeconds = e.restSeconds;
+        return it;
+      });
+    // Compare against what was saved, so a capped set count or a dropped move counts as a change.
+    const savedItems = wk.exercises.map((e) => ({ exerciseId: e.exerciseId, sets: e.sets }));
     setDraft({
       mode: "edit",
       workoutId: wk.id,
       savedName: wk.name,
       name: wk.name,
       nameTouched: true,
-      items: wk.exercises
-        .filter((e) => lib.has(e.exerciseId))
-        .map((e) => {
-          const it: DraftItem = { key: uid(), exerciseId: e.exerciseId, sets: clampSets(e.sets) };
-          if (e.restSeconds != null) it.restSeconds = e.restSeconds;
-          return it;
-        }),
+      items,
+      initial: draftSignature(wk.name, savedItems),
     });
   };
 
@@ -321,23 +336,42 @@ function StartWorkout() {
           error={saveErr}
           onBack={() => {
             if (draft.mode === "new") setPicking("build");
-            else setDraft(null);
+            else leaveBuilder();
           }}
           onAddExercises={() => setPicking("append")}
           onSave={() => void saveOnly()}
           onStart={() => void saveAndStart()}
-          onDelete={() => setDeleting(true)}
+          onDelete={() => {
+            toast.dismiss();
+            setDeleting(true);
+          }}
         />
       )}
       <ExercisePicker
         open={!!picking}
         initialPicked={picking === "build" && draft ? pickedIdsOf(draft.items) : undefined}
+        hint="In the order you picked. You can reorder on the next screen."
         onClose={() => {
-          // Closing the picker while building a new workout drops it.
-          if (picking === "build") setDraft(null);
+          // Closing the picker after going back from New workout would drop it: ask first.
+          const leaving = picking === "build";
           setPicking(null);
+          if (leaving) leaveBuilder();
         }}
         onDone={onPicked}
+      />
+      <ConfirmSheet
+        open={confirmLeave}
+        title="Discard changes?"
+        body={discardBody(draft ? (draft.mode === "edit" ? draft.savedName : draft.name) : "")}
+        confirmLabel="Discard"
+        cancelLabel="Keep editing"
+        cancelOutlined
+        danger
+        onCancel={() => setConfirmLeave(false)}
+        onConfirm={() => {
+          setConfirmLeave(false);
+          setDraft(null);
+        }}
       />
       <ConfirmSheet
         open={deleting}

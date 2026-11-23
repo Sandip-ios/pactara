@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canSave, clampSets, defaultSets, draftMeta, estimateMinutes, moveItem, pickedIdsOf, sortMyWorkouts, syncPicks, type DraftItem } from "@/lib/workout-builder";
+import { canSave, clampSets, defaultSets, discardBody, draftChanged, draftMeta, draftSignature, estimateMinutes, moveItem, pickedIdsOf, sortMyWorkouts, syncPicks, type DraftItem } from "@/lib/workout-builder";
 
 const item = (exerciseId: string, sets = 3, key = exerciseId): DraftItem => ({ key, exerciseId, sets });
 
@@ -52,5 +52,30 @@ describe("workout builder", () => {
       { id: "never", lastDoneAt: null, createdAt: "2026-11-02T10:00:00Z" },
     ];
     expect(sortMyWorkouts(list).map((w) => w.id)).toEqual(["new", "old", "never"]);
+  });
+});
+
+describe("leaving the builder", () => {
+  const saved = [item("a", 3), item("b", 2)];
+  const edit = (name: string, items: DraftItem[]) => ({ mode: "edit" as const, name, nameTouched: true, items, initial: draftSignature("Chest day", saved) });
+
+  it("asks nothing when an edited workout is unchanged", () => {
+    expect(draftChanged(edit("Chest day", [item("a", 3, "k1"), item("b", 2, "k2")]))).toBe(false);
+  });
+
+  it("asks when a rename, reorder, set change or removal is unsaved", () => {
+    expect(draftChanged(edit("Push day", saved))).toBe(true);
+    expect(draftChanged(edit("Chest day", [item("b", 2), item("a", 3)]))).toBe(true);
+    expect(draftChanged(edit("Chest day", [item("a", 4), item("b", 2)]))).toBe(true);
+    expect(draftChanged(edit("Chest day", [item("a", 3)]))).toBe(true);
+  });
+
+  it("asks for a new workout only once it has exercises", () => {
+    expect(draftChanged({ mode: "new", name: "Chest day", nameTouched: false, items: [], initial: "" })).toBe(false);
+    expect(draftChanged({ mode: "new", name: "Chest day", nameTouched: false, items: [item("a")], initial: "" })).toBe(true);
+  });
+
+  it("names the workout in the sheet", () => {
+    expect(discardBody("Chest day")).toBe("Your edits to “Chest day” won't be saved.");
   });
 });

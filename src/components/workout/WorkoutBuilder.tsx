@@ -183,11 +183,12 @@ export function WorkoutBuilder({
                   <ExerciseThumb name={exName} primary={ex?.primary ?? []} image={ex?.imageStart ?? null} size={52} radius={14} />
                   <span className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <span className="text-[16px] font-bold leading-[1.25]">{exName}</span>
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate text-[13px]" style={{ color: W.stone }}>
+                    {/* If the label and stepper don't fit side by side, the stepper drops to its own line, right-aligned. */}
+                    <span className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5">
+                      <span className="whitespace-nowrap text-[13px]" style={{ color: W.stone }}>
                         {ex ? EQUIPMENT_LABEL[ex.equipment] : ""}
                       </span>
-                      <span className="flex h-[34px] shrink-0 items-center rounded-[17px]" style={{ background: W.chip }}>
+                      <span className="ml-auto flex h-[34px] shrink-0 items-center rounded-[17px]" style={{ background: W.chip }}>
                         <button
                           type="button"
                           aria-label={`One less set of ${exName}`}

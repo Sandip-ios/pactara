@@ -29,6 +29,7 @@ export function ExercisePicker({
   open,
   single = false,
   initialPicked,
+  hint = "In the order you picked. You can reorder in the workout.",
   onClose,
   onDone,
 }: {
@@ -36,6 +37,8 @@ export function ExercisePicker({
   single?: boolean;
   /** Picks to show as already chosen when it opens (going back from New workout). */
   initialPicked?: string[];
+  /** Footer line shown once something is picked. */
+  hint?: string;
   onClose: () => void;
   onDone: (picked: LibraryExercise[]) => void;
 }) {
@@ -222,7 +225,7 @@ export function ExercisePicker({
       <div className="bg-white px-4 pb-[max(30px,env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${W.line}` }}>
         {n > 0 && !single && (
           <p className="pb-2 text-center text-[13px]" style={{ color: W.stone }}>
-            In the order you picked. You can reorder in the workout.
+            {hint}
           </p>
         )}
         <button

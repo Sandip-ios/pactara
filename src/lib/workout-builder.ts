@@ -62,6 +62,26 @@ export function pickedIdsOf(draft: DraftItem[]): string[] {
   return [...new Set(draft.map((d) => d.exerciseId))];
 }
 
+/** What a saved workout looked like when Edit workout opened. */
+export function draftSignature(name: string, items: Pick<DraftItem, "exerciseId" | "sets">[]): string {
+  return JSON.stringify([name.trim(), items.map((i) => [i.exerciseId, i.sets])]);
+}
+
+/**
+ * Leaving would lose something: a new workout with any exercises (or a typed
+ * name), or an edited workout that no longer matches what was saved.
+ */
+export function draftChanged(d: { mode: "new" | "edit"; name: string; nameTouched: boolean; items: DraftItem[]; initial: string }): boolean {
+  if (d.mode === "new") return d.items.length > 0 || (d.nameTouched && d.name.trim().length > 0);
+  return draftSignature(d.name, d.items) !== d.initial;
+}
+
+/** "Your edits to “Chest day” won't be saved." */
+export function discardBody(name: string): string {
+  const n = name.trim();
+  return n ? `Your edits to “${n}” won't be saved.` : "Your edits to this workout won't be saved.";
+}
+
 /** Save is possible with a name and at least one exercise. */
 export function canSave(name: string, items: DraftItem[]): boolean {
   return name.trim().length > 0 && items.length > 0;
