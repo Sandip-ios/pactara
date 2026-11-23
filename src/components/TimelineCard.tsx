@@ -645,7 +645,11 @@ export function TimelineCard(props: PostCardProps) {
         />
       ) : null}
 
-      {metaWorkout && current && <WorkoutSummaryRow workout={metaWorkout} checkInId={current.id.replace(/^c-/, "")} />}
+      {metaWorkout && current && <WorkoutSummaryRow
+          workout={metaWorkout}
+          checkInId={current.id.replace(/^c-/, "")}
+          author={item.isMe ? null : { name: item.name, avatarUrl: item.avatarUrl, avatarColor: item.avatarColor }}
+        />}
       {metaPlan && <PlanChip plan={metaPlan} />}
       <div className="mt-1">
         <ActionRow

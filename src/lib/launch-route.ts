@@ -5,8 +5,9 @@
  *
  * Priority:
  *  1. an invite link (existing behaviour, signed in or not)
- *  2. signed out → /login in the app (the web keeps its landing page)
- *  3. a notification tap or deep link → that screen
+ *  2. signed out → /login in the app (the web keeps its landing page),
+ *     except a shared-workout link (/w/…), which works signed out
+ *  3. a notification tap or deep link (including /w/…) → that screen
  *  4. signup left part-way → resume it
  *  5. unfinished goal → /goal, unsigned pact → /pact, match waiting for you → /partner
  *  6. otherwise Home
@@ -34,9 +35,17 @@ export type LaunchDestination =
   | { to: "partner" }
   | { to: "home" };
 
+/** Links that open the same page signed in or out (a shared workout). */
+export function isPublicLinkPath(path: string | null | undefined): boolean {
+  return !!path && /^\/w\/[A-Za-z0-9]{8}\/?(\?|#|$)/.test(path);
+}
+
 export function decideLaunch(f: LaunchFacts): LaunchDestination {
   if (f.inviteGroupId) return { to: "join", groupId: f.inviteGroupId };
-  if (!f.signedIn) return f.native ? { to: "login" } : { to: "landing" };
+  if (!f.signedIn) {
+    if (isPublicLinkPath(f.linkPath)) return { to: "link", href: f.linkPath! };
+    return f.native ? { to: "login" } : { to: "landing" };
+  }
   if (f.linkPath) return { to: "link", href: f.linkPath };
   if (f.signupResume) return f.signupResume.onPartner ? { to: "signup-partner", groupId: f.signupResume.groupId } : { to: "signup" };
   if (f.goalGroupId) return { to: "goal", groupId: f.goalGroupId };

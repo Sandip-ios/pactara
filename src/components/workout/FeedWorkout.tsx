@@ -1,15 +1,23 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Dumbbell, Trophy } from "lucide-react";
+import { Check, Dumbbell, Plus, Trophy } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
-import { getWorkoutDetail } from "@/lib/lifts.functions";
+import { FeedAvatar } from "@/components/feed/FeedMedia";
+import { getWorkoutDetail, type WorkoutDetail } from "@/lib/lifts.functions";
+import { saveCrewWorkout } from "@/lib/workout-share.functions";
+import { firstNameOf } from "@/lib/workout-share";
+import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
+import { showSavedToast, showTopError } from "./savedToast";
 import type { FeedWorkout } from "@/lib/daily-posts.functions";
 import { convertWeight, fmtDurationShort, fmtNum, repsLabel, summaryLine, type WeightUnit } from "@/lib/lift-rules";
 import { ExerciseThumb, FONT, W } from "./WorkoutBits";
 
 /** Under the media on a logged-workout post; opens the read-only workout. */
-export function WorkoutSummaryRow({ workout, checkInId }: { workout: FeedWorkout; checkInId: string }) {
+export type PostAuthor = { name: string; avatarUrl: string | null; avatarColor: string };
+
+export function WorkoutSummaryRow({ workout, checkInId, author }: { workout: FeedWorkout; checkInId: string; author: PostAuthor | null }) {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -32,23 +40,68 @@ export function WorkoutSummaryRow({ workout, checkInId }: { workout: FeedWorkout
           )}
         </button>
       </div>
-      {open && <WorkoutDetailSheet checkInId={checkInId} title={workout.title} onClose={() => setOpen(false)} />}
+      {open && <WorkoutDetailSheet checkInId={checkInId} title={workout.title} author={author} onClose={() => setOpen(false)} />}
     </>
   );
 }
 
-function WorkoutDetailSheet({ checkInId, title, onClose }: { checkInId: string; title: string | null; onClose: () => void }) {
+function WorkoutDetailSheet({
+  checkInId,
+  title,
+  author,
+  onClose,
+}: {
+  checkInId: string;
+  title: string | null;
+  /** Someone else's post (null on your own: no Save). */
+  author: PostAuthor | null;
+  onClose: () => void;
+}) {
   const fetchFn = useServerFn(getWorkoutDetail);
+  const saveFn = useServerFn(saveCrewWorkout);
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const queryKey = ["workout-detail", checkInId];
   const { data, isLoading } = useQuery({
-    queryKey: ["workout-detail", checkInId],
+    queryKey,
     queryFn: () => fetchFn({ data: { checkInId } }),
     staleTime: 60_000,
   });
+  const [saving, setSaving] = useState(false);
   const unit: WeightUnit = data?.summary?.unit ?? "lb";
+  const canSave = !!author && !!data && !data.isMine && data.exercises.length > 0;
+  const saved = !!data?.savedWorkoutId;
+
+  const save = async () => {
+    if (saving || saved) return;
+    setSaving(true);
+    try {
+      const res = await saveFn({ data: { checkInId } });
+      qc.setQueryData<WorkoutDetail | null>(queryKey, (d) => (d ? { ...d, savedWorkoutId: res.workoutId } : d));
+      void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
+      showSavedToast(res.name);
+    } catch (e) {
+      console.error("[workout] save from feed failed", e);
+      showTopError("Couldn't save. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
   return (
     <Drawer open onOpenChange={(o) => !o && onClose()} shouldScaleBackground={false}>
       <DrawerContent className="max-h-[88dvh] rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]" style={{ fontFamily: FONT, color: W.ink }}>
         <div className="flex min-h-0 flex-col gap-3 overflow-y-auto px-4 pt-4">
+          {author && !data?.isMine && (
+            <div className="flex items-center gap-2.5">
+              <FeedAvatar url={author.avatarUrl} color={author.avatarColor || "#22C55E"} name={author.name} size={32} />
+              <span className="min-w-0 truncate text-[13px]" style={{ color: W.stone }}>
+                <span className="font-bold" style={{ color: W.ink }}>
+                  {firstNameOf(author.name)}
+                </span>
+                {data?.dayLabel ? ` · ${data.dayLabel}` : ""}
+              </span>
+            </div>
+          )}
           <div>
             <DrawerTitle className="text-[20px] font-extrabold leading-tight">{data?.title ?? title ?? "Workout"}</DrawerTitle>
             <DrawerDescription className="text-[13px]" style={{ color: W.stone }}>
@@ -84,6 +137,36 @@ function WorkoutDetailSheet({ checkInId, title, onClose }: { checkInId: string; 
                 </li>
               ))}
             </ul>
+          )}
+          {canSave && (
+            <div className="flex flex-col gap-3 pt-1">
+              <p className="text-center text-[12px]" style={{ color: W.muted }}>
+                {saved ? "Saved with sets and 8–12 reps. Your weights fill in from your own history." : "Your weights fill in from your own history."}
+              </p>
+              {saved ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    void navigate({ to: "/workouts" });
+                  }}
+                  className="flex h-[52px] w-full shrink-0 items-center justify-center gap-2 rounded-[26px] text-[16px] font-bold"
+                  style={{ background: W.lilacSoft, color: W.violetText }}
+                >
+                  <Check size={18} aria-hidden /> Saved · Open in Workouts
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  disabled={saving}
+                  onClick={() => void save()}
+                  className="flex h-[52px] w-full shrink-0 items-center justify-center gap-2 rounded-[26px] text-[16px] font-bold text-white disabled:opacity-70"
+                  style={{ background: W.purple }}
+                >
+                  <Plus size={18} aria-hidden /> {saving ? "Saving…" : "Save to my workouts"}
+                </button>
+              )}
+            </div>
           )}
           <button type="button" onClick={onClose} className="h-12 w-full shrink-0 rounded-full bg-white text-[15px] font-bold" style={{ border: `1.5px solid ${W.line}` }}>
             Close

@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft, GripVertical, Minus, Pencil, Play, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, GripVertical, Minus, Pencil, Play, Plus, Share, Trash2 } from "lucide-react";
 import type { LibraryExercise } from "@/lib/exercise-library";
 import { EQUIPMENT_LABEL } from "@/lib/lift-rules";
 import { MAX_SETS, MIN_SETS, canSave, clampSets, draftMeta, draftSignature, moveItem, type DraftItem } from "@/lib/workout-builder";
@@ -29,6 +29,8 @@ export function WorkoutBuilder({
   onSave,
   onStart,
   onDelete,
+  onShare,
+  sharing,
 }: {
   mode: "new" | "edit";
   name: string;
@@ -45,6 +47,9 @@ export function WorkoutBuilder({
   onSave: () => void;
   onStart: () => void;
   onDelete?: () => void;
+  /** Edit workout: share a link to the workout as it's saved. */
+  onShare?: () => void;
+  sharing?: boolean;
 }) {
   const ready = canSave(name, items) && !busy;
   const isEdit = mode === "edit";
@@ -125,7 +130,20 @@ export function WorkoutBuilder({
           <ChevronLeft size={24} />
         </button>
         <span className="text-center text-[17px] font-extrabold">{isEdit ? "Edit workout" : "New workout"}</span>
-        <span />
+        {isEdit && onShare ? (
+          <button
+            type="button"
+            aria-label="Share workout"
+            disabled={sharing}
+            onClick={onShare}
+            className="flex h-11 w-11 items-center justify-center rounded-full disabled:opacity-50"
+            style={{ color: W.ink }}
+          >
+            <Share size={21} />
+          </button>
+        ) : (
+          <span />
+        )}
       </header>
 
       <div className="flex flex-col gap-4 px-4 pb-[200px] pt-2.5">

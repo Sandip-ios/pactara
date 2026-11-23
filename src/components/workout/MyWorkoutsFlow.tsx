@@ -4,6 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { endWorkoutWithoutCompleting } from "@/lib/workouts.functions";
 import { deleteSavedWorkout, saveBuiltWorkout, type SavedWorkout } from "@/lib/lifts.functions";
+import { shareSavedWorkout } from "@/lib/workout-share.functions";
+import { shareText, shareTitle } from "@/lib/workout-share";
+import { shareLink } from "@/lib/share-link";
 import { ExercisePicker } from "@/components/workout/ExercisePicker";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
@@ -40,6 +43,8 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
   const endFn = useServerFn(endWorkoutWithoutCompleting);
   const saveFn = useServerFn(saveBuiltWorkout);
   const deleteFn = useServerFn(deleteSavedWorkout);
+  const shareFn = useServerFn(shareSavedWorkout);
+  const [sharing, setSharing] = useState(false);
   // "build": choosing exercises for a new workout; "append": adding to the one being built.
   const [picking, setPicking] = useState<null | "build" | "append">(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -108,6 +113,7 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
       .map((e) => {
         const it: DraftItem = { key: uid(), exerciseId: e.exerciseId, sets: clampSets(e.sets) };
         if (e.restSeconds != null) it.restSeconds = e.restSeconds;
+        if (e.seconds != null) it.seconds = e.seconds;
         return it;
       });
     // Compare against what was saved, so a capped set count or a dropped move counts as a change.
@@ -142,7 +148,12 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
         data: {
           workoutId: draft.workoutId,
           name: draft.name.trim(),
-          exercises: draft.items.map((i) => (i.restSeconds != null ? { exerciseId: i.exerciseId, sets: i.sets, restSeconds: i.restSeconds } : { exerciseId: i.exerciseId, sets: i.sets })),
+          exercises: draft.items.map((i) => {
+            const out: SavedWorkout["exercises"][number] = { exerciseId: i.exerciseId, sets: i.sets };
+            if (i.restSeconds != null) out.restSeconds = i.restSeconds;
+            if (i.seconds != null) out.seconds = i.seconds;
+            return out;
+          }),
         },
       });
       putInList(workout);
@@ -169,6 +180,24 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
     if (!wk) return;
     setDraft(null);
     run(() => start.startSaved(wk));
+  };
+
+  // Shares the workout as it's saved now (unsaved edits aren't part of the link).
+  const shareDraft = async () => {
+    const id = draft?.workoutId;
+    if (!id || sharing) return;
+    setSharing(true);
+    try {
+      const { url, name } = await shareFn({ data: { workoutId: id } });
+      const outcome = await shareLink({ title: shareTitle(name), text: shareText(name), url });
+      if (outcome === "copied") toast("Link copied");
+      else if (outcome === "failed") toast("Couldn't share. Try again.");
+    } catch (e) {
+      console.error("[workout] share failed", e);
+      toast("Couldn't share. Try again.");
+    } finally {
+      setSharing(false);
+    }
   };
 
   const removeWorkout = async () => {
@@ -214,6 +243,8 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
             toast.dismiss();
             setDeleting(true);
           }}
+          onShare={() => void shareDraft()}
+          sharing={sharing}
         />
       )}
       <ExercisePicker

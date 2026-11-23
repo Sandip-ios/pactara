@@ -9,11 +9,12 @@ const aasa = {
     details: [
       {
         appID: `${TEAM_ID}.${BUNDLE_ID}`,
-        // Only invite links should hand off to the app. Matching "/" would
-        // make every pactara.lovable.app link (marketing, legal, support)
-        // try to open the app, which iOS then treats inconsistently.
-        paths: ["/join/*"],
-        components: [{ "/": "/join/*" }],
+        // Only invite and shared-workout links should hand off to the app.
+        // Matching "/" would make every pactara.lovable.app link (marketing,
+        // legal, support) try to open the app, which iOS then treats
+        // inconsistently.
+        paths: ["/join/*", "/w/*"],
+        components: [{ "/": "/join/*" }, { "/": "/w/*" }],
       },
     ],
   },

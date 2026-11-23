@@ -9,7 +9,8 @@ export const MAX_SETS = 10;
 /** Rough time per working set, rest included. */
 export const MINUTES_PER_SET = 2.6;
 
-export type DraftItem = { key: string; exerciseId: string; sets: number; restSeconds?: number };
+/** `seconds`: a timed move's target time (kept from a copied workout). */
+export type DraftItem = { key: string; exerciseId: string; sets: number; restSeconds?: number; seconds?: number };
 
 /** New exercises start at 3 sets; bodyweight moves at 2. */
 export function defaultSets(equipment: string): number {

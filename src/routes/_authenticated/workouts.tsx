@@ -1,6 +1,6 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, MoreHorizontal, Plus, Trophy } from "lucide-react";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
@@ -37,7 +37,7 @@ function WorkoutsTab() {
   useStatusBarScrollToTop();
   const { data: plans } = usePlans();
   const { data: mine } = useMyPlans();
-  const { data: workouts } = useMyWorkouts();
+  const { data: workouts, isFetching: workoutsFetching } = useMyWorkouts();
   const { data: history } = useLiftHistory();
   const { data: overview } = useQuery({ queryKey: ["workouts-overview"], queryFn: () => getWorkoutsOverview(), staleTime: 0 });
   const { lib, start, busy, run, editWorkout, startBuild, overlays } = useMyWorkoutsFlow();
@@ -55,6 +55,19 @@ function WorkoutsTab() {
   const lifts = (overview?.lifts ?? []).filter((l) => lib.has(l.exerciseId));
   const shownLifts = allLifts ? lifts : lifts.slice(0, LIFTS_SHOWN);
   const week = overview?.week;
+
+  // "/workouts?edit=<id>" (a workout just saved from a shared link) opens it in Edit workout.
+  const navigate = useNavigate();
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr });
+  const editId = new URLSearchParams(searchStr).get("edit");
+  useEffect(() => {
+    if (!editId || !workouts || lib.size === 0) return;
+    const wk = workouts.find((w) => w.id === editId);
+    if (!wk && workoutsFetching) return; // the new workout is still on its way
+    if (wk) editWorkout(wk);
+    void navigate({ to: "/workouts", replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editId, workouts, workoutsFetching, lib.size]);
 
   const doAgain = (s: RecentSession) => {
     const exercises = s.again.filter((e) => lib.has(e.exerciseId));

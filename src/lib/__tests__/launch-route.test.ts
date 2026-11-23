@@ -63,3 +63,15 @@ describe("notification and link URLs → in-app paths", () => {
     expect(toAppPath("//evil.example.com/x")).toBeNull();
   });
 });
+
+describe("shared-workout links at launch", () => {
+  it("signed in: a /w/ link opens the shared workout, ahead of an unsigned pact", () => {
+    expect(decideLaunch({ ...base, linkPath: "/w/Ab3dEf7h", pactGroupId: "g2" })).toEqual({ to: "link", href: "/w/Ab3dEf7h" });
+  });
+  it("signed out in the app: a /w/ link still opens (it works signed out)", () => {
+    expect(decideLaunch({ ...base, signedIn: false, linkPath: "/w/Ab3dEf7h" })).toEqual({ to: "link", href: "/w/Ab3dEf7h" });
+  });
+  it("the universal link URL becomes the in-app path", () => {
+    expect(toAppPath("https://pactara.lovable.app/w/Ab3dEf7h")).toBe("/w/Ab3dEf7h");
+  });
+});

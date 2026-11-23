@@ -4,6 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateIn } from "@/lib/streak-rules";
 import { feedDayNumber } from "@/lib/feed-view";
 import { clampSets, sortMyWorkouts } from "@/lib/workout-builder";
+import { postDayLabel } from "@/lib/workout-share";
 import {
   bestOf,
   convertWeight,
@@ -126,7 +127,8 @@ export const getLiftHistory = createServerFn({ method: "GET" })
 export type SavedWorkout = {
   id: string;
   name: string;
-  exercises: { exerciseId: string; sets: number; restSeconds?: number }[];
+  /** `seconds`: timed moves copied from a crewmate keep their time as the target. */
+  exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number }[];
   lastDoneAt: string | null;
   createdAt: string;
 };
@@ -159,15 +161,16 @@ export const getMyWorkouts = createServerFn({ method: "GET" })
  */
 export const saveBuiltWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { workoutId?: string | null; name: string; exercises: { exerciseId: string; sets: number; restSeconds?: number }[] }) => {
+  .inputValidator((input: { workoutId?: string | null; name: string; exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number }[] }) => {
     const name = String(input?.name ?? "").trim().slice(0, 60);
     if (!name) throw new Error("Give your workout a name");
     const exercises = (Array.isArray(input?.exercises) ? input.exercises : []).slice(0, 40).map((e) => {
-      const out: { exerciseId: string; sets: number; restSeconds?: number } = {
+      const out: SavedWorkout["exercises"][number] = {
         exerciseId: String(e.exerciseId).slice(0, 120),
         sets: clampSets(Number(e.sets) || 3),
       };
       if (e.restSeconds != null) out.restSeconds = Math.max(15, Math.min(600, Math.round(Number(e.restSeconds) || 90)));
+      if (e.seconds != null && Number(e.seconds) > 0) out.seconds = Math.min(86400, Math.round(Number(e.seconds)));
       return out;
     });
     if (!exercises.length) throw new Error("Add at least one exercise");
@@ -617,6 +620,12 @@ export type WorkoutDetail = {
   title: string | null;
   summary: WorkoutSummary | null;
   exercises: { exerciseId: string; name: string; imageStart: string | null; logType: LogType; equipment: string; sets: (SetEntry & { isPr: boolean })[] }[];
+  /** The poster's own post: no Save button. */
+  isMine: boolean;
+  /** "Today", "Yesterday", "Tuesday", "Nov 3" from the viewer's today. */
+  dayLabel: string | null;
+  /** Already in the viewer's My workouts (saved from this post). */
+  savedWorkoutId: string | null;
 };
 
 /** The read-only workout behind a feed post (crewmates of that post only). */
@@ -624,10 +633,10 @@ export const getWorkoutDetail = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { checkInId: string }) => ({ checkInId: String(input?.checkInId ?? "") }))
   .handler(async ({ context, data }): Promise<WorkoutDetail | null> => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const { data: res, error } = await supabase.rpc("workout_detail_for_check_in", { _check_in_id: data.checkInId });
     if (error || !res) return null;
-    const raw = res as { title: string | null; summary: WorkoutSummary | null; sets: { exerciseId: string; name: string; imageStart: string | null; logType: LogType; equipment: string; position: number; weight: number | null; unit: string; reps: number | null; seconds: number | null; isPr: boolean }[] };
+    const raw = res as { title: string | null; summary: WorkoutSummary | null; sessionId?: string; userId?: string; checkinDate?: string; sets: { exerciseId: string; name: string; imageStart: string | null; logType: LogType; equipment: string; position: number; weight: number | null; unit: string; reps: number | null; seconds: number | null; isPr: boolean }[] };
     const out: WorkoutDetail["exercises"] = [];
     for (const s of raw.sets ?? []) {
       let ex = out.find((e, i) => e.exerciseId === s.exerciseId && i === out.length - 1);
@@ -637,7 +646,22 @@ export const getWorkoutDetail = createServerFn({ method: "GET" })
       }
       ex.sets.push({ ...toSet(s), isPr: s.isPr });
     }
-    return { title: raw.title, summary: raw.summary, exercises: out };
+    const isMine = raw.userId === userId;
+    const [prof, saved] = await Promise.all([
+      profileOf(supabase as SupabaseClient, userId),
+      !isMine && raw.sessionId
+        ? supabase.from("workouts").select("id").eq("user_id", userId).eq("source_session_id", raw.sessionId).limit(1).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+    const dayLabel = raw.checkinDate ? postDayLabel(raw.checkinDate, localDateIn(prof.timezone)) : null;
+    return {
+      title: raw.title,
+      summary: raw.summary,
+      exercises: out,
+      isMine,
+      dayLabel,
+      savedWorkoutId: (saved.data?.id as string | undefined) ?? null,
+    };
   });
 
 /** "Day n" for the "Your crew will see" preview: the streak once today is checked in. */

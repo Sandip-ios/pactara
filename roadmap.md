@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Workout sharing: save a crewmate's logged workout from the feed sheet; share a saved workout by link (/w/<code>, signed in/out/owner/bad link, auto-save after signup or sign in, link previews); /w/ links count as launch deep links; app-link file lists /w/* (unpublished)
+- [ ] Shared-workout links open in the iPhone app — needs the Associated Domains capability in Xcode and a native build (steps in native-assets/ios/README.md)
+
 - [x] One light launch screen (web + native config + iOS storyboard), no fixed timers (ready or 2.5s cap, 200ms fade), PactSplash removed, start-up checks in parallel, launch routes straight to login / notification or link / goal / pact / partner / Home; warm resume untouched (unpublished)
 - [ ] Install the new iOS launch screen in Xcode and ship a native build — needs the Mac/Xcode project (files ready in native-assets/ios)
 

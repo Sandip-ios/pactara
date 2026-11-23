@@ -41,6 +41,7 @@ import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as JoinGroupIdRouteImport } from './routes/join.$groupId'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
+import { Route as WCodeRouteImport } from './routes/w.$code'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
@@ -234,6 +235,11 @@ const JoinGroupIdRoute = JoinGroupIdRouteImport.update({
 const RSlugRoute = RSlugRouteImport.update({
   id: '/r/$slug',
   path: '/r/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WCodeRoute = WCodeRouteImport.update({
+  id: '/w/$code',
+  path: '/w/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountSettingsIndexRoute =
@@ -458,6 +464,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/r/$slug': typeof RSlugRoute
+  '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -523,6 +530,7 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/r/$slug': typeof RSlugRoute
+  '/w/$code': typeof WCodeRoute
   '/admin': typeof AdminIndexRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -591,6 +599,7 @@ export interface FileRoutesById {
   '/admin/settings': typeof AdminSettingsRoute
   '/join/$groupId': typeof JoinGroupIdRoute
   '/r/$slug': typeof RSlugRoute
+  '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
@@ -659,6 +668,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/join/$groupId'
     | '/r/$slug'
+    | '/w/$code'
     | '/admin/'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -724,6 +734,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/join/$groupId'
     | '/r/$slug'
+    | '/w/$code'
     | '/admin'
     | '/account-settings/email'
     | '/account-settings/name'
@@ -791,6 +802,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/join/$groupId'
     | '/r/$slug'
+    | '/w/$code'
     | '/admin/'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
@@ -844,6 +856,7 @@ export interface RootRouteChildren {
   DotwellKnownAppleAppSiteAssociationRoute: typeof DotwellKnownAppleAppSiteAssociationRoute
   JoinGroupIdRoute: typeof JoinGroupIdRoute
   RSlugRoute: typeof RSlugRoute
+  WCodeRoute: typeof WCodeRoute
   ApiPublicHooksAutoMissRoute: typeof ApiPublicHooksAutoMissRoute
   ApiPublicHooksDailyReminderRoute: typeof ApiPublicHooksDailyReminderRoute
   ApiPublicHooksEveningReminderRoute: typeof ApiPublicHooksEveningReminderRoute
@@ -1081,6 +1094,13 @@ declare module '@tanstack/react-router' {
       path: '/r/$slug'
       fullPath: '/r/$slug'
       preLoaderRoute: typeof RSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/w/$code': {
+      id: '/w/$code'
+      path: '/w/$code'
+      fullPath: '/w/$code'
+      preLoaderRoute: typeof WCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account-settings/': {
@@ -1435,6 +1455,7 @@ const rootRouteChildren: RootRouteChildren = {
     DotwellKnownAppleAppSiteAssociationRoute,
   JoinGroupIdRoute: JoinGroupIdRoute,
   RSlugRoute: RSlugRoute,
+  WCodeRoute: WCodeRoute,
   ApiPublicHooksAutoMissRoute: ApiPublicHooksAutoMissRoute,
   ApiPublicHooksDailyReminderRoute: ApiPublicHooksDailyReminderRoute,
   ApiPublicHooksEveningReminderRoute: ApiPublicHooksEveningReminderRoute,

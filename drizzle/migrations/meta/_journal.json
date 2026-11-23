@@ -260,6 +260,13 @@
       "when": 1795399137481,
       "tag": "0036_comment_exercise_image_bg",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1795410963455,
+      "tag": "0037_workout_sharing",
+      "breakpoints": true
     }
   ]
 }

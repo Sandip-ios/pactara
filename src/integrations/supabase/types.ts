@@ -1246,6 +1246,36 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_workouts: {
+        Row: {
+          code: string
+          created_at: string
+          exercises: Json
+          id: string
+          name: string
+          owner_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          exercises?: Json
+          id?: string
+          name: string
+          owner_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          exercises?: Json
+          id?: string
+          name?: string
+          owner_id?: string
+          workout_id?: string | null
+        }
+        Relationships: []
+      }
       streak_freezes_used: {
         Row: {
           created_at: string
@@ -1591,6 +1621,9 @@ export type Database = {
           id: string
           last_done_at: string | null
           name: string
+          source_session_id: string | null
+          source_share_code: string | null
+          source_user_id: string | null
           updated_at: string
           user_id: string
         }
@@ -1600,6 +1633,9 @@ export type Database = {
           id?: string
           last_done_at?: string | null
           name: string
+          source_session_id?: string | null
+          source_share_code?: string | null
+          source_user_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1609,6 +1645,9 @@ export type Database = {
           id?: string
           last_done_at?: string | null
           name?: string
+          source_session_id?: string | null
+          source_share_code?: string | null
+          source_user_id?: string | null
           updated_at?: string
           user_id?: string
         }

@@ -50,7 +50,10 @@ export function useStartWorkout() {
       const exercises: LiveExercise[] = [];
       for (const it of workout.exercises) {
         const ex = lib.get(it.exerciseId);
-        if (ex) exercises.push(buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds }));
+        if (!ex) continue;
+        // A timed move copied from a crewmate keeps their time as the target.
+        const target = it.seconds && ex.logType === "timed" ? { sets: it.sets, repsLo: null, repsHi: null, seconds: it.seconds } : null;
+        exercises.push(buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds, target }));
       }
       begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, untracked: [], exercises });
     },

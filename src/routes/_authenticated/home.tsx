@@ -36,6 +36,7 @@ import { isNewMember as isNewAccount } from "@/lib/new-member";
 import { getPartnerState } from "@/lib/partners.functions";
 import { useServerFn as usePartnerServerFn } from "@tanstack/react-start";
 import { useQuery as usePartnerQuery } from "@tanstack/react-query";
+import { useClaimSharedWorkout } from "@/components/workout/useClaimSharedWorkout";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -86,6 +87,7 @@ export const Route = createFileRoute("/_authenticated/home")({
 
 function HomePage() {
   useStatusBarScrollToTop();
+  useClaimSharedWorkout();
   const navigate = useNavigate();
   const router = useRouter();
   // Deep link from a notification: /home?group=<id>&post=<id>[&comments=1]
