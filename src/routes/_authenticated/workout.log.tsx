@@ -414,9 +414,9 @@ function Logger({ w }: { w: ActiveWorkout }) {
               <DrawerDescription className="sr-only">Options for this exercise</DrawerDescription>
               {[
                 { label: "Replace", onClick: () => setPicker({ replace: menuEx.key }) },
-                { label: "Remove", danger: true, onClick: () => update((x) => ({ ...x, exercises: x.exercises.filter((e) => e.key !== menuEx.key) })) },
                 { label: menuEx.notes ? "Edit notes" : "Notes", onClick: () => setNotesOpen((s) => new Set(s).add(menuEx.key)) },
                 { label: "How to", onClick: () => navigate({ to: "/exercises/$exerciseId/how-to", params: { exerciseId: menuEx.exerciseId }, search: { swap: menuEx.key } }) },
+                { label: "Remove", danger: true, onClick: () => update((x) => ({ ...x, exercises: x.exercises.filter((e) => e.key !== menuEx.key) })) },
               ].map((o) => (
                 <button
                   key={o.label}

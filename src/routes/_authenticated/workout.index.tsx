@@ -332,6 +332,7 @@ function StartWorkout() {
           items={draft.items}
           onItems={updateItems}
           lib={lib}
+          initial={draft.initial}
           busy={saving}
           error={saveErr}
           onBack={() => {

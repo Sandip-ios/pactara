@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { ChevronLeft, GripVertical, Minus, Pencil, Play, Plus, Trash2 } from "lucide-react";
 import type { LibraryExercise } from "@/lib/exercise-library";
 import { EQUIPMENT_LABEL } from "@/lib/lift-rules";
-import { MAX_SETS, MIN_SETS, canSave, clampSets, draftMeta, moveItem, type DraftItem } from "@/lib/workout-builder";
+import { MAX_SETS, MIN_SETS, canSave, clampSets, draftMeta, draftSignature, moveItem, type DraftItem } from "@/lib/workout-builder";
 import { hapticLight } from "@/lib/native";
 import { ExerciseThumb, FONT, W } from "./WorkoutBits";
 
@@ -20,6 +20,7 @@ export function WorkoutBuilder({
   items,
   onItems,
   lib,
+  initial,
   busy,
   error,
   onBack,
@@ -34,6 +35,8 @@ export function WorkoutBuilder({
   items: DraftItem[];
   onItems: (fn: (items: DraftItem[]) => DraftItem[]) => void;
   lib: Map<string, LibraryExercise>;
+  /** Edit workout: what it looked like when opened (to spot unsaved changes). */
+  initial: string;
   busy: boolean;
   error: string | null;
   onBack: () => void;
@@ -44,6 +47,9 @@ export function WorkoutBuilder({
 }) {
   const ready = canSave(name, items) && !busy;
   const isEdit = mode === "edit";
+  // Nothing changed yet: "Save changes" has nothing to save.
+  const changed = !isEdit || draftSignature(name, items) !== initial;
+  const saveReady = ready && changed;
 
   // ---- Drag the grip to reorder ----
   const listRef = useRef<HTMLDivElement>(null);
@@ -256,10 +262,10 @@ export function WorkoutBuilder({
       <div className="fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-white px-4 pb-[calc(30px+env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${W.line}` }}>
         <button
           type="button"
-          disabled={!ready}
+          disabled={!saveReady}
           onClick={onSave}
           className="h-[54px] rounded-[27px] text-[17px] font-bold text-white"
-          style={{ background: ready ? W.purple : W.lilac }}
+          style={{ background: saveReady ? W.purple : W.lilac }}
         >
           {busy ? "Saving…" : isEdit ? "Save changes" : "Save workout"}
         </button>
