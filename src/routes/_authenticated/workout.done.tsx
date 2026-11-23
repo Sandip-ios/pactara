@@ -10,7 +10,7 @@ import { getMyGroupStatus } from "@/lib/groups.functions";
 import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
 import { clearFinishedWorkout, getFinishedWorkout, setWorkoutCheckIn, type FinishedWorkout } from "@/lib/active-workout";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
-import { doneKicker, fmtNum, plural, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
+import { doneKicker, fmtNum, plural, repsLabel, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
 
 export const Route = createFileRoute("/_authenticated/workout/done")({
   head: () => ({
@@ -148,7 +148,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
                 <li key={p.exerciseId} className="flex items-baseline justify-between gap-3 py-1.5 text-[15px]">
                   <span className="min-w-0 truncate font-semibold">{p.name}</span>
                   <span className="shrink-0" style={{ fontVariantNumeric: "tabular-nums" }}>
-                    {p.weight ? `${fmtNum(p.weight)} ${p.unit} × ${p.reps}` : `${p.reps} reps`}{" "}
+                    {p.weight ? `${fmtNum(p.weight)} ${p.unit} × ${p.reps}` : repsLabel(p.reps)}{" "}
                     <span className="font-bold" style={{ color: W.greenText }}>
                       {p.delta > 0 ? `+${fmtNum(p.delta)} ${p.unit}` : "+reps"}
                     </span>
@@ -210,7 +210,8 @@ function Done({ fw }: { fw: FinishedWorkout }) {
             <div className="min-w-0 flex-1">
               <div className="text-[15px] font-bold">You</div>
               <div className="truncate text-[13px]" style={{ color: W.muted }}>
-                💪 Workout · {title} · Day {preview?.dayNumber ?? 1}
+                💪 Workout · {title}
+                {preview && preview.dayNumber > 0 ? ` · Day ${preview.dayNumber}` : ""}
               </div>
             </div>
             {prs.length > 0 && (

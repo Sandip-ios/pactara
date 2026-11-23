@@ -170,3 +170,22 @@ describe("workout dates use the member's saved timezone", () => {
     expect(historyDateLabel("2026-11-21")).toEqual({ date: "Nov 21", weekday: "Sat" });
   });
 });
+
+describe("tip grammar for one set", () => {
+  const one = (weight: number, reps: number): import("@/lib/lift-rules").LastSession => ({ date: "2026-11-22", sets: [{ weight, reps, seconds: null, unit: "lb" }] });
+  it("progress page tip: one set reads 'You got 5 reps today.'", () => {
+    expect(nextTimeTip(one(35, 5), "lb")?.text).toBe("Next time: 40 lb. You got 5 reps today.");
+  });
+  it("progress page tip: three sets keep 'on all 3 sets'", () => {
+    const last = { date: "2026-11-22", sets: [10, 10, 10].map((reps) => ({ weight: 35, reps, seconds: null, unit: "lb" as const })) };
+    expect(nextTimeTip(last, "lb")?.text).toBe("Next time: 40 lb. You got 10 reps on all 3 sets today.");
+  });
+  it("logger tip never says 'all 1 sets'", () => {
+    const tip = progression({ last: one(35, 5), target: null, unit: "lb", logType: "reps", loadable: true }).tip ?? "";
+    expect(tip).not.toMatch(/all 1 sets/);
+    expect(tip).toBe("You hit 5 reps last time. Go up to 40 lb today.");
+  });
+  it("single rep is singular", () => {
+    expect(setsShort([{ weight: null, reps: 1, seconds: null, unit: "lb" }], "lb")).toBe("1 rep");
+  });
+});

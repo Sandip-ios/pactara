@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useExerciseMap, useLiftHistory } from "@/lib/exercise-library";
-import { convertWeight, fmtDurationShort, fmtNum, plural } from "@/lib/lift-rules";
+import { convertWeight, fmtDurationShort, fmtNum, plural, repsLabel } from "@/lib/lift-rules";
 import { ExerciseThumb, W } from "./WorkoutBits";
 
 const SHOW = 4;
@@ -43,7 +43,7 @@ export function ProfileLifts() {
           : h.best?.weight
             ? `Best ${fmtNum(convertWeight(h.best.weight, h.best.unit, data.unit))} ${data.unit} × ${h.best.reps ?? 0}`
             : h.best?.reps
-              ? `Best ${h.best.reps} reps`
+              ? `Best ${repsLabel(h.best.reps)}`
               : "Logged";
         return (
           <button

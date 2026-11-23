@@ -6,7 +6,7 @@ import { ChevronLeft, Trophy } from "lucide-react";
 import { FONT, W, exerciseKicker, tintFor } from "@/components/workout/WorkoutBits";
 import { getExerciseProgress } from "@/lib/lifts.functions";
 import { useExerciseMap } from "@/lib/exercise-library";
-import { bestOf, convertWeight, historyDateLabel, fmtDurationShort, fmtNum, nextTimeTip, plural, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
+import { bestOf, convertWeight, historyDateLabel, fmtDurationShort, fmtNum, nextTimeTip, plural, repsLabel, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
 
 export const Route = createFileRoute("/_authenticated/exercises/$exerciseId")({
   head: () => ({
@@ -145,7 +145,7 @@ function ExerciseProgressPage() {
 
 function setText(s: SetEntry, unit: WeightUnit, timed: boolean) {
   if (timed) return fmtDurationShort(s.seconds ?? 0);
-  if (!s.weight) return `${s.reps ?? 0} reps`;
+  if (!s.weight) return repsLabel(s.reps ?? 0);
   return `${fmtNum(convertWeight(s.weight, s.unit, unit))} × ${s.reps ?? 0}`;
 }
 

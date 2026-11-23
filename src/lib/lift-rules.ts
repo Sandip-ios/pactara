@@ -200,6 +200,13 @@ export type Progression = {
 
 const joinReps = (xs: (number | string)[]) => xs.join(", ");
 
+/** "10 reps" / "1 rep". */
+export const repsLabel = (n: number) => `${n} ${n === 1 ? "rep" : "reps"}`;
+/** " on all 3 sets", or nothing for a single set (never "all 1 sets"). */
+const onAllSets = (n: number) => (n > 1 ? ` on all ${n} sets` : "");
+/** "10 on all 3 sets" / "10 reps" for one set. */
+const goalPhrase = (top: number, n: number) => (n > 1 ? `${top}${onAllSets(n)}` : repsLabel(top));
+
 /**
  * The rep goal when there's no plan range: the rep count you did most often
  * (ties go to the higher one). 10, 10, 8 → 10; 10, 10, 11 → 10.
@@ -253,7 +260,7 @@ export function progression(input: {
     return {
       tip: allTop
         ? `Last time you hit ${joinReps(reps)}. Add a rep or two today.`
-        : `Last time you hit ${joinReps(reps)}. Get ${top} on all ${n} sets.`,
+        : `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)}.`,
       nextWeight: null,
       allTop,
     };
@@ -261,13 +268,13 @@ export function progression(input: {
   if (allTop) {
     const next = lastWeight + weightStep(unit);
     return {
-      tip: `You hit ${top} on all ${n} sets last time. Go up to ${fmtWeight(next, unit)} today.`,
+      tip: `You hit ${goalPhrase(top, n)} last time. Go up to ${fmtWeight(next, unit)} today.`,
       nextWeight: next,
       allTop,
     };
   }
   return {
-    tip: `Last time you hit ${joinReps(reps)}. Get ${top} on all ${n} sets and go up to ${fmtWeight(lastWeight + weightStep(unit), unit)} next time.`,
+    tip: `Last time you hit ${joinReps(reps)}. Get ${goalPhrase(top, n)} and go up to ${fmtWeight(lastWeight + weightStep(unit), unit)} next time.`,
     nextWeight: lastWeight,
     allTop,
   };
@@ -314,9 +321,9 @@ export function nextTimeTip(last: LastSession | null, unit: WeightUnit): { text:
   const top = repGoal(reps);
   if (p.nextWeight == null) return null;
   if (p.allTop) {
-    return { text: `Next time: ${fmtWeight(p.nextWeight, unit)}. You got ${top} reps on all ${reps.length} sets today.`, weight: p.nextWeight };
+    return { text: `Next time: ${fmtWeight(p.nextWeight, unit)}. You got ${repsLabel(top)}${onAllSets(reps.length)} today.`, weight: p.nextWeight };
   }
-  return { text: `Next time: stay at ${fmtWeight(p.nextWeight, unit)}. Aim for ${top} reps on all ${reps.length} sets.`, weight: p.nextWeight };
+  return { text: `Next time: stay at ${fmtWeight(p.nextWeight, unit)}. Aim for ${repsLabel(top)}${onAllSets(reps.length)}.`, weight: p.nextWeight };
 }
 
 // ---------- Labels ----------
@@ -342,7 +349,7 @@ export function setsShort(sets: readonly SetEntry[], unit: WeightUnit, logType: 
   if (logType === "timed") return sets.map((s) => fmtDurationShort(s.seconds ?? 0)).join(", ");
   const ws = sets.map((s) => (s.weight == null || s.weight <= 0 ? 0 : convertWeight(s.weight, s.unit, unit)));
   const reps = sets.map((s) => s.reps ?? 0);
-  if (ws.every((w) => w === 0)) return `${joinReps(reps)} reps`;
+  if (ws.every((w) => w === 0)) return reps.length === 1 ? repsLabel(reps[0]!) : `${joinReps(reps)} reps`;
   if (ws.every((w) => w === ws[0])) return `${fmtWeight(ws[0]!, unit)} × ${joinReps(reps)}`;
   return sets.map((_, i) => `${fmtNum(ws[i]!)} × ${reps[i]}`).join(", ");
 }
@@ -353,7 +360,7 @@ export function lastSetLabel(last: LastSession | null, unit: WeightUnit, logType
   if (logType === "timed") return `Last: ${fmtDurationShort(Math.max(...last.sets.map((s) => s.seconds ?? 0)))}`;
   const top = bestOf(last.sets);
   if (!top) return "Never done";
-  if (!top.weight) return `Last: ${top.reps} reps`;
+  if (!top.weight) return `Last: ${repsLabel(top.reps)}`;
   return `Last: ${fmtWeight(convertWeight(top.weight, top.unit, unit), unit)} × ${top.reps}`;
 }
 

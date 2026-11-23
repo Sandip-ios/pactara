@@ -5,7 +5,7 @@ import { Dumbbell, Trophy } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { getWorkoutDetail } from "@/lib/lifts.functions";
 import type { FeedWorkout } from "@/lib/daily-posts.functions";
-import { convertWeight, fmtDurationShort, fmtNum, summaryLine, type WeightUnit } from "@/lib/lift-rules";
+import { convertWeight, fmtDurationShort, fmtNum, repsLabel, summaryLine, type WeightUnit } from "@/lib/lift-rules";
 import { ExerciseThumb, FONT, W } from "./WorkoutBits";
 
 /** Under the media on a logged-workout post; opens the read-only workout. */
@@ -75,7 +75,7 @@ function WorkoutDetailSheet({ checkInId, title, onClose }: { checkInId: string; 
                             ? fmtDurationShort(s.seconds ?? 0)
                             : s.weight
                               ? `${fmtNum(convertWeight(s.weight, s.unit, unit))} × ${s.reps ?? 0}`
-                              : `${s.reps ?? 0} reps`}
+                              : repsLabel(s.reps ?? 0)}
                           {s.isPr ? " 🏆" : ""}
                         </span>
                       ))}

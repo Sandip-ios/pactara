@@ -513,7 +513,7 @@ async function workoutsForCheckIns(supabase: SupabaseClient, checkInIds: string[
       exercises: s.exercises ?? 0,
       sets: s.sets ?? 0,
       minutes: s.minutes ?? 0,
-      pr: first ? `${first.name} ${first.weight ? `${first.weight} ${first.unit}` : `${first.reps} reps`}` : null,
+      pr: first ? `${first.name} ${first.weight ? `${first.weight} ${first.unit}` : `${first.reps} ${first.reps === 1 ? "rep" : "reps"}`}` : null,
       prCount: s.prs?.length ?? 0,
     });
   }

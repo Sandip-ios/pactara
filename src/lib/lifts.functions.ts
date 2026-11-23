@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { localDateIn, currentStreak } from "@/lib/streak-rules";
+import { localDateIn } from "@/lib/streak-rules";
+import { feedDayNumber } from "@/lib/feed-view";
 import {
   bestOf,
   convertWeight,
@@ -584,6 +585,7 @@ export const getPostPreviewDay = createServerFn({ method: "GET" })
       supabase.from("check_ins").select("checkin_date").eq("user_id", userId).eq("group_id", groupId).lte("checkin_date", today).order("checkin_date", { ascending: false }).limit(400),
       supabase.from("streak_freezes_used").select("freeze_date").eq("user_id", userId).eq("group_id", groupId).lte("freeze_date", today).limit(400),
     ]);
-    const kept = new Set<string>([...(ci ?? []).map((r) => r.checkin_date as string), ...(fr ?? []).map((r) => r.freeze_date as string), today]);
-    return { dayNumber: currentStreak(kept, today) };
+    // Same Day N the feed will print on today's post (the check-in lands today).
+    const checkIns = [...(ci ?? []).map((r) => r.checkin_date as string), today];
+    return { dayNumber: feedDayNumber(checkIns, (fr ?? []).map((r) => r.freeze_date as string), today) };
   });
