@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronRight, Link as LinkIcon, MoreHorizontal, Plus } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Link as LinkIcon, MoreHorizontal, Plus } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { CrewAvatarStack } from "@/components/groups/CrewAvatarStack";
-import { CrewOptionsSheet, type CrewOptionsCrew } from "@/components/groups/GroupOverflowMenu";
+import { useCrewOptions, type CrewOptionsCrew } from "@/components/groups/GroupOverflowMenu";
 import { PendingInvitesRow } from "@/components/groups/PendingInvitesRow";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
@@ -17,9 +17,13 @@ const MUTED = "#78716C";
 const PURPLE = "#7C3AED";
 const DIVIDER = "#F0EDE9";
 
+type Step = "list" | "options";
+
 /**
- * Home's crew switcher: every crew with who's in today, the ••• crew sheet,
- * and the ways to start or join another crew.
+ * Home's crew switcher: every crew with who's in today and the ways to start
+ * or join another crew. A crew's ••• pushes its options in as a second step
+ * of this same sheet, with a "Your crews" back row; swiping down or tapping
+ * the backdrop closes the whole sheet. Confirm sheets open on top of it.
  */
 export function YourCrewsSheet({
   open,
@@ -42,8 +46,27 @@ export function YourCrewsSheet({
   });
   const [joinOpen, setJoinOpen] = useState(false);
   const [joinText, setJoinText] = useState("");
-  const [options, setOptions] = useState<CrewOptionsCrew | null>(null);
-  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [step, setStep] = useState<Step>("list");
+  const [optionsId, setOptionsId] = useState<string | null>(null);
+  // The panel sliding out while the next one slides in.
+  const [outgoing, setOutgoing] = useState<{ step: Step; dir: "push" | "back" } | null>(null);
+  const outTimer = useRef<number | undefined>(undefined);
+
+  // Every open starts on the list.
+  useLayoutEffect(() => {
+    if (!open) return;
+    window.clearTimeout(outTimer.current);
+    setStep("list");
+    setOutgoing(null);
+  }, [open]);
+
+  const go = (next: Step, dir: "push" | "back") => {
+    if (next === step) return;
+    window.clearTimeout(outTimer.current);
+    setOutgoing({ step, dir });
+    setStep(next);
+    outTimer.current = window.setTimeout(() => setOutgoing(null), 300);
+  };
 
   const groups = data?.groups ?? [];
   const waiting = crewsStillToShowUp(groups);
@@ -62,6 +85,24 @@ export function YourCrewsSheet({
       .map((m) => ({ id: m.userId, name: m.firstName, avatarColor: m.avatarColor, avatarUrl: m.avatarUrl })),
   });
 
+  // Read the crew live so a rename or rule change shows right away.
+  const optionsGroup = optionsId ? groups.find((g) => g.id === optionsId) ?? null : null;
+  const optionsCrew = optionsGroup
+    ? (() => {
+        const rel = relationForGroup(optionsGroup.id, partnerState);
+        return toOptionsCrew(optionsGroup, rel?.name ?? optionsGroup.name, rel?.emoji ?? optionsGroup.emoji);
+      })()
+    : null;
+  // Keep the last crew after it's left or deleted, so its confirm sheet can
+  // finish closing and its options can slide out.
+  const lastCrew = useRef<CrewOptionsCrew | null>(null);
+  if (optionsCrew) lastCrew.current = optionsCrew;
+  else if (optionsId && lastCrew.current?.id !== optionsId) lastCrew.current = null;
+  const { body: optionsBody, dialogs } = useCrewOptions(optionsCrew ?? lastCrew.current, {
+    // Left or deleted: that crew's options no longer exist, back to the list.
+    onGone: () => go("list", "back"),
+  });
+
   const join = () => {
     const id = inviteIdFromInput(joinText);
     if (!id) return;
@@ -69,23 +110,30 @@ export function YourCrewsSheet({
     void navigate({ to: "/join/$groupId", params: { groupId: id } });
   };
 
-  return (
-    <>
-      <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent
-          className="rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
-          style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}
+  const renderStep = (which: Step) =>
+    which === "options" ? (
+      <div className="flex max-h-[84dvh] flex-col gap-3 overflow-y-auto px-4 pt-1 pb-1">
+        <button
+          type="button"
+          onClick={() => go("list", "back")}
+          className="-ml-1 flex min-h-[44px] items-center gap-1 self-start pr-3 text-[15px] font-bold"
+          style={{ color: "#6D28D9" }}
         >
-          <div className="flex max-h-[84dvh] flex-col gap-4 overflow-y-auto px-4 pt-3">
+          <ChevronLeft size={20} strokeWidth={2.5} aria-hidden />
+          Your crews
+        </button>
+        {optionsBody}
+      </div>
+    ) : (
+      <div className="flex max-h-[84dvh] flex-col gap-4 overflow-y-auto px-4 pt-3">
             <div className="flex items-baseline justify-between gap-3">
-              <DrawerTitle className="text-[20px] font-extrabold leading-tight">Your crews</DrawerTitle>
+              <h2 className="text-[20px] font-extrabold leading-tight">Your crews</h2>
               {waiting > 0 && (
                 <span className="shrink-0 text-[13px] font-bold" style={{ color: "#C2410C" }}>
                   {waiting} still to show up today
                 </span>
               )}
             </div>
-            <DrawerDescription className="sr-only">Switch crews, manage a crew, or start or join another one.</DrawerDescription>
 
             {isLoading && !data ? (
               <div className="overflow-hidden rounded-[16px]" style={{ border: `1.5px solid ${DIVIDER}` }} aria-label="Loading crews">
@@ -140,9 +188,8 @@ export function YourCrewsSheet({
                         type="button"
                         aria-label={`${name} options`}
                         onClick={() => {
-                          setOptions(toOptionsCrew(g, name, emoji));
-                          onOpenChange(false);
-                          setOptionsOpen(true);
+                          setOptionsId(g.id);
+                          go("options", "push");
                         }}
                         className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
                         style={{ color: "#57534E" }}
@@ -201,18 +248,36 @@ export function YourCrewsSheet({
             <div className="-mx-4 -mt-4 pb-1">
               <PendingInvitesRow joinedIds={groups.map((g) => g.id)} />
             </div>
+                </div>
+    );
+
+  return (
+    <>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent
+          className="rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}
+        >
+          <DrawerTitle className="sr-only">Your crews</DrawerTitle>
+          <DrawerDescription className="sr-only">Switch crews, manage a crew, or start or join another one.</DrawerDescription>
+          <div className="relative overflow-hidden">
+            <div key={step} className={outgoing ? (outgoing.dir === "push" ? "crew-step-in-push" : "crew-step-in-back") : undefined}>
+              {renderStep(step)}
+            </div>
+            {outgoing && (
+              <div
+                key={`out-${outgoing.step}`}
+                aria-hidden
+                className={`pointer-events-none absolute inset-x-0 top-0 ${outgoing.dir === "push" ? "crew-step-out-push" : "crew-step-out-back"}`}
+              >
+                {renderStep(outgoing.step)}
+              </div>
+            )}
           </div>
         </DrawerContent>
       </Drawer>
 
-      {options && (
-        <CrewOptionsSheet
-          open={optionsOpen}
-          crew={options}
-          onClose={() => setOptionsOpen(false)}
-          onCancel={() => onOpenChange(true)}
-        />
-      )}
+      {dialogs}
     </>
   );
 }

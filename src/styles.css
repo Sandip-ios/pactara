@@ -323,3 +323,16 @@ body [class*="min-h-[100dvh]"] {
   --font-cr-display: "Bricolage Grotesque", system-ui, sans-serif;
   --font-cr-mono: "JetBrains Mono", ui-monospace, monospace;
 }
+
+/* Your crews sheet: push to a crew's options and back. */
+@keyframes crew-step-in-right { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes crew-step-out-left { from { transform: translateX(0); } to { transform: translateX(-30%); opacity: 0; } }
+@keyframes crew-step-in-left { from { transform: translateX(-30%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes crew-step-out-right { from { transform: translateX(0); } to { transform: translateX(100%); } }
+.crew-step-in-push { animation: crew-step-in-right 280ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.crew-step-out-push { animation: crew-step-out-left 280ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.crew-step-in-back { animation: crew-step-in-left 280ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+.crew-step-out-back { animation: crew-step-out-right 280ms cubic-bezier(0.32, 0.72, 0, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .crew-step-in-push, .crew-step-out-push, .crew-step-in-back, .crew-step-out-back { animation-duration: 1ms; }
+}

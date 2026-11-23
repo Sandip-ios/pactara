@@ -64,25 +64,13 @@ export function crewOptionsSubtitle(c: Pick<CrewOptionsCrew, "memberCount" | "fr
 }
 
 /**
- * The ••• sheet for one crew (a bottom sheet, never a dropdown): invite,
- * settings, and Delete crew (creator) or Leave crew (everyone else). Owns the
- * sheets those rows open, so keep it mounted while they're showing.
- * `onCancel` = closed without picking anything (Cancel, drag down, tap out).
+ * One crew's options (invite, settings, Delete crew for the creator or Leave
+ * crew for everyone else) as a body plus the sheets its rows open. The body
+ * goes inside whatever sheet hosts it (the Your crews second step, or the
+ * crew page's own sheet); render `dialogs` OUTSIDE that sheet so they open on
+ * top of it and closing them ("Stay", Cancel) returns to the options.
  */
-export function CrewOptionsSheet({
-  open,
-  crew,
-  onClose,
-  onCancel,
-  onGone,
-}: {
-  open: boolean;
-  crew: CrewOptionsCrew;
-  onClose: () => void;
-  onCancel?: () => void;
-  /** After the crew was deleted or left. */
-  onGone?: () => void;
-}) {
+export function useCrewOptions(crew: CrewOptionsCrew | null, { onGone }: { onGone?: () => void } = {}) {
   const queryClient = useQueryClient();
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
@@ -96,6 +84,8 @@ export function CrewOptionsSheet({
   const [leaving, setLeaving] = useState(false);
   const [leaveErr, setLeaveErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  if (!crew) return { body: null, dialogs: null };
 
   const groupId = crew.id;
   const groupName = crew.name;
@@ -143,99 +133,68 @@ export function CrewOptionsSheet({
     setShareOpen(true);
   };
 
-  /** Close the ••• sheet, then open what the row leads to. */
-  const then = (fn: () => void) => () => {
-    onClose();
-    fn();
-  };
+  const body = (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-3">
+        <CrewAvatarStack members={crew.others} emoji={crew.emoji} />
+        <span className="flex min-w-0 flex-col">
+          <h2 className="truncate text-[18px] font-extrabold leading-tight" style={{ color: INK }}>
+            {crew.emoji} {groupName}
+          </h2>
+          <span className="text-[13px]" style={{ color: MUTED }}>
+            {crewOptionsSubtitle(crew)}
+          </span>
+        </span>
+      </div>
 
-  return (
+      <OptionGroup label="INVITE">
+        <OptionRow
+          icon={copied ? <Check size={19} /> : <Copy size={19} />}
+          label={copied ? "Copied!" : "Copy invite link"}
+          onClick={() => void handleCopy()}
+        />
+        <OptionRow icon={<UserPlus size={19} />} label="Invite from contacts" onClick={() => void handleInvite()} />
+        <OptionRow icon={<QrCode size={19} />} label="Show QR code" onClick={() => setQrOpen(true)} />
+      </OptionGroup>
+
+      <OptionGroup label="SETTINGS">
+        <OptionRow icon={<Target size={19} />} label="Edit my goal" onClick={() => setGoalOpen(true)} />
+        {crew.isAdmin && (
+          <>
+            <OptionRow icon={<Pencil size={19} />} label="Rename crew" onClick={() => setRenameOpen(true)} />
+            <OptionRow icon={<SlidersHorizontal size={19} />} label="Edit crew rules" onClick={() => setCommitmentOpen(true)} />
+          </>
+        )}
+      </OptionGroup>
+
+      <OptionGroup>
+        {crew.isAdmin ? (
+          <OptionRow
+            icon={<Trash2 size={19} />}
+            label="Delete crew"
+            danger
+            onClick={() => {
+              setDeleteErr(null);
+              setDeleteOpen(true);
+            }}
+          />
+        ) : (
+          <OptionRow
+            icon={<LogOut size={19} />}
+            label="Leave crew"
+            danger
+            onClick={() => {
+              setLeaveErr(null);
+              setLeaveOpen(true);
+            }}
+          />
+        )}
+      </OptionGroup>
+    </div>
+  );
+
+  const dialogs = (
     <>
-      <Drawer
-        open={open}
-        onOpenChange={(o) => {
-          if (!o) {
-            onClose();
-            onCancel?.();
-          }
-        }}
-      >
-        <DrawerContent
-          className="rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
-          style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}
-        >
-          <div className="flex max-h-[82dvh] flex-col gap-4 overflow-y-auto px-4 pt-3">
-            <div className="flex items-center gap-3">
-              <CrewAvatarStack members={crew.others} emoji={crew.emoji} />
-              <span className="flex min-w-0 flex-col">
-                <DrawerTitle className="truncate text-[18px] font-extrabold leading-tight">
-                  {crew.emoji} {groupName}
-                </DrawerTitle>
-                <DrawerDescription className="text-[13px]" style={{ color: MUTED }}>
-                  {crewOptionsSubtitle(crew)}
-                </DrawerDescription>
-              </span>
-            </div>
-
-            <OptionGroup label="INVITE">
-              <OptionRow
-                icon={copied ? <Check size={19} /> : <Copy size={19} />}
-                label={copied ? "Copied!" : "Copy invite link"}
-                onClick={() => void handleCopy()}
-              />
-              <OptionRow icon={<UserPlus size={19} />} label="Invite from contacts" onClick={then(() => void handleInvite())} />
-              <OptionRow icon={<QrCode size={19} />} label="Show QR code" onClick={then(() => setQrOpen(true))} />
-            </OptionGroup>
-
-            <OptionGroup label="SETTINGS">
-              <OptionRow icon={<Target size={19} />} label="Edit my goal" onClick={then(() => setGoalOpen(true))} />
-              {crew.isAdmin && (
-                <>
-                  <OptionRow icon={<Pencil size={19} />} label="Rename crew" onClick={then(() => setRenameOpen(true))} />
-                  <OptionRow icon={<SlidersHorizontal size={19} />} label="Edit crew rules" onClick={then(() => setCommitmentOpen(true))} />
-                </>
-              )}
-            </OptionGroup>
-
-            <OptionGroup>
-              {crew.isAdmin ? (
-                <OptionRow
-                  icon={<Trash2 size={19} />}
-                  label="Delete crew"
-                  danger
-                  onClick={then(() => {
-                    setDeleteErr(null);
-                    setDeleteOpen(true);
-                  })}
-                />
-              ) : (
-                <OptionRow
-                  icon={<LogOut size={19} />}
-                  label="Leave crew"
-                  danger
-                  onClick={then(() => {
-                    setLeaveErr(null);
-                    setLeaveOpen(true);
-                  })}
-                />
-              )}
-            </OptionGroup>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onCancel?.();
-              }}
-              className="mb-1 h-[52px] shrink-0 rounded-[26px] bg-white text-[16px] font-bold"
-              style={{ border: "1.5px solid #E7E3DE", color: INK }}
-            >
-              Cancel
-            </button>
-          </div>
-        </DrawerContent>
-      </Drawer>
-
       <RenameGroupDrawer
         open={renameOpen}
         onOpenChange={setRenameOpen}
@@ -370,9 +329,14 @@ export function CrewOptionsSheet({
       </Drawer>
     </>
   );
+
+  return { body, dialogs };
 }
 
-/** The ••• button on the crew page, opening the same crew sheet. */
+/**
+ * The ••• button on the crew page: the same crew options in their own sheet
+ * (with Cancel, since there's no list to go back to).
+ */
 export function GroupOverflowMenu({
   crew,
   tone = "onPurple",
@@ -383,6 +347,12 @@ export function GroupOverflowMenu({
   onDeleted?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const { body, dialogs } = useCrewOptions(crew, {
+    onGone: () => {
+      setOpen(false);
+      onDeleted?.();
+    },
+  });
   return (
     <>
       <button
@@ -398,7 +368,27 @@ export function GroupOverflowMenu({
       >
         <MoreHorizontal size={18} />
       </button>
-      <CrewOptionsSheet open={open} crew={crew} onClose={() => setOpen(false)} onGone={onDeleted} />
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerContent
+          className="rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}
+        >
+          <DrawerTitle className="sr-only">{crew.name} options</DrawerTitle>
+          <DrawerDescription className="sr-only">Invite people, change settings, or leave or delete this crew.</DrawerDescription>
+          <div className="flex max-h-[82dvh] flex-col gap-4 overflow-y-auto px-4 pt-3">
+            {body}
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="mb-1 h-[52px] shrink-0 rounded-[26px] bg-white text-[16px] font-bold"
+              style={{ border: "1.5px solid #E7E3DE", color: INK }}
+            >
+              Cancel
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
+      {dialogs}
     </>
   );
 }
