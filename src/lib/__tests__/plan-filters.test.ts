@@ -9,6 +9,8 @@ import {
   levelTags,
   minutesBucket,
   optionCount,
+  readFilterParam,
+  toFilterParam,
   showPlansLabel,
   sortForDiscover,
   tileCount,
@@ -135,5 +137,22 @@ describe("crew note for the Days a week filter", () => {
     expect(crewDaysNote(["5"], [5])).toBeNull();
     expect(crewDaysNote([], [5])).toBeNull();
     expect(crewDaysNote(["3"], [])).toBeNull();
+  });
+});
+
+describe("discover filters in the link", () => {
+  it("one day goes in as a plain number (?days=3), several as a comma list", () => {
+    expect(toFilterParam(["3"])).toBe(3);
+    expect(toFilterParam(["3", "5"])).toBe("3,5");
+    expect(toFilterParam(["none", "gym"])).toBe("none,gym");
+    expect(toFilterParam([])).toBeUndefined();
+  });
+
+  it("old links with a quoted day (?days=%223%22) still read as 3 days", () => {
+    expect(readFilterParam("3")).toBe(3);
+    expect(readFilterParam('"3"')).toBe(3);
+    expect(readFilterParam(3)).toBe(3);
+    expect(readFilterParam("3,4")).toBe("3,4");
+    expect(readFilterParam("")).toBeUndefined();
   });
 });

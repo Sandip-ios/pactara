@@ -186,3 +186,19 @@ export function coverThumb(url: string | null, px = 252): string | null {
     return url;
   }
 }
+
+/** A single whole number ("3" or 3) goes in the URL as ?days=3; a quoted "3" would show up as ?days=%223%22. */
+const asUrlValue = (s: string): string | number => (/^\d+$/.test(s) ? Number(s) : s);
+
+/** Ticked values to their URL form: one number stays a number, several are a comma list, none is left out. */
+export function toFilterParam(values: string[]): string | number | undefined {
+  return values.length ? asUrlValue(values.join(",")) : undefined;
+}
+
+/** URL value back to the same form; old links with quoted numbers (?days=%223%22) read as ?days=3. */
+export function readFilterParam(v: unknown): string | number | undefined {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v !== "string") return undefined;
+  const s = v.replace(/^"+|"+$/g, "").trim();
+  return s ? asUrlValue(s) : undefined;
+}

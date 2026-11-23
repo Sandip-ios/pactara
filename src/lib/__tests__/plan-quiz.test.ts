@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  browseFilters,
   EQUIPMENT_OPTIONS,
   EXPERIENCE_OPTIONS,
   QUIZ_GOALS,
@@ -128,7 +129,7 @@ describe("find your plan: wording", () => {
     expect(differenceLine(plan("home-no-equipment"), loseFatNew)).toBe("Built for getting moving again instead");
     expect(differenceLine(plan("lose-fat"), loseFatNew)).toBe("Needs light dumbbells or water bottles");
     expect(differenceLine(plan("kettlebell-burn"), loseFatNew)).toBe("Needs one kettlebell");
-    expect(differenceLine(plan("bodyweight-strength"), { ...strongerGym, experience: "new" })).toBe("Made for intermediate level");
+    expect(differenceLine(plan("bodyweight-strength"), { ...strongerGym, experience: "new" })).toBe("Made for people who train regularly");
     expect(differenceLine(plan("twenty-minute-burn"), loseFatNew)).toBe("3 days a week instead of 5");
     expect(differenceLine(plan("strength-foundations"), strongerGym)).toBeNull();
   });
@@ -153,5 +154,33 @@ describe("find your plan: browse with my answers", () => {
     expect(quizToFilters(loseFatNew).level).toEqual(["total-beginner", "beginner"]);
     const shown = filterPlans(CATALOG, quizToFilters(strongerGym)).map((p) => p.slug);
     expect(shown).toEqual(["strength-foundations"]);
+  });
+
+  it("keeps all four filters when they show a plan", () => {
+    expect(browseFilters(CATALOG, strongerGym)).toEqual(quizToFilters(strongerGym));
+  });
+
+  it("Lose fat + new + no equipment + 5 days drops only Days → 20-Minute Burn", () => {
+    const f = browseFilters(CATALOG, loseFatNew);
+    expect(f.days).toEqual([]);
+    expect(f.level).toEqual(["total-beginner", "beginner"]);
+    expect(f.equipment).toEqual(["none"]);
+    expect(filterPlans(CATALOG, f).map((p) => p.slug)).toEqual(["twenty-minute-burn"]);
+  });
+
+  it("Glutes + new + no equipment + 3 days drops Days, Level and Equipment, keeps Goal → all 3 glute plans", () => {
+    const f = browseFilters(CATALOG, { goal: "glutes", experience: "new", equipment: ["none"], days: 3 });
+    expect(f).toEqual({ goal: ["glutes"], equipment: [], level: [], days: [], minutes: [] });
+    expect(filterPlans(CATALOG, f).map((p) => p.slug)).toEqual(["glute-builder", "glutes-at-home", "gym-glutes"]);
+  });
+
+  it("never lands on 0 plans for any answer combination", () => {
+    for (const g of QUIZ_GOALS)
+      for (const e of EXPERIENCE_OPTIONS)
+        for (const q of EQUIPMENT_OPTIONS)
+          for (const days of [3, 4, 5]) {
+            const a: QuizAnswers = { goal: g.goal, experience: e.value, equipment: [q.value], days };
+            expect(filterPlans(CATALOG, browseFilters(CATALOG, a)).length).toBeGreaterThan(0);
+          }
   });
 });

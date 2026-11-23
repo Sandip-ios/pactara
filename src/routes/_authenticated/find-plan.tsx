@@ -6,7 +6,7 @@ import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
-import { coverThumb } from "@/lib/plan-filters";
+import { coverThumb, toFilterParam } from "@/lib/plan-filters";
 import {
   EQUIPMENT_OPTIONS,
   EXPERIENCE_OPTIONS,
@@ -19,14 +19,14 @@ import {
   parseQuizDays,
   parseQuizGoal,
   presetDays,
-  quizToFilters,
+  browseFilters,
   type QuizAnswers,
 } from "@/lib/plan-quiz";
 import type { EquipmentKey, Plan, PlanGoal } from "@/lib/workout-plans";
 import { GOAL_TILE, P, usePlans } from "@/components/plans/PlanBits";
 import { MemberAvatar } from "@/components/groups/AccountabilityBits";
 
-type QuizSearch = { step?: number; goal?: string; exp?: string; gear?: string; days?: string };
+type QuizSearch = { step?: number; goal?: string; exp?: string; gear?: string; days?: number };
 
 export const Route = createFileRoute("/_authenticated/find-plan")({
   // Answers live in the URL so going back from a plan page lands on the same results.
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/find-plan")({
       goal: parseQuizGoal(s.goal),
       exp: parseExperience(s.exp),
       gear: parseEquipment(s.gear).join(",") || undefined,
-      days: parseQuizDays(s.days)?.toString(),
+      days: parseQuizDays(s.days),
     };
   },
   head: () => ({
@@ -96,7 +96,7 @@ function FindPlanPage() {
   }, [step, scrollRef]);
 
   const go = (next: QuizSearch) =>
-    navigate({ to: "/find-plan", search: (prev) => ({ ...prev, ...next }), replace: true, resetScroll: false });
+    navigate({ to: "/find-plan", search: { ...search, ...next }, replace: true, resetScroll: false });
   const close = () => {
     if (canGoBack) router.history.back();
     else void navigate({ to: "/groups" });
@@ -129,7 +129,7 @@ function FindPlanPage() {
               <DaysStep
                 initial={days}
                 crew={groupsData ? crew : undefined}
-                onContinue={(d) => go({ days: String(d), step: 5 })}
+                onContinue={(d) => go({ days: d, step: 5 })}
               />
             )}
           </>
@@ -141,10 +141,16 @@ function FindPlanPage() {
             onClose={close}
             onOpen={(slug) => navigate({ to: "/plans/$slug", params: { slug } })}
             onBrowse={() => {
-              const f = quizToFilters(answers);
+              const f = browseFilters(plans, answers);
               void navigate({
                 to: "/groups",
-                search: { goal: f.goal.join(","), equipment: f.equipment.join(","), level: f.level.join(","), days: f.days.join(","), list: "1" },
+                search: {
+                  goal: toFilterParam(f.goal),
+                  equipment: toFilterParam(f.equipment),
+                  level: toFilterParam(f.level),
+                  days: toFilterParam(f.days),
+                  list: 1,
+                },
               });
             }}
           />

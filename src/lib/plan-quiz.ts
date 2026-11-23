@@ -2,7 +2,7 @@
  * "Find your plan" quiz: answer options, deterministic plan matching and the
  * wording on the results screen (pure, published plans in sort_order).
  */
-import { NO_FILTERS, type PlanFilters } from "@/lib/plan-filters";
+import { NO_FILTERS, filterPlans, type FilterablePlan, type PlanFilters } from "@/lib/plan-filters";
 import { EQUIPMENT_LABEL, goalLabel, type EquipmentKey, type Plan, type PlanGoal } from "@/lib/workout-plans";
 
 export type Experience = "new" | "some" | "regular";
@@ -99,7 +99,7 @@ const LEVEL_FOR: Record<string, string> = {
   "total beginner": "total beginners",
   beginner: "beginners",
   "beginner intermediate": "beginner to intermediate",
-  intermediate: "intermediate level",
+  intermediate: "people who train regularly",
 };
 
 function levelPill(level: string, exp: Experience): string {
@@ -206,4 +206,18 @@ export function quizToFilters(a: QuizAnswers): PlanFilters {
     level: LEVEL_FILTER[a.experience],
     days: [String(a.days)],
   };
+}
+
+/**
+ * The filters "Browse all plans with my answers" applies: all four when they
+ * show a plan, else drop Days, then Level, then Equipment until one shows.
+ * Goal always stays (every quiz goal has published plans).
+ */
+export function browseFilters(plans: FilterablePlan[], a: QuizAnswers): PlanFilters {
+  let f = quizToFilters(a);
+  for (const drop of ["days", "level", "equipment"] as const) {
+    if (filterPlans(plans, f).length > 0) return f;
+    f = { ...f, [drop]: [] };
+  }
+  return f;
 }

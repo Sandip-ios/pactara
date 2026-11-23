@@ -3,17 +3,16 @@ import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PlansDiscover } from "@/components/plans/PlansDiscover";
-import { FILTER_KEYS, cleanFilter, type FilterKey, type PlanFilters } from "@/lib/plan-filters";
+import { FILTER_KEYS, cleanFilter, readFilterParam, toFilterParam, type FilterKey, type PlanFilters } from "@/lib/plan-filters";
 
 type DiscoverSearch = {
   invite?: string;
   tab?: "plans" | "crews";
   complete?: string;
   /** "1": open scrolled to All plans (from the quiz's "Browse all plans with my answers"). */
-  list?: string;
-} & Partial<Record<FilterKey, string>>;
-
-const listParam = (v: unknown) => (typeof v === "number" ? String(v) : typeof v === "string" && v ? v : undefined);
+  list?: string | number;
+  /** Comma lists; a single number stays a number so the URL reads ?days=3, not ?days=%223%22. */
+} & Partial<Record<FilterKey, string | number>>;
 
 /**
  * Discover = workout plans only. Crews live on Home ("Your crews"); old
@@ -26,12 +25,12 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     invite: typeof s.invite === "string" && s.invite ? s.invite : undefined,
     tab: s.tab === "crews" || s.tab === "plans" ? s.tab : undefined,
     complete: typeof s.complete === "string" && s.complete ? s.complete : undefined,
-    list: listParam(s.list),
-    days: listParam(s.days),
-    minutes: listParam(s.minutes),
-    equipment: listParam(s.equipment),
-    level: listParam(s.level),
-    goal: listParam(s.goal),
+    list: readFilterParam(s.list),
+    days: readFilterParam(s.days),
+    minutes: readFilterParam(s.minutes),
+    equipment: readFilterParam(s.equipment),
+    level: readFilterParam(s.level),
+    goal: readFilterParam(s.goal),
   }),
   beforeLoad: ({ search }) => {
     if (search.invite) throw redirect({ href: `/home?invite=${encodeURIComponent(search.invite)}`, replace: true });
@@ -57,7 +56,7 @@ function DiscoverPage() {
   const [query, setQuery] = useState("");
   const filters = useMemo(() => {
     const f = {} as PlanFilters;
-    for (const k of FILTER_KEYS) f[k] = cleanFilter(k, (search[k] ?? "").split(","));
+    for (const k of FILTER_KEYS) f[k] = cleanFilter(k, String(search[k] ?? "").split(","));
     return f;
   }, [search]);
   const setFilters = (f: PlanFilters) =>
@@ -65,7 +64,7 @@ function DiscoverPage() {
       to: "/groups",
       search: (prev) => {
         const next = { ...prev };
-        for (const k of FILTER_KEYS) next[k] = f[k].length ? f[k].join(",") : undefined;
+        for (const k of FILTER_KEYS) next[k] = toFilterParam(f[k]);
         return next;
       },
       replace: true,
