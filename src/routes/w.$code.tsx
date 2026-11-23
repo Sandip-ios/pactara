@@ -11,6 +11,7 @@ import { getSharedWorkout, getSharedWorkoutStatus, saveSharedWorkout } from "@/l
 import { SHARE_ORIGIN, shareDescription, shareTitle, sharedMeta, targetLine } from "@/lib/workout-share";
 import { setPendingSharedWorkout } from "@/lib/pending-shared-workout";
 import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
 
 export const Route = createFileRoute("/w/$code")({
   loader: ({ params }) => getSharedWorkout({ data: { code: params.code } }),
@@ -50,6 +51,7 @@ function SharedWorkoutPage() {
   const saveFn = useServerFn(saveSharedWorkout);
   const [auth, setAuth] = useState<Auth>("unknown");
   const [saving, setSaving] = useState(false);
+  const scrollRef = useOpenAtTop();
 
   useEffect(() => {
     let alive = true;
@@ -103,9 +105,15 @@ function SharedWorkoutPage() {
   };
 
   const isOwner = !!status?.isOwner;
+  // Owner "Open" is the only one-button state with no helper line: tighter
+  // bottom like Workout done. Cases with a helper line keep their spacing.
+  const singleButton = auth === "in" && isOwner;
 
   return (
-    <div className="min-h-[100dvh] w-full" style={{ background: W.bg, color: W.ink, fontFamily: FONT }}>
+    // Same frame as the other pushed screens (Edit workout, plan page): a fixed
+    // full-screen scroll container that ignores the body's status-bar padding,
+    // so the header clears the status bar once, not twice.
+    <div ref={scrollRef} className="fixed inset-0 overflow-y-auto" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       {auth === "out" ? (
         <header className="sticky top-0 z-10 flex items-center justify-between px-4 pb-2 pt-[calc(env(safe-area-inset-top)+10px)]" style={{ background: W.bg }}>
           <span className="text-[22px] font-black tracking-[-0.5px]" aria-label="Pactara">
@@ -192,7 +200,7 @@ function SharedWorkoutPage() {
           </div>
 
           {auth !== "unknown" && (
-            <div className="fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-white px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3" style={{ borderTop: `1px solid ${W.line}` }}>
+            <div className={`fixed inset-x-0 bottom-0 flex flex-col gap-2 bg-white px-4 pt-3 ${singleButton ? "pb-[max(16px,env(safe-area-inset-bottom))]" : "pb-[calc(24px+env(safe-area-inset-bottom))]"}`} style={{ borderTop: `1px solid ${W.line}` }}>
               {auth === "out" ? (
                 <>
                   <PrimaryButton onClick={toSignup}>Join free to save this workout</PrimaryButton>
