@@ -712,7 +712,8 @@ function VideoRecordScreen() {
     setTimerDelay((current) => current === 0 ? 3 : current === 3 ? 5 : current === 5 ? 10 : 0);
   };
 
-  const cancel = () => {
+  const cancel = (to: "/home" | "/workout" = "/home") => {
+    if (to === "/workout") markCameraDirect(false);
     if (countdownTimeoutRef.current) {
       window.clearTimeout(countdownTimeoutRef.current);
       countdownTimeoutRef.current = null;
@@ -731,7 +732,7 @@ function VideoRecordScreen() {
     stopStream();
     // Back to home — /check-in now relaunches the camera, so returning there
     // would bounce straight back into the recorder.
-    navigate({ to: "/home" });
+    navigate({ to });
   };
 
   const progress = Math.min(1, elapsed / MAX_SECS);
@@ -807,7 +808,7 @@ function VideoRecordScreen() {
       {/* Top controls */}
       <div className="absolute top-0 inset-x-0 pt-safe-6 px-4 flex items-center justify-between">
         <button
-          onClick={cancel}
+          onClick={() => cancel()}
           className="h-10 w-10 rounded-full bg-black/50 backdrop-blur flex items-center justify-center"
           aria-label="Cancel"
         >
@@ -845,6 +846,19 @@ function VideoRecordScreen() {
           </button>
         </div>
       </div>
+
+      {/* ⚡ skipped "Start a workout" (video-only habit): offer it here instead. */}
+      {openedDirect && !recording && countdownRemaining === null && (
+        <div className="absolute inset-x-0 flex justify-center" style={{ top: "calc(env(safe-area-inset-top) + 72px)" }}>
+          <button
+            type="button"
+            onClick={() => cancel("/workout")}
+            className="h-9 rounded-full bg-black/50 px-4 text-[13px] font-semibold text-white backdrop-blur"
+          >
+            Start a workout instead
+          </button>
+        </div>
+      )}
 
       {timerDelay > 0 && !recording && (
         <div

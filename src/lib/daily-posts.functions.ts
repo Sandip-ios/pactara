@@ -251,6 +251,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       groupId?: string | null;
       groupIds?: string[] | null;
       planDay?: { userPlanId: string; week: number; day: number } | null;
+      workoutSessionId?: string | null;
     }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
@@ -263,6 +264,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         Number.isInteger(input.planDay.week) && Number.isInteger(input.planDay.day)
           ? { userPlanId: input.planDay.userPlanId, week: input.planDay.week, day: input.planDay.day }
           : null,
+      workoutSessionId: typeof input?.workoutSessionId === "string" ? input.workoutSessionId.slice(0, 64) : null,
     }),
   )
   .handler(async ({ data, context }) => {
@@ -356,6 +358,16 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       }
     }
 
+    // A logged workout's summary rides along on the post (it counts like any check-in).
+    if (data.workoutSessionId) {
+      try {
+        const { linkWorkoutToCheckIns } = await import("./lifts.server");
+        await linkWorkoutToCheckIns(supabase as SupabaseClient, userId, data.workoutSessionId, postedCheckInIds);
+      } catch (err) {
+        console.error("[check-in] workout link failed", err);
+      }
+    }
+
     return { ok: true, newBadges: Array.from(newBadgeSet), groupCount: groupIds.length, plan };
 
   });
@@ -387,6 +399,8 @@ export type TimelineNode =
       activity: string | null;
       /** Set when the check-in finished a workout plan day. */
       plan?: { name: string; slug: string; week: number; day: number } | null;
+      /** Set when the check-in was posted after logging a workout. */
+      workout?: FeedWorkout | null;
       note: string | null;
       photoUrl: string | null;
       posterUrl?: string | null;
@@ -413,6 +427,16 @@ export type TimelineNode =
       kind: "pending";
       id: string;
     };
+
+export type FeedWorkout = {
+  title: string | null;
+  exercises: number;
+  sets: number;
+  minutes: number;
+  /** The first personal best, for the gold chip: "Lateral raise 25 lb". */
+  pr: string | null;
+  prCount: number;
+};
 
 export type ReactionSummary = { emoji: string; count: number; mine: boolean };
 
@@ -471,6 +495,30 @@ export type FeedMeta = {
 };
 
 const FEED_STREAK_LOOKBACK_DAYS = 120;
+
+/** Workout summaries on check-ins (only check-ins in crews the viewer belongs to). */
+async function workoutsForCheckIns(supabase: SupabaseClient, checkInIds: string[]): Promise<Map<string, FeedWorkout>> {
+  const out = new Map<string, FeedWorkout>();
+  if (!checkInIds.length) return out;
+  const { data, error } = await supabase.rpc("workout_summaries_for_check_ins", { _check_in_ids: checkInIds });
+  if (error) {
+    console.error("[feed] workout summaries failed", error);
+    return out;
+  }
+  for (const r of (data ?? []) as { check_in_id: string; title: string | null; summary: Record<string, unknown> | null }[]) {
+    const s = (r.summary ?? {}) as { exercises?: number; sets?: number; minutes?: number; prs?: { name: string; weight: number; unit: string; reps: number }[] };
+    const first = s.prs?.[0];
+    out.set(r.check_in_id, {
+      title: r.title,
+      exercises: s.exercises ?? 0,
+      sets: s.sets ?? 0,
+      minutes: s.minutes ?? 0,
+      pr: first ? `${first.name} ${first.weight ? `${first.weight} ${first.unit}` : `${first.reps} reps`}` : null,
+      prCount: s.prs?.length ?? 0,
+    });
+  }
+  return out;
+}
 
 
 export type PostComment = {
@@ -732,13 +780,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       .filter((path): path is string => !!path && !path.startsWith("http"))));
     // Two requests, regardless of how many repeated assets appear in the feed.
     // Avatars and photos are resized server-side to their display size.
-    const [avatarUrls, photoUrls, posterUrls, planTags] = await Promise.all([
+    const [avatarUrls, photoUrls, posterUrls, planTags, workoutTags] = await Promise.all([
       signAvatarThumbs(supabase as SupabaseClient, avatarPaths),
       signFeedMedia(supabase as SupabaseClient, photoPaths),
       signVideoPosters(supabase as SupabaseClient, photoPaths),
       import("./plan-progress.server").then(({ planTagsForCheckIns }) =>
         planTagsForCheckIns(supabase as SupabaseClient, rawCheckIns.map((c) => c.id as string)),
       ),
+      workoutsForCheckIns(supabase as SupabaseClient, rawCheckIns.map((c) => c.id as string)),
     ]);
     const resolvePoster = (path: string | null | undefined) => (path ? posterUrls.get(path) ?? null : null);
     const resolvePhoto = (path: string | null | undefined) => !path ? null : path.startsWith("http") ? path : photoUrls.get(path) ?? null;
@@ -809,6 +858,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           mood: c.mood,
           activity: c.activity,
           plan: planTags.get(c.id) ?? null,
+          workout: workoutTags.get(c.id) ?? null,
           note: c.note,
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,

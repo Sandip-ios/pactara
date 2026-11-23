@@ -172,6 +172,8 @@ export const getWorkoutState = createServerFn({ method: "GET" })
         .eq("user_id", userId)
         .eq("group_id", groupId)
         .eq("status", "active")
+        // Logged workouts (they have a title) live in the workout logger, not this card.
+        .is("title", null)
         .maybeSingle(),
       hasProof(supabase, userId, groupId, today),
     ]);

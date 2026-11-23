@@ -17,6 +17,7 @@ import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { clearPlanCheckIn, getPlanCheckIn, setPlanCheckIn, type PlanCheckIn } from "@/lib/plan-checkin";
 import type { PlanDayResult } from "@/lib/workout-plans";
+import { clearWorkoutCheckIn, getWorkoutCheckIn, setWorkoutCheckIn, type WorkoutCheckIn } from "@/lib/active-workout";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -130,6 +131,8 @@ function NotesPage() {
   // The plan day this check-in finishes ("Done, check in" on a plan day).
   const [planDay, setPlanDay] = useState<PlanCheckIn | null>(null);
   const [planResult, setPlanResult] = useState<PlanDayResult | null>(null);
+  // The logged workout this check-in posts with (from "Workout done").
+  const [workout, setWorkout] = useState<WorkoutCheckIn | null>(null);
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -163,6 +166,11 @@ function NotesPage() {
       setPlanDay(plan);
       setActivity((a) => a ?? plan.activity);
     }
+    const logged = getWorkoutCheckIn();
+    if (logged) {
+      setWorkout(logged);
+      setActivity((a) => a ?? "workout");
+    }
     const existing = getCheckInPhoto();
     if (existing) {
       setPhotoPreview(existing.previewUrl);
@@ -182,6 +190,10 @@ function NotesPage() {
       if (draft.planDay) {
         setPlanDay(draft.planDay);
         setPlanCheckIn(draft.planDay, false);
+      }
+      if (draft.workout) {
+        setWorkout(draft.workout);
+        setWorkoutCheckIn(draft.workout);
       }
       setAllGroups(draft.allGroups ?? false);
       setDraftRestored(true);
@@ -225,6 +237,7 @@ function NotesPage() {
       groupId?: string | null;
       groupIds?: string[] | null;
       planDay?: { userPlanId: string; week: number; day: number } | null;
+      workoutSessionId?: string | null;
     }) =>
       recordCheckInFn({ data: vars }),
   });
@@ -260,12 +273,17 @@ function NotesPage() {
           groupId: activeGroupId,
           groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
           planDay: planDay ? { userPlanId: planDay.userPlanId, week: planDay.week, day: planDay.day } : null,
+          workoutSessionId: workout?.sessionId ?? null,
         }),
         POST_TIMEOUT_MS,
         "Posting timed out. Please try again.",
       );
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
       const plan = (result as { plan?: PlanDayResult | null } | undefined)?.plan ?? null;
+      if (workout) {
+        clearWorkoutCheckIn();
+        queryClient.invalidateQueries({ queryKey: ["lift-history"] });
+      }
       if (planDay) {
         clearPlanCheckIn();
         setPlanResult(plan);
@@ -322,6 +340,7 @@ function NotesPage() {
         blob: photo?.blob ?? null,
         isVideo: photo ? photo.blob.type.startsWith("video/") : false,
         planDay,
+        workout,
       });
       if (ok) {
         // The draft now owns the blob; drop the in-memory copy and go home,
@@ -461,6 +480,11 @@ function NotesPage() {
           </div>
         </div>
         <div className="px-6 pt-6">
+          {workout && (
+            <div className="mb-3 rounded-2xl px-4 py-3 text-[14px]" style={{ background: "#EFE9FB", color: PURPLE }}>
+              <span className="font-semibold">{workout.title}</span> · {workout.line}
+            </div>
+          )}
           {planDay && (
             <div className="mb-3 rounded-2xl px-4 py-3 text-[14px]" style={{ background: "#EFE9FB", color: PURPLE }}>
               <span className="font-semibold">{planDay.planName}</span> · Week {planDay.week} · Day {planDay.day}

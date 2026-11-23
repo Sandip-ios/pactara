@@ -6,7 +6,8 @@
 
 export type PlanGoal = "muscle" | "fat_loss" | "glutes" | "beginner" | "home" | "run";
 
-export type PlanMove = { name: string; dose: string; plain: string };
+/** `exercise_id`: the matching exercise library entry, when there is a good match. */
+export type PlanMove = { name: string; dose: string; plain: string; exercise_id?: string | null };
 
 /** Body-map regions a day works: 2 = main focus, 1 = also worked. */
 export const MUSCLE_REGIONS = [

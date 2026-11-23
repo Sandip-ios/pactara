@@ -352,6 +352,54 @@ export type Database = {
         }
         Relationships: []
       }
+      exercises: {
+        Row: {
+          category: string
+          created_at: string
+          equipment: string
+          id: string
+          image_peak: string | null
+          image_start: string | null
+          instructions: string[]
+          log_type: string
+          name: string
+          owner_id: string | null
+          primary_muscles: string[]
+          secondary_muscles: string[]
+          source: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          equipment?: string
+          id?: string
+          image_peak?: string | null
+          image_start?: string | null
+          instructions?: string[]
+          log_type?: string
+          name: string
+          owner_id?: string | null
+          primary_muscles?: string[]
+          secondary_muscles?: string[]
+          source?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          equipment?: string
+          id?: string
+          image_peak?: string | null
+          image_start?: string | null
+          instructions?: string[]
+          log_type?: string
+          name?: string
+          owner_id?: string | null
+          primary_muscles?: string[]
+          secondary_muscles?: string[]
+          source?: string
+        }
+        Relationships: []
+      }
       fcm_tokens: {
         Row: {
           created_at: string
@@ -1020,6 +1068,7 @@ export type Database = {
           name: string
           streak_freezes_available: number
           timezone: string
+          weight_unit: string
         }
         Insert: {
           avatar_color?: string
@@ -1029,6 +1078,7 @@ export type Database = {
           name?: string
           streak_freezes_available?: number
           timezone?: string
+          weight_unit?: string
         }
         Update: {
           avatar_color?: string
@@ -1038,6 +1088,7 @@ export type Database = {
           name?: string
           streak_freezes_available?: number
           timezone?: string
+          weight_unit?: string
         }
         Relationships: []
       }
@@ -1366,6 +1417,7 @@ export type Database = {
       }
       workout_sessions: {
         Row: {
+          check_in_ids: string[]
           commitment_text: string | null
           created_at: string
           duration_seconds: number | null
@@ -1373,15 +1425,20 @@ export type Database = {
           group_id: string
           id: string
           local_date: string
+          logged_at: string | null
           post_id: string | null
           proof_completed: boolean
           start_notification_sent: boolean
           started_at: string
           status: string
+          summary: Json | null
+          title: string | null
           updated_at: string
           user_id: string
+          workout_id: string | null
         }
         Insert: {
+          check_in_ids?: string[]
           commitment_text?: string | null
           created_at?: string
           duration_seconds?: number | null
@@ -1389,15 +1446,20 @@ export type Database = {
           group_id: string
           id?: string
           local_date: string
+          logged_at?: string | null
           post_id?: string | null
           proof_completed?: boolean
           start_notification_sent?: boolean
           started_at?: string
           status?: string
+          summary?: Json | null
+          title?: string | null
           updated_at?: string
           user_id: string
+          workout_id?: string | null
         }
         Update: {
+          check_in_ids?: string[]
           commitment_text?: string | null
           created_at?: string
           duration_seconds?: number | null
@@ -1405,13 +1467,17 @@ export type Database = {
           group_id?: string
           id?: string
           local_date?: string
+          logged_at?: string | null
           post_id?: string | null
           proof_completed?: boolean
           start_notification_sent?: boolean
           started_at?: string
           status?: string
+          summary?: Json | null
+          title?: string | null
           updated_at?: string
           user_id?: string
+          workout_id?: string | null
         }
         Relationships: [
           {
@@ -1428,7 +1494,110 @@ export type Database = {
             referencedRelation: "daily_posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "workout_sessions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      workout_set_logs: {
+        Row: {
+          created_at: string
+          done_at: string
+          exercise_id: string
+          id: string
+          is_pr: boolean
+          local_date: string
+          position: number
+          reps: number | null
+          seconds: number | null
+          session_id: string | null
+          set_no: number
+          unit: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string
+          done_at?: string
+          exercise_id: string
+          id?: string
+          is_pr?: boolean
+          local_date: string
+          position?: number
+          reps?: number | null
+          seconds?: number | null
+          session_id?: string | null
+          set_no: number
+          unit?: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string
+          done_at?: string
+          exercise_id?: string
+          id?: string
+          is_pr?: boolean
+          local_date?: string
+          position?: number
+          reps?: number | null
+          seconds?: number | null
+          session_id?: string | null
+          set_no?: number
+          unit?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_set_logs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_logs_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          exercises: Json
+          id: string
+          last_done_at: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercises?: Json
+          id?: string
+          last_done_at?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercises?: Json
+          id?: string
+          last_done_at?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
@@ -1483,6 +1652,19 @@ export type Database = {
         }[]
       }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
+      workout_detail_for_check_in: {
+        Args: { _check_in_id: string }
+        Returns: Json
+      }
+      workout_summaries_for_check_ins: {
+        Args: { _check_in_ids: string[] }
+        Returns: {
+          check_in_id: string
+          session_id: string
+          summary: Json
+          title: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

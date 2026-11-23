@@ -56,6 +56,9 @@ import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
 import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
 import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
+import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
+import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
+import { Route as AuthenticatedWorkoutLogRouteImport } from './routes/_authenticated/workout.log'
 import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
@@ -318,6 +321,23 @@ const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
   path: '/u/$userId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkoutIndexRoute =
+  AuthenticatedWorkoutIndexRouteImport.update({
+    id: '/workout/',
+    path: '/workout/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWorkoutDoneRoute =
+  AuthenticatedWorkoutDoneRouteImport.update({
+    id: '/workout/done',
+    path: '/workout/done',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWorkoutLogRoute = AuthenticatedWorkoutLogRouteImport.update({
+  id: '/workout/log',
+  path: '/workout/log',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPlansSlugDayRoute =
   AuthenticatedPlansSlugDayRouteImport.update({
     id: '/plans/$slug_/day',
@@ -430,10 +450,13 @@ export interface FileRoutesByFullPath {
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
+  '/workout/done': typeof AuthenticatedWorkoutDoneRoute
+  '/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/workout/': typeof AuthenticatedWorkoutIndexRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
@@ -489,10 +512,13 @@ export interface FileRoutesByTo {
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
+  '/workout/done': typeof AuthenticatedWorkoutDoneRoute
+  '/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
+  '/workout': typeof AuthenticatedWorkoutIndexRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
@@ -551,10 +577,13 @@ export interface FileRoutesById {
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
+  '/_authenticated/workout/done': typeof AuthenticatedWorkoutDoneRoute
+  '/_authenticated/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
+  '/_authenticated/workout/': typeof AuthenticatedWorkoutIndexRoute
   '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
@@ -613,10 +642,13 @@ export interface FileRouteTypes {
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/u/$userId'
+    | '/workout/done'
+    | '/workout/log'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
     | '/groups/'
+    | '/workout/'
     | '/plans/$slug/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
@@ -672,10 +704,13 @@ export interface FileRouteTypes {
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/u/$userId'
+    | '/workout/done'
+    | '/workout/log'
     | '/account-settings'
     | '/chat'
     | '/check-in'
     | '/groups'
+    | '/workout'
     | '/plans/$slug/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
@@ -733,10 +768,13 @@ export interface FileRouteTypes {
     | '/_authenticated/pact/$groupId'
     | '/_authenticated/plans/$slug'
     | '/_authenticated/u/$userId'
+    | '/_authenticated/workout/done'
+    | '/_authenticated/workout/log'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
     | '/_authenticated/groups/'
+    | '/_authenticated/workout/'
     | '/_authenticated/plans/$slug_/day'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
@@ -1112,6 +1150,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUUserIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workout/': {
+      id: '/_authenticated/workout/'
+      path: '/workout'
+      fullPath: '/workout/'
+      preLoaderRoute: typeof AuthenticatedWorkoutIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/workout/done': {
+      id: '/_authenticated/workout/done'
+      path: '/workout/done'
+      fullPath: '/workout/done'
+      preLoaderRoute: typeof AuthenticatedWorkoutDoneRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/workout/log': {
+      id: '/_authenticated/workout/log'
+      path: '/workout/log'
+      fullPath: '/workout/log'
+      preLoaderRoute: typeof AuthenticatedWorkoutLogRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/plans/$slug_/day': {
       id: '/_authenticated/plans/$slug_/day'
       path: '/plans/$slug/day'
@@ -1218,10 +1277,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
   AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
   AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
+  AuthenticatedWorkoutDoneRoute: typeof AuthenticatedWorkoutDoneRoute
+  AuthenticatedWorkoutLogRoute: typeof AuthenticatedWorkoutLogRoute
   AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
+  AuthenticatedWorkoutIndexRoute: typeof AuthenticatedWorkoutIndexRoute
   AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
 }
 
@@ -1247,11 +1309,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
   AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
   AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
+  AuthenticatedWorkoutDoneRoute: AuthenticatedWorkoutDoneRoute,
+  AuthenticatedWorkoutLogRoute: AuthenticatedWorkoutLogRoute,
   AuthenticatedAccountSettingsIndexRoute:
     AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
   AuthenticatedCheckInIndexRoute: AuthenticatedCheckInIndexRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
+  AuthenticatedWorkoutIndexRoute: AuthenticatedWorkoutIndexRoute,
   AuthenticatedPlansSlugDayRoute: AuthenticatedPlansSlugDayRoute,
 }
 

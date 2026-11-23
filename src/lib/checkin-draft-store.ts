@@ -1,4 +1,5 @@
 import type { PlanCheckIn } from "@/lib/plan-checkin";
+import type { WorkoutCheckIn } from "@/lib/active-workout";
 /**
  * Persists a failed check-in (note, activity, target groups, and the captured
  * photo/video blob) in IndexedDB so it survives app restarts on weak
@@ -14,6 +15,8 @@ export type CheckInDraft = {
   isVideo: boolean;
   /** The workout plan day this check-in finishes, if any. */
   planDay?: PlanCheckIn | null;
+  /** The logged workout this check-in posts with, if any. */
+  workout?: WorkoutCheckIn | null;
   savedAt: number;
 };
 
