@@ -191,7 +191,7 @@ function drawWordmark(ctx: Ctx, s: number) {
   shadow(ctx, s, false);
   const x = PAD_X * s;
   const y = (16 + 15) * s;
-  ctx.fillStyle = "#7C3AED";
+  ctx.fillStyle = "#A78BFA";
   ctx.fillText("P", x, y);
   const pw = ctx.measureText("P").width;
   ctx.fillStyle = INK;

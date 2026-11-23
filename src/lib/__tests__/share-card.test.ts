@@ -12,6 +12,7 @@ import {
   shareCardLines,
   shareFileName,
   statsLine,
+  weekLine,
   type ShareCardInput,
 } from "../share-card";
 
@@ -102,6 +103,13 @@ describe("video-only card", () => {
     const lines = shareCardLines(videoOnly, prefs);
     expect(lines[0]).toEqual({ kind: "kicker", text: "WORKOUT" });
     expect(lines[3]).toEqual({ kind: "week", text: "4 of 5 workouts this week", days: videoOnly.week!.days });
+  });
+
+  it("drops 'of 5' once the weekly goal is met or beaten", () => {
+    expect(weekLine({ done: 4, target: 5 })).toBe("4 of 5 workouts this week");
+    expect(weekLine({ done: 5, target: 5 })).toBe("5 workouts this week");
+    expect(weekLine({ done: 6, target: 5 })).toBe("6 workouts this week");
+    expect(weekLine({ done: 1, target: 5 })).toBe("1 of 5 workouts this week");
   });
 
   it("partner and solo pacts get wording outsiders understand", () => {

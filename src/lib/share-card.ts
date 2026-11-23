@@ -82,8 +82,9 @@ export function crewLine(input: Pick<ShareCardInput, "crewName" | "relation">, n
 }
 
 export function weekLine(week: { done: number; target: number }): string {
-  const noun = week.target === 1 ? "workout" : "workouts";
-  return `${Math.min(week.done, 7)} of ${week.target} ${noun} this week`;
+  const done = Math.min(week.done, 7);
+  if (done >= week.target) return `${done} ${done === 1 ? "workout" : "workouts"} this week`;
+  return `${done} of ${week.target} ${week.target === 1 ? "workout" : "workouts"} this week`;
 }
 
 /** The overlay block, top to bottom. */
