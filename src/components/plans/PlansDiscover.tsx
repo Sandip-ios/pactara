@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, ChevronRight, Sparkles, Trophy, X } from "lucide-react";
+import { ChevronDown, Trophy, X } from "lucide-react";
 import { ConfettiBurst } from "@/components/ConfettiBurst";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { listMyGroups } from "@/lib/groups.functions";
@@ -26,6 +26,7 @@ import {
 } from "@/lib/plan-filters";
 import { GOAL_TILE, INK, MUTED, P, PURPLE, PURPLE_SOFT, PlanCard, useMyPlans, usePlans } from "./PlanBits";
 import { PlanFilterSheet } from "./PlanFilterSheet";
+import { FindPlanCard } from "./FindPlanCard";
 import { QuizMatchCard, useSavedQuiz } from "./QuizMatchCard";
 import { showQuizMatchCard } from "@/lib/plan-quiz-saved";
 
@@ -102,26 +103,7 @@ export function PlansDiscover({
   return (
     <>
       {mine && !quizPending && savedQuiz && showQuizMatchCard(savedQuiz, !!mine.active) && <QuizMatchCard saved={savedQuiz} />}
-      {mine && !mine.active && !quizPending && !savedQuiz && (
-        <Link
-          to="/find-plan"
-          className="flex items-center gap-3 rounded-[16px] p-[14px]"
-          style={{ background: "#EDE7FB" }}
-        >
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: "#7C3AED" }} aria-hidden>
-            <Sparkles size={22} color="#FFFFFF" />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-[16px] font-extrabold" style={{ color: "#4C1D95" }}>
-              Not sure? Find your plan
-            </span>
-            <span className="text-[13px] font-medium" style={{ color: "#5B21B6" }}>
-              4 quick questions, then we pick for you
-            </span>
-          </span>
-          <ChevronRight size={20} className="shrink-0" style={{ color: "#5B21B6" }} aria-hidden />
-        </Link>
-      )}
+      {mine && !mine.active && !quizPending && !savedQuiz && <FindPlanCard />}
 
       <section className="flex flex-col gap-[10px]">
         <h2 className="mx-1 text-[17px] font-extrabold">Browse by goal</h2>

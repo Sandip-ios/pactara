@@ -1,12 +1,14 @@
 import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ChevronRight, MoreHorizontal, Plus, Sparkles, Trophy } from "lucide-react";
+import { ChevronRight, MoreHorizontal, Plus, Trophy } from "lucide-react";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
+import { FindPlanCard } from "@/components/plans/FindPlanCard";
 import { QuizMatchCard, useSavedQuiz } from "@/components/plans/QuizMatchCard";
 import { showQuizMatchCard } from "@/lib/plan-quiz-saved";
+import { plansCountLabel } from "@/lib/plan-filters";
 import { LeavePlanSheet, PlanOptionsSheet, planWeekTitle } from "@/components/plans/PlanSheets";
 import { SavedRow, useMyWorkoutsFlow } from "@/components/workout/MyWorkoutsFlow";
 import { ExerciseThumb, FONT, W } from "@/components/workout/WorkoutBits";
@@ -31,8 +33,6 @@ export const Route = createFileRoute("/_authenticated/workouts")({
   }),
   component: WorkoutsTab,
 });
-
-const CARD_SHADOW = "0 1px 2px rgba(20,18,24,.06)";
 
 function WorkoutsTab() {
   const scrollRef = useOpenAtTop();
@@ -139,35 +139,15 @@ function WorkoutsTab() {
         ) : mine && !active && quizPending ? null : mine && savedQuiz && showQuizMatchCard(savedQuiz, !!active) ? (
           <QuizMatchCard saved={savedQuiz} />
         ) : mine && !active ? (
-          <div className="flex flex-col gap-3.5 rounded-[20px] bg-white p-4" style={{ boxShadow: CARD_SHADOW }}>
-            <div className="flex items-center gap-3.5">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[22px]" style={{ background: W.lilacSoft }} aria-hidden>
-                🗺️
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[16px] font-extrabold">Follow a plan</span>
-                <span className="block text-[13px]" style={{ color: W.stone }}>
-                  A plan tells you what to do each day.
-                </span>
-              </span>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                to="/find-plan"
-                className="flex h-11 items-center justify-center gap-1.5 rounded-[14px] text-[14px] font-extrabold text-white"
-                style={{ background: "#7C3AED" }}
-              >
-                <Sparkles size={16} aria-hidden />
-                Find your plan
-              </Link>
-              <Link
-                to="/groups"
-                className="flex h-11 items-center justify-center rounded-[14px] text-[14px] font-extrabold"
-                style={{ background: "#EDE7FB", color: "#5B21B6" }}
-              >
-                {plans ? `Browse ${plans.length} ${plans.length === 1 ? "plan" : "plans"}` : "Browse plans"}
-              </Link>
-            </div>
+          <div className="flex flex-col gap-2">
+            <FindPlanCard />
+            <Link
+              to="/groups"
+              className="flex min-h-10 items-center justify-center text-[14px] font-bold"
+              style={{ color: "#6D28D9" }}
+            >
+              {plans ? `or browse all ${plansCountLabel(plans.length)}` : "or browse all plans"}
+            </Link>
           </div>
         ) : null}
 
