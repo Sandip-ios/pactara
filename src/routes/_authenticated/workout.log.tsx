@@ -29,7 +29,7 @@ import {
   type LiveExercise,
   type LiveSet,
 } from "@/lib/active-workout";
-import { fmtClock, fmtNum, lastCell, lastSetLabel, setsShort, shortDay, weightStep } from "@/lib/lift-rules";
+import { canCheckOffSet, carryLoggedSetForward, fmtClock, fmtNum, lastCell, lastSetLabel, setsShort, shortDay, weightStep } from "@/lib/lift-rules";
 import { hapticLight } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/workout/log")({
@@ -99,11 +99,18 @@ function Logger({ w }: { w: ActiveWorkout }) {
     update((x) => {
       const exercises = x.exercises.map((e) => {
         if (e.key !== ex.key) return e;
-        const sets = e.sets.map((s) => (s.id === set.id ? { ...s, done: !s.done, doneAt: !s.done ? nowIso : null } : s));
+        const idx = e.sets.findIndex((s) => s.id === set.id);
+        const cur = e.sets[idx];
+        if (!cur) return e;
+        // An empty set can't be checked off; undoing a done set is always allowed.
+        if (!cur.done && !canCheckOffSet(cur, e)) return e;
+        let sets = e.sets.map((s) => (s.id === set.id ? { ...s, done: !s.done, doneAt: !s.done ? nowIso : null } : s));
+        if (!cur.done) sets = carryLoggedSetForward(sets, idx);
         return withPrs({ ...e, sets }, x.unit);
       });
       let rest = x.rest;
-      if (!set.done) {
+      const changed = exercises.find((y) => y.key === ex.key)?.sets.find((s) => s.id === set.id);
+      if (!set.done && changed?.done) {
         const e = exercises.find((y) => y.key === ex.key)!;
         const nextIdx = e.sets.findIndex((s) => !s.done);
         const nextEx = exercises.find((y) => y.key !== ex.key && y.sets.some((s) => !s.done));
@@ -163,6 +170,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
       void qc.invalidateQueries({ queryKey: LIFT_HISTORY_KEY });
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
       void qc.invalidateQueries({ queryKey: ["home-crew"] });
+      void qc.invalidateQueries({ queryKey: ["groups-today"] });
     } catch (e) {
       console.error("[workout] finish failed", e);
       setErr("Couldn't save your workout. Check your connection and tap Finish again.");
@@ -176,7 +184,13 @@ function Logger({ w }: { w: ActiveWorkout }) {
     const sessionId = w.sessionId;
     exitTo = "/home";
     setActiveWorkout(null);
-    if (sessionId) endFn({ data: { sessionId } }).catch(() => {});
+    // Refresh "Working out" on Crew today / crew pages once the session has ended.
+    const refresh = () => {
+      void qc.invalidateQueries({ queryKey: ["home-crew"] });
+      void qc.invalidateQueries({ queryKey: ["groups-today"] });
+    };
+    refresh();
+    if (sessionId) endFn({ data: { sessionId } }).catch(() => {}).finally(refresh);
   };
 
   // ---- Long-press to reorder ----
@@ -579,7 +593,11 @@ function ExpandedCard({
                   type="button"
                   aria-label={s.done ? `Undo set ${i + 1}` : `Done with set ${i + 1}`}
                   aria-pressed={s.done}
-                  onClick={() => onToggle(s)}
+                  aria-disabled={!s.done && !canCheckOffSet(s, ex) ? true : undefined}
+                  onClick={() => {
+                    if (!s.done && !canCheckOffSet(s, ex)) return;
+                    onToggle(s);
+                  }}
                   className="flex h-11 w-11 items-center justify-center rounded-full"
                   style={s.done ? { background: W.green, color: "#fff" } : { background: W.chip, color: W.disabled }}
                 >

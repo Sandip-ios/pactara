@@ -472,3 +472,32 @@ export function nextQuickPick(state: { streak: number; everLogged: boolean }, pi
 /** ⚡ goes straight to the camera after 3 video-only picks in a row by someone who never logs. */
 export const skipsStartScreen = (state: { streak: number; everLogged: boolean }) =>
   !state.everLogged && state.streak >= QUICK_CHECKIN_LIMIT;
+
+type LoggableSet = { weight: number | null; reps: number | null; seconds: number | null };
+
+/**
+ * A set can be checked off only once it has something to log: reps (seconds
+ * for timed moves), plus a weight when the move takes one. Bodyweight/band
+ * moves and timed moves may leave the weight empty.
+ */
+export function canCheckOffSet(set: LoggableSet, ex: { logType: LogType; loadable: boolean }): boolean {
+  if (ex.logType === "timed") return (set.seconds ?? 0) > 0;
+  if ((set.reps ?? 0) <= 0) return false;
+  return ex.loadable ? (set.weight ?? 0) > 0 : true;
+}
+
+const isEmptySet = (s: LoggableSet) => s.weight == null && s.reps == null && s.seconds == null;
+
+/**
+ * After set `index` is checked off, copy its weight and reps/seconds into the
+ * next set of the same exercise — only when that next set is still empty and
+ * not done. Returns the same array when nothing changes.
+ */
+export function carryLoggedSetForward<T extends LoggableSet & { done: boolean }>(sets: readonly T[], index: number): T[] {
+  const logged = sets[index];
+  const next = sets[index + 1];
+  if (!logged || !next || !logged.done || next.done || !isEmptySet(next)) return sets as T[];
+  const copy = sets.slice();
+  copy[index + 1] = { ...next, weight: logged.weight, reps: logged.reps, seconds: logged.seconds };
+  return copy;
+}

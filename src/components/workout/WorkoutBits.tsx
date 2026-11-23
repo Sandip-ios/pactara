@@ -67,7 +67,16 @@ export function ExerciseThumb({
       aria-hidden
     >
       {image && !failed ? (
-        <img src={image} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" onError={() => setFailed(true)} />
+        // RepDB images show the whole scene; zoom thumbnails ~1.4× so the figure fills the tile.
+        <img
+          src={image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+          style={{ transform: "scale(1.4)", transformOrigin: "center" }}
+          onError={() => setFailed(true)}
+        />
       ) : (
         <span className="text-[13px] font-extrabold">{initials(name)}</span>
       )}
