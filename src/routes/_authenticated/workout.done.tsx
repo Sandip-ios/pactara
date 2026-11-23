@@ -10,7 +10,7 @@ import { getMyGroupStatus } from "@/lib/groups.functions";
 import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
 import { clearFinishedWorkout, getFinishedWorkout, setWorkoutCheckIn, type FinishedWorkout } from "@/lib/active-workout";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
-import { fmtNum, plural, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
+import { doneKicker, fmtNum, plural, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
 
 export const Route = createFileRoute("/_authenticated/workout/done")({
   head: () => ({
@@ -25,8 +25,6 @@ export const Route = createFileRoute("/_authenticated/workout/done")({
   }),
   component: WorkoutDone,
 });
-
-const WEEKDAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
 
 function WorkoutDone() {
   const navigate = useNavigate();
@@ -94,7 +92,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
       return;
     }
     if (fw.sessionId) setWorkoutCheckIn({ sessionId: fw.sessionId, title, line: summaryLine(s) });
-    // A plan workout finishes the plan day, exactly like "Done, check in".
+    // A plan workout finishes the plan day, and arms its check-in.
     if (fw.plan) setPlanCheckIn(fw.plan, true);
     if (fw.groupId) {
       try {
@@ -117,7 +115,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
     <div ref={scrollRef} className="fixed inset-0 overflow-y-auto pb-[calc(150px+env(safe-area-inset-bottom))]" style={{ background: W.bg, color: W.ink, fontFamily: FONT }} data-scroll-root>
       <div className="px-5 pb-[22px] pt-[calc(env(safe-area-inset-top)+12px)] text-white" style={{ background: W.violetDeep }}>
         <span className="text-[12px] font-bold tracking-[0.6px]" style={{ color: "#DDD6FE" }}>
-          {fw.title.toUpperCase()} · {WEEKDAYS[new Date(fw.finishedAt).getDay()]}
+          {doneKicker(fw.title, fw.localDate)}
         </span>
         <h1 className="mt-1 text-[30px] font-extrabold tracking-[-0.7px]">Workout done</h1>
         <div className="mt-4 grid grid-cols-4 gap-2">

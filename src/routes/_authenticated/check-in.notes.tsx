@@ -128,7 +128,7 @@ function NotesPage() {
   const [activity, setActivity] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [allGroups, setAllGroups] = useState(false);
-  // The plan day this check-in finishes ("Done, check in" on a plan day).
+  // The plan day this check-in finishes (a plan workout's Workout done).
   const [planDay, setPlanDay] = useState<PlanCheckIn | null>(null);
   const [planResult, setPlanResult] = useState<PlanDayResult | null>(null);
   // The logged workout this check-in posts with (from "Workout done").

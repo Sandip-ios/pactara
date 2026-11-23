@@ -150,3 +150,23 @@ describe("video-only memory", () => {
     expect(skipsStartScreen(s)).toBe(false);
   });
 });
+
+describe("workout dates use the member's saved timezone", () => {
+  it("Workout done kicker names the member-local weekday, not the phone's", async () => {
+    const { doneKicker } = await import("../lift-rules");
+    const { localDateIn } = await import("../streak-rules");
+    // Mon 23 Nov 2026, 02:30 UTC: still Sunday evening in Los Angeles, already Monday in Lagos.
+    const at = new Date("2026-11-23T02:30:00Z");
+    expect(doneKicker("Shoulder day", localDateIn("America/Los_Angeles", at))).toBe("SHOULDER DAY · SUNDAY");
+    expect(doneKicker("Shoulder day", localDateIn("Africa/Lagos", at))).toBe("SHOULDER DAY · MONDAY");
+  });
+  it("without a member date the kicker shows just the title", async () => {
+    const { doneKicker } = await import("../lift-rules");
+    expect(doneKicker("Push", undefined)).toBe("PUSH");
+  });
+  it("exercise history labels the stored member-local date as-is", async () => {
+    const { historyDateLabel } = await import("../lift-rules");
+    expect(historyDateLabel("2026-11-22")).toEqual({ date: "Nov 22", weekday: "Sun" });
+    expect(historyDateLabel("2026-11-21")).toEqual({ date: "Nov 21", weekday: "Sat" });
+  });
+});

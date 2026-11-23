@@ -6,7 +6,7 @@ import { ChevronLeft, Trophy } from "lucide-react";
 import { FONT, W, exerciseKicker, tintFor } from "@/components/workout/WorkoutBits";
 import { getExerciseProgress } from "@/lib/lifts.functions";
 import { useExerciseMap } from "@/lib/exercise-library";
-import { bestOf, convertWeight, fmtDurationShort, fmtNum, nextTimeTip, plural, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
+import { bestOf, convertWeight, historyDateLabel, fmtDurationShort, fmtNum, nextTimeTip, plural, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
 
 export const Route = createFileRoute("/_authenticated/exercises/$exerciseId")({
   head: () => ({
@@ -22,14 +22,6 @@ export const Route = createFileRoute("/_authenticated/exercises/$exerciseId")({
   component: ExerciseProgressPage,
 });
 
-const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const dateLabel = (iso: string) => {
-  const d = new Date(`${iso}T12:00:00Z`);
-  return {
-    date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
-    weekday: WEEKDAY[d.getUTCDay()]!,
-  };
-};
 
 function ExerciseProgressPage() {
   const scrollRef = useOpenAtTop();
@@ -121,11 +113,11 @@ function ExerciseProgressPage() {
               <h2 className="text-[17px] font-extrabold">History</h2>
               <div className="overflow-hidden rounded-[20px] bg-white">
                 {sessions.map((s, i) => {
-                  const d = dateLabel(s.date);
+                  const d = historyDateLabel(s.date);
                   const pr = s.sets.some((x) => x.isPr);
                   return (
                     <div key={`${s.date}-${i}`} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i ? `1px solid ${W.divider}` : undefined }}>
-                      <div className="w-[52px] shrink-0">
+                      <div className="min-w-[52px] shrink-0 whitespace-nowrap">
                         <div className="text-[15px] font-bold">{d.date}</div>
                         <div className="text-[12px]" style={{ color: W.muted }}>
                           {d.weekday}

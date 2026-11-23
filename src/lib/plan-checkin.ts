@@ -1,5 +1,5 @@
 /**
- * The plan day a check-in belongs to, carried from "Done, check in" through
+ * The plan day a check-in belongs to, carried from Workout done through
  * the camera to the post screen. Session-only; expires so a later, unrelated
  * check-in never picks it up.
  */
@@ -15,7 +15,7 @@ export type PlanCheckIn = {
 const KEY = "pactara:plan-checkin";
 const MAX_AGE_MS = 6 * 60 * 60 * 1000;
 
-/** `armed`: set by "Done, check in" so the next check-in launch keeps it. */
+/** `armed`: set by Workout done so the next check-in launch keeps it. */
 export function setPlanCheckIn(value: PlanCheckIn, armed = true) {
   try {
     sessionStorage.setItem(KEY, JSON.stringify({ ...value, at: Date.now(), armed }));
@@ -49,7 +49,7 @@ export function clearPlanCheckIn() {
 }
 
 /**
- * Called when a check-in starts: keeps the plan day only when "Done, check in"
+ * Called when a check-in starts: keeps the plan day only when Workout done
  * just armed it, otherwise drops any plan day left over from earlier. A repeat
  * call within a few seconds (React re-running the launch effect) keeps it too.
  */

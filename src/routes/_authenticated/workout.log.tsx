@@ -150,6 +150,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
         workoutId: w.workoutId,
         groupId: w.groupId,
         finishedAt: Date.now(),
+        localDate: res.localDate,
         summary: res.summary,
         template: w.exercises
           .filter((e) => e.sets.some((s) => s.done))

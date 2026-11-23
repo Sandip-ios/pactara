@@ -225,6 +225,8 @@ export type FinishedWorkout = {
   workoutId: string | null;
   groupId: string | null;
   finishedAt: number;
+  /** YYYY-MM-DD in the member's saved timezone when it finished. */
+  localDate?: string;
   summary: WorkoutSummary;
   template: { exerciseId: string; sets: number; restSeconds: number; primary: string[] }[];
   plan: PlanCheckIn | null;

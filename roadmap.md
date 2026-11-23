@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Workouts follow-ups: Home "Log a workout" opens Start a workout; plan day bottom bar is only Start workout + caption; Workout done weekday and exercise history dates use the member's saved timezone (unpublished)
+
 - [x] Exercise How to full page (markup): two-pose hero with pause and reduced motion, muscles, description, steps, tips/mistakes, too hard/too easy with swap into a live workout; only real-exercise fit cards tappable, tip cards static, no form-check button (unpublished)
 
 - [x] Plan day as a full page (markup), tile pictures, full-screen how-to, change workout, start in logger; old preview sheet removed (unpublished)

@@ -14,7 +14,7 @@ beforeEach(() => {
 const day = { userPlanId: "up1", slug: "build-muscle", planName: "Build Muscle", week: 1, day: 1, activity: "workout" as const };
 
 describe("plan day carried into a check-in", () => {
-  it("survives the check-in launch right after Done, check in", () => {
+  it("survives the check-in launch right after Workout done arms it", () => {
     setPlanCheckIn(day);
     claimPlanCheckInForLaunch(1000);
     claimPlanCheckInForLaunch(1200); // the launch effect can run twice

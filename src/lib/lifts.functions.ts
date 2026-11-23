@@ -277,7 +277,7 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
       })),
     })).filter((e) => e.sets.length > 0),
   }))
-  .handler(async ({ context, data }): Promise<{ sessionId: string | null; summary: WorkoutSummary; prSets: Record<string, boolean[]> }> => {
+  .handler(async ({ context, data }): Promise<{ sessionId: string | null; summary: WorkoutSummary; prSets: Record<string, boolean[]>; localDate: string }> => {
     const { supabase, userId } = context;
     const sb = supabase as SupabaseClient;
     const { timezone, unit } = await profileOf(sb, userId);
@@ -293,7 +293,7 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
         .eq("user_id", userId)
         .maybeSingle();
       if (done?.logged_at && done.summary) {
-        return { sessionId: done.id, summary: done.summary as unknown as WorkoutSummary, prSets: {} };
+        return { sessionId: done.id, summary: done.summary as unknown as WorkoutSummary, prSets: {}, localDate: localDateIn(timezone, new Date(done.logged_at)) };
       }
     }
 
@@ -408,7 +408,8 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
     if (data.workoutId) {
       await supabase.from("workouts").update({ last_done_at: now.toISOString() }).eq("id", data.workoutId).eq("user_id", userId);
     }
-    return { sessionId, summary, prSets };
+    // The member's own calendar day (saved timezone), not the phone clock.
+    return { sessionId, summary, prSets, localDate: today };
   });
 
 function summaryItemLine(sets: SetEntry[], unit: WeightUnit, logType: LogType): string {

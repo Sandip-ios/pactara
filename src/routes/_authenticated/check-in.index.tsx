@@ -95,7 +95,7 @@ function CheckInLaunch() {
     if (group && typeof localStorage !== "undefined") {
       localStorage.setItem("active-group-id", group);
     }
-    // Only "Done, check in" on a plan day carries a plan day into this check-in.
+    // Only a plan workout's Workout done carries a plan day into this check-in.
     claimPlanCheckInForLaunch();
     clearCheckInPhoto();
     clearCheckInStream();

@@ -366,6 +366,26 @@ export function lastCell(s: SetEntry | null, unit: WeightUnit, logType: LogType)
 }
 
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+/**
+ * Workout done kicker, "SHOULDER DAY · SUNDAY". `localDate` is the member's own
+ * calendar day (saved timezone), so the phone clock never decides the weekday.
+ */
+export function doneKicker(title: string, localDate: string | null | undefined): string {
+  if (!localDate) return title.toUpperCase();
+  const d = new Date(`${localDate}T12:00:00Z`);
+  return `${title} · ${WEEKDAY_LONG[d.getUTCDay()]}`.toUpperCase();
+}
+
+/** Exercise history row: { date: "Nov 3", weekday: "Mon" } for a stored member-local YYYY-MM-DD. */
+export function historyDateLabel(localDate: string): { date: string; weekday: string } {
+  const d = new Date(`${localDate}T12:00:00Z`);
+  return {
+    date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }),
+    weekday: WEEKDAY[d.getUTCDay()]!,
+  };
+}
 /** "Thu" for a YYYY-MM-DD within the last week, else "Nov 3". */
 export function shortDay(date: string, today: string): string {
   const d = new Date(`${date}T12:00:00Z`);
