@@ -989,6 +989,7 @@ export type Database = {
           cover_url: string | null
           created_at: string
           days_per_week: number
+          equipment_key: string
           focus_line: string | null
           gear: string[]
           gear_short: string | null
@@ -1012,6 +1013,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           days_per_week: number
+          equipment_key: string
           focus_line?: string | null
           gear?: string[]
           gear_short?: string | null
@@ -1035,6 +1037,7 @@ export type Database = {
           cover_url?: string | null
           created_at?: string
           days_per_week?: number
+          equipment_key?: string
           focus_line?: string | null
           gear?: string[]
           gear_short?: string | null
