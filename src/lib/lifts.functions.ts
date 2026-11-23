@@ -274,7 +274,8 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
         reps: num(s.reps, 1000) == null ? null : Math.round(num(s.reps, 1000)!),
         seconds: num(s.seconds, 86400) == null ? null : Math.round(num(s.seconds, 86400)!),
         doneAt: String(s.doneAt ?? new Date().toISOString()),
-      })),
+      // A set with no reps and no time isn't a logged set.
+      })).filter((s) => (s.reps ?? 0) > 0 || (s.seconds ?? 0) > 0),
     })).filter((e) => e.sets.length > 0),
   }))
   .handler(async ({ context, data }): Promise<{ sessionId: string | null; summary: WorkoutSummary; prSets: Record<string, boolean[]>; localDate: string }> => {

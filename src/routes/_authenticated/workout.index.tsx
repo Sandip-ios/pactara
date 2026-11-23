@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { endWorkoutWithoutCompleting } from "@/lib/workouts.functions";
 import { Play, Plus, X } from "lucide-react";
 import { usePlans, useMyPlans } from "@/components/plans/PlanBits";
 import { ExercisePicker } from "@/components/workout/ExercisePicker";
@@ -37,6 +40,8 @@ function StartWorkout() {
   const { data: history } = useLiftHistory();
   const { map: lib } = useExerciseMap();
   const start = useStartWorkout();
+  const qc = useQueryClient();
+  const endFn = useServerFn(endWorkoutWithoutCompleting);
   const [picking, setPicking] = useState(false);
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<null | (() => Promise<void>)>(null);
@@ -181,9 +186,16 @@ function StartWorkout() {
         onCancel={() => setPending(null)}
         onConfirm={() => {
           const go = pending;
+          const replaced = getActiveWorkout()?.sessionId ?? null;
           setPending(null);
           setActiveWorkout(null);
-          void go?.();
+          // End the replaced workout first so crews stop seeing it as "Working out".
+          const ended = replaced ? endFn({ data: { sessionId: replaced } }).catch(() => {}) : Promise.resolve();
+          void ended.then(() => {
+            void qc.invalidateQueries({ queryKey: ["home-crew"] });
+            void qc.invalidateQueries({ queryKey: ["groups-today"] });
+            return go?.();
+          });
         }}
       />
     </div>

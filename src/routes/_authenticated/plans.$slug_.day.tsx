@@ -347,7 +347,7 @@ function MoveTile({ ex }: { ex: LibraryExercise | null }) {
   if (ex?.imageStart) {
     return (
       <span className="relative flex h-16 w-16 flex-none overflow-hidden rounded-[12px]" style={{ background: C.bg }} aria-hidden>
-        <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-cover" />
+        <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-cover" style={{ transform: "scale(1.4)", transformOrigin: "center" }} />
         <span className="absolute bottom-1 left-1 rounded-[5px] px-[5px] py-px text-[9px] font-bold text-white" style={{ background: "rgba(20,18,24,.6)" }}>
           DEMO
         </span>
