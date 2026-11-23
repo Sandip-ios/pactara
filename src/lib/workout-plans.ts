@@ -4,7 +4,19 @@
  * checked in; missing a calendar day never changes it.
  */
 
-export type PlanGoal = "muscle" | "fat_loss" | "glutes" | "beginner" | "home" | "run";
+export type PlanGoal = "muscle" | "fat_loss" | "glutes" | "strength" | "beginner" | "run" | "mobility";
+
+/** What a plan needs (`plans.equipment_key`). */
+export type EquipmentKey = "none" | "dumbbells" | "band" | "kettlebell" | "gym" | "shoes";
+
+export const EQUIPMENT_LABEL: Record<EquipmentKey, string> = {
+  none: "No equipment",
+  dumbbells: "Dumbbells",
+  band: "Mini band",
+  kettlebell: "Kettlebell",
+  gym: "Gym",
+  shoes: "Running shoes",
+};
 
 /** An easier or harder option for a move ("Make it fit you"); `exercise_id` when it's a library exercise. */
 export type MoveOption = { name: string; note?: string | null; exercise_id?: string | null };
@@ -73,6 +85,7 @@ export type Plan = {
   focusLine: string | null;
   /** Short gear line for plan cards, e.g. "Dumbbells + bench". */
   gearShort: string | null;
+  equipmentKey: EquipmentKey;
   weekNotes: WeekNote[];
   days: PlanDay[];
 };
@@ -81,9 +94,10 @@ export const GOAL_CHIPS: { goal: PlanGoal; label: string }[] = [
   { goal: "muscle", label: "Build muscle" },
   { goal: "fat_loss", label: "Lose fat" },
   { goal: "glutes", label: "Glutes" },
+  { goal: "strength", label: "Get stronger" },
   { goal: "beginner", label: "Get moving again" },
-  { goal: "home", label: "At home" },
   { goal: "run", label: "Run" },
+  { goal: "mobility", label: "Mobility + core" },
 ];
 
 export function goalLabel(goal: PlanGoal): string {
@@ -94,24 +108,23 @@ export const restDaysFor = (plan: Pick<Plan, "daysPerWeek">) => Math.max(0, 7 - 
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-/** Matches plan name, goal (label or id), gear and move names; optional goal chip filter. */
-export function searchPlans<T extends Pick<Plan, "name" | "goal" | "days"> & Partial<Pick<Plan, "gear" | "gearShort">>>(
-  plans: T[],
-  query: string,
-  goal: PlanGoal | null = null,
-): T[] {
+/** Matches plan name, summary, goal (label or id) and gear; optional goal filter. */
+export function searchPlans<
+  T extends Pick<Plan, "name" | "goal"> & Partial<Pick<Plan, "gear" | "gearShort" | "summary" | "equipmentKey">>,
+>(plans: T[], query: string, goal: PlanGoal | null = null): T[] {
   const q = norm(query);
   return plans.filter((p) => {
     if (goal && p.goal !== goal) return false;
     if (!q) return true;
     const haystack = [
       p.name,
+      p.summary ?? "",
       p.goal.replace("_", " "),
       goalLabel(p.goal),
       ...(p.gear ?? []),
       p.gear && p.gear.length === 0 ? "no equipment" : "",
       p.gearShort ?? "",
-      ...p.days.flatMap((d) => d.moves.map((m) => m.name)),
+      p.equipmentKey ? EQUIPMENT_LABEL[p.equipmentKey] : "",
     ]
       .map(norm)
       .filter(Boolean);
@@ -227,7 +240,7 @@ export type PlanDayResult = {
 
 /** How many plans each goal tile leads to. */
 export function plansPerGoal(plans: Pick<Plan, "goal">[]): Record<PlanGoal, number> {
-  const out = { muscle: 0, fat_loss: 0, glutes: 0, beginner: 0, home: 0, run: 0 } as Record<PlanGoal, number>;
+  const out = { muscle: 0, fat_loss: 0, glutes: 0, strength: 0, beginner: 0, run: 0, mobility: 0 } as Record<PlanGoal, number>;
   for (const p of plans) out[p.goal] = (out[p.goal] ?? 0) + 1;
   return out;
 }

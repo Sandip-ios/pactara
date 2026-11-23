@@ -1,7 +1,7 @@
 # Roadmap
 
 - [x] Plans data: 6 moves without a demo swapped for library moves, goals strength/mobility, equipment type on every plan, Home No Equipment under Get moving again, 12 new plans, new Discover order (unpublished)
-- [ ] Discover screen for the new goals and equipment shortcuts (next message)
+- [x] Discover for 18 plans: 8 goal tiles, All plans with filter chips and sheets (days, minutes, equipment, level, goal), cover cards, active plan first, crew days note (unpublished)
 
 - [x] Plan sharing: Share panel on plan pages (send to a crew once, Share a link), plan card in crew chat (View plan, sender can delete, push + notification), public /p/<plan> page (signed in → plan page; signed out preview with sharer's first name, join/sign in keeps the plan and Home opens it), link previews with the plan cover; /p/ in the app-link file and launch links (unpublished)
 - [ ] /p/ links open in the iPhone app — same Associated Domains native build as /w/ (steps in native-assets/ios/README.md)

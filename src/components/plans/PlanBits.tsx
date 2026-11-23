@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { getCrewOnPlan, getCrewPlans, getMyPlans, listPlans } from "@/lib/plans.functions";
-import type { Plan, PlanGoal } from "@/lib/workout-plans";
+import { useState } from "react";
+import type { Plan } from "@/lib/workout-plans";
+import { coverThumb, type GoalTileKey } from "@/lib/plan-filters";
 
 export const BG = "#F5F2EE";
 export const PURPLE = "#7C3AED";
@@ -26,13 +28,15 @@ export const P = {
   chevron: "#A8A29E",
 } as const;
 
-export const GOAL_TILE: Record<PlanGoal, { tint: string; ink: string }> = {
+export const GOAL_TILE: Record<GoalTileKey, { tint: string; ink: string }> = {
   muscle: { tint: "#EDE7FB", ink: "#4C1D95" },
   fat_loss: { tint: "#FFF1E7", ink: "#7C2D12" },
   glutes: { tint: "#FCE7F3", ink: "#831843" },
+  strength: { tint: "#E7EEF7", ink: "#1E3A5F" },
   beginner: { tint: "#E8F6EC", ink: "#14532D" },
-  home: { tint: "#EEF2FF", ink: "#312E81" },
   run: { tint: "#FEF9C3", ink: "#713F12" },
+  home: { tint: "#EEF2FF", ink: "#312E81" },
+  mobility: { tint: "#E3F4F1", ink: "#134E4A" },
 };
 
 const PLAN_BADGE: Record<string, { tint: string; ink: string }> = {
@@ -70,38 +74,43 @@ export function gearText(plan: Pick<Plan, "gear">): string {
   return plan.gear.length ? plan.gear.join(" · ") : "No equipment";
 }
 
-/** Discover plan row: WEEKS badge, name, schedule, short gear and level. */
-export function PlanRow({ plan, onOpen, mine = false }: { plan: Plan; onOpen: () => void; mine?: boolean }) {
-  const badge = planBadge(plan.slug);
+/** Discover plan card: cover photo, YOUR PLAN pill, name, schedule, short gear and level. */
+export function PlanCard({ plan, onOpen, mine = false }: { plan: Plan; onOpen: () => void; mine?: boolean }) {
+  const [failed, setFailed] = useState(false);
+  const src = coverThumb(plan.coverUrl);
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="flex w-full gap-3 rounded-[16px] bg-white p-[14px] text-left transition-transform active:scale-[0.99]"
+      className="flex w-full items-center gap-3 rounded-[16px] bg-white p-[10px] text-left transition-transform active:scale-[0.99]"
     >
-      <span
-        className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-[14px] leading-none"
-        style={{ background: badge.tint, color: badge.ink }}
-      >
-        <span className="text-[18px] font-extrabold">{plan.weeks}</span>
-        <span className="mt-[3px] text-[10px] font-bold">WEEKS</span>
+      <span className="block h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[12px]" style={{ background: GOAL_TILE[plan.goal]?.tint ?? P.tile }}>
+        {src && !failed && (
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={() => setFailed(true)}
+            className="h-full w-full object-cover"
+            data-plan-cover={plan.slug}
+          />
+        )}
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-          <span className="text-[16px] font-extrabold" style={{ color: P.ink }}>
-            {plan.name}
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
+        {mine && (
+          <span
+            className="rounded-full px-2 py-[2px] text-[11px] font-extrabold tracking-[0.3px]"
+            style={{ background: "#EDE7FB", color: "#5B21B6" }}
+          >
+            YOUR PLAN
           </span>
-          {mine && (
-            <span
-              className="shrink-0 rounded-full px-2 py-[2px] text-[11px] font-extrabold tracking-[0.3px]"
-              style={{ background: "#EDE7FB", color: "#5B21B6" }}
-            >
-              YOUR PLAN
-            </span>
-          )}
+        )}
+        <span className="text-[16px] font-bold leading-tight" style={{ color: P.ink }}>
+          {plan.name}
         </span>
         <span className="text-[13px]" style={{ color: P.stoneDark }}>
-          {plan.daysPerWeek} days a week · {plan.minutes} min
+          {plan.weeks} weeks · {plan.daysPerWeek} days a week · {plan.minutes} min
         </span>
         <span className="text-[12px] font-semibold" style={{ color: P.stone }}>
           {plan.gearShort ?? gearText(plan)} · {plan.level}

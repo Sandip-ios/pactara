@@ -7,6 +7,7 @@ import {
   planStartAction,
   planWorkoutsDone,
   type CrewOnPlan,
+  type EquipmentKey,
   type MuscleMap,
   type Plan,
   type PlanDay,
@@ -24,7 +25,7 @@ export const listPlans = createServerFn({ method: "GET" })
     const [plansRes, daysRes] = await Promise.all([
       supabase
         .from("plans")
-        .select("id, slug, name, goal, level, weeks, days_per_week, minutes, gear, summary, progression_rule, safety_note, note, sort_order, cover_url, cover_credit, focus_line, gear_short, week_notes")
+        .select("id, slug, name, goal, level, weeks, days_per_week, minutes, gear, summary, progression_rule, safety_note, note, sort_order, cover_url, cover_credit, focus_line, gear_short, equipment_key, week_notes")
         .eq("is_published", true)
         .order("sort_order"),
       supabase.from("plan_days").select("plan_id, day_number, week_number, title, minutes, note, moves, muscles"),
@@ -62,6 +63,7 @@ export const listPlans = createServerFn({ method: "GET" })
       coverCredit: p.cover_credit,
       focusLine: p.focus_line,
       gearShort: p.gear_short,
+      equipmentKey: p.equipment_key as EquipmentKey,
       weekNotes: (Array.isArray(p.week_notes) ? p.week_notes : []) as unknown as WeekNote[],
       days: (daysByPlan.get(p.id) ?? []).sort(
         (a, b) => a.dayNumber - b.dayNumber || (a.weekNumber ?? 0) - (b.weekNumber ?? 0),

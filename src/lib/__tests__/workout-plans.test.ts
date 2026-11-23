@@ -50,6 +50,7 @@ const plan = (over: Partial<Plan>): Plan => ({
   coverCredit: null,
   focusLine: null,
   gearShort: null,
+  equipmentKey: "dumbbells",
   weekNotes: [],
   days: [],
   ...over,
@@ -122,10 +123,10 @@ describe("plan search", () => {
     expect(slugs("fat loss")).toEqual(["lose-fat"]);
     expect(slugs("get moving")).toEqual(["walk-strength"]);
   });
-  it("matches move names", () => {
-    expect(slugs("skater")).toEqual(["lose-fat"]);
-    expect(slugs("push-up")).toEqual(["walk-strength"]);
-    expect(slugs("dumbbell")).toEqual(["build-muscle", "lose-fat"]);
+  it("matches the summary but not move names", () => {
+    const withSummary = [plan({ slug: "a", name: "A", summary: "Swings and carries with one kettlebell" }), plan({ slug: "b", name: "B", days: [day(1, "Day", ["Kettlebell swing"])] })];
+    expect(searchPlans(withSummary, "carries").map((p) => p.slug)).toEqual(["a"]);
+    expect(slugs("skater")).toEqual([]);
   });
   it("returns everything for an empty search and nothing for no match", () => {
     expect(slugs("  ")).toHaveLength(4);
@@ -133,7 +134,7 @@ describe("plan search", () => {
   });
   it("narrows by goal chip", () => {
     expect(slugs("", "run")).toEqual(["first-5k"]);
-    expect(slugs("dumbbell", "fat_loss")).toEqual(["lose-fat"]);
+    expect(slugs("lose", "fat_loss")).toEqual(["lose-fat"]);
   });
 });
 
@@ -205,10 +206,11 @@ describe("plan page and Discover helpers", () => {
     expect(counts.glutes).toBe(0);
   });
   it("search finds no-equipment plans and gear", () => {
-    const home = plan({ slug: "home", name: "Home", goal: "home", gear: [] });
+    const home = plan({ slug: "home", name: "Home", goal: "beginner", gear: [], equipmentKey: "none" });
     const muscle = plan({ slug: "m", name: "Build Muscle", gear: ["Pair of dumbbells"] });
     expect(searchPlans([home, muscle], "no equipment").map((p) => p.slug)).toEqual(["home"]);
     expect(searchPlans([home, muscle], "dumbbells").map((p) => p.slug)).toEqual(["m"]);
+    expect(searchPlans([home, muscle], "get stronger")).toEqual([]);
   });
   it("tags each move with a muscle group", () => {
     expect(moveGroup("Dumbbell bench press")).toBe("CH");
