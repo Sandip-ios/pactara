@@ -1,0 +1,1 @@
+COMMENT ON COLUMN public.exercises.image_bg IS 'DEPRECATED: unused; the How to page samples the colour from the start image.';

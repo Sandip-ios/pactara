@@ -15,12 +15,16 @@ export type LibraryExercise = {
   imageStart: string | null;
   imagePeak: string | null;
   custom: boolean;
+  /** RepDB difficulty (beginner / intermediate / advanced); null for your own exercises. */
+  difficulty: string | null;
+  /** RepDB family of versions of the same move, used to find an easier one. */
+  variationGroup: string | null;
 };
 
 export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
   const { data, error } = await supabase
     .from("exercises")
-    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, owner_id")
+    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, owner_id, difficulty, variation_group")
     .order("name")
     .range(0, 2999);
   if (error) throw new Error(error.message);
@@ -35,6 +39,8 @@ export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
     imageStart: e.image_start,
     imagePeak: e.image_peak,
     custom: !!e.owner_id,
+    difficulty: e.difficulty ?? null,
+    variationGroup: e.variation_group ?? null,
   }));
 }
 
@@ -50,15 +56,18 @@ export function useExerciseMap() {
   return { ...q, map };
 }
 
-export async function fetchInstructions(id: string): Promise<string[]> {
-  const { data } = await supabase.from("exercises").select("instructions").eq("id", id).maybeSingle();
-  return data?.instructions ?? [];
+export type ExerciseDetail = { instructions: string[]; tips: string[]; description: string | null };
+
+export async function fetchExerciseDetail(id: string): Promise<ExerciseDetail> {
+  const { data } = await supabase.from("exercises").select("instructions, tips, description").eq("id", id).maybeSingle();
+  return { instructions: data?.instructions ?? [], tips: data?.tips ?? [], description: data?.description ?? null };
 }
 
-export function useInstructions(id: string | null) {
+/** Steps, tips and the plain description for the How to page. */
+export function useExerciseDetail(id: string | null) {
   return useQuery({
-    queryKey: ["exercise-instructions", id],
-    queryFn: () => fetchInstructions(id!),
+    queryKey: ["exercise-detail", id],
+    queryFn: () => fetchExerciseDetail(id!),
     enabled: !!id,
     staleTime: 60 * 60_000,
   });

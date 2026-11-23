@@ -20,6 +20,8 @@ export function useNow(ms = 1000) {
 export function WorkoutBar({ tabsVisible }: { tabsVisible: boolean }) {
   const w = useActiveWorkout();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  // A How to page opened from inside the workout has its own way back (Close / Swap in).
+  const fromLogger = useRouterState({ select: (s) => pathname.endsWith("/how-to") && typeof (s.location.search as { swap?: unknown }).swap === "string" });
   const navigate = useNavigate();
   const now = useNow(1000);
   const [tabsH, setTabsH] = useState(72);
@@ -42,7 +44,7 @@ export function WorkoutBar({ tabsVisible }: { tabsVisible: boolean }) {
     return () => ro.disconnect();
   }, [tabsVisible, w?.id]);
 
-  if (!w || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera")) return null;
+  if (!w || fromLogger || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera")) return null;
   return (
     <button
       type="button"

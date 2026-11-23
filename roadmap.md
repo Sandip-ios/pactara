@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Exercise How to full page (markup): two-pose hero with pause and reduced motion, muscles, description, steps, tips/mistakes, too hard/too easy with swap into a live workout (unpublished)
+
 - [x] Plan day as a full page (markup), tile pictures, full-screen how-to, change workout, start in logger; old preview sheet removed (unpublished)
 
 - [x] Build-your-own workouts + weight tracking + exercise library: RepDB library (708, images in our storage), plan moves mapped, custom exercises, Start a workout, picker, set logger with prefill/tips/PRs/rest timer/minimize bar, Workout done, feed summary + sheet, exercise progress, profile Lifts, lb/kg + RepDB credit in settings (unpublished, awaiting review)

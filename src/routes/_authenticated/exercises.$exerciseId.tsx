@@ -2,9 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
 import { ChevronLeft, Trophy } from "lucide-react";
-import { FONT, HowToSheet, W, exerciseKicker, tintFor } from "@/components/workout/WorkoutBits";
+import { FONT, W, exerciseKicker, tintFor } from "@/components/workout/WorkoutBits";
 import { getExerciseProgress } from "@/lib/lifts.functions";
 import { useExerciseMap } from "@/lib/exercise-library";
 import { bestOf, convertWeight, fmtDurationShort, fmtNum, nextTimeTip, plural, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
@@ -43,7 +42,6 @@ function ExerciseProgressPage() {
     queryFn: () => fetchFn({ data: { exerciseId } }),
     staleTime: 30_000,
   });
-  const [howTo, setHowTo] = useState(false);
   const ex = map.get(exerciseId) ?? null;
   const unit: WeightUnit = data?.unit ?? "lb";
   const sessions = data?.sessions ?? [];
@@ -73,7 +71,7 @@ function ExerciseProgressPage() {
           <ChevronLeft size={24} />
         </button>
         {ex && (
-          <button type="button" onClick={() => setHowTo(true)} className="mr-2 h-9 rounded-full bg-white px-4 text-[14px] font-bold" style={{ color: W.violet, boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
+          <button type="button" onClick={() => navigate({ to: "/exercises/$exerciseId/how-to", params: { exerciseId } })} className="mr-2 h-9 rounded-full bg-white px-4 text-[14px] font-bold" style={{ color: W.violet, boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}>
             How to
           </button>
         )}
@@ -149,7 +147,6 @@ function ExerciseProgressPage() {
           </>
         )}
       </div>
-      <HowToSheet exercise={howTo ? ex : null} onClose={() => setHowTo(false)} />
     </div>
   );
 }

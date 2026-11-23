@@ -356,8 +356,11 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          description: string | null
+          difficulty: string | null
           equipment: string
           id: string
+          image_bg: string | null
           image_peak: string | null
           image_start: string | null
           instructions: string[]
@@ -367,12 +370,17 @@ export type Database = {
           primary_muscles: string[]
           secondary_muscles: string[]
           source: string
+          tips: string[]
+          variation_group: string | null
         }
         Insert: {
           category?: string
           created_at?: string
+          description?: string | null
+          difficulty?: string | null
           equipment?: string
           id?: string
+          image_bg?: string | null
           image_peak?: string | null
           image_start?: string | null
           instructions?: string[]
@@ -382,12 +390,17 @@ export type Database = {
           primary_muscles?: string[]
           secondary_muscles?: string[]
           source?: string
+          tips?: string[]
+          variation_group?: string | null
         }
         Update: {
           category?: string
           created_at?: string
+          description?: string | null
+          difficulty?: string | null
           equipment?: string
           id?: string
+          image_bg?: string | null
           image_peak?: string | null
           image_start?: string | null
           instructions?: string[]
@@ -397,6 +410,8 @@ export type Database = {
           primary_muscles?: string[]
           secondary_muscles?: string[]
           source?: string
+          tips?: string[]
+          variation_group?: string | null
         }
         Relationships: []
       }

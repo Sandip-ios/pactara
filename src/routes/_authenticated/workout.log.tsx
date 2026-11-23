@@ -7,7 +7,7 @@ import { Check, ChevronDown, Minus, MoreHorizontal, Plus, Timer, Trophy } from "
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { ExercisePicker } from "@/components/workout/ExercisePicker";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
-import { ExerciseThumb, FONT, HowToSheet, W } from "@/components/workout/WorkoutBits";
+import { ExerciseThumb, FONT, W } from "@/components/workout/WorkoutBits";
 import { useNow } from "@/components/workout/WorkoutBar";
 import { primeRestSound } from "@/components/workout/RestAlarm";
 import { endWorkoutWithoutCompleting } from "@/lib/workouts.functions";
@@ -77,7 +77,6 @@ function Logger({ w }: { w: ActiveWorkout }) {
   const endFn = useServerFn(endWorkoutWithoutCompleting);
   const [picker, setPicker] = useState<null | { replace: string | null }>(null);
   const [menuKey, setMenuKey] = useState<string | null>(null);
-  const [howTo, setHowTo] = useState<LibraryExercise | null>(null);
   const [notesOpen, setNotesOpen] = useState<Set<string>>(new Set());
   const [confirm, setConfirm] = useState<null | "finish" | "empty" | "discard">(null);
   const [saving, setSaving] = useState(false);
@@ -402,7 +401,7 @@ function Logger({ w }: { w: ActiveWorkout }) {
                 { label: "Replace", onClick: () => setPicker({ replace: menuEx.key }) },
                 { label: "Remove", danger: true, onClick: () => update((x) => ({ ...x, exercises: x.exercises.filter((e) => e.key !== menuEx.key) })) },
                 { label: menuEx.notes ? "Edit notes" : "Notes", onClick: () => setNotesOpen((s) => new Set(s).add(menuEx.key)) },
-                { label: "How to", onClick: () => setHowTo(lib.get(menuEx.exerciseId) ?? null) },
+                { label: "How to", onClick: () => navigate({ to: "/exercises/$exerciseId/how-to", params: { exerciseId: menuEx.exerciseId }, search: { swap: menuEx.key } }) },
               ].map((o) => (
                 <button
                   key={o.label}
@@ -433,8 +432,6 @@ function Logger({ w }: { w: ActiveWorkout }) {
           )}
         </DrawerContent>
       </Drawer>
-
-      <HowToSheet exercise={howTo} onClose={() => setHowTo(null)} />
 
       <ConfirmSheet
         open={confirm === "finish"}

@@ -246,6 +246,20 @@
       "when": 1795394763143,
       "tag": "0034_workout_logging",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1795399030002,
+      "tag": "0035_exercise_howto_details",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1795399137481,
+      "tag": "0036_comment_exercise_image_bg",
+      "breakpoints": true
     }
   ]
 }

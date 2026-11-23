@@ -6,8 +6,22 @@
 
 export type PlanGoal = "muscle" | "fat_loss" | "glutes" | "beginner" | "home" | "run";
 
-/** `exercise_id`: the matching exercise library entry, when there is a good match. */
-export type PlanMove = { name: string; dose: string; plain: string; exercise_id?: string | null };
+/** An easier or harder option for a move ("Make it fit you"); `exercise_id` when it's a library exercise. */
+export type MoveOption = { name: string; note?: string | null; exercise_id?: string | null };
+
+/**
+ * `exercise_id`: the matching exercise library entry, when there is a good match.
+ * `mistakes`, `easier`, `harder`: our own How to copy; a How to section is hidden when it's missing.
+ */
+export type PlanMove = {
+  name: string;
+  dose: string;
+  plain: string;
+  exercise_id?: string | null;
+  mistakes?: { mistake: string; fix: string }[] | null;
+  easier?: MoveOption | null;
+  harder?: MoveOption | null;
+};
 
 /** Body-map regions a day works: 2 = main focus, 1 = also worked. */
 export const MUSCLE_REGIONS = [
