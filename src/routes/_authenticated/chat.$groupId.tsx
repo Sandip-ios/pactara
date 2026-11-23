@@ -636,7 +636,7 @@ function GroupChatPage() {
             ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value)}
-            placeholder="Message your group..."
+            placeholder="Message your crew..."
             className="min-w-0 flex-1 bg-transparent px-3 text-[16px] outline-none placeholder:text-muted-foreground"
           />
           {text.trim() || pendingFile || send.isPending || uploading ? (

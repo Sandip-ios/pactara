@@ -137,7 +137,7 @@ export function CrewToday({
             <button
               type="button"
               onClick={onInvite}
-              aria-label="Invite someone to this group"
+              aria-label="Invite someone to this crew"
               className="flex h-[76px] w-[76px] items-center justify-center rounded-full active:opacity-70"
               style={{ border: "3px dashed #A8A29E", color: "#57534E" }}
             >

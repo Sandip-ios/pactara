@@ -281,6 +281,13 @@
       "when": 1795418751866,
       "tag": "0039_plan_sharing",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1795419827739,
+      "tag": "0040_crew_leave_keeps_membership",
+      "breakpoints": true
     }
   ]
 }

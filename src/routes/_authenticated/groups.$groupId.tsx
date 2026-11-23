@@ -73,9 +73,9 @@ function GroupDetailPage() {
   if (!group) {
     return (
       <div className="fixed inset-0 w-full overflow-y-auto pb-28" style={{ background: BG }}>
-        <DetailHeader title="Group" onBack={() => navigate({ to: "/groups" })} />
+        <DetailHeader title="Crew" onBack={() => navigate({ to: "/home" })} />
         <div className="mx-4 mt-6 rounded-3xl bg-white p-8 text-center">
-          <div className="text-[16px] font-bold">This group is no longer available</div>
+          <div className="text-[16px] font-bold">This crew is no longer available</div>
         </div>
       </div>
     );
@@ -96,22 +96,31 @@ function GroupDetailPage() {
       >
         <div className="flex items-center gap-2">
           <button
-            onClick={() => navigate({ to: "/groups" })}
-            aria-label="Back to groups"
+            onClick={() => {
+              if (window.history.length > 1) window.history.back();
+              else navigate({ to: "/home" });
+            }}
+            aria-label="Back"
             className="h-9 w-9 -ml-2 rounded-full flex items-center justify-center text-white"
           >
             <ChevronLeft size={24} />
           </button>
           <div className="flex-1" />
           <GroupOverflowMenu
-            groupId={group.id}
-             groupName={displayName}
-             emoji={displayEmoji}
-            isAdmin={group.isAdmin}
-            duration={group.durationDays}
-            frequency={group.frequency}
-            daysPerWeek={group.daysPerWeek}
-            onDeleted={() => navigate({ to: "/groups" })}
+            crew={{
+              id: group.id,
+              name: displayName,
+              emoji: displayEmoji,
+              isAdmin: group.isAdmin,
+              duration: group.durationDays,
+              frequency: group.frequency,
+              daysPerWeek: group.daysPerWeek,
+              memberCount: group.memberCount,
+              others: group.members
+                .filter((m) => !m.isYou)
+                .map((m) => ({ id: m.userId, name: m.firstName, avatarColor: m.avatarColor, avatarUrl: m.avatarUrl })),
+            }}
+            onDeleted={() => navigate({ to: "/home" })}
           />
         </div>
         <div className="mt-3 flex items-center gap-3">

@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { MessageSquare, MessageCircle, Image as ImageIcon, Send, Zap, Bell, X } from "lucide-react";
-import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
+import { YourCrewsSheet } from "@/components/home/YourCrewsSheet";
 
 import { toast } from "sonner";
 import { getMyGroupStatus, getPendingCheckIns } from "@/lib/groups.functions";
@@ -18,7 +18,7 @@ import { getRestDayInfo } from "@/lib/rest-days.functions";
 import { CrewBar, CrewBarSkeleton } from "@/components/home/CrewBar";
 import { TodayCard, TodayCardSkeleton, type TodayState } from "@/components/home/TodayCard";
 import { CrewToday, CrewTodaySkeleton } from "@/components/home/CrewToday";
-import { ShareInviteDrawer, inviteLinkFor } from "@/components/groups/GroupOverflowMenu";
+import { CREW_INVITE_TEXT, ShareInviteDrawer, inviteLinkFor } from "@/components/groups/GroupOverflowMenu";
 
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { GettingStarted } from "@/components/GettingStarted";
@@ -77,9 +77,9 @@ export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
     meta: [
       { title: "Home · Pactara" },
-      { name: "description", content: "Your daily check-ins, streaks, and accountability group on Pactara." },
+      { name: "description", content: "Your daily check-ins, streaks, and accountability crew on Pactara." },
       { property: "og:title", content: "Home · Pactara" },
-      { property: "og:description", content: "Your daily check-ins, streaks, and accountability group on Pactara." },
+      { property: "og:description", content: "Your daily check-ins, streaks, and accountability crew on Pactara." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -166,6 +166,19 @@ function HomePage() {
   // Label reflects the accountability relationship, not the group's stored name.
   const relationFor = (groupId: string | null | undefined) => relationForGroup(groupId, partnerState);
   const [switcherOpen, setSwitcherOpen] = useState(false);
+  // Old /groups?tab=crews links (and the partner screen's invite) land here:
+  // ?crews=1 opens Your crews, ?invite=<groupId> opens that crew's invite.
+  const [inviteFor, setInviteFor] = useState<string | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(searchStr || window.location.search);
+    const wantsCrews = q.get("crews") === "1";
+    const invite = q.get("invite");
+    if (!wantsCrews && !invite) return;
+    if (wantsCrews) setSwitcherOpen(true);
+    if (invite) setInviteFor(invite);
+    void navigate({ to: "/home", replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchStr]);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
     if (typeof localStorage === "undefined") return null;
@@ -213,6 +226,14 @@ function HomePage() {
   // its data (or the 2.5s cap passes and the skeleton shows instead).
   useLaunchHold(!groupsData || (myGroups.length > 0 && (crewLoading || !crew)));
   const [inviteOpen, setInviteOpen] = useState(false);
+  useEffect(() => {
+    if (!inviteFor || !groupsData) return;
+    if (myGroups.some((g) => g.id === inviteFor)) {
+      setSelectedGroupId(inviteFor);
+      setInviteOpen(true);
+    }
+    setInviteFor(null);
+  }, [inviteFor, groupsData, myGroups]);
   const [inviteCopied, setInviteCopied] = useState(false);
   const { data: restInfo } = useQuery({
     queryKey: ["rest-day-info"],
@@ -517,16 +538,32 @@ function HomePage() {
         // No group yet: keep the plain check-in card, as before.
         if (groupsData && myGroups.length === 0) {
           return (
-            <TodayCard
-              state="check-in"
-              groupId={null}
-              streak={0}
-              inCount={0}
-              dueCount={1}
-              solo
-              week={null}
-              myCheckIn={null}
-            />
+            <>
+              <TodayCard
+                state="check-in"
+                groupId={null}
+                streak={0}
+                inCount={0}
+                dueCount={1}
+                solo
+                week={null}
+                myCheckIn={null}
+              />
+              <button
+                type="button"
+                onClick={() => setSwitcherOpen(true)}
+                className="mx-4 mt-3 flex min-h-[64px] w-[calc(100%-32px)] items-center gap-3 rounded-[20px] bg-white px-4 text-left"
+                style={{ boxShadow: "0 1px 2px rgba(20,18,24,.06)" }}
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[18px]" style={{ background: "#EDE7FB" }} aria-hidden>
+                  👥
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[15px] font-bold text-neutral-900">Find your crew</span>
+                  <span className="text-[13px] text-neutral-500">Start a crew or join with a link</span>
+                </span>
+              </button>
+            </>
           );
         }
         if (!groupsData || !activeGroup || crewLoading || !crew) {
@@ -539,7 +576,7 @@ function HomePage() {
           );
         }
         const rel = relationFor(activeGroup.id);
-        const label = rel?.name ?? activeGroup.name ?? "Group";
+        const label = rel?.name ?? activeGroup.name ?? "Crew";
         const icon = rel?.emoji ?? activeGroup.emoji;
         const solo = crew.memberCount <= 1;
         const me = crew.members.find((m) => m.isYou);
@@ -551,7 +588,7 @@ function HomePage() {
             <CrewBar
               label={label}
               icon={icon}
-              canSwitch={myGroups.length > 1}
+              canSwitch
               onOpenSwitcher={() => setSwitcherOpen(true)}
               dayNumber={crew.dayNumber}
               durationDays={crew.durationDays}
@@ -559,15 +596,6 @@ function HomePage() {
               solo={solo}
               weeklyTarget={crew.weeklyTarget}
             />
-            {myGroups.length > 1 && (
-              <GroupSwitcherSheet
-                open={switcherOpen}
-                onClose={() => setSwitcherOpen(false)}
-                groups={myGroups}
-                selectedGroupId={selectedGroupId}
-                onSelect={(id) => setSelectedGroupId(id)}
-              />
-            )}
             <TodayCard
               state={todayState}
               groupId={crew.groupId}
@@ -592,7 +620,7 @@ function HomePage() {
                 }}
                 groupName={label}
                 inviteLink={inviteLinkFor(crew.groupId)}
-                shareText="Accept your invite to my Pactara group!"
+                shareText={CREW_INVITE_TEXT}
                 copied={inviteCopied}
                 onCopy={() => {
                   navigator.clipboard.writeText(inviteLinkFor(crew.groupId)).catch(() => {});
@@ -748,6 +776,12 @@ function HomePage() {
       {false && <GettingStarted iCheckedIn={pendingData?.iCheckedIn ?? false} />}
 
       </PullToRefresh>
+      <YourCrewsSheet
+        open={switcherOpen}
+        onOpenChange={setSwitcherOpen}
+        selectedGroupId={selectedGroupId}
+        onSelect={(id) => setSelectedGroupId(id)}
+      />
       {showOnboarding && <OnboardingSheet firstName={firstName} onClose={dismissOnboarding} initialStep={onboardingStep} />}
       {pendingBadges && pendingBadges.length > 0 && (
         <BadgeUnlockedModal badges={pendingBadges} onClose={() => setPendingBadges(null)} />

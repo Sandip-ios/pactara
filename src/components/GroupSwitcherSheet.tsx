@@ -84,7 +84,7 @@ export default function GroupSwitcherSheet({
           <span className="h-1 w-10 rounded-full bg-border" />
         </div>
         <div className="px-5 pt-1 pb-3">
-          <h2 className="text-[17px] leading-6 font-bold text-foreground">Switch group</h2>
+          <h2 className="text-[17px] leading-6 font-bold text-foreground">Your crews</h2>
         </div>
         <div className="max-h-[68vh] overflow-y-auto px-3 pb-2">
           {allowAll && (
@@ -101,9 +101,9 @@ export default function GroupSwitcherSheet({
                 🔔
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[17px] leading-6 font-bold text-foreground">All groups</span>
+                <span className="block text-[17px] leading-6 font-bold text-foreground">All crews</span>
                 <span className="mt-0.5 block text-[14px] leading-5 text-muted-foreground">
-                  Everything from your {groups.length} group{groups.length === 1 ? "" : "s"}
+                  Everything from your {groups.length} crew{groups.length === 1 ? "" : "s"}
                 </span>
               </span>
               {selectedGroupId === "all" && (

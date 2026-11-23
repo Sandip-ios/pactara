@@ -133,7 +133,7 @@ function StepMorning({ plan, setPlan }: { plan: string; setPlan: (s: string) => 
         Start every morning with your plan
       </h2>
       <p className="mt-3 text-[15px] text-neutral-600 leading-relaxed">
-        Each day, post what you're going to do before you do it. Your group sees it — which means you're accountable before you even start.
+        Each day, post what you're going to do before you do it. Your crew sees it — which means you're accountable before you even start.
       </p>
 
       <div className="mt-5 rounded-2xl bg-white p-4 shadow-sm">

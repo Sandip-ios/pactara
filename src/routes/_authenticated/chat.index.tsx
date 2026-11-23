@@ -72,7 +72,7 @@ function ChatPage() {
         </button>
         <h1 className="text-[28px] font-black tracking-tight">Messages</h1>
         <div className="text-[14px] text-neutral-500 mt-1">
-          {isLoading ? " " : `${groups.length} ${groups.length === 1 ? "group" : "groups"}`}
+          {isLoading ? " " : `${groups.length} ${groups.length === 1 ? "crew" : "crews"}`}
         </div>
       </section>
 

@@ -16,7 +16,7 @@ export const Route = createFileRoute("/api/public/og/invite/$groupId")({
       GET: async ({ params }) => {
         const groupId = String(params.groupId ?? "").trim();
         let inviterName = "Someone";
-        let groupName = "their Pactara group";
+        let groupName = "their Pactara crew";
 
         if (groupId) {
           try {

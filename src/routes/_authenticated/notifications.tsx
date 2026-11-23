@@ -23,7 +23,7 @@ export const Route = createFileRoute("/_authenticated/notifications")({
   head: () => ({
     meta: [
       { title: "Notifications — Pactara" },
-      { name: "description", content: "Comments, reactions, check-ins and messages from your accountability groups." },
+      { name: "description", content: "Comments, reactions, check-ins and messages from your accountability crews." },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -182,13 +182,13 @@ function NotificationsPage() {
           >
             <span className="truncate max-w-[200px]">
               {selectedGroupId === "all"
-                ? "All groups"
+                ? "All crews"
                 : selected
                    ? (() => {
                        const display = displayFor(selected.id, selected.name, selected.emoji);
                        return `${display.emoji} ${display.name}`;
                      })()
-                  : "Select a group"}
+                  : "Select a crew"}
             </span>
             <ChevronDown size={14} />
           </button>

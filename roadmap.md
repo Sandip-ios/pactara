@@ -70,3 +70,4 @@
 - [x] Workout plans phase 1: Discover tab (Crews | Plans), six seeded plans, plan detail/day screens, membership gate, plan-day check-ins that advance the plan, feed plan tag, profile current/past plans
 - [x] One entry point per plan action: "YOUR PLAN" badge in Discover list, Workouts card opens today's day (chevron, footer to plan), day-page kicker links to plan, "Today's workout" labels (unpublished)
 - [x] Share a workout into crew chat: Share panel in Edit workout (send to crews / share a link), workout cards in chat with View workout, sender can delete, "shared a workout" notifications (unpublished)
+- [x] Move crews out of Discover: Discover plans only, Home "Your crews" sheet + ••• crew sheet, Leave crew keeps history, crew wording, real crew rule labels (unpublished)

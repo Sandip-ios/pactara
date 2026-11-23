@@ -168,7 +168,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
               if (typeof window !== "undefined" && window.history.length > 1) {
                 router.history.back();
               } else {
-                navigate({ to: "/groups" });
+                navigate({ to: "/home" });
               }
             }}
             aria-label="Back"
@@ -419,7 +419,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
               <InsightRow
                 label="Best streak"
                 value={stat(data?.bestStreak ?? 0)}
-                sub="Longest run in this group"
+                sub="Longest run in this crew"
               />
             </div>
           </section>
@@ -732,7 +732,7 @@ function StreakFreezeSheet({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!data?.groupId) throw new Error("No group selected");
+      if (!data?.groupId) throw new Error("No crew selected");
       return apply({ data: { groupId: data.groupId } });
     },
     onSuccess: async () => {

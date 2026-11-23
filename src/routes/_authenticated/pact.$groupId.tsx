@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { crewRuleLabel } from "@/lib/streak-rules";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,9 +20,9 @@ export const Route = createFileRoute("/_authenticated/pact/$groupId")({
   head: () => ({
     meta: [
       { title: "Sign the pact — Pactara" },
-      { name: "description", content: "Make your commitment to the group before the challenge begins." },
+      { name: "description", content: "Make your commitment to your crew before day 1." },
       { property: "og:title", content: "Sign the pact — Pactara" },
-      { property: "og:description", content: "Make your commitment to the group before the challenge begins." },
+      { property: "og:description", content: "Make your commitment to your crew before day 1." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
@@ -117,8 +118,9 @@ function PactPage() {
     navigate({ to: "/home" });
   };
 
-  const frequencyLabel =
-    data && data.frequency !== "daily" ? `${data.daysPerWeek}× per week` : "Every day";
+  const frequencyLabel = data
+    ? crewRuleLabel({ frequency: data.frequency, days_per_week: data.daysPerWeek })
+    : crewRuleLabel({ frequency: "daily" });
 
   return (
     <div
@@ -267,7 +269,7 @@ function PactPage() {
               <p className="text-[13px] text-neutral-500 mt-4 leading-snug">
                 {data.isPartner
                   ? `We'll let you know when ${partner?.name ?? "your partner"} signs.`
-                  : "We'll let you know as the rest of the group signs."}
+                  : "We'll let you know as the rest of the crew signs."}
               </p>
             )}
           </div>
@@ -291,7 +293,7 @@ function PactPage() {
             className="w-full h-14 rounded-2xl text-white text-[16px] font-bold flex items-center justify-center gap-2"
             style={{ background: PURPLE }}
           >
-            {data?.isPartner ? "Start the pact" : "Enter the group"} <ChevronRight size={18} />
+            {data?.isPartner ? "Start the pact" : "Enter the crew"} <ChevronRight size={18} />
           </button>
         ) : (
           <>

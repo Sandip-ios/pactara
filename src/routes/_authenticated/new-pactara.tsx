@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { crewRuleLabel } from "@/lib/streak-rules";
 import { useEffect, useMemo, useState } from "react";
 import { isNative } from "@/lib/native";
 import { ChevronLeft } from "lucide-react";
@@ -118,10 +119,16 @@ function NewPactaraFlow() {
   };
 
 
+  // The new crew is created by now: Home opens on it.
+  const openNewCrewOnHome = () => {
+    if (pendingGroupId && typeof localStorage !== "undefined") localStorage.setItem("active-group-id", pendingGroupId);
+    navigate({ to: "/home" });
+  };
+
   const next = () => {
     if (step === "group") ensureGroupName();
     if (step === "invite") {
-      navigate({ to: "/groups" });
+      openNewCrewOnHome();
       return;
     }
     setStepIdx((i) => Math.min(i + 1, STEPS.length - 1));
@@ -129,10 +136,10 @@ function NewPactaraFlow() {
   const back = () => {
     if (step === "invite") {
       // Group already exists at this point — don't step back into creation.
-      navigate({ to: "/groups" });
+      openNewCrewOnHome();
       return;
     }
-    if (stepIdx === 0) navigate({ to: "/groups" });
+    if (stepIdx === 0) navigate({ to: "/home" });
     else setStepIdx((i) => i - 1);
   };
 
@@ -194,7 +201,7 @@ function NewPactaraFlow() {
 
   if (step === "greeting") {
     const days = duration === "custom" ? parseInt(customDays, 10) || 30 : duration;
-    const frequencyLabel = "Every day";
+    const frequencyLabel = crewRuleLabel({ frequency: "daily", days_per_week: 7 });
     return (
       <>
         <GreetingStep

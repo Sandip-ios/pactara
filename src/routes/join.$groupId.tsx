@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { crewRuleLabel } from "@/lib/streak-rules";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/join/$groupId")({
     return {
       meta: [
         { title: "Add me on Pactara 💜" },
-        { name: "description", content: "You've been invited to join an accountability group on Pactara." },
+        { name: "description", content: "You've been invited to join an accountability crew on Pactara." },
         { property: "og:title", content: "Add me on Pactara 💜" },
         { property: "og:description", content: "Daily check-ins with friends keeping each other accountable." },
         { property: "og:type", content: "website" },
@@ -161,7 +162,7 @@ function JoinPage() {
     } else if (resolution === "GROUP_UNAVAILABLE" || resolution === "INVITE_INVALID") {
       // Dead invite: forget it so it can never be replayed on a later launch.
       clearPendingInvite();
-      if (isSignedIn) navigate({ to: "/groups", replace: true });
+      if (isSignedIn) navigate({ to: "/home", replace: true });
     } else if (resolution === "JOIN_REQUIRED") {
       trackInvite("invite_resolution_join_required", { group_id: groupId });
     }
@@ -287,7 +288,7 @@ function JoinPage() {
           : { to: "/goal/$groupId", params: { groupId } },
       );
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Couldn't join the group";
+      const message = e instanceof Error ? e.message : "Couldn't join the crew";
       trackInvite("invite_join_failed", { group_id: groupId, error_code: message });
       setError(message);
       setJoining(false);
@@ -295,7 +296,7 @@ function JoinPage() {
   };
 
   const inviterName = data?.inviter?.fullName?.trim() || data?.inviter?.name || "Someone";
-  const groupName = data?.name ?? ctx?.group?.name ?? "this group";
+  const groupName = data?.name ?? ctx?.group?.name ?? "this crew";
   const emoji = data?.emoji ?? ctx?.group?.emoji ?? "🔥";
 
   if (resolution === "ALREADY_MEMBER") {
@@ -323,10 +324,10 @@ function JoinPage() {
   if (resolution === "GROUP_UNAVAILABLE") {
     return (
       <StatusScreen
-        title="This group is no longer active"
+        title="This crew is no longer active"
         text="Ask whoever invited you for a new invite."
-        ctaLabel="Go to Groups"
-        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+        ctaLabel="Go to Home"
+        onCta={() => navigate({ to: isSignedIn ? "/home" : "/" })}
       />
     );
   }
@@ -334,10 +335,10 @@ function JoinPage() {
   if (resolution === "GROUP_FULL" && !isMobileWeb) {
     return (
       <StatusScreen
-        title="This group is full"
+        title="This crew is full"
         text={`${groupName} has reached its member limit of 8 people, so no one else can join right now.`}
-        ctaLabel={isSignedIn ? "Go to Groups" : "Go to Pactara"}
-        onCta={() => navigate({ to: isSignedIn ? "/groups" : "/" })}
+        ctaLabel={isSignedIn ? "Go to Home" : "Go to Pactara"}
+        onCta={() => navigate({ to: isSignedIn ? "/home" : "/" })}
       />
     );
   }
@@ -404,7 +405,7 @@ function JoinPage() {
                   {data ? `${data.durationDays}d` : "—"}
                 </span>
               </div>
-              <div className="text-[12px]" style={{ color: TEXT_MUTED }}>challenge</div>
+              <div className="text-[12px]" style={{ color: TEXT_MUTED }}>length</div>
             </div>
 
           </div>
@@ -442,18 +443,14 @@ function JoinPage() {
           <HowRow
             icon={<Users size={20} className="text-[#7C3AED]" />}
             bg="#F1E9FF"
-            title="Join a small group"
+            title="Join a small crew"
             text="Up to 8 people, all chasing the same fitness goal."
           />
           <HowRow
             icon={<CheckSquare size={20} className="text-white" />}
             bg="#22C55E"
-            title={
-              data && data.frequency !== "daily"
-                ? `Check in ${data.daysPerWeek}× per week`
-                : "Check in every day"
-            }
-            text="Check in while you're doing it, not after. A photo, a note — whatever feels right. Your group will notice."
+            title={data ? crewRuleLabel({ frequency: data.frequency, days_per_week: data.daysPerWeek }) : "Check in with your crew"}
+            text="Check in while you're doing it, not after. A photo, a note — whatever feels right. Your crew will notice."
           />
           <HowRow
             icon={<Flame size={20} className="text-[#EA580C]" />}
@@ -520,10 +517,10 @@ function JoinPage() {
           <button
             onClick={() => {
               trackInvite("invite_declined", { group_id: groupId });
-              // Keep it around so the Groups page can offer a way back in.
+              // Keep it around so Your crews can offer a way back in.
               rememberSavedInvite(groupId);
               clearPendingInvite();
-              navigate({ to: "/groups", replace: true });
+              navigate({ href: "/home?crews=1", replace: true });
             }}
             className="w-full mt-2 py-3 text-[15px] font-medium"
             style={{ color: TEXT_MUTED }}

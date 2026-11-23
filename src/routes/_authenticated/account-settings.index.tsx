@@ -101,7 +101,7 @@ function AccountSettingsHub() {
             icon={<UserIcon size={18} style={{ color: PURPLE }} />}
             iconBg={PURPLE_SOFT}
             title="Name"
-            subtitle="How you appear in your group"
+            subtitle="How you appear in your crew"
             onClick={() => navigate({ to: "/account-settings/name" })}
           />
           <Divider />

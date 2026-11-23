@@ -19,19 +19,19 @@ const TASKS: Task[] = [
   {
     id: "checkin",
     title: "Log your first check-in",
-    desc: "Show up for Day 1. Your group is watching.",
+    desc: "Show up for Day 1. Your crew is watching.",
   },
   {
     id: "comment",
     title: "Comment on a teammate's post",
-    desc: "Leave a comment on someone's check-in — it keeps the group going.",
+    desc: "Leave a comment on someone's check-in — it keeps the crew going.",
     cta: { label: "Go to feed", to: "/home" },
   },
   {
     id: "chat",
-    title: "Say hi in the group chat",
+    title: "Say hi in the crew chat",
     desc: 'Drop a message. Even just "Let\'s go" counts.',
-    cta: { label: "Open chat", to: "/groups" },
+    cta: { label: "Open chat", to: "/chat" },
   },
   {
     id: "streak",

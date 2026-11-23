@@ -442,6 +442,47 @@ export type Database = {
         }
         Relationships: []
       }
+      group_member_departures: {
+        Row: {
+          group_id: string
+          id: string
+          joined_at: string | null
+          left_at: string
+          pact_signed_at: string | null
+          personal_goal: string | null
+          personal_goal_set_at: string | null
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          id?: string
+          joined_at?: string | null
+          left_at?: string
+          pact_signed_at?: string | null
+          personal_goal?: string | null
+          personal_goal_set_at?: string | null
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          id?: string
+          joined_at?: string | null
+          left_at?: string
+          pact_signed_at?: string | null
+          personal_goal?: string | null
+          personal_goal_set_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_member_departures_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_members: {
         Row: {
           group_id: string
@@ -1743,6 +1784,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      leave_crew: { Args: { _group_id: string }; Returns: undefined }
       merge_solo_into_partner: {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined

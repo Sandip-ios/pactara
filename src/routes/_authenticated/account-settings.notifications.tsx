@@ -188,7 +188,7 @@ function NotificationsPage() {
       <SectionLabel>GROUP ACTIVITY</SectionLabel>
       <Card>
         <ToggleRow
-          title="Group activity alerts"
+          title="Crew activity alerts"
           subtitle="New check-ins, thoughts, and messages"
           value={prefs.group_activity_enabled}
           onChange={(v) => save.mutate({ group_activity_enabled: v })}
@@ -196,7 +196,7 @@ function NotificationsPage() {
         <Divider />
         <ToggleRow
           title="Workout started"
-          subtitle="When someone in your group starts"
+          subtitle="When someone in your crew starts"
           value={prefs.workout_start_enabled}
           onChange={(v) => save.mutate({ workout_start_enabled: v })}
         />
@@ -216,8 +216,8 @@ function NotificationsPage() {
         />
         <Divider />
         <ToggleRow
-          title="Group milestones"
-          subtitle="Streaks and pacts your group reaches"
+          title="Crew milestones"
+          subtitle="Streaks and pacts your crew reaches"
           value={prefs.group_milestones_enabled}
           onChange={(v) => save.mutate({ group_milestones_enabled: v })}
         />

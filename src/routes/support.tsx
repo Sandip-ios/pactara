@@ -47,10 +47,10 @@ function SupportPage() {
         subscription starts automatically.
       </p>
 
-      <h3>How do I leave or delete a group?</h3>
+      <h3>How do I leave or delete a crew?</h3>
       <p>
-        Open the group, tap the settings icon, then Leave Group. Group admins can remove
-        members or archive the group from the same screen.
+        On Home, tap your crew's name to open Your crews, tap ••• next to the crew, then
+        Leave crew. The person who started the crew sees Delete crew there instead.
       </p>
 
       <h3>How do I delete my account?</h3>

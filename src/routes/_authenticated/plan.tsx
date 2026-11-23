@@ -98,9 +98,9 @@ function PlanPage() {
     { label: "Free trial", monthly: "7 days", annual: "7 days" },
     { label: "Daily check-ins", monthly: true, annual: true },
     { label: "Video check-ins", monthly: true, annual: true },
-    { label: "Unlimited groups", monthly: true, annual: true },
+    { label: "Unlimited crews", monthly: true, annual: true },
     { label: "Streak freezes to start", monthly: "2", annual: "2" },
-    { label: "Continue with your same group", monthly: false, annual: true },
+    { label: "Continue with your same crew", monthly: false, annual: true },
     { label: "Early feature access", monthly: false, annual: true },
   ] as const;
 
@@ -314,14 +314,14 @@ function PlanPage() {
         <PlanCard
           emoji="🔥"
           name="Monthly"
-          tagline="Unlimited groups. Start a new challenge anytime."
+          tagline="Unlimited crews. Start a new crew anytime."
           price={monthlyPrice}
           period="/ month"
           bullets={[
-            "Unlimited groups",
+            "Unlimited crews",
             "Daily & video check-ins",
             "2 streak freezes to start",
-            "New challenge = new group",
+            "Start a new crew anytime",
           ]}
           buttonLabel={selectedPlan === "monthly" ? "Selected" : "Choose Monthly"}
           buttonStyle={{ background: "#F1EEE8", color: INK }}
@@ -335,14 +335,14 @@ function PlanPage() {
           <PlanCard
             emoji="⚡"
             name="Annual"
-            tagline="Unlimited groups, keep your streaks running all year."
+            tagline="Unlimited crews, keep your streaks running all year."
             price={annualPrice}
             period="/ year"
             subPrice={`Just ${annualMonthlyPrice}/mo`}
             bullets={[
               "Everything in Monthly",
-              "Restart challenges with your same group — no need to rebuild your crew",
-              "Streaks and history carry over between challenges",
+              "Restart with your same crew, no need to rebuild it",
+              "Streaks and history carry over when you restart",
               "Early access to new features",
             ]}
             buttonLabel={selectedPlan === "annual" ? "Selected" : "Choose Annual"}

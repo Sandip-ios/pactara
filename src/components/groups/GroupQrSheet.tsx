@@ -58,7 +58,7 @@ export function GroupQrSheet({
   };
 
   const share = async () => {
-    const text = "Accept your invite to my Pactara group!";
+    const text = "Accept your invite to my Pactara crew!";
     try {
       if (typeof navigator !== "undefined" && "share" in navigator) {
         await navigator.share({ title: text, text, url: inviteLink });

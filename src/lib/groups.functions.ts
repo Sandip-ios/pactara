@@ -569,34 +569,22 @@ export const deleteGroup = createServerFn({ method: "POST" })
   });
 
 /**
- * Removes the current user from a group. Owners must delete (or hand over)
- * the group instead, so a group is never left without an admin.
+ * Removes the current user from a crew. The membership (join date, pact
+ * signature, personal goal) is copied to group_member_departures first, so
+ * leaving deletes nothing; check-ins, posts and chat stay where they are.
+ * Creators delete the crew instead, so a crew is never left without one.
  */
 export const leaveGroup = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { groupId: string }) => {
     if (!input || typeof input.groupId !== "string" || !input.groupId.trim()) {
-      throw new Error("Missing group");
+      throw new Error("Missing crew");
     }
     return { groupId: input.groupId.trim() };
   })
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-
-    const { data: group } = await supabase
-      .from("groups")
-      .select("owner_id")
-      .eq("id", data.groupId)
-      .maybeSingle();
-    if (group?.owner_id === userId) {
-      throw new Error("You created this group — delete it instead of leaving.");
-    }
-
-    const { error } = await supabase
-      .from("group_members")
-      .delete()
-      .eq("group_id", data.groupId)
-      .eq("user_id", userId);
+    const { supabase } = context;
+    const { error } = await supabase.rpc("leave_crew", { _group_id: data.groupId });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

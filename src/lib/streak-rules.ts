@@ -79,6 +79,13 @@ export function weeklyTarget(g: GroupSchedule): number {
   return 7 - restAllowance(g);
 }
 
+/** A crew's rule as members read it: "5 check-ins a week", "1 check-in a week", or "Every day" when no rest days are left. */
+export function crewRuleLabel(g: GroupSchedule): string {
+  const t = weeklyTarget(g);
+  if (t >= 7) return "Every day";
+  return `${t} ${t === 1 ? "check-in" : "check-ins"} a week`;
+}
+
 export type ClosedDayOutcome = "kept" | "rest" | "missed";
 
 /**

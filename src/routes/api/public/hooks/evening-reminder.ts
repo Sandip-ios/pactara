@@ -119,8 +119,8 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           }>;
           for (const r of rows2) {
             await pushToUsers([r.user_id], {
-              title: "Your group is waiting on you",
-              body: "Make the pact to get started with your group.",
+              title: "Your crew is waiting on you",
+              body: "Make the pact to get started with your crew.",
               url: `/pact/${r.group_id}`,
             });
             await supabaseAdmin

@@ -73,7 +73,7 @@ async function uploadCheckInPhotoOnce(blob: Blob): Promise<string> {
   const userId = userData.user?.id;
   if (!userId) throw new Error("You're signed out. Sign in and try again.");
   const groupId = await resolveGroupId(userId);
-  if (!groupId) throw new Error("Couldn't find your group. Try again.");
+  if (!groupId) throw new Error("Couldn't find your crew. Try again.");
   const mime = blob.type || "image/jpeg";
   const ext = mime.startsWith("video/")
     ? (mime.split("/")[1]?.split(";")[0] || "mp4").replace("quicktime", "mov")
@@ -327,7 +327,7 @@ function NotesPage() {
         getCelebrationFn({ data: { groupId: activeGroupId, workoutSessionId: workout?.sessionId ?? null } }),
         CELEBRATION_TIMEOUT_MS,
         "Celebration loading timed out",
-      ).catch(() => ({ groupId: activeGroupId, streakCount: 1, groupName: "Your group", teammates: [] }));
+      ).catch(() => ({ groupId: activeGroupId, streakCount: 1, groupName: "Your crew", teammates: [] }));
       // One streak value everywhere: the number the badges were awarded on
       // for the celebrated group (same rule as the celebration data).
       const posted = result as { streakByGroup?: Record<string, number>; badgesByGroup?: Record<string, number[]> } | undefined;
@@ -518,7 +518,7 @@ function NotesPage() {
             count={myGroups.length}
             value={allGroups}
             onChange={setAllGroups}
-            label="Share to all my groups"
+            label="Share to all my crews"
           />
         </div>
       </div>
@@ -544,7 +544,7 @@ function NotesPage() {
           className="w-full rounded-2xl py-4 text-white text-[16px] font-semibold disabled:opacity-60"
           style={{ background: PURPLE }}
         >
-          {isBusy ? "Sharing…" : allGroups && myGroups.length > 1 ? "Share to all groups" : "Share"}
+          {isBusy ? "Sharing…" : allGroups && myGroups.length > 1 ? "Share to all crews" : "Share"}
         </button>
         {submitError && (
           <button

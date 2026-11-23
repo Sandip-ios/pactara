@@ -66,7 +66,7 @@ export type CheckInCelebrationModalProps = {
 function defaultCopyForStreak(n: number) {
   if (n <= 1) return "Day one. The hardest one.";
   if (n < 7) return "Quietly stacking days.";
-  if (n < 30) return "One week strong. Your group sees you.";
+  if (n < 30) return "One week strong. Your crew sees you.";
   if (n < 100) return "A month of mornings nobody saw but you.";
   return "Triple digits. Identity, not effort.";
 }

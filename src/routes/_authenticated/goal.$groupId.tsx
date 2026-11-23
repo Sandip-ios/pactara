@@ -16,9 +16,9 @@ export const Route = createFileRoute("/_authenticated/goal/$groupId")({
   head: () => ({
     meta: [
       { title: "Your goal · Pactara" },
-      { name: "description", content: "Set the personal goal you're chasing inside your Pactara group." },
+      { name: "description", content: "Set the personal goal you're chasing inside your Pactara crew." },
       { property: "og:title", content: "Your goal · Pactara" },
-      { property: "og:description", content: "Set the personal goal you're chasing inside your Pactara group." },
+      { property: "og:description", content: "Set the personal goal you're chasing inside your Pactara crew." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],

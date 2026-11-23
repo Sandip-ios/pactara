@@ -3,7 +3,7 @@ import { streakChipLabel } from "@/lib/crew-today";
 
 const PURPLE = "#7C3AED";
 
-/** Group switcher, challenge progress, crew streak and the weekly rule. */
+/** Your crews button, crew progress, crew streak and the weekly rule. */
 export function CrewBar({
   label,
   icon,
@@ -33,7 +33,7 @@ export function CrewBar({
           <button
             type="button"
             onClick={onOpenSwitcher}
-            aria-label={`Switch group, current: ${label}`}
+            aria-label={`Your crews, current: ${label}`}
             className="flex min-h-[44px] min-w-0 items-center gap-1.5 text-[15px] font-bold text-neutral-900 active:opacity-70"
           >
             {icon && <span>{icon}</span>}

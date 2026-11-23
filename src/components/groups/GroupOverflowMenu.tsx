@@ -18,8 +18,9 @@ import {
 } from "lucide-react";
 import { GroupQrSheet } from "@/components/groups/GroupQrSheet";
 import { EditGoalSheet } from "@/components/groups/EditGoalSheet";
+import { CrewAvatarStack, type StackMember } from "@/components/groups/CrewAvatarStack";
 import { renameGroup, updateGroupCommitment, deleteGroup, leaveGroup } from "@/lib/groups.functions";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { crewRuleLabel } from "@/lib/streak-rules";
 import {
   Drawer,
   DrawerContent,
@@ -32,38 +33,57 @@ export const PURPLE = "#7C3AED";
 export const PURPLE_DEEP = "#5B21B6";
 export const PURPLE_SOFT = "#F3EEFF";
 const PURPLE_TINT = "#FDF4F5";
+const INK = "#141218";
+const MUTED = "#78716C";
+const DIVIDER = "#F0EDE9";
+const RED = "#DC2626";
+
+export const CREW_INVITE_TEXT = "Accept your invite to my Pactara crew!";
 
 export function inviteLinkFor(groupId: string) {
   return `https://pactara.lovable.app/join/${groupId}`;
 }
 
-/**
- * Administrative actions for a group, tucked behind the overflow (…) button
- * so the accountability content stays the focus of the Groups experience.
- */
-export function GroupOverflowMenu({
-  groupId,
-  groupName,
-  emoji,
-  isAdmin,
-  duration,
-  frequency,
-  daysPerWeek,
-  tone = "onPurple",
-  onDeleted,
-}: {
-  groupId: string;
-  groupName: string;
+export type CrewOptionsCrew = {
+  id: string;
+  name: string;
   emoji: string;
   isAdmin: boolean;
   duration: number;
   frequency: "daily" | "weekly" | "specific";
   daysPerWeek: number;
-  tone?: "onPurple" | "onLight";
-  onDeleted?: () => void;
+  memberCount: number;
+  /** Teammates other than you, for the header photos. */
+  others: StackMember[];
+};
+
+/** "4 members · 5 check-ins a week" */
+export function crewOptionsSubtitle(c: Pick<CrewOptionsCrew, "memberCount" | "frequency" | "daysPerWeek">): string {
+  const members = `${c.memberCount} ${c.memberCount === 1 ? "member" : "members"}`;
+  return `${members} · ${crewRuleLabel({ frequency: c.frequency, days_per_week: c.daysPerWeek })}`;
+}
+
+/**
+ * The ••• sheet for one crew (a bottom sheet, never a dropdown): invite,
+ * settings, and Delete crew (creator) or Leave crew (everyone else). Owns the
+ * sheets those rows open, so keep it mounted while they're showing.
+ * `onCancel` = closed without picking anything (Cancel, drag down, tap out).
+ */
+export function CrewOptionsSheet({
+  open,
+  crew,
+  onClose,
+  onCancel,
+  onGone,
+}: {
+  open: boolean;
+  crew: CrewOptionsCrew;
+  onClose: () => void;
+  onCancel?: () => void;
+  /** After the crew was deleted or left. */
+  onGone?: () => void;
 }) {
   const queryClient = useQueryClient();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [commitmentOpen, setCommitmentOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -77,16 +97,17 @@ export function GroupOverflowMenu({
   const [leaveErr, setLeaveErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const groupId = crew.id;
+  const groupName = crew.name;
   const link = inviteLinkFor(groupId);
-  const shareText = "Accept your invite to my Pactara group!";
   const normalizedFreq: "daily" | "specific" =
-    frequency === "specific" || frequency === "weekly" ? "specific" : "daily";
+    crew.frequency === "specific" || crew.frequency === "weekly" ? "specific" : "daily";
 
   const refresh = () =>
     queryClient.invalidateQueries({
       predicate: (q) => {
         const k = q.queryKey[0];
-        return k === "my-groups" || k === "groups-today" || k === "my-group-status";
+        return k === "my-groups" || k === "groups-today" || k === "my-group-status" || k === "home-crew";
       },
     });
 
@@ -113,7 +134,7 @@ export function GroupOverflowMenu({
   const handleInvite = async () => {
     if (canUseNativeShare()) {
       try {
-        await navigator.share({ title: shareText, text: shareText, url: link });
+        await navigator.share({ title: CREW_INVITE_TEXT, text: CREW_INVITE_TEXT, url: link });
         return;
       } catch {
         // fall through to the custom sheet
@@ -122,120 +143,113 @@ export function GroupOverflowMenu({
     setShareOpen(true);
   };
 
+  /** Close the ••• sheet, then open what the row leads to. */
+  const then = (fn: () => void) => () => {
+    onClose();
+    fn();
+  };
+
   return (
     <>
-      <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-        <PopoverTrigger asChild>
-          <button
-            aria-label={`${groupName} options`}
-            className="h-9 w-9 rounded-full flex items-center justify-center shrink-0"
-            style={
-              tone === "onPurple"
-                ? { background: "rgba(255,255,255,0.18)", color: "#FFFFFF" }
-                : { background: "#F4F1ED", color: "#57534E" }
-            }
-          >
-            <MoreHorizontal size={18} />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent align="end" className="w-60 rounded-2xl p-1 border-0 shadow-xl">
-          <MenuButton
-            icon={copied ? <Check size={18} style={{ color: PURPLE }} /> : <Copy size={18} style={{ color: PURPLE }} />}
-            label={copied ? "Copied!" : "Copy invite link"}
-            onClick={handleCopy}
-          />
-          <Divider />
-          <MenuButton
-            icon={<UserPlus size={18} style={{ color: PURPLE }} />}
-            label="Invite members"
-            onClick={() => {
-              setMenuOpen(false);
-              handleInvite();
-            }}
-          />
-          <Divider />
-          <MenuButton
-            icon={<QrCode size={18} style={{ color: PURPLE }} />}
-            label="Invite with QR code"
-            onClick={() => {
-              setMenuOpen(false);
-              setQrOpen(true);
-            }}
-          />
-          <Divider />
-          <MenuButton
-            icon={<Target size={18} style={{ color: PURPLE }} />}
-            label="Edit my goal"
-            onClick={() => {
-              setMenuOpen(false);
-              setGoalOpen(true);
-            }}
-          />
-          {isAdmin && (
-            <>
-              <Divider />
-              <MenuButton
-                icon={<Pencil size={18} style={{ color: PURPLE }} />}
-                label="Rename group"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setRenameOpen(true);
-                }}
+      <Drawer
+        open={open}
+        onOpenChange={(o) => {
+          if (!o) {
+            onClose();
+            onCancel?.();
+          }
+        }}
+      >
+        <DrawerContent
+          className="rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
+          style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}
+        >
+          <div className="flex max-h-[82dvh] flex-col gap-4 overflow-y-auto px-4 pt-3">
+            <div className="flex items-center gap-3">
+              <CrewAvatarStack members={crew.others} emoji={crew.emoji} />
+              <span className="flex min-w-0 flex-col">
+                <DrawerTitle className="truncate text-[18px] font-extrabold leading-tight">
+                  {crew.emoji} {groupName}
+                </DrawerTitle>
+                <DrawerDescription className="text-[13px]" style={{ color: MUTED }}>
+                  {crewOptionsSubtitle(crew)}
+                </DrawerDescription>
+              </span>
+            </div>
+
+            <OptionGroup label="INVITE">
+              <OptionRow
+                icon={copied ? <Check size={19} /> : <Copy size={19} />}
+                label={copied ? "Copied!" : "Copy invite link"}
+                onClick={() => void handleCopy()}
               />
-              <Divider />
-              <MenuButton
-                icon={<SlidersHorizontal size={18} style={{ color: PURPLE }} />}
-                label="Edit challenge"
-                onClick={() => {
-                  setMenuOpen(false);
-                  setCommitmentOpen(true);
-                }}
-              />
-              <Divider />
-              <MenuButton
-                icon={<Trash2 size={18} className="text-red-500" />}
-                label="Delete group"
-                danger
-                onClick={() => {
-                  setMenuOpen(false);
-                  setDeleteErr(null);
-                  setDeleteOpen(true);
-                }}
-              />
-            </>
-          )}
-          {!isAdmin && (
-            <>
-              <Divider />
-              <MenuButton
-                icon={<LogOut size={18} className="text-red-500" />}
-                label="Leave group"
-                danger
-                onClick={() => {
-                  setMenuOpen(false);
-                  setLeaveErr(null);
-                  setLeaveOpen(true);
-                }}
-              />
-            </>
-          )}
-        </PopoverContent>
-      </Popover>
+              <OptionRow icon={<UserPlus size={19} />} label="Invite from contacts" onClick={then(() => void handleInvite())} />
+              <OptionRow icon={<QrCode size={19} />} label="Show QR code" onClick={then(() => setQrOpen(true))} />
+            </OptionGroup>
+
+            <OptionGroup label="SETTINGS">
+              <OptionRow icon={<Target size={19} />} label="Edit my goal" onClick={then(() => setGoalOpen(true))} />
+              {crew.isAdmin && (
+                <>
+                  <OptionRow icon={<Pencil size={19} />} label="Rename crew" onClick={then(() => setRenameOpen(true))} />
+                  <OptionRow icon={<SlidersHorizontal size={19} />} label="Edit crew rules" onClick={then(() => setCommitmentOpen(true))} />
+                </>
+              )}
+            </OptionGroup>
+
+            <OptionGroup>
+              {crew.isAdmin ? (
+                <OptionRow
+                  icon={<Trash2 size={19} />}
+                  label="Delete crew"
+                  danger
+                  onClick={then(() => {
+                    setDeleteErr(null);
+                    setDeleteOpen(true);
+                  })}
+                />
+              ) : (
+                <OptionRow
+                  icon={<LogOut size={19} />}
+                  label="Leave crew"
+                  danger
+                  onClick={then(() => {
+                    setLeaveErr(null);
+                    setLeaveOpen(true);
+                  })}
+                />
+              )}
+            </OptionGroup>
+
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onCancel?.();
+              }}
+              className="mb-1 h-[52px] shrink-0 rounded-[26px] bg-white text-[16px] font-bold"
+              style={{ border: "1.5px solid #E7E3DE", color: INK }}
+            >
+              Cancel
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <RenameGroupDrawer
         open={renameOpen}
         onOpenChange={setRenameOpen}
         groupId={groupId}
         currentName={groupName}
-        emoji={emoji}
+        emoji={crew.emoji}
         onSaved={refresh}
       />
       <EditCommitmentDrawer
         open={commitmentOpen}
         onOpenChange={setCommitmentOpen}
-        duration={duration}
+        duration={crew.duration}
         frequency={normalizedFreq}
-        daysPerWeek={daysPerWeek}
+        daysPerWeek={crew.daysPerWeek}
         onSave={async (d, f, dpw) => {
           try {
             await updateGroupCommitment({
@@ -252,7 +266,7 @@ export function GroupOverflowMenu({
         onOpenChange={setShareOpen}
         groupName={groupName}
         inviteLink={link}
-        shareText={shareText}
+        shareText={CREW_INVITE_TEXT}
         onCopy={handleCopy}
         copied={copied}
         onShowQr={() => {
@@ -261,65 +275,61 @@ export function GroupOverflowMenu({
         }}
       />
       <EditGoalSheet open={goalOpen} onOpenChange={setGoalOpen} groupId={groupId} />
-      <GroupQrSheet
-        open={qrOpen}
-        onOpenChange={setQrOpen}
-        groupName={groupName}
-        emoji={emoji}
-        inviteLink={link}
-      />
+      <GroupQrSheet open={qrOpen} onOpenChange={setQrOpen} groupName={groupName} emoji={crew.emoji} inviteLink={link} />
+
       <Drawer open={leaveOpen} onOpenChange={(o) => !leaving && setLeaveOpen(o)}>
-        <DrawerContent className="rounded-t-3xl">
+        <DrawerContent className="rounded-t-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
           <DrawerHeader className="text-left">
             <DrawerTitle className="text-[20px] font-bold">Leave {groupName}?</DrawerTitle>
             <DrawerDescription>
-              You'll stop seeing this group's check-ins and chat, and your streak here ends. You can
-              rejoin later with an invite link.
+              You'll stop seeing its feed and chat. Your own check-ins stay in your history.
             </DrawerDescription>
           </DrawerHeader>
-          <div className="px-4 pb-sheet space-y-3">
+          <div className="px-4 pb-sheet space-y-2">
             {leaveErr && (
               <div className="rounded-xl px-3 py-2 text-[13px] bg-red-100 text-red-800">{leaveErr}</div>
             )}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setLeaveOpen(false)}
-                disabled={leaving}
-                className="flex-1 rounded-full bg-neutral-200 text-neutral-800 py-3 font-semibold text-[15px]"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  setLeaving(true);
-                  setLeaveErr(null);
-                  try {
-                    await leaveGroup({ data: { groupId } });
-                    await refresh();
-                    setLeaveOpen(false);
-                    onDeleted?.();
-                  } catch (e) {
-                    setLeaveErr(e instanceof Error ? e.message : "Failed to leave");
-                  } finally {
-                    setLeaving(false);
-                  }
-                }}
-                disabled={leaving}
-                className="flex-1 rounded-full bg-red-600 text-white py-3 font-semibold text-[15px] disabled:opacity-60"
-              >
-                {leaving ? "Leaving…" : "Leave"}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={async () => {
+                setLeaving(true);
+                setLeaveErr(null);
+                try {
+                  await leaveGroup({ data: { groupId } });
+                  await refresh();
+                  setLeaveOpen(false);
+                  onGone?.();
+                } catch (e) {
+                  setLeaveErr(e instanceof Error ? e.message : "Couldn't leave. Try again.");
+                } finally {
+                  setLeaving(false);
+                }
+              }}
+              disabled={leaving}
+              className="h-[52px] w-full rounded-[26px] text-[16px] font-bold text-white disabled:opacity-60"
+              style={{ background: RED }}
+            >
+              {leaving ? "Leaving…" : "Leave crew"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setLeaveOpen(false)}
+              disabled={leaving}
+              className="h-[52px] w-full rounded-[26px] bg-white text-[16px] font-bold"
+              style={{ border: "1.5px solid #E7E3DE", color: INK }}
+            >
+              Stay
+            </button>
           </div>
         </DrawerContent>
       </Drawer>
 
       <Drawer open={deleteOpen} onOpenChange={(o) => !deleting && setDeleteOpen(o)}>
-        <DrawerContent className="rounded-t-3xl">
+        <DrawerContent className="rounded-t-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
           <DrawerHeader className="text-left">
             <DrawerTitle className="text-[20px] font-bold">Delete {groupName}?</DrawerTitle>
             <DrawerDescription>
-              This permanently deletes the group, its messages, and all check-ins. This can't be undone.
+              This permanently deletes the crew, its messages, and all check-ins. This can't be undone.
             </DrawerDescription>
           </DrawerHeader>
           <div className="px-4 pb-sheet space-y-3">
@@ -342,9 +352,9 @@ export function GroupOverflowMenu({
                     await deleteGroup({ data: { groupId } });
                     await refresh();
                     setDeleteOpen(false);
-                    onDeleted?.();
+                    onGone?.();
                   } catch (e) {
-                    setDeleteErr(e instanceof Error ? e.message : "Failed to delete");
+                    setDeleteErr(e instanceof Error ? e.message : "Couldn't delete. Try again.");
                   } finally {
                     setDeleting(false);
                   }
@@ -359,6 +369,68 @@ export function GroupOverflowMenu({
         </DrawerContent>
       </Drawer>
     </>
+  );
+}
+
+/** The ••• button on the crew page, opening the same crew sheet. */
+export function GroupOverflowMenu({
+  crew,
+  tone = "onPurple",
+  onDeleted,
+}: {
+  crew: CrewOptionsCrew;
+  tone?: "onPurple" | "onLight";
+  onDeleted?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={`${crew.name} options`}
+        className="h-11 w-11 rounded-full flex items-center justify-center shrink-0"
+        style={
+          tone === "onPurple"
+            ? { background: "rgba(255,255,255,0.18)", color: "#FFFFFF" }
+            : { background: "#F4F1ED", color: "#57534E" }
+        }
+      >
+        <MoreHorizontal size={18} />
+      </button>
+      <CrewOptionsSheet open={open} crew={crew} onClose={() => setOpen(false)} onGone={onDeleted} />
+    </>
+  );
+}
+
+function OptionGroup({ label, children }: { label?: string; children: React.ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      {label && (
+        <h3 className="text-[12px] font-bold tracking-[0.6px]" style={{ color: MUTED }}>
+          {label}
+        </h3>
+      )}
+      <div className="overflow-hidden rounded-[16px] [&>*+*]:border-t [&>*+*]:border-[#F0EDE9]" style={{ border: `1.5px solid ${DIVIDER}` }}>
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function OptionRow({ icon, label, danger, onClick }: { icon: React.ReactNode; label: string; danger?: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-[52px] w-full items-center gap-3 px-4 text-left active:bg-neutral-50"
+      style={{ color: danger ? RED : INK }}
+    >
+      <span className="shrink-0" style={{ color: danger ? RED : PURPLE }} aria-hidden>
+        {icon}
+      </span>
+      <span className="text-[15px] font-semibold">{label}</span>
+    </button>
   );
 }
 
@@ -404,8 +476,8 @@ function RenameGroupDrawer({
     >
       <DrawerContent className="px-6 pb-sheet pt-2">
         <DrawerHeader className="px-0 pt-2">
-          <DrawerTitle className="text-[22px] font-black tracking-tight">Rename group</DrawerTitle>
-          <DrawerDescription className="sr-only">Update the name of your group</DrawerDescription>
+          <DrawerTitle className="text-[22px] font-black tracking-tight">Rename crew</DrawerTitle>
+          <DrawerDescription className="sr-only">Update the name of your crew</DrawerDescription>
         </DrawerHeader>
 
         <div className="mt-2 flex items-center gap-3 rounded-2xl px-4 py-4" style={{ background: "#F4F1ED" }}>
@@ -413,7 +485,7 @@ function RenameGroupDrawer({
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Group name"
+            placeholder="Crew name"
             className="flex-1 bg-transparent text-[17px] font-semibold outline-none placeholder:text-neutral-400"
             autoFocus
           />
@@ -479,9 +551,9 @@ function EditCommitmentDrawer({
       <DrawerContent className="px-6 pb-sheet pt-2">
         <div className="relative">
           <DrawerHeader className="px-0 pt-2 pr-12">
-            <DrawerTitle className="text-[26px] font-black tracking-tight">Commitment</DrawerTitle>
+            <DrawerTitle className="text-[26px] font-black tracking-tight">Crew rules</DrawerTitle>
             <DrawerDescription className="text-[14px] text-neutral-500">
-              Set your group's duration and check-in schedule
+              Set your crew's length and check-in schedule
             </DrawerDescription>
           </DrawerHeader>
           <button
@@ -578,7 +650,7 @@ function EditCommitmentDrawer({
               boxShadow: "0 12px 24px -10px rgba(124, 58, 237, 0.55)",
             }}
           >
-            Save commitment
+            Save crew rules
           </button>
         </div>
       </DrawerContent>
@@ -716,31 +788,4 @@ export function ShareInviteDrawer({
       </DrawerContent>
     </Drawer>
   );
-}
-
-function MenuButton({
-  icon,
-  label,
-  danger,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  danger?: boolean;
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left hover:bg-neutral-50"
-      style={{ color: danger ? "#DC2626" : "#0A0A0A" }}
-    >
-      {icon}
-      <span className="text-[15px] font-semibold">{label}</span>
-    </button>
-  );
-}
-
-function Divider() {
-  return <div className="h-px bg-neutral-100 mx-3" />;
 }
