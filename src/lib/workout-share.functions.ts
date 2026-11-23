@@ -3,16 +3,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { LogType } from "@/lib/lift-rules";
 import {
+  chatSharePushText,
+  crewsAlreadySent,
+  firstNameOf,
   isShareCode,
   itemsFromLoggedWorkout,
   itemsFromSnapshot,
-  makeShareCode,
-  snapshotKey,
-  snapshotOf,
+  orderCrewsForShare,
   shareUrl,
   type PublicSharedWorkout,
-  type SnapshotItem,
-  type TemplateItem,
 } from "@/lib/workout-share";
 
 export type { PublicSharedWorkout };
@@ -66,46 +65,140 @@ export const shareSavedWorkout = createServerFn({ method: "POST" })
   .inputValidator((input: { workoutId: string }) => ({ workoutId: String(input?.workoutId ?? "") }))
   .handler(async ({ context, data }) => {
     const { supabase, userId } = context;
-    const { data: wk } = await supabase
-      .from("workouts")
-      .select("id, name, exercises")
-      .eq("id", data.workoutId)
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (!wk) throw new Error("That workout is gone");
-    const items = (Array.isArray(wk.exercises) ? wk.exercises : []) as TemplateItem[];
-    const ids = [...new Set(items.map((i) => i.exerciseId))];
-    const { data: exRows } = ids.length
-      ? await supabase.from("exercises").select("id, log_type").in("id", ids)
-      : { data: [] as { id: string; log_type: string }[] };
-    const logTypes = new Map((exRows ?? []).map((e) => [e.id as string, e.log_type as string]));
-    const snapshot = snapshotOf(
-      items.filter((i) => logTypes.has(i.exerciseId)),
-      (id) => (logTypes.get(id) === "timed" ? "timed" : "reps"),
-    );
-    if (!snapshot.length) throw new Error("Nothing to share");
-    const name = (wk.name as string).trim();
+    const { ensureSnapshot } = await import("@/lib/shared-workouts.server");
+    const { code, name } = await ensureSnapshot(supabase as SupabaseClient, userId, data.workoutId);
+    return { code, url: shareUrl(code), name };
+  });
 
-    const { data: last } = await supabase
-      .from("shared_workouts")
-      .select("code, name, exercises")
-      .eq("owner_id", userId)
-      .eq("workout_id", wk.id)
-      .order("created_at", { ascending: false })
+export type ShareCrew = {
+  id: string;
+  name: string;
+  emoji: string;
+  memberCount: number;
+  others: { id: string; name: string; avatarColor: string; avatarUrl: string | null }[];
+};
+
+/**
+ * The Share panel for one of your saved workouts: your crews (most recent
+ * chat first) and the ones that already got this exact version from you.
+ * Opening the panel never makes a link.
+ */
+export const getWorkoutSharePanel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { workoutId: string }) => ({ workoutId: String(input?.workoutId ?? "") }))
+  .handler(async ({ context, data }): Promise<{ crews: ShareCrew[]; sentGroupIds: string[] }> => {
+    const { supabase, userId } = context;
+    const { currentSnapshot } = await import("@/lib/shared-workouts.server");
+    const [snap, { data: mine }] = await Promise.all([
+      currentSnapshot(supabase as SupabaseClient, userId, data.workoutId),
+      supabase.from("group_members").select("group_id, joined_at").eq("user_id", userId),
+    ]);
+    const groupIds = (mine ?? []).map((m) => m.group_id as string);
+    if (!groupIds.length) return { crews: [], sentGroupIds: [] };
+    const [{ data: groups }, { data: members }, lastRows, { data: sent }] = await Promise.all([
+      supabase.from("groups").select("id, name, emoji").in("id", groupIds),
+      supabase.from("group_members").select("group_id, user_id, joined_at").in("group_id", groupIds).order("joined_at", { ascending: true }),
+      Promise.all(
+        groupIds.map(async (gid) => {
+          const { data: m } = await supabase
+            .from("group_messages")
+            .select("created_at")
+            .eq("group_id", gid)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          return [gid, (m?.created_at as string | undefined) ?? null] as const;
+        }),
+      ),
+      snap.code
+        ? supabase.from("group_messages").select("group_id, shared_workout_code").eq("user_id", userId).eq("shared_workout_code", snap.code)
+        : Promise.resolve({ data: [] as { group_id: string; shared_workout_code: string | null }[] }),
+    ]);
+    const otherIds = [...new Set((members ?? []).map((m) => m.user_id as string).filter((id) => id !== userId))];
+    const { data: profs } = otherIds.length
+      ? await supabase.from("profiles").select("id, name, avatar_color, avatar_url").in("id", otherIds)
+      : { data: [] as { id: string; name: string; avatar_color: string; avatar_url: string | null }[] };
+    const paths = (profs ?? []).map((p) => p.avatar_url as string | null).filter((x): x is string => !!x && !x.startsWith("http"));
+    const { signAvatarThumbs } = await import("@/lib/media-urls");
+    const signed = paths.length ? await signAvatarThumbs(supabase as SupabaseClient, paths, 96) : new Map<string, string>();
+    const profile = new Map(
+      (profs ?? []).map((p) => {
+        const path = (p.avatar_url as string | null) ?? null;
+        return [
+          p.id as string,
+          {
+            id: p.id as string,
+            name: ((p.name as string) ?? "").trim() || "Member",
+            avatarColor: (p.avatar_color as string) ?? "#7C3AED",
+            avatarUrl: path ? (path.startsWith("http") ? path : (signed.get(path) ?? null)) : null,
+          },
+        ];
+      }),
+    );
+    const last = new Map(lastRows);
+    const joined = new Map((mine ?? []).map((m) => [m.group_id as string, m.joined_at as string]));
+    const rows = (groups ?? []).map((g) => {
+      const inGroup = (members ?? []).filter((m) => m.group_id === g.id);
+      const others = inGroup.filter((m) => m.user_id !== userId).flatMap((m) => profile.get(m.user_id as string) ?? []);
+      return {
+        id: g.id as string,
+        name: g.name as string,
+        emoji: g.emoji as string,
+        memberCount: inGroup.length,
+        others: others.slice(0, 3),
+        othersCount: others.length,
+        lastMessageAt: last.get(g.id as string) ?? null,
+        joinedAt: joined.get(g.id as string) ?? "",
+      };
+    });
+    const crews = orderCrewsForShare(rows).map(({ othersCount: _o, lastMessageAt: _l, joinedAt: _j, ...c }) => c);
+    const sentGroupIds = crewsAlreadySent(
+      (sent ?? []).map((m) => ({ groupId: m.group_id as string, code: (m.shared_workout_code as string | null) ?? null })),
+      snap.code,
+    );
+    return { crews, sentGroupIds };
+  });
+
+/**
+ * Posts the workout (as it's saved now) into a crew's chat as a workout card.
+ * Same link as the share sheet; sending the same version twice does nothing.
+ */
+export const sendWorkoutToCrew = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { workoutId: string; groupId: string }) => ({
+    workoutId: String(input?.workoutId ?? ""),
+    groupId: String(input?.groupId ?? ""),
+  }))
+  .handler(async ({ context, data }) => {
+    const { supabase, userId } = context;
+    const { ensureSnapshot } = await import("@/lib/shared-workouts.server");
+    const { code, name } = await ensureSnapshot(supabase as SupabaseClient, userId, data.workoutId);
+    const { data: already } = await supabase
+      .from("group_messages")
+      .select("id")
+      .eq("group_id", data.groupId)
+      .eq("user_id", userId)
+      .eq("shared_workout_code", code)
       .limit(1)
       .maybeSingle();
-    if (last && snapshotKey(last.name as string, (last.exercises ?? []) as SnapshotItem[]) === snapshotKey(name, snapshot)) {
-      return { code: last.code as string, url: shareUrl(last.code as string), name };
+    if (already) return { code, groupId: data.groupId, already: true };
+    // Membership and link ownership are checked by the message rules.
+    const { error } = await supabase
+      .from("group_messages")
+      .insert({ group_id: data.groupId, user_id: userId, body: "", shared_workout_code: code });
+    if (error) throw new Error(error.message);
+    try {
+      const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
+      const full = await displayName(userId);
+      await notifyGroupActivity(data.groupId, userId, {
+        title: full,
+        body: chatSharePushText(firstNameOf(full), name),
+        url: `/chat/${data.groupId}`,
+      });
+    } catch (err) {
+      console.warn("[share] chat push failed", err);
     }
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const code = makeShareCode();
-      const { error } = await supabase
-        .from("shared_workouts")
-        .insert({ code, owner_id: userId, workout_id: wk.id, name, exercises: snapshot as never });
-      if (!error) return { code, url: shareUrl(code), name };
-      if (error.code !== "23505") throw new Error(error.message);
-    }
-    throw new Error("Couldn't make a link");
+    return { code, groupId: data.groupId, already: false };
   });
 
 /** Public: what a share link shows (works signed out; used for link previews too). */

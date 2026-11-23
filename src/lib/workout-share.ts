@@ -142,3 +142,36 @@ export function shareDescription(firstName: string, items: readonly Pick<Snapsho
 export function postDayLabel(postDate: string, viewerToday: string): string {
   return missedDayLabel(feedDayKey(postDate, viewerToday), viewerToday);
 }
+
+// ---- Sharing into a crew's chat ----
+
+/** Above the chat card: "Ana shared a workout" ("You shared a workout" on your own). */
+export const chatShareLabel = (firstName: string, mine: boolean) => `${mine ? "You" : firstName} shared a workout`;
+
+/** Push and notification text: "Ana shared a workout: Push day". */
+export const chatSharePushText = (firstName: string, name: string) => `${firstName} shared a workout: ${name}`;
+
+/**
+ * The crews in the share panel: most recent chat message first; crews with
+ * no messages yet follow, newest joined first. Crews with nobody else in
+ * them (a solo pact while searching for a partner) are left out.
+ */
+export function orderCrewsForShare<T extends { id: string; othersCount: number; lastMessageAt: string | null; joinedAt: string }>(
+  crews: readonly T[],
+): T[] {
+  return crews
+    .filter((c) => c.othersCount > 0)
+    .slice()
+    .sort((a, b) => {
+      if (a.lastMessageAt && b.lastMessageAt) return b.lastMessageAt.localeCompare(a.lastMessageAt);
+      if (a.lastMessageAt) return -1;
+      if (b.lastMessageAt) return 1;
+      return b.joinedAt.localeCompare(a.joinedAt);
+    });
+}
+
+/** Crews that already got this exact snapshot from you (a changed workout has a new code, so none). */
+export function crewsAlreadySent(messages: readonly { groupId: string; code: string | null }[], code: string | null): string[] {
+  if (!code) return [];
+  return [...new Set(messages.filter((m) => m.code === code).map((m) => m.groupId))];
+}

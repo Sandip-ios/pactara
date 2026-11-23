@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  chatShareLabel,
+  chatSharePushText,
+  crewsAlreadySent,
+  orderCrewsForShare,
   isShareCode,
   itemsFromLoggedWorkout,
   itemsFromSnapshot,
@@ -123,5 +127,50 @@ describe("feed sheet header day", () => {
   });
   it("a crewmate already on tomorrow still reads Today", () => {
     expect(postDayLabel("2026-11-24", "2026-11-23")).toBe("Today");
+  });
+});
+
+describe("sharing into a crew chat", () => {
+  const crew = (id: string, othersCount: number, lastMessageAt: string | null, joinedAt = "2026-01-01T00:00:00+00:00") => ({
+    id,
+    othersCount,
+    lastMessageAt,
+    joinedAt,
+  });
+
+  it("orders crews by the most recent chat message, quiet crews after (newest joined first)", () => {
+    const out = orderCrewsForShare([
+      crew("quietOld", 2, null, "2026-03-01T00:00:00+00:00"),
+      crew("older", 3, "2026-11-20T10:00:00+00:00"),
+      crew("quietNew", 1, null, "2026-10-01T00:00:00+00:00"),
+      crew("latest", 1, "2026-11-22T18:30:00+00:00"),
+    ]);
+    expect(out.map((c) => c.id)).toEqual(["latest", "older", "quietNew", "quietOld"]);
+  });
+
+  it("leaves out a crew with nobody else in it", () => {
+    expect(orderCrewsForShare([crew("solo", 0, "2026-11-22T18:30:00+00:00"), crew("duo", 1, null)]).map((c) => c.id)).toEqual(["duo"]);
+  });
+
+  it("shows Sent only for crews that got this exact version", () => {
+    const msgs = [
+      { groupId: "a", code: "AbCd2345" },
+      { groupId: "b", code: "OldCode9" },
+      { groupId: "a", code: "AbCd2345" },
+    ];
+    expect(crewsAlreadySent(msgs, "AbCd2345")).toEqual(["a"]);
+    // The workout changed since: a new version has no link yet, so every crew can get it.
+    expect(crewsAlreadySent(msgs, null)).toEqual([]);
+    expect(crewsAlreadySent(msgs, "NewCode2")).toEqual([]);
+  });
+
+  it("words the card and the push", () => {
+    expect(chatShareLabel("Bianca", false)).toBe("Bianca shared a workout");
+    expect(chatShareLabel("Bianca", true)).toBe("You shared a workout");
+    expect(chatSharePushText("Bianca", "Push day")).toBe("Bianca shared a workout: Push day");
+  });
+
+  it("card meta reads like the design", () => {
+    expect(sharedMeta([{ sets: 3 }, { sets: 3 }, { sets: 3 }, { sets: 3 }, { sets: 2 }])).toMatch(/^5 exercises · 14 sets · about \d+ min$/);
   });
 });

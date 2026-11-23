@@ -75,7 +75,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
 
     const { data: messages, error: mErr } = await supabase
       .from("group_messages")
-      .select("id, user_id, body, image_url, created_at")
+      .select("id, user_id, body, image_url, created_at, shared_workout_code")
       .eq("group_id", data.groupId)
       .order("created_at", { ascending: true })
       .limit(200);
@@ -99,6 +99,11 @@ export const getGroupChat = createServerFn({ method: "GET" })
         }
       }
     }
+
+    // Workout cards: the shared link's public fields only (name, sets, pictures).
+    const shareCodes = (messages ?? []).map((m) => m.shared_workout_code as string | null).filter((c): c is string => !!c);
+    const { loadChatWorkoutCards } = await import("@/lib/shared-workouts.server");
+    const cards = shareCodes.length ? await loadChatWorkoutCards(shareCodes) : new Map();
 
     const { data: memberRows } = await supabase
       .from("group_members")
@@ -148,6 +153,8 @@ export const getGroupChat = createServerFn({ method: "GET" })
         userId: m.user_id,
         body: m.body,
         imageUrl: m.image_url,
+        sharedWorkoutCode: (m.shared_workout_code as string | null) ?? null,
+        sharedWorkout: m.shared_workout_code ? (cards.get(m.shared_workout_code) ?? null) : null,
         createdAt: m.created_at,
         authorName: profiles[m.user_id]?.name ?? "User",
         authorColor: profiles[m.user_id]?.avatarColor ?? "#7C3AED",
@@ -225,4 +232,25 @@ export const toggleMessageReaction = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
     return { ok: true, added: true };
+  });
+
+/** Delete one of your own chat messages (a shared workout card included). */
+export const deleteGroupMessage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { messageId: string }) => {
+    if (!input || typeof input.messageId !== "string") throw new Error("Invalid input");
+    return { messageId: input.messageId };
+  })
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    // Only the message goes: the workout link and anyone's saved copy stay.
+    const { data: gone, error } = await supabase
+      .from("group_messages")
+      .delete()
+      .eq("id", data.messageId)
+      .eq("user_id", userId)
+      .select("id");
+    if (error) throw new Error(error.message);
+    if (!gone?.length) throw new Error("Message not found");
+    return { ok: true };
   });

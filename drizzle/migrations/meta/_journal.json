@@ -267,6 +267,13 @@
       "when": 1795410963455,
       "tag": "0037_workout_sharing",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1795412719564,
+      "tag": "0038_chat_shared_workouts",
+      "breakpoints": true
     }
   ]
 }

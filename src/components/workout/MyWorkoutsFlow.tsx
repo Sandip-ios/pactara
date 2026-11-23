@@ -11,6 +11,8 @@ import { ExercisePicker } from "@/components/workout/ExercisePicker";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
 import { WorkoutBuilder } from "@/components/workout/WorkoutBuilder";
+import { WorkoutSharePanel } from "@/components/workout/WorkoutSharePanel";
+import { showTopMessage } from "@/components/workout/savedToast";
 import { W, tintFor } from "@/components/workout/WorkoutBits";
 import { MY_WORKOUTS_KEY, useExerciseMap, type LibraryExercise } from "@/lib/exercise-library";
 import { getActiveWorkout, setActiveWorkout, uid } from "@/lib/active-workout";
@@ -45,6 +47,7 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
   const deleteFn = useServerFn(deleteSavedWorkout);
   const shareFn = useServerFn(shareSavedWorkout);
   const [sharing, setSharing] = useState(false);
+  const [sharePanel, setSharePanel] = useState(false);
   // "build": choosing exercises for a new workout; "append": adding to the one being built.
   const [picking, setPicking] = useState<null | "build" | "append">(null);
   const [draft, setDraft] = useState<Draft | null>(null);
@@ -157,6 +160,8 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
         },
       });
       putInList(workout);
+      // A saved change is a new version: the Share panel must ask again what was sent.
+      qc.removeQueries({ queryKey: ["workout-share-panel", workout.id] });
       return workout;
     } catch (e) {
       console.error("[workout] save failed", e);
@@ -190,11 +195,12 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
     try {
       const { url, name } = await shareFn({ data: { workoutId: id } });
       const outcome = await shareLink({ title: shareTitle(name), text: shareText(name), url });
-      if (outcome === "copied") toast("Link copied");
-      else if (outcome === "failed") toast("Couldn't share. Try again.");
+      // The Share panel covers the bottom of the screen: these show at the top.
+      if (outcome === "copied") showTopMessage("Link copied");
+      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.");
     } catch (e) {
       console.error("[workout] share failed", e);
-      toast("Couldn't share. Try again.");
+      showTopMessage("Couldn't share. Try again.");
     } finally {
       setSharing(false);
     }
@@ -243,10 +249,21 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
             toast.dismiss();
             setDeleting(true);
           }}
-          onShare={() => void shareDraft()}
-          sharing={sharing}
+          onShare={() => {
+            toast.dismiss();
+            setSharePanel(true);
+          }}
+          sharing={false}
         />
       )}
+      <WorkoutSharePanel
+        open={sharePanel && !!draft?.workoutId}
+        workoutId={draft?.workoutId ?? null}
+        name={draft?.savedName ?? ""}
+        onClose={() => setSharePanel(false)}
+        onShareLink={() => void shareDraft()}
+        linkBusy={sharing}
+      />
       <ExercisePicker
         open={!!picking}
         initialPicked={picking === "build" && draft ? pickedIdsOf(draft.items) : undefined}

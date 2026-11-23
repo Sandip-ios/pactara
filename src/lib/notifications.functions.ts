@@ -81,7 +81,7 @@ async function collect(
         .gte("local_date", from.slice(0, 10)),
       supabase
         .from("group_messages")
-        .select("id, user_id, body, image_url, created_at")
+        .select("id, user_id, body, image_url, created_at, shared_workout_code")
         .eq("group_id", groupId)
         .neq("user_id", userId)
         .gte("created_at", from)
@@ -249,21 +249,32 @@ async function collect(
     }
   }
 
-  for (const m of (messages ?? []) as Array<{
+  const messageRows = (messages ?? []) as Array<{
     id: string;
     user_id: string;
     body: string;
     image_url: string | null;
     created_at: string;
-  }>) {
+    shared_workout_code: string | null;
+  }>;
+  const shareCodes = messageRows.map((m) => m.shared_workout_code).filter((c): c is string => !!c);
+  const shareNames = new Map<string, string>();
+  if (shareCodes.length > 0) {
+    const { loadChatWorkoutCards } = await import("@/lib/shared-workouts.server");
+    for (const [code, card] of await loadChatWorkoutCards(shareCodes)) shareNames.set(code, card.name);
+  }
+  for (const m of messageRows) {
     const preview = (m.body ?? "").trim();
+    const shared = m.shared_workout_code ? (shareNames.get(m.shared_workout_code) ?? "Workout") : null;
     items.push({
       key: `message:${m.id}`,
       kind: "message",
       actorId: m.user_id,
-      text: preview
-        ? `sent a message in ${groupName}: ${preview.slice(0, 60)}`
-        : `sent a photo in ${groupName}`,
+      text: shared
+        ? `shared a workout: ${shared}`
+        : preview
+          ? `sent a message in ${groupName}: ${preview.slice(0, 60)}`
+          : `sent a photo in ${groupName}`,
       createdAt: m.created_at,
       mediaPath: m.image_url ?? null,
       mediaKind: null,

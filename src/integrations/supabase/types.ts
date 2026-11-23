@@ -493,6 +493,7 @@ export type Database = {
           group_id: string
           id: string
           image_url: string | null
+          shared_workout_code: string | null
           user_id: string
         }
         Insert: {
@@ -501,6 +502,7 @@ export type Database = {
           group_id: string
           id?: string
           image_url?: string | null
+          shared_workout_code?: string | null
           user_id: string
         }
         Update: {
@@ -509,6 +511,7 @@ export type Database = {
           group_id?: string
           id?: string
           image_url?: string | null
+          shared_workout_code?: string | null
           user_id?: string
         }
         Relationships: [
@@ -518,6 +521,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "groups"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_messages_shared_workout_code_fkey"
+            columns: ["shared_workout_code"]
+            isOneToOne: false
+            referencedRelation: "shared_workouts"
+            referencedColumns: ["code"]
           },
         ]
       }

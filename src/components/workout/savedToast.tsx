@@ -11,7 +11,10 @@ export function showSavedToast(name: string) {
 }
 
 /** Errors for save/share actions, in the same place. */
-export function showTopError(message: string) {
+export const showTopError = (message: string) => showTopMessage(message);
+
+/** A short note at the top (e.g. "Link copied" while the Share panel covers the bottom). */
+export function showTopMessage(message: string) {
   toast(message, {
     position: "top-center",
     style: { background: "#141218", color: "#FFFFFF", border: "none", borderRadius: 16, fontSize: 14, fontWeight: 600 },

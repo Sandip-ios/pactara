@@ -121,3 +121,100 @@ export async function insertWorkoutCopy(
   }
   return { workoutId: data.id as string, name: data.name as string, already: false };
 }
+
+/**
+ * The share-link snapshot of one of your saved workouts as it's saved now,
+ * and the code of the last link made for it when that link still matches.
+ */
+export async function currentSnapshot(
+  supabase: SupabaseClient,
+  userId: string,
+  workoutId: string,
+): Promise<{ workoutId: string; name: string; snapshot: SnapshotItem[]; code: string | null }> {
+  const { snapshotKey, snapshotOf } = await import("@/lib/workout-share");
+  const { data: wk } = await supabase
+    .from("workouts")
+    .select("id, name, exercises")
+    .eq("id", workoutId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (!wk) throw new Error("That workout is gone");
+  const items = (Array.isArray(wk.exercises) ? wk.exercises : []) as TemplateItem[];
+  const ids = [...new Set(items.map((i) => i.exerciseId))];
+  const { data: exRows } = ids.length
+    ? await supabase.from("exercises").select("id, log_type").in("id", ids)
+    : { data: [] as { id: string; log_type: string }[] };
+  const logTypes = new Map((exRows ?? []).map((e) => [e.id as string, e.log_type as string]));
+  const snapshot = snapshotOf(
+    items.filter((i) => logTypes.has(i.exerciseId)),
+    (id) => (logTypes.get(id) === "timed" ? "timed" : "reps"),
+  );
+  const name = (wk.name as string).trim();
+  const { data: last } = await supabase
+    .from("shared_workouts")
+    .select("code, name, exercises")
+    .eq("owner_id", userId)
+    .eq("workout_id", wk.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const same = !!last && snapshotKey(last.name as string, (last.exercises ?? []) as SnapshotItem[]) === snapshotKey(name, snapshot);
+  return { workoutId: wk.id as string, name, snapshot, code: same ? (last!.code as string) : null };
+}
+
+/** Reuses the last link when the workout hasn't changed, otherwise makes a new one. */
+export async function ensureSnapshot(supabase: SupabaseClient, userId: string, workoutId: string): Promise<{ code: string; name: string }> {
+  const { makeShareCode } = await import("@/lib/workout-share");
+  const cur = await currentSnapshot(supabase, userId, workoutId);
+  if (!cur.snapshot.length) throw new Error("Nothing to share");
+  if (cur.code) return { code: cur.code, name: cur.name };
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = makeShareCode();
+    const { error } = await supabase
+      .from("shared_workouts")
+      .insert({ code, owner_id: userId, workout_id: cur.workoutId, name: cur.name, exercises: cur.snapshot as never });
+    if (!error) return { code, name: cur.name };
+    if (error.code !== "23505") throw new Error(error.message);
+  }
+  throw new Error("Couldn't make a link");
+}
+
+/** What a chat card shows for a shared workout: name, set counts, exercise pictures. No weights. */
+export type ChatWorkoutCard = {
+  code: string;
+  name: string;
+  exercises: { sets: number; name: string; imageStart: string | null; primary: string[] }[];
+};
+
+/** Chat cards for many share codes at once (public fields only, same as the /w/ page). */
+export async function loadChatWorkoutCards(codes: readonly string[]): Promise<Map<string, ChatWorkoutCard>> {
+  const out = new Map<string, ChatWorkoutCard>();
+  const valid = [...new Set(codes.filter(isShareCode))];
+  if (!valid.length) return out;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: rows } = await supabaseAdmin.from("shared_workouts").select("code, name, exercises").in("code", valid);
+  const all = (rows ?? []).map((r) => ({ code: r.code as string, name: r.name as string, items: (Array.isArray(r.exercises) ? r.exercises : []) as SnapshotItem[] }));
+  const ids = [...new Set(all.flatMap((r) => r.items.map((i) => i.exerciseId)))];
+  const { data: exRows } = ids.length
+    ? await supabaseAdmin.from("exercises").select("id, name, image_start, primary_muscles").in("id", ids)
+    : { data: [] as never[] };
+  const byId = new Map((exRows ?? []).map((e) => [e.id as string, e]));
+  for (const r of all) {
+    out.set(r.code, {
+      code: r.code,
+      name: r.name,
+      exercises: r.items
+        .filter((i) => byId.has(i.exerciseId))
+        .map((i) => {
+          const e = byId.get(i.exerciseId)!;
+          return {
+            sets: i.sets,
+            name: e.name as string,
+            imageStart: (e.image_start as string | null) ?? null,
+            primary: (e.primary_muscles as string[] | null) ?? [],
+          };
+        }),
+    });
+  }
+  return out;
+}

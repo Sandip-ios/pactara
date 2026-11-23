@@ -1,8 +1,12 @@
-import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChevronLeft, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus } from "lucide-react";
-import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction } from "@/lib/chat.functions";
+import { ChevronLeft, ChevronRight, Dumbbell, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus, Trash2 } from "lucide-react";
+import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction, deleteGroupMessage } from "@/lib/chat.functions";
+import { ExerciseThumb } from "@/components/workout/WorkoutBits";
+import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
+import { showTopError } from "@/components/workout/savedToast";
+import { chatShareLabel, firstNameOf, sharedMeta } from "@/lib/workout-share";
 import { markReadAndSyncBadge } from "@/lib/badge-client";
 import { supabase } from "@/integrations/supabase/client";
 import EmojiPickerSheet from "@/components/EmojiPickerSheet";
@@ -39,6 +43,7 @@ function GroupChatPage() {
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const longPress = useRef<number | null>(null);
   const [gifOpen, setGifOpen] = useState(false);
+  const [deleteFor, setDeleteFor] = useState<string | null>(null);
   // Visible viewport height — shrinks when the iOS keyboard opens so the
   // header and messages stay on screen instead of being pushed out of view.
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
@@ -112,6 +117,22 @@ function GroupChatPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
   });
 
+  const remove = useMutation({
+    mutationFn: (messageId: string) => deleteGroupMessage({ data: { messageId } }),
+    onMutate: (messageId) => {
+      const prev = queryClient.getQueryData(["group-chat", groupId]);
+      queryClient.setQueryData(["group-chat", groupId], (d: typeof data) =>
+        d ? { ...d, messages: d.messages.filter((m) => m.id !== messageId) } : d,
+      );
+      return { prev };
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["group-chat", groupId], ctx.prev);
+      showTopError("Couldn't delete. Try again.");
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+  });
+
   function onReact(messageId: string, emoji: string) {
     setPickerFor(null);
     queryClient.setQueryData(["group-chat", groupId], (prev: typeof data) => {
@@ -148,6 +169,12 @@ function GroupChatPage() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "group_messages", filter: `group_id=eq.${groupId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
+      )
+      .on(
+        // Deletes can't be filtered by crew; refetching is cheap and only shows what you can read.
+        "postgres_changes",
+        { event: "DELETE", schema: "public", table: "group_messages" },
         () => queryClient.invalidateQueries({ queryKey: ["group-chat", groupId] }),
       )
       .on(
@@ -385,6 +412,7 @@ function GroupChatPage() {
             {messages.map((m) => {
               const mine = m.userId === currentUserId;
               const initial = (m.authorName || "U").slice(0, 1).toUpperCase();
+              const isWorkout = !!m.sharedWorkoutCode;
               return (
                 <li key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
                   {!mine && (
@@ -406,9 +434,13 @@ function GroupChatPage() {
                     </MemberProfileLink>
                   )}
 
-                  <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
-                    {!mine && (
-                      <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
+                  <div className={`${isWorkout ? "max-w-[calc(100%-40px)]" : "max-w-[78%]"} ${mine ? "items-end" : "items-start"} flex flex-col`}>
+                    {isWorkout ? (
+                      <span className={`text-[12px] mb-1 ${mine ? "mr-2" : "ml-2"}`} style={{ color: "#78716C" }}>
+                        {chatShareLabel(firstNameOf(m.authorName), mine)}
+                      </span>
+                    ) : (
+                      !mine && <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
                     )}
 
                     {pickerFor === m.id && (
@@ -435,6 +467,19 @@ function GroupChatPage() {
                         >
                           <Plus size={18} className="text-neutral-600" />
                         </button>
+                        {mine && isWorkout && (
+                          <button
+                            type="button"
+                            aria-label="Delete message"
+                            onClick={() => {
+                              setPickerFor(null);
+                              setDeleteFor(m.id);
+                            }}
+                            className="ml-1 h-8 w-8 rounded-full bg-red-50 flex items-center justify-center active:scale-90 transition-transform"
+                          >
+                            <Trash2 size={17} className="text-red-600" />
+                          </button>
+                        )}
                       </div>
                     )}
 
@@ -463,7 +508,8 @@ function GroupChatPage() {
                             }}
                           />
                       )}
-                      {m.body && (
+                      {isWorkout && <ChatWorkoutCard code={m.sharedWorkoutCode!} card={m.sharedWorkout} />}
+                      {!isWorkout && m.body && (
                         <div
                           className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
                             mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
@@ -524,6 +570,22 @@ function GroupChatPage() {
         onSelect={(emoji) => {
           if (sheetFor) onReact(sheetFor, emoji);
           setSheetFor(null);
+        }}
+      />
+
+      <ConfirmSheet
+        open={!!deleteFor}
+        title="Delete this workout card?"
+        body="It comes out of the chat for everyone. Anyone who already saved the workout keeps their copy."
+        confirmLabel="Delete"
+        cancelLabel="Keep it"
+        cancelOutlined
+        danger
+        onCancel={() => setDeleteFor(null)}
+        onConfirm={() => {
+          const id = deleteFor;
+          setDeleteFor(null);
+          if (id) remove.mutate(id);
         }}
       />
 
@@ -609,6 +671,56 @@ function GroupChatPage() {
           )}
         </div>
       </form>
+    </div>
+  );
+}
+
+type ChatCard = {
+  name: string;
+  exercises: { sets: number; name: string; imageStart: string | null; primary: string[] }[];
+} | null;
+
+/** A workout shared into the chat: name, size and the first four moves; opens the shared workout page. */
+function ChatWorkoutCard({ code, card }: { code: string; card: ChatCard }) {
+  const ok = !!card && card.exercises.length > 0;
+  return (
+    <div
+      className="w-[270px] max-w-full overflow-hidden rounded-[20px] bg-white text-left"
+      style={{ boxShadow: "0 1px 3px rgba(20,18,24,.08)", color: "#141218", fontFamily: "Inter, system-ui, sans-serif" }}
+    >
+      <div className="flex flex-col gap-1 px-4 pb-3.5 pt-3.5">
+        <span className="flex items-center gap-1.5 text-[11px] font-extrabold tracking-[0.4px]" style={{ color: PURPLE }}>
+          <Dumbbell size={13} aria-hidden /> WORKOUT
+        </span>
+        {ok && card ? (
+          <>
+            <span className="text-[18px] font-extrabold leading-tight break-words">{card.name}</span>
+            <span className="text-[13px]" style={{ color: "#78716C" }}>
+              {sharedMeta(card.exercises)}
+            </span>
+            <span className="mt-2 flex gap-1.5">
+              {card.exercises.slice(0, 4).map((e, i) => (
+                <ExerciseThumb key={i} name={e.name} primary={e.primary} image={e.imageStart} size={52} radius={12} />
+              ))}
+            </span>
+          </>
+        ) : (
+          <span className="text-[15px] font-semibold" style={{ color: "#78716C" }}>
+            This workout isn't available
+          </span>
+        )}
+      </div>
+      {ok && (
+        <Link
+          to="/w/$code"
+          params={{ code }}
+          draggable={false}
+          className="flex min-h-12 items-center justify-between px-4 text-[15px] font-bold"
+          style={{ borderTop: "1px solid #F0EDE9", color: "#6D28D9", WebkitTouchCallout: "none" }}
+        >
+          View workout <ChevronRight size={18} aria-hidden />
+        </Link>
+      )}
     </div>
   );
 }
