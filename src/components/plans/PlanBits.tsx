@@ -12,6 +12,31 @@ import {
   type PlanMove,
 } from "@/lib/workout-plans";
 import { BodyMap } from "./BodyMap";
+import { useExerciseMap } from "@/lib/exercise-library";
+
+/** RepDB start image when the move is matched; otherwise the lettered move tile. */
+function MoveThumb({ move, size = 48 }: { move: PlanMove; size?: number }) {
+  const { map } = useExerciseMap();
+  const ex = move.exercise_id ? map.get(move.exercise_id) : undefined;
+  if (ex?.imageStart) {
+    return (
+      <span className="flex shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ width: size, height: size, background: "#F4F2EF" }} aria-hidden>
+        <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />
+      </span>
+    );
+  }
+  const g = moveGroup(move.name);
+  const t = MOVE_TILE[g];
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center rounded-[12px] text-[13px] font-extrabold"
+      style={{ width: size, height: size, background: t.tint, color: t.ink }}
+      aria-hidden
+    >
+      {g}
+    </span>
+  );
+}
 
 export const BG = "#F5F2EE";
 export const PURPLE = "#7C3AED";
@@ -135,7 +160,9 @@ export function MoveList({ moves }: { moves: PlanMove[] }) {
   return (
     <ol className="divide-y" style={{ borderColor: "#F0EDE9" }}>
       {moves.map((m, i) => (
-        <li key={`${m.name}-${i}`} className="py-3 first:pt-0 last:pb-0" style={{ borderColor: "#F0EDE9" }}>
+        <li key={`${m.name}-${i}`} className="flex gap-3 py-3 first:pt-0 last:pb-0" style={{ borderColor: "#F0EDE9" }}>
+          <MoveThumb move={m} size={44} />
+          <div className="min-w-0 flex-1">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[15px] font-bold" style={{ color: INK }}>
               {m.name}
@@ -147,6 +174,7 @@ export function MoveList({ moves }: { moves: PlanMove[] }) {
           <p className="mt-1 text-[14px] leading-snug" style={{ color: MUTED }}>
             {m.plain}
           </p>
+          </div>
         </li>
       ))}
     </ol>
@@ -194,21 +222,13 @@ export function DayPreviewSheet({
             </div>
             <ol className="rounded-[16px]" style={{ border: `1.5px solid ${P.line}` }}>
               {moves.map((m, i) => {
-                const g = moveGroup(m.name);
-                const t = MOVE_TILE[g];
                 return (
                   <li
                     key={`${m.name}-${i}`}
                     className="flex gap-3 p-3"
                     style={{ borderTop: i ? `1px solid ${P.line}` : undefined }}
                   >
-                    <span
-                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[12px] text-[13px] font-extrabold"
-                      style={{ background: t.tint, color: t.ink }}
-                      aria-hidden
-                    >
-                      {g}
-                    </span>
+                    <MoveThumb move={m} />
                     <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                       <span className="flex items-baseline justify-between gap-2">
                         <span className="text-[15px] font-bold">{m.name}</span>

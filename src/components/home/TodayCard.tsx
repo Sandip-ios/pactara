@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
-import { Camera, Check, Moon } from "lucide-react";
+import { Camera, Check, Dumbbell, Moon } from "lucide-react";
+import { getActiveWorkout } from "@/lib/active-workout";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { CheckInShareModal } from "@/components/CheckInShareModal";
 import type { MoodId } from "@/routes/_authenticated/check-in.index";
@@ -115,6 +116,15 @@ export function TodayCard({
         >
           <Camera size={20} />
           Check in with video
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate({ to: getActiveWorkout() ? "/workout/log" : "/workout" })}
+          className="-mt-1.5 -mb-2 flex h-11 w-full items-center justify-center gap-2 text-[15px] font-bold active:opacity-70"
+          style={{ color: "#6D28D9" }}
+        >
+          <Dumbbell size={18} />
+          Log a workout
         </button>
       </div>
     );

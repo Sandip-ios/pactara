@@ -1,6 +1,9 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { ChevronLeft, TrendingUp, HeartPulse } from "lucide-react";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
+import { useState } from "react";
+import { useStartWorkout } from "@/components/workout/useStartWorkout";
+import { getActiveWorkout } from "@/lib/active-workout";
 import { checkInActivityFor, dayForWeek, movesForWeek, weekNoteFor } from "@/lib/workout-plans";
 import { BG, Chip, FONT, INK, MUTED, MoveList, PURPLE, PURPLE_SOFT, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 
@@ -19,6 +22,8 @@ function PlanDayPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
   const router = useRouter();
+  const starter = useStartWorkout();
+  const [starting, setStarting] = useState(false);
   const { data: plans, isLoading } = usePlans();
   const { data: mine, isLoading: mineLoading } = useMyPlans();
   const plan = (plans ?? []).find((p) => p.slug === slug) ?? null;
@@ -62,6 +67,18 @@ function PlanDayPage() {
     navigate({ to: "/check-in" });
   };
 
+  // Log today's plan day set by set; finishing still checks in like "Done, check in".
+  const startLogging = async () => {
+    if (getActiveWorkout()) return navigate({ to: "/workout/log" });
+    if (starting) return;
+    setStarting(true);
+    try {
+      await starter.startPlan(plan, active);
+    } finally {
+      setStarting(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none" data-scroll-root style={{ background: BG, fontFamily: FONT, color: INK }}>
       <div className="sticky top-0 z-10 bg-white/95 px-2 pt-safe-4 pb-1 backdrop-blur">
@@ -82,7 +99,7 @@ function PlanDayPage() {
         </div>
       </section>
 
-      <div className="space-y-3 px-4 pt-3 pb-32">
+      <div className="space-y-3 px-4 pt-3 pb-44">
         <div className="flex gap-3 rounded-[20px] p-4" style={{ background: PURPLE_SOFT }}>
           <TrendingUp size={18} className="mt-0.5 shrink-0" style={{ color: PURPLE }} />
           <p className="text-[14px] leading-snug" style={{ color: "#4C1D95" }}>
@@ -116,10 +133,14 @@ function PlanDayPage() {
       >
         <button
           type="button"
-          onClick={doneCheckIn}
-          className="h-14 w-full rounded-2xl text-[16px] font-semibold text-white"
+          onClick={() => void startLogging()}
+          disabled={starting}
+          className="h-14 w-full rounded-2xl text-[16px] font-semibold text-white disabled:opacity-70"
           style={{ background: PURPLE }}
         >
+          {starting ? "Starting…" : "Start workout"}
+        </button>
+        <button type="button" onClick={doneCheckIn} className="mt-1 h-11 w-full text-[15px] font-semibold" style={{ color: PURPLE }}>
           Done, check in
         </button>
       </div>

@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, useNavigate, useRouterState } from "
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomTabs } from "@/components/BottomTabs";
+import { WorkoutBar } from "@/components/workout/WorkoutBar";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
@@ -104,6 +105,8 @@ function AuthLayout() {
     pathname === "/partner" ||
     pathname === "/new-pactara" ||
     pathname.startsWith("/plans/") ||
+    pathname.startsWith("/workout") ||
+    pathname.startsWith("/exercises/") ||
     /^\/chat\/[^/]+/.test(pathname);
 
   const [trialState, setTrialState] = useState<{
@@ -176,6 +179,7 @@ function AuthLayout() {
       <Outlet />
       {showPactSplash && <PactSplash />}
       {!hideTabs && !showPactSplash && <BottomTabs />}
+      {!showPactSplash && <WorkoutBar tabsVisible={!hideTabs} />}
       {introPaywall && !(trialState?.expired) && (
         <TrialEndedPaywall
           firstName={trialState?.firstName ?? null}

@@ -33,7 +33,8 @@ export function useStartWorkout() {
   const begin = (w: Omit<ActiveWorkout, "v" | "id" | "sessionId" | "startedAt" | "focusKey" | "rest" | "groupId">) => {
     const full: ActiveWorkout = { ...w, v: 1, id: uid(), sessionId: null, startedAt: Date.now(), focusKey: null, rest: null, groupId: activeGroupId() };
     setActiveWorkout(full);
-    navigate({ to: "/workout/log" });
+    // From the Start screen, replace it so the logger's chevron returns to where you were.
+    navigate({ to: "/workout/log", replace: window.location.pathname === "/workout" });
     // The crew sees you working out; fine to fail offline (saved on finish).
     startFn({ data: { groupId: full.groupId, title: full.title, workoutId: full.workoutId } })
       .then(({ sessionId }) => {

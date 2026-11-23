@@ -198,12 +198,30 @@ export type Progression = {
   allTop: boolean;
 };
 
-const joinReps = (xs: number[]) => xs.join(", ");
+const joinReps = (xs: (number | string)[]) => xs.join(", ");
+
+/**
+ * The rep goal when there's no plan range: the rep count you did most often
+ * (ties go to the higher one). 10, 10, 8 → 10; 10, 10, 11 → 10.
+ */
+export function repGoal(reps: number[]): number {
+  const counts = new Map<number, number>();
+  for (const r of reps) if (r > 0) counts.set(r, (counts.get(r) ?? 0) + 1);
+  let best = 0;
+  let bestCount = 0;
+  for (const [r, c] of counts) {
+    if (c > bestCount || (c === bestCount && r > best)) {
+      best = r;
+      bestCount = c;
+    }
+  }
+  return best;
+}
 
 /**
  * What to aim for, from the last session of this exercise:
  * top of the range on all sets → go up a step next time.
- * `target` is the plan's dose; without one the top is last time's best rep count.
+ * `target` is the plan's dose; without one the top is last time's usual rep count.
  */
 export function progression(input: {
   last: LastSession | null;
@@ -227,7 +245,7 @@ export function progression(input: {
   }
   const reps = last.sets.map((s) => s.reps ?? 0);
   const n = target?.sets ?? last.sets.length;
-  const top = target?.repsHi ?? Math.max(...reps);
+  const top = target?.repsHi ?? repGoal(reps);
   const counted = reps.slice(0, n);
   const allTop = top > 0 && counted.length >= n && counted.every((r) => r >= top);
   const lastWeight = Math.max(0, ...last.sets.map((s) => (s.weight == null ? 0 : convertWeight(s.weight, s.unit, unit))));
@@ -293,7 +311,7 @@ export function nextTimeTip(last: LastSession | null, unit: WeightUnit): { text:
   if (!last || !last.sets.length) return null;
   const p = progression({ last, target: null, unit, logType: "reps", loadable: true });
   const reps = last.sets.map((s) => s.reps ?? 0);
-  const top = Math.max(...reps);
+  const top = repGoal(reps);
   if (p.nextWeight == null) return null;
   if (p.allTop) {
     return { text: `Next time: ${fmtWeight(p.nextWeight, unit)}. You got ${top} reps on all ${reps.length} sets today.`, weight: p.nextWeight };

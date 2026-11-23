@@ -27,6 +27,8 @@ export type ExerciseHistory = {
 export type LiftHistory = {
   unit: WeightUnit;
   today: string;
+  /** The member's timezone (dates on screen use it, not the device's). */
+  timezone: string;
   byExercise: Record<string, ExerciseHistory>;
   /** Exercise ids, most recently done first. */
   recent: string[];
@@ -112,6 +114,7 @@ export const getLiftHistory = createServerFn({ method: "GET" })
     return {
       unit: prof.unit,
       today: localDateIn(prof.timezone),
+      timezone: prof.timezone,
       byExercise,
       recent: lastAt.slice(0, 8).map(([id]) => id),
       everLogged: rows.length > 0,
@@ -267,7 +270,7 @@ export const finishLoggedSession = createServerFn({ method: "POST" })
       exerciseId: String(e.exerciseId).slice(0, 120),
       sets: (Array.isArray(e.sets) ? e.sets : []).slice(0, 30).map((s) => ({
         weight: num(s.weight, 2000),
-        unit: s.unit === "kg" ? "kg" : "lb",
+        unit: (s.unit === "kg" ? "kg" : "lb") as WeightUnit,
         reps: num(s.reps, 1000) == null ? null : Math.round(num(s.reps, 1000)!),
         seconds: num(s.seconds, 86400) == null ? null : Math.round(num(s.seconds, 86400)!),
         doneAt: String(s.doneAt ?? new Date().toISOString()),

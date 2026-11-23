@@ -107,6 +107,11 @@ describe("progression suggestion", () => {
     const p = progression({ last: { date: "x", sets: [kg(20, 10), kg(20, 10)] }, target: null, unit: "kg", logType: "reps", loadable: true });
     expect(p.nextWeight).toBe(22.5);
   });
+  it("no plan: an extra rep on the last set still counts as hitting the goal on every set", () => {
+    const p = progression({ last: { date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 11)] }, target: null, unit: "lb", logType: "reps", loadable: true });
+    expect(p.allTop).toBe(true);
+    expect(p.nextWeight).toBe(40);
+  });
   it("exercise page tip after all sets at the top", () => {
     expect(nextTimeTip({ date: "x", sets: [lb(35, 10), lb(35, 10), lb(35, 10)] }, "lb")?.text).toBe(
       "Next time: 40 lb. You got 10 reps on all 3 sets today.",

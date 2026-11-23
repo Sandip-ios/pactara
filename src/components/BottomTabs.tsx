@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Home, Compass, Zap, MessageCircle } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { getUnreadChatCounts } from "@/lib/chat.functions";
+import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 
 
 const PURPLE = "#7C3AED";
@@ -38,7 +39,7 @@ export function BottomTabs() {
   // Warm every tab's code so switching is instant, not a chunk download.
   useEffect(() => {
     const warm = () => {
-      for (const to of ["/home", "/groups", "/check-in", "/chat", "/profile"]) {
+      for (const to of ["/home", "/groups", "/workout", "/check-in", "/chat", "/profile"]) {
         router.preloadRoute({ to }).catch(() => {});
       }
     };
@@ -75,9 +76,15 @@ export function BottomTabs() {
       <TabItem
         icon={<Zap size={22} />}
         label="Check In"
-        active={isActive("/check-in")}
-        onPointerDown={preload("/check-in")}
-        onClick={() => navigate({ to: "/check-in" })}
+        active={isActive("/check-in") || isActive("/workout")}
+        onPointerDown={preload("/workout")}
+        onClick={() => {
+          // A workout in progress resumes; video-only regulars go straight to the camera.
+          if (getActiveWorkout()) return navigate({ to: "/workout/log" });
+          const direct = checkInSkipsStartScreen();
+          markCameraDirect(direct);
+          navigate({ to: direct ? "/check-in" : "/workout" });
+        }}
       />
       <TabItem
         icon={

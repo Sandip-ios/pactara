@@ -43,7 +43,8 @@ function StartWorkout() {
   const plan = active ? plans?.find((p) => p.slug === active.slug) ?? null : null;
   const day = plan && active ? dayForWeek(plan, active.nextDay, active.currentWeek) : null;
   const moves = plan && day && active ? movesForWeek(day.moves, weekNoteFor(plan, active.currentWeek)?.lighter ?? false) : [];
-  const today = history?.today ?? localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const timezone = history?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const today = history?.today ?? localDateIn(timezone);
 
   // Starting another workout while one is open asks first.
   const run = (fn: () => Promise<void>) => {
@@ -120,7 +121,7 @@ function StartWorkout() {
             </div>
             <div className="overflow-hidden rounded-[20px] bg-white">
               {workouts.map((wk, i) => (
-                <SavedRow key={wk.id} workout={wk} lib={lib} today={today} first={i === 0} disabled={busy} onStart={() => run(() => start.startSaved(wk))} />
+                <SavedRow key={wk.id} workout={wk} lib={lib} today={today} timezone={timezone} first={i === 0} disabled={busy} onStart={() => run(() => start.startSaved(wk))} />
               ))}
             </div>
           </section>
@@ -191,6 +192,7 @@ function SavedRow({
   workout,
   lib,
   today,
+  timezone,
   first,
   disabled,
   onStart,
@@ -198,13 +200,14 @@ function SavedRow({
   workout: SavedWorkout;
   lib: Map<string, LibraryExercise>;
   today: string;
+  timezone: string;
   first: boolean;
   disabled: boolean;
   onStart: () => void;
 }) {
   const primaries = workout.exercises.flatMap((e) => lib.get(e.exerciseId)?.primary.slice(0, 1) ?? []);
   const t = tintFor(primaries.length ? [mostCommon(primaries)] : []);
-  const lastDone = workout.lastDoneAt ? shortDay(localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone, new Date(workout.lastDoneAt)), today) : null;
+  const lastDone = workout.lastDoneAt ? shortDay(localDateIn(timezone, new Date(workout.lastDoneAt)), today) : null;
   return (
     <button
       type="button"

@@ -4,6 +4,7 @@ import { X, HelpCircle, SwitchCamera, Timer } from "lucide-react";
 import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
+import { cameraOpenedDirect, markCameraDirect } from "@/lib/active-workout";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 const PURPLE = "#7C3AED";
@@ -51,6 +52,12 @@ function pickMimeType(): string {
 
 function VideoRecordScreen() {
   const navigate = useNavigate();
+  // ⚡ came straight here (video-only habit), so offer "Start a workout instead".
+  const [openedDirect] = useState(() => {
+    const direct = cameraOpenedDirect();
+    markCameraDirect(false);
+    return direct;
+  });
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -713,7 +720,6 @@ function VideoRecordScreen() {
   };
 
   const cancel = (to: "/home" | "/workout" = "/home") => {
-    if (to === "/workout") markCameraDirect(false);
     if (countdownTimeoutRef.current) {
       window.clearTimeout(countdownTimeoutRef.current);
       countdownTimeoutRef.current = null;

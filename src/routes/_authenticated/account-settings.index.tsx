@@ -14,7 +14,12 @@ import {
   Zap,
   LogOut,
   HelpCircle,
+  Scale,
+  Info,
 } from "lucide-react";
+import { setWeightUnit } from "@/lib/lifts.functions";
+import { LIFT_HISTORY_KEY, useLiftHistory } from "@/lib/exercise-library";
+import type { WeightUnit } from "@/lib/lift-rules";
 import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/profile.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
@@ -37,6 +42,19 @@ function AccountSettingsHub() {
   const [showGuide, setShowGuide] = useState(false);
 
   const deleteFn = useServerFn(deleteMyAccount);
+  const unitFn = useServerFn(setWeightUnit);
+  const { data: lifts } = useLiftHistory();
+  const [unitPick, setUnitPick] = useState<WeightUnit | null>(null);
+  const unit: WeightUnit = unitPick ?? lifts?.unit ?? "lb";
+  const changeUnit = useMutation({
+    mutationFn: (u: WeightUnit) => unitFn({ data: { unit: u } }),
+    onMutate: (u) => setUnitPick(u),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: LIFT_HISTORY_KEY }),
+    onError: () => {
+      setUnitPick(null);
+      setErr("Couldn't change units. Check your connection and try again.");
+    },
+  });
   const deleteAccount = useMutation({
     mutationFn: () => deleteFn(),
     onSuccess: async () => {
@@ -129,6 +147,31 @@ function AccountSettingsHub() {
             onClick={() => navigate({ to: "/plan" })}
           />
           <Divider />
+          <div className="flex items-center gap-4 px-4 py-4">
+            <span className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: PURPLE_SOFT }}>
+              <Scale size={18} style={{ color: PURPLE }} />
+            </span>
+            <span className="flex-1 min-w-0">
+              <span className="block text-[16px] font-bold text-neutral-900">Weight units</span>
+              <span className="block text-[13px] text-neutral-500 truncate">For logging workouts</span>
+            </span>
+            <div role="radiogroup" aria-label="Weight units" className="flex shrink-0 rounded-full p-1" style={{ background: BG }}>
+              {(["lb", "kg"] as const).map((u) => (
+                <button
+                  key={u}
+                  type="button"
+                  role="radio"
+                  aria-checked={unit === u}
+                  onClick={() => unit !== u && changeUnit.mutate(u)}
+                  className="h-9 min-w-[44px] rounded-full px-3 text-[14px] font-bold"
+                  style={unit === u ? { background: "#FFFFFF", color: PURPLE, boxShadow: "0 1px 2px rgba(20,18,24,.08)" } : { color: LABEL }}
+                >
+                  {u}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Divider />
           <Row
             icon={<HelpCircle size={18} style={{ color: PURPLE }} />}
             iconBg={PURPLE_SOFT}
@@ -149,6 +192,22 @@ function AccountSettingsHub() {
             </span>
             <span className="flex-1 text-[16px] font-semibold text-neutral-900">Sign out</span>
           </button>
+        </div>
+      </section>
+
+      <section className="px-5 pt-6">
+        <div className="text-[12px] font-semibold tracking-wider mb-3 px-1" style={{ color: LABEL }}>
+          ABOUT
+        </div>
+        <div className="rounded-2xl bg-white overflow-hidden">
+          <a href="https://repdb.co" target="_blank" rel="noopener noreferrer" className="w-full flex items-center gap-4 px-4 py-4 text-left">
+            <span className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: PURPLE_SOFT }}>
+              <Info size={18} style={{ color: PURPLE }} />
+            </span>
+            <span className="flex-1 min-w-0 text-[15px] text-neutral-700">
+              Exercise data by <span className="font-semibold underline" style={{ color: PURPLE }}>RepDB (repdb.co)</span>
+            </span>
+          </a>
         </div>
       </section>
 

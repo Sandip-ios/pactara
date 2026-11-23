@@ -49,11 +49,17 @@ const update = (fn: (w: ActiveWorkout) => ActiveWorkout) => updateActiveWorkout(
 const updateEx = (key: string, fn: (e: LiveExercise) => LiveExercise) =>
   update((w) => ({ ...w, exercises: w.exercises.map((e) => (e.key === key ? fn(e) : e)) }));
 
+// Where the logger goes once the workout is cleared (finish → done, discard → home).
+let exitTo: "/home" | "/workout/done" | null = null;
+
 function WorkoutLogger() {
   const w = useActiveWorkout();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!w) navigate({ to: "/workout", replace: true });
+    if (w) return;
+    const to = exitTo ?? "/workout";
+    exitTo = null;
+    navigate({ to, replace: true });
   }, [w, navigate]);
   if (!w) return <div className="fixed inset-0" style={{ background: W.bg }} />;
   return <Logger w={w} />;
@@ -150,11 +156,11 @@ function Logger({ w }: { w: ActiveWorkout }) {
         plan: w.plan,
       });
       recordQuickPick("logged");
+      exitTo = "/workout/done";
       setActiveWorkout(null);
       void qc.invalidateQueries({ queryKey: LIFT_HISTORY_KEY });
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
       void qc.invalidateQueries({ queryKey: ["home-crew"] });
-      navigate({ to: "/workout/done", replace: true });
     } catch (e) {
       console.error("[workout] finish failed", e);
       setErr("Couldn't save your workout. Check your connection and tap Finish again.");
@@ -166,9 +172,9 @@ function Logger({ w }: { w: ActiveWorkout }) {
   const discard = async () => {
     setConfirm(null);
     const sessionId = w.sessionId;
+    exitTo = "/home";
     setActiveWorkout(null);
     if (sessionId) endFn({ data: { sessionId } }).catch(() => {});
-    navigate({ to: "/home", replace: true });
   };
 
   // ---- Long-press to reorder ----

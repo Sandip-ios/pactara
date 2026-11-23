@@ -11,6 +11,7 @@ import {
 import { createPortal } from "react-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { WorkoutSummaryRow } from "@/components/workout/FeedWorkout";
 import { Flame, ListChecks, MessageCircle, MoreHorizontal } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import type { FeedItem } from "@/lib/daily-posts.functions";
@@ -571,6 +572,7 @@ export function TimelineCard(props: PostCardProps) {
   const checkIns = props.kind === "checkins" ? props.checkIns : [];
   const current = checkIns[Math.min(index, checkIns.length - 1)];
   const metaPlan = props.kind === "checkins" ? current?.plan ?? null : null;
+  const metaWorkout = props.kind === "checkins" ? current?.workout ?? null : null;
   const meta =
     props.kind === "checkins"
       ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "")
@@ -643,6 +645,7 @@ export function TimelineCard(props: PostCardProps) {
         />
       ) : null}
 
+      {metaWorkout && current && <WorkoutSummaryRow workout={metaWorkout} checkInId={current.id.replace(/^c-/, "")} />}
       {metaPlan && <PlanChip plan={metaPlan} />}
       <div className="mt-1">
         <ActionRow

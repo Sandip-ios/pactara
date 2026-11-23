@@ -1,14 +1,6 @@
 # Roadmap
 
-- [ ] Build-your-own workouts + weight tracking + exercise library (unpublished, in progress)
-  - [ ] RepDB library imported (708 + images in our storage), plan moves mapped, custom exercises, attribution in settings
-  - [ ] Start a workout screen (⚡ opens it; plan card; My workouts; Build a workout; video-only + remember choice)
-  - [ ] Add exercises picker (search, muscle tabs, equipment chips, recent, create)
-  - [ ] Workout logger (sets, prefill, tips, PRs, rest timer, reorder, menu, minimized bar, units)
-  - [ ] Workout done screen (stats, PRs, save/update, crew preview, check in)
-  - [ ] Feed workout summary row + read-only sheet
-  - [ ] Exercise progress page + profile Lifts
-  - [ ] Tests (prefill, progression, PRs), 375px checks, full flow, plan workout, delete practice data
+- [x] Build-your-own workouts + weight tracking + exercise library: RepDB library (708, images in our storage), plan moves mapped, custom exercises, Start a workout, picker, set logger with prefill/tips/PRs/rest timer/minimize bar, Workout done, feed summary + sheet, exercise progress, profile Lifts, lb/kg + RepDB credit in settings (unpublished, awaiting review)
 
 - [x] Mixed crews get one 8 PM push naming all (at-risk first); a personal reminder set 8:00–9:59 PM counts as the night's evening push; celebration judges teammates by their own today (unpublished, awaiting review)
 

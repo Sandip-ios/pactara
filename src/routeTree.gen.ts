@@ -50,6 +50,7 @@ import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenti
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
 import { Route as AuthenticatedCheckInCameraRouteImport } from './routes/_authenticated/check-in.camera'
 import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authenticated/check-in.notes'
+import { Route as AuthenticatedExercisesExerciseIdRouteImport } from './routes/_authenticated/exercises.$exerciseId'
 import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenticated/goal.$groupId'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
@@ -287,6 +288,12 @@ const AuthenticatedCheckInNotesRoute =
     path: '/check-in/notes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedExercisesExerciseIdRoute =
+  AuthenticatedExercisesExerciseIdRouteImport.update({
+    id: '/exercises/$exerciseId',
+    path: '/exercises/$exerciseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGoalGroupIdRoute =
   AuthenticatedGoalGroupIdRouteImport.update({
     id: '/goal/$groupId',
@@ -445,6 +452,7 @@ export interface FileRoutesByFullPath {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
@@ -507,6 +515,7 @@ export interface FileRoutesByTo {
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
@@ -572,6 +581,7 @@ export interface FileRoutesById {
   '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
+  '/_authenticated/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/_authenticated/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
@@ -637,6 +647,7 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/exercises/$exerciseId'
     | '/goal/$groupId'
     | '/groups/$groupId'
     | '/pact/$groupId'
@@ -699,6 +710,7 @@ export interface FileRouteTypes {
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
+    | '/exercises/$exerciseId'
     | '/goal/$groupId'
     | '/groups/$groupId'
     | '/pact/$groupId'
@@ -763,6 +775,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
+    | '/_authenticated/exercises/$exerciseId'
     | '/_authenticated/goal/$groupId'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/pact/$groupId'
@@ -1108,6 +1121,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckInNotesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/exercises/$exerciseId': {
+      id: '/_authenticated/exercises/$exerciseId'
+      path: '/exercises/$exerciseId'
+      fullPath: '/exercises/$exerciseId'
+      preLoaderRoute: typeof AuthenticatedExercisesExerciseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/goal/$groupId': {
       id: '/_authenticated/goal/$groupId'
       path: '/goal/$groupId'
@@ -1272,6 +1292,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatGroupIdRoute: typeof AuthenticatedChatGroupIdRoute
   AuthenticatedCheckInCameraRoute: typeof AuthenticatedCheckInCameraRoute
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
+  AuthenticatedExercisesExerciseIdRoute: typeof AuthenticatedExercisesExerciseIdRoute
   AuthenticatedGoalGroupIdRoute: typeof AuthenticatedGoalGroupIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
@@ -1304,6 +1325,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatGroupIdRoute: AuthenticatedChatGroupIdRoute,
   AuthenticatedCheckInCameraRoute: AuthenticatedCheckInCameraRoute,
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
+  AuthenticatedExercisesExerciseIdRoute: AuthenticatedExercisesExerciseIdRoute,
   AuthenticatedGoalGroupIdRoute: AuthenticatedGoalGroupIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
