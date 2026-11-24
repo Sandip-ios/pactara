@@ -407,7 +407,7 @@ function PlanDetailPage() {
                 key={`${d.dayNumber}-${d.weekNumber ?? 0}`}
                 type="button"
                 onClick={() => navigate({ to: "/plans/$slug/day", params: { slug: plan.slug }, search: { week: shownWeek, day: d.dayNumber } })}
-                className="flex w-full items-center gap-[14px] rounded-[18px] bg-white py-[10px] pl-[10px] pr-[14px] text-left"
+                className="flex w-full items-center gap-[10px] rounded-[18px] bg-white py-[10px] pl-[10px] pr-[8px] text-left"
                 style={{ boxShadow: isNext ? `0 1px 2px rgba(20,18,24,.06), inset 0 0 0 2px ${P.purple}` : "0 1px 2px rgba(20,18,24,.06)" }}
               >
                 <span className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-[16px]" style={{ background: "#F7F4F0" }}>

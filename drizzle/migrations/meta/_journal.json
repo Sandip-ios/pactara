@@ -316,6 +316,13 @@
       "when": 1795481151780,
       "tag": "0044_retag_build_muscle_full_body",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1795533957450,
+      "tag": "0045_build_muscle_full_body_hand_tags",
+      "breakpoints": true
     }
   ]
 }
