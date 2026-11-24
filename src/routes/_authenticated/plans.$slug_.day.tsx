@@ -4,14 +4,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Info, Play, RotateCw } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { SwitchPlanSheet } from "@/components/plans/PlanSheets";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
 import { getActiveWorkout } from "@/lib/active-workout";
 import { useExerciseMap, type LibraryExercise } from "@/lib/exercise-library";
-import { hasActiveMembership } from "@/lib/membership";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { startPlan, type MyActivePlan, type MyPlans } from "@/lib/plans.functions";
 import { formatPlanDose, levelChip, planDayBlocks, planDayKicker, resolvePlanDayPosition } from "@/lib/plan-day-view";
@@ -61,7 +58,7 @@ const C = {
   font: "Inter, system-ui, sans-serif",
 } as const;
 
-/** One plan day as a full page. Viewing is free; "Start workout" keeps the plan paywall rule. */
+/** One plan day as a full page. Viewing and starting workouts are free. */
 function PlanDayPage() {
   const { slug } = Route.useParams();
   const search = Route.useSearch();
@@ -75,7 +72,6 @@ function PlanDayPage() {
   const { map } = useExerciseMap();
   const [busy, setBusy] = useState(false);
   const [pickDay, setPickDay] = useState(false);
-  const [paywall, setPaywall] = useState<{ firstName: string | null } | null>(null);
   const [confirmSwitch, setConfirmSwitch] = useState(false);
   const scrollRef = useOpenAtTop();
 
@@ -134,7 +130,7 @@ function PlanDayPage() {
     }
   };
 
-  // Same rule as "Start this plan": joining a plan needs a trial or membership.
+  // Like "Start this plan", starting a plan workout is free.
   const onStart = async () => {
     if (busy || !day) return;
     if (getActiveWorkout()) {
@@ -149,19 +145,6 @@ function PlanDayPage() {
         setBusy(false);
       }
       return;
-    }
-    setBusy(true);
-    try {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth.user?.id;
-      if (!uid) return;
-      if (!(await hasActiveMembership(uid))) {
-        const first = ((auth.user?.user_metadata?.name as string | undefined) ?? "").split(" ")[0] || null;
-        setPaywall({ firstName: first });
-        return;
-      }
-    } finally {
-      setBusy(false);
     }
     if (active) setConfirmSwitch(true);
     else await beginPlanThenLaunch();
@@ -282,23 +265,6 @@ function PlanDayPage() {
         }}
       />
 
-      {paywall && (
-        <TrialEndedPaywall
-          firstName={paywall.firstName}
-          mode="intro"
-          onDismiss={() => {
-            setPaywall(null);
-            // Bought from the paywall? Carry straight on.
-            void (async () => {
-              const { data: auth } = await supabase.auth.getUser();
-              if (auth.user && (await hasActiveMembership(auth.user.id))) {
-                if (active) setConfirmSwitch(true);
-                else await beginPlanThenLaunch();
-              }
-            })();
-          }}
-        />
-      )}
     </div>
   );
 }

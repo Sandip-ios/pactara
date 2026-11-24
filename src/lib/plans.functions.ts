@@ -227,7 +227,7 @@ export const getCrewPlans = createServerFn({ method: "GET" })
 /**
  * Start (or switch to) a plan. One active plan per person: the current one is
  * stopped with its progress kept, and a stopped run of the chosen plan resumes.
- * The membership gate runs on the device before this is called.
+ * Starting is free for signed-in members; no trial or subscription is required.
  */
 export const startPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

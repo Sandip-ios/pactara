@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Free plan starts: plan-only paywalls removed, server restrictions audited, start/resume/switch/workout flows tested (unpublished)
+
 - [x] Apple Health: iOS-only adapter, first-check-in prompt, Home workouts, posted stats, Profile settings, native instructions and tests (unpublished)
 - [ ] Apple Health on device: enable HealthKit and usage description in Xcode, update privacy disclosures, and test permissions/sync in a native iPhone build on José's Mac (instructions ready)
 
@@ -75,7 +77,7 @@
 - [x] Use state-aware Pact names across Home, Check In, Groups, Chat, Notifications, and Profile
 - [x] Fix the iPhone crash from the ••• menu on your own post: bottom sheet instead of dropdown, tap-to-top parking stands down during sheets/menus
 - [x] Groups list and check-in celebration leave resting members out of the count and show them resting (moon), never nudgeable
-- [x] Workout plans phase 1: Discover tab (Crews | Plans), six seeded plans, plan detail/day screens, membership gate, plan-day check-ins that advance the plan, feed plan tag, profile current/past plans
+- [x] Workout plans phase 1: Discover tab (Crews | Plans), six seeded plans, plan detail/day screens, free plan and workout starts, plan-day check-ins that advance the plan, feed plan tag, profile current/past plans
 - [x] One entry point per plan action: "YOUR PLAN" badge in Discover list, Workouts card opens today's day (chevron, footer to plan), day-page kicker links to plan, "Today's workout" labels (unpublished)
 - [x] Share a workout into crew chat: Share panel in Edit workout (send to crews / share a link), workout cards in chat with View workout, sender can delete, "shared a workout" notifications (unpublished)
 - [x] Move crews out of Discover: Discover plans only, Home "Your crews" sheet + ••• crew sheet, Leave crew keeps history, crew wording, real crew rule labels (unpublished)

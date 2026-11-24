@@ -18,12 +18,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { LeavePlanSheet, PlanOptionsSheet, SwitchPlanSheet, planWeekTitle } from "@/components/plans/PlanSheets";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { initials, plural } from "@/lib/lift-rules";
-import { hasActiveMembership } from "@/lib/membership";
 import { startPlan } from "@/lib/plans.functions";
 import {
   crewProofLine,
@@ -71,7 +68,6 @@ function PlanDetailPage() {
   const [week, setWeek] = useState<number | null>(null);
   const shownWeek = week ?? (onThisPlan ? active.currentWeek : left ? left.currentWeek : 1);
   const [checking, setChecking] = useState(false);
-  const [paywall, setPaywall] = useState<{ firstName: string | null; fresh: boolean } | null>(null);
   // Switching from another plan: carries whether it's a fresh start (Start over).
   const [confirmSwitch, setConfirmSwitch] = useState<null | { fresh: boolean }>(null);
   const [starting, setStarting] = useState(false);
@@ -118,7 +114,7 @@ function PlanDetailPage() {
     }
   };
 
-  // Starting needs an active trial or subscription; browsing stays free.
+  // Starting and browsing plans are free.
   const onStartTap = async (fresh = false) => {
     if (onThisPlan) {
       navigate({ to: "/plans/$slug/day", params: { slug: plan.slug } });
@@ -127,15 +123,6 @@ function PlanDetailPage() {
     if (checking || starting) return;
     setChecking(true);
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      const uid = auth.user?.id;
-      if (!uid) return;
-      const member = await hasActiveMembership(uid);
-      if (!member) {
-        const first = ((auth.user?.user_metadata?.name as string | undefined) ?? "").split(" ")[0] || null;
-        setPaywall({ firstName: first, fresh });
-        return;
-      }
       if (active) setConfirmSwitch({ fresh });
       else await doStart(fresh);
     } finally {
@@ -513,24 +500,6 @@ function PlanDetailPage() {
         }}
       />
 
-      {paywall && (
-        <TrialEndedPaywall
-          firstName={paywall.firstName}
-          mode="intro"
-          onDismiss={() => {
-            const fresh = paywall.fresh;
-            setPaywall(null);
-            // Bought from the paywall? Carry straight on with starting the plan.
-            void (async () => {
-              const { data: auth } = await supabase.auth.getUser();
-              if (auth.user && (await hasActiveMembership(auth.user.id))) {
-                if (active) setConfirmSwitch({ fresh });
-                else await doStart(fresh);
-              }
-            })();
-          }}
-        />
-      )}
     </div>
   );
 }
