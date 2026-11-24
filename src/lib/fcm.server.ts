@@ -81,7 +81,65 @@ async function getAccessToken(sa: ServiceAccount): Promise<string> {
   return body.access_token;
 }
 
-export type FcmPayload = { title: string; body: string; url?: string };
+export type FcmSender = { id: string; name: string; avatarUrl: string | null };
+
+export type FcmPayload = {
+  title: string;
+  body: string;
+  url?: string;
+  /** Person the notification is from; turns on the iOS communication style (photo icon). */
+  sender?: FcmSender;
+  /** HTTPS image shown as the thumbnail (iOS attachment, Android big picture). */
+  imageUrl?: string | null;
+  /** Groups notifications on iOS (the crew id). */
+  threadId?: string | null;
+};
+
+/**
+ * The FCM v1 message for one device token. Rich fields (sender, image) add
+ * mutable-content so the iPhone Notification Service Extension can run, plus
+ * string data keys it reads. Without them the message is unchanged.
+ */
+export function buildFcmMessage(token: string, payload: FcmPayload, badge?: number) {
+  const imageUrl = payload.imageUrl || null;
+  const rich = !!payload.sender || !!imageUrl;
+  const data: Record<string, string> = { url: payload.url ?? "/" };
+  if (rich) {
+    data["kind"] = "checkin";
+    data["sender_id"] = payload.sender?.id ?? "";
+    data["sender_name"] = payload.sender?.name ?? "";
+    data["sender_avatar_url"] = payload.sender?.avatarUrl ?? "";
+    data["image_url"] = imageUrl ?? "";
+    data["thread_id"] = payload.threadId ?? "";
+  }
+  return {
+    message: {
+      token,
+      notification: { title: payload.title, body: payload.body },
+      data,
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            "content-available": 1,
+            ...(typeof badge === "number" ? { badge } : {}),
+            ...(rich ? { "mutable-content": 1 } : {}),
+            ...(rich && payload.threadId ? { "thread-id": payload.threadId } : {}),
+          },
+        },
+        ...(imageUrl ? { fcm_options: { image: imageUrl } } : {}),
+      },
+      android: {
+        priority: "HIGH",
+        notification: {
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          ...(typeof badge === "number" ? { notification_count: badge } : {}),
+          ...(imageUrl ? { image: imageUrl } : {}),
+        },
+      },
+    },
+  };
+}
 
 export type FcmSendResult = { sent: number; expired: string[] };
 
@@ -106,36 +164,12 @@ export async function sendFcm(
   const accessToken = await getAccessToken(sa);
   const endpoint = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
 
-  const dataUrl = payload.url ?? "/";
   const expired: string[] = [];
   let sent = 0;
 
   await Promise.all(
     tokens.map(async (token) => {
-      const badge = badgeByToken?.[token];
-      const message = {
-        message: {
-          token,
-          notification: { title: payload.title, body: payload.body },
-          data: { url: dataUrl },
-          apns: {
-            payload: {
-              aps: {
-                sound: "default",
-                "content-available": 1,
-                ...(typeof badge === "number" ? { badge } : {}),
-              },
-            },
-          },
-          android: {
-            priority: "HIGH",
-            notification: {
-              click_action: "FLUTTER_NOTIFICATION_CLICK",
-              ...(typeof badge === "number" ? { notification_count: badge } : {}),
-            },
-          },
-        },
-      };
+      const message = buildFcmMessage(token, payload, badgeByToken?.[token]);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {

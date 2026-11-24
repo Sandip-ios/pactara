@@ -287,6 +287,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     const streakByGroup: Record<string, number> = {};
     const badgesByGroup: Record<string, number[]> = {};
     const postedCheckInIds: string[] = [];
+    // Sender photo + thumbnail for the check-in push, signed once for all crews.
+    let pushMedia: Promise<{ avatarUrl: string | null; imageUrl: string | null }> | null = null;
 
     for (const groupId of groupIds) {
       const { data: checkIn, error: ciErr } = await supabase
@@ -348,12 +350,21 @@ export const recordCheckIn = createServerFn({ method: "POST" })
 
       try {
         const { notifyGroupActivity, displayName } = await import("@/lib/notify.server");
-        const name = await displayName(userId);
+        const { checkInPushText } = await import("@/lib/checkin-push");
+        const { checkInPushMedia } = await import("@/lib/checkin-push.server");
+        pushMedia ??= checkInPushMedia(supabase as SupabaseClient, userId, data.photoUrl);
+        const [name, { data: crew }, media] = await Promise.all([
+          displayName(userId),
+          supabase.from("groups").select("name").eq("id", groupId).maybeSingle(),
+          pushMedia,
+        ]);
+        const text = checkInPushText(name, crew?.name as string | null | undefined, data.activity);
         await notifyGroupActivity(groupId, userId, {
-          title: `${name} checked in 🔥`,
-          body: data.note ? data.note.slice(0, 120) : "Tap to see their check-in",
+          ...text,
           url: postRow?.id ? `/home?post=${postRow.id}` : "/home",
-
+          sender: { id: userId, name: name.trim().split(/\s+/)[0] || name, avatarUrl: media.avatarUrl },
+          imageUrl: media.imageUrl,
+          threadId: groupId,
         });
       } catch (err) {
         console.warn("[check-in] push failed", err);

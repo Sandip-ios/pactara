@@ -2,7 +2,15 @@
 // (native iOS/Android) to a set of users, honouring their notification
 // preferences, and prunes dead subscriptions/tokens.
 
-export type PushPayload = { title: string; body: string; url?: string };
+export type PushPayload = {
+  title: string;
+  body: string;
+  url?: string;
+  /** Native (FCM) only: sender photo, thumbnail and crew thread for rich check-in pushes. */
+  sender?: { id: string; name: string; avatarUrl: string | null };
+  imageUrl?: string | null;
+  threadId?: string | null;
+};
 
 type PrefColumn =
   | "group_activity_enabled"

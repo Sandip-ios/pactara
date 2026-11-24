@@ -147,13 +147,20 @@ const ACTIVITY_META: Record<string, { emoji: string; label: string }> = {
   meditation: { emoji: "🧘", label: "Meditation" },
 };
 
-/** "💪 Workout" for the meta line, or null when untagged. */
-export function activityMeta(activity: string | null | undefined): string | null {
+/** Label and emoji for a check-in activity tag, or null when untagged. */
+export function activityParts(activity: string | null | undefined): { emoji: string | null; label: string } | null {
   const id = (activity ?? "").trim();
   if (!id) return null;
   const meta = ACTIVITY_META[id.toLowerCase()];
-  if (meta) return `${meta.emoji} ${meta.label}`;
-  return id.charAt(0).toUpperCase() + id.slice(1);
+  if (meta) return meta;
+  return { emoji: null, label: id.charAt(0).toUpperCase() + id.slice(1) };
+}
+
+/** "💪 Workout" for the meta line, or null when untagged. */
+export function activityMeta(activity: string | null | undefined): string | null {
+  const a = activityParts(activity);
+  if (!a) return null;
+  return a.emoji ? `${a.emoji} ${a.label}` : a.label;
 }
 
 /** "💪 Workout · Day 12 · 5:27 am" (activity part left out when untagged). */

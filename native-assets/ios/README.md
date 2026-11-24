@@ -120,3 +120,76 @@ In Xcode:
    Facebook installed: check in with a video → Share your win → Instagram
    Stories should open Instagram's story editor with the video and the card
    sticker; Save video should ask for Photos access once, then save.
+
+# Rich check-in notifications (needs a native rebuild)
+
+When someone in a crew checks in, the push shows their profile photo as the
+big icon (with a small Pactara badge in the corner) and a thumbnail of their
+video (or photo) on the right, like Instagram or WhatsApp. The server side is
+already live with a web publish. Until this build ships, phones keep showing
+the plain Pactara icon; nothing breaks.
+
+Files in this folder: `NotificationService/NotificationService.swift` and
+`NotificationService/Info.plist`.
+
+In Xcode (open `ios/App/App.xcworkspace`):
+
+1. **Add the extension.** Menu **File → New → Target…** → pick
+   **Notification Service Extension** → **Next**.
+   - Product Name: `NotificationService`
+   - Team: the same team as the App target
+   - Language: Swift
+   - Embed in Application: **App**
+   - Click **Finish**. If Xcode asks "Activate NotificationService scheme?",
+     click **Don't Activate** (you keep building the App scheme).
+   - Select the new **NotificationService** target → **General** →
+     **Minimum Deployments**: set the same iOS version as the App target.
+     (Xcode picks the newest iOS by default; if it's higher than the phone's
+     iOS, the extension silently never runs.)
+2. **Use our files.** In the left sidebar, open the new `NotificationService`
+   folder. Replace the contents of its `NotificationService.swift` and
+   `Info.plist` with the two files from this folder (open ours, select all,
+   copy, paste over Xcode's). Keep the file names and locations Xcode made.
+3. **Main app capability.** Select the **App** target → **Signing &
+   Capabilities** → **+ Capability** → **Communication Notifications**.
+   Keep **Push Notifications** (and everything else already there).
+4. **Main app Info.plist.** Open `ios/App/App/Info.plist` and add, inside the
+   top-level `<dict>`:
+
+   ```xml
+   <key>NSUserActivityTypes</key>
+   <array>
+     <string>INSendMessageIntent</string>
+   </array>
+   ```
+
+   If `NSUserActivityTypes` already exists, add the `<string>` line to it
+   instead of a second key.
+5. **Signing for the extension.** Select the **NotificationService** target →
+   **Signing & Capabilities** → tick **Automatically manage signing** and pick
+   the same team. Xcode creates its App ID (`app.pactara.NotificationService`)
+   and provisioning profile for you. No Firebase or other library is needed
+   in the extension.
+6. **Test on a real iPhone** (the simulator doesn't get real pushes). Build
+   and run the **App** scheme on your phone, allow notifications, lock the
+   phone, and have someone in your crew check in with a video. The
+   notification should show their photo as the big icon with the small
+   Pactara badge, and the video thumbnail on the right. On a check-in with
+   no photo or video you get their photo icon without a thumbnail.
+7. **If it still shows the plain Pactara icon:**
+   - Check the **App** target has **Communication Notifications** under
+     Signing & Capabilities (step 3). If it does and it still fails, add the
+     same capability to the **NotificationService** target too.
+   - Check `NSUserActivityTypes` with `INSendMessageIntent` is in the
+     **App** target's `Info.plist` (step 4), not only in the extension's.
+   - Check the extension's Minimum Deployments is not higher than the phone's
+     iOS (step 1). The photo-style icon needs iOS 15 or later; on older iOS
+     you still get the thumbnail.
+   - Check the push itself has `"mutable-content": 1` inside `aps`. Every
+     check-in push from the server includes it (ask for the server log if in
+     doubt). Without it, iOS never runs the extension and shows the plain
+     icon.
+   - Delete the app from the phone, build and run again (iOS sometimes keeps
+     the old notification setup).
+   - In **Settings → Notifications → Pactara**, make sure notifications are
+     allowed and not set to "Deliver Quietly" or summary only.
