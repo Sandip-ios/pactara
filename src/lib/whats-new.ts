@@ -6,7 +6,7 @@
  */
 export const WHATS_NEW_VERSION = "2026-11";
 /** Accounts created at or after this moment are new to the app and skip the sheet. */
-export const WHATS_NEW_CUTOFF = "2026-11-23T17:31:00Z";
+export const WHATS_NEW_CUTOFF = "2026-11-24T16:15:00Z";
 /**
  * Local fallback when saving the seen version on the profile fails. Scoped to
  * the account: a device-wide flag let one account's dismissal hide the sheet
