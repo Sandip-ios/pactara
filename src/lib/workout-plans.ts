@@ -274,9 +274,12 @@ const REGION_LABEL: Record<MuscleRegion, string> = {
 
 const titleLabel = (r: MuscleRegion) => REGION_LABEL[r].charAt(0).toUpperCase() + REGION_LABEL[r].slice(1);
 
-/** One line naming a day's main muscles (level 2 only): "Chest · Shoulders · Triceps". */
+/** Most main muscles a day row names; the day page chips list them all. */
+export const MAIN_MUSCLES_LINE_MAX = 3;
+
+/** One line naming a day's main muscles (level 2 only), at most 3 in body order: "Chest · Shoulders · Triceps". */
 export function mainMusclesLine(map: MuscleMap): string {
-  return MUSCLE_REGIONS.filter((r) => map[r] === 2).map(titleLabel).join(" · ");
+  return MUSCLE_REGIONS.filter((r) => map[r] === 2).slice(0, MAIN_MUSCLES_LINE_MAX).map(titleLabel).join(" · ");
 }
 
 /** Muscle chips for a day, main muscles first, then also worked. */

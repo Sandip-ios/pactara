@@ -197,6 +197,11 @@ describe("plan page and Discover helpers", () => {
     expect(mainMusclesLine({ traps: 2, abs: 2, quads: 1 })).toBe("Upper back · Core");
     expect(mainMusclesLine({ quads: 1 })).toBe("");
   });
+  it("day row line names at most 3 main muscles in body order, chips keep all of them", () => {
+    const legs = { glutes: 2, quads: 2, hamstrings: 2, calves: 2, abs: 1 } as const;
+    expect(mainMusclesLine(legs)).toBe("Glutes · Quads · Hamstrings");
+    expect(muscleChips(legs).filter((c) => c.level === 2)).toHaveLength(4);
+  });
   it("muscle chips list main muscles before also worked", () => {
     expect(muscleChips({ abs: 1, chest: 2, triceps: 1, shoulders: 2 }).map((c) => `${c.label}:${c.level}`)).toEqual([
       "Chest:2",

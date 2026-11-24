@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Armchair,
   BrickWall,
@@ -313,7 +313,9 @@ function PlanDetailPage() {
 
         <Section title="What it works">
           <div className="flex items-center gap-4 rounded-[20px] bg-white p-4">
-            <BodyMap muscles={planMuscleMap(plan)} width={150} height={143} />
+            <span className="shrink-0">
+              <BodyMap muscles={planMuscleMap(plan)} width={147} height={190} />
+            </span>
             <div className="flex min-w-0 flex-col gap-[10px] text-[13px]">
               {plan.focusLine && <span className="text-[15px] font-extrabold leading-snug">{plan.focusLine}</span>}
               <Legend color="#7C3AED" label="Main focus" />
@@ -418,8 +420,15 @@ function PlanDetailPage() {
                   </span>
                   <span className="text-[16px] font-extrabold leading-tight">{d.title}</span>
                   {mainMusclesLine(d.muscles) && (
-                    <span className="truncate text-[13px] font-semibold" style={{ color: P.ink }}>
-                      {mainMusclesLine(d.muscles)}
+                    <span className="text-[13px] font-semibold leading-snug" style={{ color: P.ink }}>
+                      {mainMusclesLine(d.muscles)
+                        .split(" · ")
+                        .map((m, i) => (
+                          <Fragment key={m}>
+                            {i > 0 && " · "}
+                            <span className="whitespace-nowrap">{m}</span>
+                          </Fragment>
+                        ))}
                     </span>
                   )}
                   <span className="text-[13px]" style={{ color: P.stone }}>
