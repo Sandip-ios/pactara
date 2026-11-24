@@ -13,6 +13,10 @@ On José's Mac:
    Run `npm install`, then `npx cap sync ios`, then `npx cap open ios`.
    The project already includes `@capgo/capacitor-health` 8.13.0, compatible
    with Capacitor 8. Keep the existing Capacitor configuration.
+   `npx cap sync ios` must report 10 plugins, including
+   `@capgo/capacitor-health`. If it reports 9, or the Health plugin is missing,
+   then `includePlugins` in `capacitor.config.ts` does not list it: add
+   `"@capgo/capacitor-health"` to that array and run `npx cap sync ios` again.
 2. In Xcode, select the blue **App** project in the left sidebar, select
    the **App** target, then **Signing & Capabilities → + Capability → HealthKit**.
    Keep all existing capabilities. Do not enable Clinical Health Records

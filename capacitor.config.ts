@@ -6,6 +6,9 @@ const config: CapacitorConfig = {
   // White everywhere (webview, safe areas, native splash) so launch never
   // flashes black.
   backgroundColor: "#FFFFFF",
+  // Capacitor only copies native code for the plugins listed here, so a native
+  // plugin dependency missing from this list is silently skipped by
+  // `npx cap sync ios`. src/lib/__tests__/capacitor-plugins.test.ts guards it.
   includePlugins: [
     "@capacitor-firebase/messaging",
     "@capacitor/app",
@@ -16,6 +19,7 @@ const config: CapacitorConfig = {
     "@capacitor-community/contacts",
     "@revenuecat/purchases-capacitor",
     "@capacitor-community/in-app-review",
+    "@capgo/capacitor-health",
   ],
   // This app is a TanStack Start (SSR + server functions) app, so `vite build`
   // intentionally produces a server bundle (dist/server) plus client assets
