@@ -14,6 +14,8 @@ import { checkInMetaLine } from "../feed-view";
 import {
   crewProofLine,
   lighterDose,
+  mainMusclesLine,
+  muscleChips,
   moveGroup,
   movesForWeek,
   muscleMapLabel,
@@ -189,6 +191,19 @@ describe("plan page and Discover helpers", () => {
     expect(muscleMapLabel({ chest: 2, shoulders: 2, triceps: 2, abs: 1 })).toBe(
       "Main muscles: chest, shoulders and triceps. Also worked: core.",
     );
+  });
+  it("day map line names only main muscles, with upper back and core wording", () => {
+    expect(mainMusclesLine({ chest: 2, shoulders: 2, triceps: 2, abs: 1 })).toBe("Chest · Shoulders · Triceps");
+    expect(mainMusclesLine({ traps: 2, abs: 2, quads: 1 })).toBe("Upper back · Core");
+    expect(mainMusclesLine({ quads: 1 })).toBe("");
+  });
+  it("muscle chips list main muscles before also worked", () => {
+    expect(muscleChips({ abs: 1, chest: 2, triceps: 1, shoulders: 2 }).map((c) => `${c.label}:${c.level}`)).toEqual([
+      "Chest:2",
+      "Shoulders:2",
+      "Triceps:1",
+      "Core:1",
+    ]);
   });
   it("a lighter week is 2 sets of everything", () => {
     expect(lighterDose("3x8-12")).toBe("2x8-12");

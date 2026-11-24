@@ -29,6 +29,7 @@ import {
   crewProofLine,
   dayMinutes,
   leftRunHasProgress,
+  mainMusclesLine,
   planMuscleMap,
   restDaysFor,
   scheduleForWeek,
@@ -316,7 +317,7 @@ function PlanDetailPage() {
             <div className="flex min-w-0 flex-col gap-[10px] text-[13px]">
               {plan.focusLine && <span className="text-[15px] font-extrabold leading-snug">{plan.focusLine}</span>}
               <Legend color="#7C3AED" label="Main focus" />
-              <Legend color="#C4B5FD" label="Also worked" />
+              <Legend color="#F5B544" label="Also worked" />
             </div>
           </div>
         </Section>
@@ -407,8 +408,8 @@ function PlanDetailPage() {
                 className="flex w-full items-center gap-[14px] rounded-[18px] bg-white py-[10px] pl-[10px] pr-[14px] text-left"
                 style={{ boxShadow: isNext ? `0 1px 2px rgba(20,18,24,.06), inset 0 0 0 2px ${P.purple}` : "0 1px 2px rgba(20,18,24,.06)" }}
               >
-                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[14px]" style={{ background: P.tile }}>
-                  <BodyMap muscles={d.muscles} width={58} height={55} />
+                <span className="flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-[16px]" style={{ background: "#F7F4F0" }}>
+                  <BodyMap muscles={d.muscles} width={92} height={92} />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
                   <span className="text-[12px] font-extrabold tracking-[0.5px]" style={{ color: P.violet }}>
@@ -416,6 +417,11 @@ function PlanDetailPage() {
                     {isNext ? " · UP NEXT" : ""}
                   </span>
                   <span className="text-[16px] font-extrabold leading-tight">{d.title}</span>
+                  {mainMusclesLine(d.muscles) && (
+                    <span className="truncate text-[13px] font-semibold" style={{ color: P.ink }}>
+                      {mainMusclesLine(d.muscles)}
+                    </span>
+                  )}
                   <span className="text-[13px]" style={{ color: P.stone }}>
                     {d.moves.length} {d.moves.length === 1 ? "move" : "moves"} · {dayMinutes(d, plan)} min
                   </span>

@@ -15,8 +15,9 @@ import { hasActiveMembership } from "@/lib/membership";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { startPlan, type MyActivePlan, type MyPlans } from "@/lib/plans.functions";
 import { formatPlanDose, levelChip, planDayBlocks, planDayKicker, resolvePlanDayPosition } from "@/lib/plan-day-view";
-import { dayForWeek, dayMinutes, movesForWeek, scheduleForWeek, weekNoteFor, type Plan, type PlanMove } from "@/lib/workout-plans";
+import { dayForWeek, dayMinutes, movesForWeek, muscleChips, scheduleForWeek, weekNoteFor, type MuscleMap, type Plan, type PlanMove } from "@/lib/workout-plans";
 import { gearText, useMyPlans, usePlans } from "@/components/plans/PlanBits";
+import { BodyMap } from "@/components/plans/BodyMap";
 
 type DaySearch = { week?: number; day?: number };
 const toInt = (v: unknown) => {
@@ -209,6 +210,8 @@ function PlanDayPage() {
                 ))}
               </div>
             </div>
+
+            <MusclesWorked muscles={day.muscles ?? {}} />
 
             <div className="flex items-start gap-2.5 rounded-[14px] px-[14px] py-3 text-[14px] leading-[1.45]" style={{ background: C.infoBg, color: C.infoInk }}>
               <Info size={18} className="mt-px shrink-0" aria-hidden />
@@ -419,5 +422,41 @@ function DayPicker({
         </div>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+/** "Muscles worked": the large front/back map, legend and one chip per muscle (main first) for the day shown. */
+function MusclesWorked({ muscles }: { muscles: MuscleMap }) {
+  const chips = muscleChips(muscles);
+  return (
+    <section className="flex flex-col gap-3 rounded-[20px] bg-white p-4">
+      <h2 className="m-0 text-[15px] font-bold">Muscles worked</h2>
+      <div className="flex h-[228px] items-center justify-center rounded-[16px]" style={{ background: "#F7F4F0" }}>
+        <BodyMap muscles={muscles} labels width={220} height={220} />
+      </div>
+      <div className="flex items-center gap-4 text-[12px]" style={{ color: C.stoneDark }}>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#7C3AED" }} aria-hidden />
+          Main
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#F5B544" }} aria-hidden />
+          Also worked
+        </span>
+      </div>
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {chips.map((c) => (
+            <span
+              key={c.region}
+              className="rounded-full px-3 py-1.5 text-[13px] font-bold leading-none"
+              style={c.level === 2 ? { background: "#EDE7FB", color: "#5B21B6" } : { background: "#FEF3C7", color: "#92400E" }}
+            >
+              {c.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

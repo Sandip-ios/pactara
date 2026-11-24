@@ -272,6 +272,19 @@ const REGION_LABEL: Record<MuscleRegion, string> = {
   calves: "calves",
 };
 
+const titleLabel = (r: MuscleRegion) => REGION_LABEL[r].charAt(0).toUpperCase() + REGION_LABEL[r].slice(1);
+
+/** One line naming a day's main muscles (level 2 only): "Chest · Shoulders · Triceps". */
+export function mainMusclesLine(map: MuscleMap): string {
+  return MUSCLE_REGIONS.filter((r) => map[r] === 2).map(titleLabel).join(" · ");
+}
+
+/** Muscle chips for a day, main muscles first, then also worked. */
+export function muscleChips(map: MuscleMap): { region: MuscleRegion; label: string; level: 1 | 2 }[] {
+  const pick = (level: 1 | 2) => MUSCLE_REGIONS.filter((r) => map[r] === level).map((r) => ({ region: r, label: titleLabel(r), level }));
+  return [...pick(2), ...pick(1)];
+}
+
 const listWords = (xs: string[]) =>
   xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
 
