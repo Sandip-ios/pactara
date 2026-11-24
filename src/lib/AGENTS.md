@@ -1,0 +1,1 @@
+- Rich check-in pushes: wording in `checkin-push.ts`, FCM JSON in `buildFcmMessage` (sender/image add `mutable-content` + data keys read by `native-assets/ios/NotificationService`), media signed 24h with the poster's own client in `checkin-push.server.ts`. Why: the iPhone extension needs those keys; the member's client keeps storage rules on user-supplied paths.
