@@ -95,6 +95,7 @@ export type Database = {
           checkin_date: string
           created_at: string
           group_id: string
+          health_workout: Json | null
           id: string
           mood: string | null
           note: string | null
@@ -106,6 +107,7 @@ export type Database = {
           checkin_date?: string
           created_at?: string
           group_id: string
+          health_workout?: Json | null
           id?: string
           mood?: string | null
           note?: string | null
@@ -117,6 +119,7 @@ export type Database = {
           checkin_date?: string
           created_at?: string
           group_id?: string
+          health_workout?: Json | null
           id?: string
           mood?: string | null
           note?: string | null
@@ -633,6 +636,32 @@ export type Database = {
         }
         Relationships: []
       }
+      health_preferences: {
+        Row: {
+          connected: boolean
+          show_workouts: boolean
+          user_id: string
+        }
+        Insert: {
+          connected?: boolean
+          show_workouts?: boolean
+          user_id: string
+        }
+        Update: {
+          connected?: boolean
+          show_workouts?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       member_nudges: {
         Row: {
           created_at: string
@@ -1143,6 +1172,7 @@ export type Database = {
           avatar_color: string
           avatar_url: string | null
           created_at: string
+          health_prompt_seen_at: string | null
           id: string
           name: string
           plan_quiz: Json | null
@@ -1155,6 +1185,7 @@ export type Database = {
           avatar_color?: string
           avatar_url?: string | null
           created_at?: string
+          health_prompt_seen_at?: string | null
           id: string
           name?: string
           plan_quiz?: Json | null
@@ -1167,6 +1198,7 @@ export type Database = {
           avatar_color?: string
           avatar_url?: string | null
           created_at?: string
+          health_prompt_seen_at?: string | null
           id?: string
           name?: string
           plan_quiz?: Json | null
@@ -1806,6 +1838,21 @@ export type Database = {
           plan_name: string
           plan_slug: string
           week: number
+        }[]
+      }
+      post_health_check_in: {
+        Args: {
+          _activity: string
+          _date: string
+          _groups: string[]
+          _health: Json
+          _mood: string
+          _note: string
+          _photo: string
+        }
+        Returns: {
+          check_in_id: string
+          crew_id: string
         }[]
       }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }

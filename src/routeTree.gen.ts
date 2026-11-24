@@ -23,6 +23,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as AuthenticatedAppleHealthRouteImport } from './routes/_authenticated/apple-health'
 import { Route as AuthenticatedFindPlanRouteImport } from './routes/_authenticated/find-plan'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
@@ -147,6 +148,12 @@ const DotwellKnownAppleAppSiteAssociationRoute =
     id: '/.well-known/apple-app-site-association',
     path: '/.well-known/apple-app-site-association',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppleHealthRoute =
+  AuthenticatedAppleHealthRouteImport.update({
+    id: '/apple-health',
+    path: '/apple-health',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedFindPlanRoute = AuthenticatedFindPlanRouteImport.update({
   id: '/find-plan',
@@ -459,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -527,6 +535,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -598,6 +607,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/_authenticated/apple-health': typeof AuthenticatedAppleHealthRoute
   '/_authenticated/find-plan': typeof AuthenticatedFindPlanRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
@@ -669,6 +679,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/apple-health'
     | '/find-plan'
     | '/home'
     | '/new-pactara'
@@ -737,6 +748,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/apple-health'
     | '/find-plan'
     | '/home'
     | '/new-pactara'
@@ -807,6 +819,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/_authenticated/apple-health'
     | '/_authenticated/find-plan'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
@@ -994,6 +1007,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.well-known/apple-app-site-association'
       preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/apple-health': {
+      id: '/_authenticated/apple-health'
+      path: '/apple-health'
+      fullPath: '/apple-health'
+      preLoaderRoute: typeof AuthenticatedAppleHealthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/find-plan': {
       id: '/_authenticated/find-plan'
@@ -1377,6 +1397,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppleHealthRoute: typeof AuthenticatedAppleHealthRoute
   AuthenticatedFindPlanRoute: typeof AuthenticatedFindPlanRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
@@ -1410,6 +1431,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppleHealthRoute: AuthenticatedAppleHealthRoute,
   AuthenticatedFindPlanRoute: AuthenticatedFindPlanRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,

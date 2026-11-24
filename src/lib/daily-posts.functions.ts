@@ -17,6 +17,7 @@ import {
 import { memberOwnToday } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 import { activityLabelFor, postShareNumbers, shareMediaKind, type ShareMediaKind } from "./share-post";
+import { healthWorkoutSchema, healthVideoRequired, type HealthWorkout } from './health-workouts';
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -257,6 +258,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       groupIds?: string[] | null;
       planDay?: { userPlanId: string; week: number; day: number } | null;
       workoutSessionId?: string | null;
+      healthWorkout?: HealthWorkout | null;
     }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
@@ -270,6 +272,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
           ? { userPlanId: input.planDay.userPlanId, week: input.planDay.week, day: input.planDay.day }
           : null,
       workoutSessionId: typeof input?.workoutSessionId === "string" ? input.workoutSessionId.slice(0, 64) : null,
+      healthWorkout: input?.healthWorkout ? healthWorkoutSchema.parse(input.healthWorkout) : null,
     }),
   )
   .handler(async ({ data, context }) => {
@@ -282,6 +285,21 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     );
     if (groupIds.length === 0) throw new Error("You're not in a group yet");
 
+    if (data.healthWorkout && !healthVideoRequired(data.photoUrl)) throw new Error('Add a video to check in with this Health workout.');
+    if (data.healthWorkout && (data.workoutSessionId || data.planDay)) throw new Error('Use one workout per check-in.');
+    const { count: previousCount, error: countError } = await supabase.from('check_ins').select('id', { count: 'exact', head: true }).eq('user_id', userId);
+    const firstCheckIn = !countError && previousCount === 0;
+    // Save Health crew copies and feed posts in one idempotent transaction.
+    const healthPosted = new Map<string, string>();
+    if (data.healthWorkout) {
+      const { data: rows, error } = await supabase.rpc('post_health_check_in', {
+        _groups: groupIds, _date: localDateFor(timezone), _note: data.note ?? '',
+        _photo: data.photoUrl ?? '', _mood: data.mood ?? '', _activity: data.activity ?? '', _health: data.healthWorkout,
+      });
+      if (error) throw new Error('This Health workout could not be posted. It may already have been used.');
+      for (const row of rows ?? []) healthPosted.set(row.crew_id, row.check_in_id);
+    }
+
     const today = localDateFor(timezone);
     const newBadgeSet = new Set<number>();
     const streakByGroup: Record<string, number> = {};
@@ -291,7 +309,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     let pushMedia: Promise<{ avatarUrl: string | null; imageUrl: string | null }> | null = null;
 
     for (const groupId of groupIds) {
-      const { data: checkIn, error: ciErr } = await supabase
+      const healthId = healthPosted.get(groupId);
+      const { data: checkIn, error: ciErr } = healthId ? { data: { id: healthId }, error: null } : await supabase
         .from("check_ins")
         .insert({
           user_id: userId,
@@ -392,7 +411,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true, newBadges: Array.from(newBadgeSet), streakByGroup, badgesByGroup, groupCount: groupIds.length, plan };
+    return { ok: true, userId, firstCheckIn, newBadges: Array.from(newBadgeSet), streakByGroup, badgesByGroup, groupCount: groupIds.length, plan };
 
   });
 
@@ -425,6 +444,7 @@ export type TimelineNode =
       plan?: { name: string; slug: string; week: number; day: number } | null;
       /** Set when the check-in was posted after logging a workout. */
       workout?: FeedWorkout | null;
+      health?: HealthWorkout | null;
       note: string | null;
       photoUrl: string | null;
       posterUrl?: string | null;
@@ -660,7 +680,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       postIds.length
         ? supabase
             .from("check_ins")
-            .select("id, user_id, checkin_date, mood, activity, note, photo_url, created_at")
+            .select("id, user_id, checkin_date, mood, activity, note, photo_url, created_at, health_workout")
             .eq("group_id", groupId)
             .in("user_id", posterIds)
             .in("checkin_date", dates)
@@ -883,6 +903,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           activity: c.activity,
           plan: planTags.get(c.id) ?? null,
           workout: workoutTags.get(c.id) ?? null,
+          health: healthWorkoutSchema.safeParse(c.health_workout).success ? healthWorkoutSchema.parse(c.health_workout) : null,
           note: c.note,
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,

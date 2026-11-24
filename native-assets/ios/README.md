@@ -1,3 +1,67 @@
+# Apple Health workout sync (needs a native rebuild)
+
+Health sync is iPhone only. The app reads workouts, not steps, heart rate,
+sleep, routes or other Health records. Nothing from Health counts as a
+check-in until the member adds a video and taps Share. Only the posted
+workout's source, UUID, type, start time, duration, distance and calories
+are saved. Unposted workouts stay on the phone. Health areas are excluded
+from analytics autocapture and masked for session recordings.
+
+On José's Mac:
+
+1. Download the latest project code and open Terminal in its folder.
+   Run `npm install`, then `npx cap sync ios`, then `npx cap open ios`.
+   The project already includes `@capgo/capacitor-health` 8.13.0, compatible
+   with Capacitor 8. Keep the existing Capacitor configuration.
+2. In Xcode, select the blue **App** project in the left sidebar, select
+   the **App** target, then **Signing & Capabilities → + Capability → HealthKit**.
+   Keep all existing capabilities. Do not enable Clinical Health Records
+   or background delivery. If signing is manual, enable HealthKit on the
+   App ID and regenerate its provisioning profile.
+3. Open `ios/App/App/Info.plist` as source code. Inside the top-level
+   `<dict>`, add this key (or update its existing value, never duplicate it):
+
+   ```xml
+   <key>NSHealthShareUsageDescription</key>
+   <string>Pactara reads your workouts so you can check in with them and share their stats with your crew.</string>
+   ```
+
+   Do not add `NSHealthUpdateUsageDescription`: this version does not write
+   workouts. Although the plugin can save individual health samples, its
+   iOS workout API only supports querying workouts. There is no Save Pactara
+   workouts to Health switch and no write permission request.
+4. Build the **App** scheme and run on a real iPhone. On a new test account,
+   make the first video check-in. The Health sheet should open over the
+   celebration. Tap **Connect Apple Health** and allow **Workouts** only.
+   Finish a Watch workout, or use an app that actually writes its workouts
+   to Health. Strava/Nike Run Club must have their own Health sync enabled.
+5. On the next day with no Pactara check-in, open Home. Tap **Use**, add a
+   video, then Share. Check the crew post's activity, duration, distance,
+   calories and source. Sync alone must not create a post or move a streak.
+   US phone region uses miles, other regions use kilometres. Missing
+   distance/calories are omitted, not filled with invented zeroes.
+6. Open **Profile → Apple Health** (the new row below the plan section).
+   Test the Show switch and **Open the Health app**. In Health, open
+   **Profile → Apps → Pactara** to change read access. iOS deliberately
+   does not reveal whether read access was denied: an empty result can
+   mean no workouts or denial. Pactara never invents data or repeatedly
+   asks for access. Older app builds without this plugin hide Health UI.
+7. Before submitting the new App Store build, update **App Privacy** in
+   App Store Connect: disclose the posted workout stats as **Health & Fitness**
+   data linked to the member's account and used for **App Functionality**,
+   not advertising, tracking or data brokerage. Update the privacy policy
+   to explain the read-only workout permission, on-device unposted data,
+   deliberate sharing with crews, stored posted fields, retention/deletion
+   of posted check-ins and account deletion, permission revocation in Health,
+   and that turning off Show stops reading but does not delete existing posts.
+   Do not claim Pactara cannot read a workout after the member granted access.
+   Review the label against every other app data use before submission.
+
+This feature needs both your web publish and this native build. A web
+publish alone cannot add the Health plugin to the current App Store app.
+
+---
+
 # iOS launch screen (needs a native rebuild)
 
 These files make the native launch screen identical to the web one

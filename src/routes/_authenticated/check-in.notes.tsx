@@ -20,6 +20,10 @@ import { relationForGroup } from "@/lib/group-display";
 import { clearPlanCheckIn, getPlanCheckIn, setPlanCheckIn, type PlanCheckIn } from "@/lib/plan-checkin";
 import type { PlanDayResult } from "@/lib/workout-plans";
 import { clearWorkoutCheckIn, getWorkoutCheckIn, setWorkoutCheckIn, type WorkoutCheckIn } from "@/lib/active-workout";
+import { pendingHealthWorkout, attachHealthWorkout, clearHealthWorkout, isAppleHealthPlatform } from '@/lib/apple-health';
+import { healthWorkoutSchema, healthWorkoutName, type HealthWorkout } from '@/lib/health-workouts';
+import { HealthPostedStats } from '@/components/health/HealthUI';
+import { HealthPrompt } from '@/components/health/HealthPrompt';
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -135,6 +139,9 @@ function NotesPage() {
   const [planResult, setPlanResult] = useState<PlanDayResult | null>(null);
   // The logged workout this check-in posts with (from "Workout done").
   const [workout, setWorkout] = useState<WorkoutCheckIn | null>(null);
+  const [healthWorkout, setHealthWorkout] = useState<HealthWorkout | null>(null);
+  const [healthUserId, setHealthUserId] = useState<string | null>(null);
+  const [firstCheckIn, setFirstCheckIn] = useState(false);
   const { data: groupsData } = useQuery({
     queryKey: ["my-groups"],
     queryFn: () => listMyGroups(),
@@ -173,6 +180,14 @@ function NotesPage() {
       setWorkout(logged);
       setActivity((a) => a ?? "workout");
     }
+    void supabase.auth.getUser().then(({ data }) => {
+      const userId = data.user?.id;
+      if (!userId || !isAppleHealthPlatform()) return;
+      setHealthUserId(userId);
+      if (plan || logged) { clearHealthWorkout(); return; }
+      const health = pendingHealthWorkout(userId);
+      if (health) { setHealthWorkout(health); setActivity(/run|walk/i.test(health.type) ? 'run' : 'workout'); }
+    });
     const existing = getCheckInPhoto();
     if (existing) {
       setPhotoPreview(existing.previewUrl);
@@ -196,6 +211,15 @@ function NotesPage() {
       if (draft.workout) {
         setWorkout(draft.workout);
         setWorkoutCheckIn(draft.workout);
+      }
+      if (draft.health && isAppleHealthPlatform()) {
+        const savedHealth = draft.health;
+        void supabase.auth.getUser().then(({ data }) => {
+          const userId = data.user?.id;
+          if (!userId || userId !== savedHealth.userId) return;
+          const parsed = healthWorkoutSchema.safeParse(savedHealth.workout);
+          if (parsed.success) { setHealthWorkout(parsed.data); setHealthUserId(userId); attachHealthWorkout(userId, parsed.data); }
+        });
       }
       setAllGroups(draft.allGroups ?? false);
       setDraftRestored(true);
@@ -250,6 +274,7 @@ function NotesPage() {
       groupIds?: string[] | null;
       planDay?: { userPlanId: string; week: number; day: number } | null;
       workoutSessionId?: string | null;
+      healthWorkout?: HealthWorkout | null;
     }) =>
       recordCheckInFn({ data: vars }),
   });
@@ -262,6 +287,10 @@ function NotesPage() {
       const activeGroupId = getActiveGroupId();
       let photoUrl: string | undefined;
       const photo = getCheckInPhoto();
+      if (healthWorkout && !photo?.blob.type.startsWith('video/')) {
+        setSubmitError('Add a video to check in with this Health workout.');
+        return;
+      }
       if (photo) {
         try {
           photoUrl = await uploadCheckInPhoto(photo.blob);
@@ -286,11 +315,15 @@ function NotesPage() {
           groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
           planDay: planDay ? { userPlanId: planDay.userPlanId, week: planDay.week, day: planDay.day } : null,
           workoutSessionId: workout?.sessionId ?? null,
+          healthWorkout,
         }),
         POST_TIMEOUT_MS,
         "Posting timed out. Please try again.",
       );
       const newBadges = (result as { newBadges?: number[] } | undefined)?.newBadges ?? [];
+      setFirstCheckIn(result.firstCheckIn);
+      clearHealthWorkout();
+      queryClient.invalidateQueries({ queryKey: ['apple-health'] });
       const plan = (result as { plan?: PlanDayResult | null } | undefined)?.plan ?? null;
       if (workout) {
         clearWorkoutCheckIn();
@@ -318,7 +351,7 @@ function NotesPage() {
       void clearCheckInDraft();
 
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
-      if (hide && newBadges.length === 0) {
+      if (hide && newBadges.length === 0 && !(result.firstCheckIn && isAppleHealthPlatform())) {
         finalizeAndExit(plan);
         return;
       }
@@ -366,11 +399,13 @@ function NotesPage() {
         isVideo: photo ? photo.blob.type.startsWith("video/") : false,
         planDay,
         workout,
+        health: healthWorkout && healthUserId ? { userId: healthUserId, workout: healthWorkout } : null,
       });
       if (ok) {
         // The draft now owns the blob; drop the in-memory copy and go home,
         // where a draft card lets them resume when they're back online.
         clearCheckInPhoto();
+        clearHealthWorkout();
         navigate({ to: "/home" });
       } else {
         setSubmitError("Couldn't save the draft on this device. Please try sharing again.");
@@ -467,7 +502,7 @@ function NotesPage() {
         </div>
 
         {/* Tag your activity */}
-        <div className="pt-8">
+        {!healthWorkout && <div className="pt-8">
           <h2 className="px-6 text-[17px] font-bold tracking-tight">Tag your activity</h2>
           <div
             className="ml-6 mt-3 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -497,8 +532,12 @@ function NotesPage() {
             })}
             </div>
           </div>
-        </div>
+        </div>}
         <div className="px-6 pt-6">
+          {healthWorkout && <div className="ph-no-capture ph-mask mb-3 rounded-[20px] bg-health-surface px-4 py-3">
+            <p className="text-[15px] font-bold text-health-ink">{healthWorkoutName(healthWorkout.type)}</p>
+            <HealthPostedStats workout={healthWorkout} />
+          </div>}
           {workout && (
             <div className="mb-3 rounded-2xl px-4 py-3 text-[14px]" style={{ background: "#EFE9FB", color: PURPLE }}>
               <span className="font-semibold">{workout.title}</span> · {workout.line}
@@ -578,6 +617,7 @@ function NotesPage() {
           onClose={() => setShareScreenOpen(false)}
         />
       )}
+      {shareData && firstCheckIn && <HealthPrompt firstCheckIn />}
     </div>
   );
 }

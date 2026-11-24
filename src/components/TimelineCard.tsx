@@ -45,6 +45,8 @@ import {
 import { FeedAvatar, FeedImage, FeedVideo, isVideoUrl } from "@/components/feed/FeedMedia";
 import { QuickReplyChips, useCommentsSheet, usePostQuickComment } from "@/components/feed/CommentsSheet";
 import { useFeedContext } from "@/components/feed/feed-context";
+import { HealthPostedStats } from '@/components/health/HealthUI';
+import { healthWorkoutIcon, healthWorkoutName } from '@/lib/health-workouts';
 
 const PURPLE = "#7C3AED";
 const MUTED = "#57534E";
@@ -567,7 +569,7 @@ export function TimelineCard(props: PostCardProps) {
   const metaWorkout = props.kind === "checkins" ? current?.workout ?? null : null;
   const meta =
     props.kind === "checkins"
-      ? checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "")
+      ? current?.health ? `${healthWorkoutIcon(current.health.type)} ${healthWorkoutName(current.health.type)} · Day ${item.dayNumber} · ${clock(current.at)}` : checkInMetaLine(current?.activity, item.dayNumber, current ? clock(current.at) : "")
       : props.node.kind === "ritual"
         ? `Commitment · ${clock(props.node.at)}`
         : `Update · ${clock(props.node.at)}`;
@@ -637,6 +639,7 @@ export function TimelineCard(props: PostCardProps) {
         />
       ) : null}
 
+      {current?.health && <div className="px-4"><HealthPostedStats workout={current.health} /></div>}
       {metaWorkout && current && <WorkoutSummaryRow
           workout={metaWorkout}
           checkInId={current.id.replace(/^c-/, "")}

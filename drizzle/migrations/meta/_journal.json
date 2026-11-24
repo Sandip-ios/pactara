@@ -330,6 +330,20 @@
       "when": 1795534159301,
       "tag": "0046_retag_older_plan_days",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1795542352688,
+      "tag": "0047_apple_health_posted_workouts",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1795542654744,
+      "tag": "0048_health_check_in_atomic_post",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Apple Health: iOS-only adapter, first-check-in prompt, Home workouts, posted stats, Profile settings, native instructions and tests (unpublished)
+- [ ] Apple Health on device: enable HealthKit and usage description in Xcode, update privacy disclosures, and test permissions/sync in a native iPhone build on José's Mac (instructions ready)
+
 - [x] Plans data: 6 moves without a demo swapped for library moves, goals strength/mobility, equipment type on every plan, Home No Equipment under Get moving again, 12 new plans, new Discover order (unpublished)
 - [x] Discover for 18 plans: 8 goal tiles, All plans with filter chips and sheets (days, minutes, equipment, level, goal), cover cards, active plan first, crew days note (unpublished)
 - [x] What's new sheet (November update): once on Home for accounts from before the release, saved on the profile, waits if another sheet or the paywall is up; What's new row in Account settings (unpublished)

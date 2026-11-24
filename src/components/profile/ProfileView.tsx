@@ -31,6 +31,7 @@ import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { ProfilePlans } from "@/components/plans/ProfilePlans";
+import { HealthProfileRow } from '@/components/health/HealthProfileRow';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -319,6 +320,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             )}
           </div>
           {isOwn && <ProfilePlans />}
+          {isOwn && <HealthProfileRow />}
 
         </section>
 

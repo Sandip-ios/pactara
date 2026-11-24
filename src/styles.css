@@ -79,9 +79,25 @@
   --shadow-streak-cta: var(--streak-cta-shadow);
   --shadow-partner-icon: var(--partner-icon-shadow);
   --shadow-partner-cta: var(--partner-cta-shadow);
+  --color-health-surface: var(--health-surface);
+  --color-health-purple: var(--health-purple);
+  --color-health-on-purple: var(--health-on-purple);
+  --color-health-ink: var(--health-ink);
+  --color-health-muted: var(--health-muted);
+  --color-health-heart: var(--health-heart);
+  --color-health-green: var(--health-green);
+  --color-health-overlay: var(--health-overlay);
 }
 
 :root {
+  --health-surface: #F7F4F0;
+  --health-purple: #7C3AED;
+  --health-on-purple: #FFFFFF;
+  --health-ink: #1C1917;
+  --health-muted: #78716C;
+  --health-heart: #EF4444;
+  --health-green: #16A34A;
+  --health-overlay: #00000066;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);

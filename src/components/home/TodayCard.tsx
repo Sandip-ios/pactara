@@ -5,6 +5,8 @@ import { getActiveWorkout } from "@/lib/active-workout";
 import { WorkoutCard } from "@/components/WorkoutCard";
 import { ShareCheckInScreen } from "@/components/share/ShareCheckInScreen";
 import { todayCheckedInSubtitle, todayHeadline, weekFooterNote } from "@/lib/crew-today";
+import { HealthToday } from '@/components/health/HealthToday';
+import { clearHealthWorkout } from '@/lib/apple-health';
 
 const PURPLE = "#7C3AED";
 
@@ -39,7 +41,7 @@ export function TodayCard({
   // composer's photo button, which opens the file picker). Navigate at touch
   // time instead, and only when the touch didn't move (not a scroll/swipe).
   const ctaTouch = useRef<{ x: number; y: number } | null>(null);
-  const goToCheckIn = () => navigate({ to: "/check-in" });
+  const goToCheckIn = () => { clearHealthWorkout(); return navigate({ to: "/check-in" }); };
   const onCtaTouchStart = (e: React.TouchEvent) => {
     const t = e.touches[0];
     if (t) ctaTouch.current = { x: t.clientX, y: t.clientY };
@@ -116,6 +118,7 @@ export function TodayCard({
           <Camera size={20} />
           Check in with video
         </button>
+        <HealthToday />
         <button
           type="button"
           onClick={() => navigate({ to: getActiveWorkout() ? "/workout/log" : "/workout" })}
