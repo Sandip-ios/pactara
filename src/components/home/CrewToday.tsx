@@ -36,11 +36,20 @@ const ringLabel: Record<CrewTodayStatus, string> = {
   not_yet: "not checked in yet",
 };
 
-function MemberColumn({ member, groupId }: { member: HomeCrewMember; groupId: string }) {
+function MemberColumn({
+  member,
+  groupId,
+  compact,
+}: {
+  member: HomeCrewMember;
+  groupId: string;
+  /** 5-member crews: smaller avatar and nudge pill so the column fits. */
+  compact: boolean;
+}) {
   const name = member.isYou ? "You" : member.firstName;
   const onGoal = member.workouts >= member.target;
   return (
-    <li className="flex w-1/4 min-w-[76px] shrink-0 flex-col items-center gap-1.5">
+    <li className="flex min-w-0 flex-col items-center gap-1.5">
       <MemberProfileLink
         userId={member.userId}
         isYou={member.isYou}
@@ -49,7 +58,9 @@ function MemberColumn({ member, groupId }: { member: HomeCrewMember; groupId: st
         <span className="sr-only">{`${member.isYou ? "Your" : `${member.firstName}'s`} profile, ${ringLabel[member.status]}`}</span>
         <span className="absolute inset-0 rounded-full" style={ringStyle(member.status)} aria-hidden />
         <span
-          className="relative m-[3px] flex h-16 w-16 items-center justify-center overflow-hidden rounded-full text-[22px] font-bold text-white"
+          className={`relative m-[2px] flex items-center justify-center overflow-hidden rounded-full font-bold text-white ${
+            compact ? "h-12 w-12 text-[17px]" : "h-16 w-16 text-[22px]"
+          }`}
           style={{ background: member.avatarColor }}
           aria-hidden
         >
@@ -92,6 +103,7 @@ function MemberColumn({ member, groupId }: { member: HomeCrewMember; groupId: st
             groupId={groupId}
             member={{ userId: member.userId, firstName: member.firstName }}
             variant="pill"
+            compact={compact}
             initialSent={member.nudgedToday}
           />
         )}
@@ -122,18 +134,20 @@ export function CrewToday({
   onInvite: () => void;
 }) {
   const shown = solo ? members.filter((m) => m.isYou) : members;
+  const columns = shown.length + (solo ? 1 : 0);
+  const compact = shown.length >= 5;
   return (
     <section className="mx-4 mt-4 rounded-[20px] bg-white p-4 shadow-sm" aria-label="Crew today">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-[16px] font-bold text-neutral-900">Crew today</h2>
         <span className="text-[13px] text-neutral-500">Day closes 11:59 pm your time</span>
       </div>
-      <ul className="-mx-1 mt-4 flex overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <ul className="mt-4 grid" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
         {shown.map((m) => (
-          <MemberColumn key={m.userId} member={m} groupId={groupId} />
+          <MemberColumn key={m.userId} member={m} groupId={groupId} compact={compact} />
         ))}
         {solo && (
-          <li className="flex w-1/4 min-w-[76px] shrink-0 flex-col items-center gap-1.5">
+          <li className="flex min-w-0 flex-col items-center gap-1.5">
             <button
               type="button"
               onClick={onInvite}
@@ -163,9 +177,9 @@ export function CrewTodaySkeleton() {
         <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
         <div className="h-4 w-40 animate-pulse rounded-md bg-neutral-200" />
       </div>
-      <div className="mt-4 flex">
+      <div className="mt-4 grid" style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="flex w-1/4 min-w-[76px] flex-col items-center gap-1.5">
+          <div key={i} className="flex min-w-0 flex-col items-center gap-1.5">
             <div className="h-[76px] w-[76px] animate-pulse rounded-full bg-neutral-200" />
             <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
             <div className="h-3.5 w-10 animate-pulse rounded bg-neutral-200" />

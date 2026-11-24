@@ -159,12 +159,15 @@ export function NudgeButton({
   member,
   variant = "solid",
   initialSent = false,
+  compact = false,
 }: {
   groupId: string;
   member: Pick<MemberToday, "userId" | "firstName">;
   variant?: "solid" | "ghost" | "pill";
   /** Already nudged today (e.g. before a reload). */
   initialSent?: boolean;
+  /** Tighter padding/text so the pill fits a narrow crew column. */
+  compact?: boolean;
 }) {
   const [sent, setSent] = useState(initialSent);
   const [covered, setCovered] = useState(false);
@@ -199,14 +202,16 @@ export function NudgeButton({
         onClick={send}
         disabled={sent || sending}
         aria-label={covered ? `${member.firstName} is covered today` : sent ? `Nudged ${member.firstName}` : `Nudge ${member.firstName}`}
-        className="relative flex h-8 items-center justify-center gap-1 rounded-full px-3 text-[12px] font-bold after:absolute after:-inset-y-1.5 after:inset-x-0 after:content-[''] disabled:cursor-default"
+        className={`relative flex h-8 items-center justify-center rounded-full font-bold after:absolute after:-inset-y-1.5 after:inset-x-0 after:content-[''] disabled:cursor-default ${
+          compact ? "gap-[3px] px-1.5 text-[11px]" : "gap-1 px-3 text-[12px]"
+        }`}
         style={
           sent
             ? { background: "#F4F1ED", color: "#8A8580" }
             : { background: PURPLE, color: "#FFFFFF" }
         }
       >
-        {!sent && <Hand size={13} strokeWidth={2.5} />}
+        {!sent && <Hand size={compact ? 12 : 13} strokeWidth={2.5} />}
         {covered ? "Covered" : sent ? "Nudged" : "Nudge"}
       </button>
     );
