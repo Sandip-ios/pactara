@@ -165,6 +165,56 @@ export type Database = {
           },
         ]
       }
+      content_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          group_id: string
+          id: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          reviewed_at: string | null
+          status: string
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          group_id: string
+          id?: string
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          reviewed_at?: string | null
+          status?: string
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          group_id?: string
+          id?: string
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          status?: string
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_reports_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_posts: {
         Row: {
           check_in_id: string | null
@@ -661,6 +711,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      hidden_posts: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       member_nudges: {
         Row: {
@@ -1505,6 +1573,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       user_plans: {
         Row: {
           completed_at: string | null
@@ -1806,10 +1892,46 @@ export type Database = {
           weeks: number
         }[]
       }
+      crew_checkin_status: {
+        Args: never
+        Returns: {
+          activity: string
+          checkin_date: string
+          created_at: string
+          group_id: string
+          id: string
+          mood: string
+          note: string
+          photo_url: string
+          user_id: string
+        }[]
+      }
+      crew_daily_status: {
+        Args: never
+        Returns: {
+          check_in_id: string
+          check_in_missed: boolean
+          group_id: string
+          local_date: string
+          morning_ritual_posted_at: string
+          morning_ritual_text: string
+          user_id: string
+        }[]
+      }
       crew_on_plan: {
         Args: { _plan_id: string }
         Returns: {
           current_week: number
+          status: string
+          user_id: string
+        }[]
+      }
+      crew_workout_status: {
+        Args: never
+        Returns: {
+          group_id: string
+          id: string
+          started_at: string
           status: string
           user_id: string
         }[]
@@ -1855,7 +1977,34 @@ export type Database = {
           crew_id: string
         }[]
       }
+      review_content_report: {
+        Args: { _action: string; _id: string }
+        Returns: undefined
+      }
+      safety_blocked_pairs: {
+        Args: { _user_id: string }
+        Returns: {
+          user_id: string
+        }[]
+      }
+      safety_pair_blocked: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
+      safety_visible: { Args: { _author: string }; Returns: boolean }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
+      submit_content_report: {
+        Args: {
+          _block: boolean
+          _details: string
+          _group: string
+          _reason: string
+          _reported: string
+          _target: string
+          _type: string
+        }
+        Returns: undefined
+      }
       workout_detail_for_check_in: {
         Args: { _check_in_id: string }
         Returns: Json

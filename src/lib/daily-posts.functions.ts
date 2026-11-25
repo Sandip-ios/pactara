@@ -18,6 +18,7 @@ import { memberOwnToday } from "./group-today-view";
 import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 import { activityLabelFor, postShareNumbers, shareMediaKind, type ShareMediaKind } from "./share-post";
 import { healthWorkoutSchema, healthVideoRequired, type HealthWorkout } from './health-workouts';
+import { visibleTo, visiblePost } from './safety-rules';
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -596,6 +597,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
   }))
   .handler(async ({ context, data }): Promise<GroupFeedPage> => {
     const { supabase, userId } = context;
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = await blockedPairs(supabase, userId);
+    const { data: hiddenRows, error: hiddenError } = await supabase.from('hidden_posts').select('user_id, post_id').eq('user_id', userId);
+    if (hiddenError) throw new Error('Could not load hidden posts');
+    const visible = (postId: string) => visiblePost(userId, postId, hiddenRows ?? []);
     let groupId: string | null = data.groupId;
     if (groupId) {
       const { data: m } = await supabase
@@ -715,7 +721,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .limit(20000),
       // Check-in days for streaks (Day n, crew streak) and day headers.
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("user_id, checkin_date")
         .eq("group_id", groupId)
         .gte("checkin_date", historyStart)
@@ -746,11 +752,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       days_per_week: (groupRes.data?.days_per_week as number | null) ?? null,
     };
     const roster = (rosterRes.data ?? []) as { user_id: string; joined_at: string }[];
-    const rawReactions = ((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[];
-    const rawComments = ((commentsResult as any).data ?? []) as {
+    const rawReactions = visibleTo(((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[], blocked, r => r.user_id);
+    const rawComments = visibleTo(((commentsResult as any).data ?? []) as {
       id: string; post_id: string; user_id: string; body: string | null;
       media_url: string | null; media_type: string | null; created_at: string;
-    }[];
+    }[], blocked, r => r.user_id);
 
     const commentCountByPost = new Map<string, number>();
     const latestByPost = new Map<string, (typeof rawComments)[number]>();
@@ -809,11 +815,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       reactorsByPost.set(r.post_id, people);
     }
 
-    const rawCheckIns = checkInsResult.data ?? [];
-    const rawThoughts = (thoughtsResult.data ?? []) as {
+    const rawCheckIns = (checkInsResult.data ?? []).filter(row => visible(row.id));
+    const rawThoughts = ((thoughtsResult.data ?? []) as {
       id: string; user_id: string; local_date: string; text: string | null;
       photo_url: string | null; created_at: string;
-    }[];
+    }[]).filter(row => visible(row.id));
     const avatarPaths = Array.from(new Set((profiles ?? []).map((p) => p.avatar_url).filter((path): path is string => !!path)));
     const commentMediaPaths = [...latestByPost.values()]
       .filter((c) => commentMediaKind(c.media_url, c.media_type) !== "video")
@@ -858,7 +864,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         poster_url: resolvePoster(t.photo_url),
       }));
 
-    const items: FeedItem[] = (posts ?? []).map((p) => {
+    const items: FeedItem[] = visibleTo(posts ?? [], blocked, p => p.user_id).filter(p => visible(p.id)).map((p) => {
       const prof = profileMap.get(p.user_id);
       const nodes: TimelineNode[] = [];
 
@@ -1030,7 +1036,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     }
     // "Hasn't checked in yet" rows belong to today, so only the first page has them.
     const notYet = crew
-      .filter((m) => !data.before && m.userId !== userId && !m.checkIns.has(m.today) && !m.covered.has(m.today))
+      .filter((m) => !data.before && m.userId !== userId && !blocked.has(m.userId) && !m.checkIns.has(m.today) && !m.covered.has(m.today))
       .map((m) => ({
         userId: m.userId,
         closesAt: zonedWallTimeToISO(m.tz, addDaysIso(m.today, 1), 0, 0),
@@ -1044,7 +1050,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
     // Streak badges (3 days and up); the 1-day badge is every first check-in.
     const milestones = ((badgesRes.data ?? []) as { id: string; user_id: string; streak_days: number; earned_at: string }[])
-      .filter((b) => b.streak_days >= 3)
+      .filter((b) => b.streak_days >= 3 && !blocked.has(b.user_id))
       .map((b) => {
         const localDate = localDateIn(tzMap.get(b.user_id) ?? "UTC", new Date(b.earned_at));
         const post = (posts ?? []).find((p) => p.user_id === b.user_id && p.local_date === localDate);
@@ -1098,6 +1104,8 @@ export const togglePostReaction = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; emoji: string }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { requireInteraction } = await import('./safety.server');
+    await requireInteraction(supabase, userId, 'daily_posts', data.postId);
     const { data: existing } = await (supabase as any)
       .from("post_reactions")
       .select("id")
@@ -1141,6 +1149,8 @@ export const setPostReaction = createServerFn({ method: "POST" })
   .inputValidator((data: { postId: string; emoji: string }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { requireInteraction } = await import('./safety.server');
+    await requireInteraction(supabase, userId, 'daily_posts', data.postId);
     const { error: clearError } = await (supabase as any)
       .from("post_reactions")
       .delete()
@@ -1185,6 +1195,9 @@ export const addPostComment = createServerFn({ method: "POST" })
     const problem = commentProblem(body, mediaUrl);
     if (problem) throw new Error(problem);
     const { supabase, userId } = context;
+    const { requireInteraction } = await import('./safety.server');
+    await requireInteraction(supabase, userId, 'daily_posts', data.postId);
+    if (data.parentCommentId) await requireInteraction(supabase, userId, 'post_comments', data.parentCommentId);
 
     // Instagram/Facebook style: one level of nesting. Replying to a reply
     // attaches to the same top-level thread.
@@ -1227,6 +1240,8 @@ export const toggleCommentLike = createServerFn({ method: "POST" })
   .inputValidator((data: { commentId: string }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { requireInteraction } = await import('./safety.server');
+    await requireInteraction(supabase, userId, 'post_comments', data.commentId);
     const { data: existing } = await (supabase as any)
       .from("comment_likes")
       .select("id")
@@ -1250,12 +1265,15 @@ export const getPostComments = createServerFn({ method: "GET" })
   .inputValidator((data: { postId: string }) => data)
   .handler(async ({ data, context }): Promise<{ comments: PostComment[] }> => {
     const { supabase, userId } = context;
-    const { data: rows, error } = await (supabase as any)
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = await blockedPairs(supabase, userId);
+    const { data: rawRows, error } = await (supabase as any)
       .from("post_comments")
       .select("id, post_id, user_id, body, media_url, media_type, created_at, parent_comment_id")
       .eq("post_id", data.postId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
+    const rows = visibleTo((rawRows ?? []) as { id: string; user_id: string }[], blocked, r => r.user_id);
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id))) as string[];
     const { data: profs } = ids.length
       ? await supabase
@@ -1410,7 +1428,7 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
       supabase.from("groups").select("name, frequency, days_per_week").eq("id", groupId).maybeSingle(),
       supabase.from("group_members").select("user_id").eq("group_id", groupId),
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("user_id, checkin_date")
         .eq("group_id", groupId)
         .gte("checkin_date", dayBefore)

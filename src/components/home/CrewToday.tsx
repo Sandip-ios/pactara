@@ -98,7 +98,7 @@ function MemberColumn({
           </span>
         ) : member.isYou ? (
           <span className="text-[12px] font-semibold text-neutral-500">Your turn</span>
-        ) : (
+        ) : member.nudgeAllowed !== false ? (
           <NudgeButton
             groupId={groupId}
             member={{ userId: member.userId, firstName: member.firstName }}
@@ -106,7 +106,7 @@ function MemberColumn({
             compact={compact}
             initialSent={member.nudgedToday}
           />
-        )}
+        ) : null}
       </div>
     </li>
   );

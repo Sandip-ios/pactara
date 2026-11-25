@@ -93,6 +93,7 @@ export type FcmPayload = {
   imageUrl?: string | null;
   /** Groups notifications on iOS (the crew id). */
   threadId?: string | null;
+  actorUserId?: string;
 };
 
 /**
@@ -104,6 +105,7 @@ export function buildFcmMessage(token: string, payload: FcmPayload, badge?: numb
   const imageUrl = payload.imageUrl || null;
   const rich = !!payload.sender || !!imageUrl;
   const data: Record<string, string> = { url: payload.url ?? "/" };
+  if (payload.actorUserId) data['actor_id'] = payload.actorUserId;
   if (rich) {
     data["kind"] = "checkin";
     data["sender_id"] = payload.sender?.id ?? "";

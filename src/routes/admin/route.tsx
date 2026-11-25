@@ -13,6 +13,7 @@ import {
   Settings,
   ShieldCheck,
   RefreshCw,
+  Flag,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { RANGE_LABELS, type RangeKey } from "@/lib/admin/analytics-data";
@@ -41,6 +42,7 @@ const NAV = [
   { to: "/admin/revenue", label: "Revenue", icon: CreditCard },
   { to: "/admin/events", label: "Data sources", icon: Database },
   { to: "/admin/settings", label: "Settings", icon: Settings },
+  { to: '/admin/reports', label: 'Reports', icon: Flag },
 ] as const;
 
 const RANGES: RangeKey[] = ["today", "7d", "30d", "90d", "all"];
@@ -96,7 +98,7 @@ function AdminLayout() {
   if (!query.data) return <LoadingScreen />;
 
   return (
-    <AdminContext.Provider value={{ range, compare, data: query.data }}>
+    <AdminContext.Provider value={{ range, compare, data: query.data, dashboardKey: key }}>
       <div className="min-h-screen bg-background text-foreground">
         <div className="flex w-full">
           <Sidebar />

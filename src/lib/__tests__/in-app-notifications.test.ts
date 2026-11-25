@@ -29,6 +29,12 @@ beforeEach(() => {
 });
 
 describe("in-app notification banner", () => {
+  it('does not show a queued foreground notification from a blocked member', () => {
+    showForegroundNotification({ title: 'New cheer', body: 'A cheer', data: { actor_id: 'blocked' } }, vi.fn(), ['blocked']);
+    expect(custom).not.toHaveBeenCalled();
+    showForegroundNotification({ title: 'New check-in', body: 'A check-in', data: { sender_id: 'blocked' } }, vi.fn(), ['blocked']);
+    expect(custom).not.toHaveBeenCalled();
+  });
   it("shows nothing for a silent push with no title and no body", () => {
     // A badge-only push (sendBadgeUpdate) still fires notificationReceived.
     showForegroundNotification({ title: undefined, body: undefined }, vi.fn());

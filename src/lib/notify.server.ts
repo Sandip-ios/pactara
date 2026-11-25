@@ -10,6 +10,8 @@ export type PushPayload = {
   sender?: { id: string; name: string; avatarUrl: string | null };
   imageUrl?: string | null;
   threadId?: string | null;
+  /** Internal only, never included in notification copy. */
+  actorUserId?: string;
 };
 
 type PrefColumn =
@@ -56,6 +58,13 @@ export async function pushToUsers(
 
   let webSent = 0;
   let fcmSent = 0;
+  const actorId = payload.actorUserId ?? payload.sender?.id;
+  if (actorId) {
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = await blockedPairs(supabaseAdmin, actorId);
+    userIds = userIds.filter(id => !blocked.has(id));
+    if (!userIds.length) return { webSent: 0, fcmSent: 0 };
+  }
 
   // --- Web Push -------------------------------------------------------------
   const publicKey = process.env.VAPID_PUBLIC_KEY;
@@ -77,6 +86,7 @@ export async function pushToUsers(
         title: payload.title,
         body: payload.body,
         url: payload.url ?? "/home",
+        ...(actorId ? { actor_id: actorId } : {}),
       });
       const expired: string[] = [];
       for (const s of (subs ?? []) as Array<{
@@ -194,7 +204,7 @@ export async function notifyGroupWorkout(
       .map((m) => m.user_id as string)
       .filter((id) => id !== actorUserId);
     if (recipients.length === 0) return;
-    await notifyUsers(recipients, payload, pref, pref === "workout_start_enabled");
+    await notifyUsers(recipients, { ...payload, actorUserId }, pref, pref === "workout_start_enabled");
   } catch (err) {
     console.warn("[notify] workout push failed", err);
   }
@@ -222,7 +232,7 @@ export async function notifyGroupActivity(
     const { withFeedGroup } = await import("@/lib/feed-deeplink");
     await notifyUsers(
       recipients,
-      { ...payload, url: withFeedGroup(payload.url ?? "/home", groupId) },
+      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", groupId) },
       "group_activity_enabled",
     );
   } catch (err) {
@@ -269,7 +279,7 @@ export async function notifyPostAuthor(
     const { withFeedGroup } = await import("@/lib/feed-deeplink");
     await notifyUsers(
       [authorId],
-      { ...payload, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
       "group_activity_enabled",
     );
   } catch (err) {
@@ -304,7 +314,7 @@ export async function notifyPostComment(
     const { withFeedGroup } = await import("@/lib/feed-deeplink");
     await notifyUsers(
       recipients,
-      { ...payload, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
       "group_activity_enabled",
     );
   } catch (err) {

@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { ChatPlanCard } from "@/lib/plan-share";
+import { visibleTo } from './safety-rules';
 
 export const getUnreadChatCounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -57,6 +58,8 @@ export const getGroupChat = createServerFn({ method: "GET" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = await blockedPairs(supabase, userId);
 
     const { data: group, error: gErr } = await supabase
       .from("groups")
@@ -171,7 +174,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
         avatarUrl: profiles[id]?.avatarUrl ?? null,
       })),
 
-      messages: (messages ?? []).map((m) => ({
+      messages: visibleTo(messages ?? [], blocked, m => m.user_id).map((m) => ({
         id: m.id,
         userId: m.user_id,
         body: m.body,

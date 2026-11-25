@@ -167,6 +167,7 @@ export const signPact = createServerFn({ method: "POST" })
           others,
           {
             title: `${name} made the pact`,
+            actorUserId: userId,
             body: everyoneIn
               ? `Everyone's in on ${groupName}. Time to show up.`
               : `${name} is in on ${groupName}.`,

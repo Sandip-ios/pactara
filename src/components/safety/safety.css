@@ -1,0 +1,69 @@
+:root {
+  --safety-surface: #FFFFFF;
+  --safety-ink: #141218;
+  --safety-muted: #57534E;
+  --safety-soft: #F4F2EF;
+  --safety-handle: #E7E3DE;
+  --safety-divider: #EFEAE4;
+  --safety-menu: #F7F5F2;
+  --safety-menu-divider: #ECE8E3;
+  --safety-danger-soft: #FEE2E2;
+  --safety-danger: #B91C1C;
+  --safety-menu-danger: #DC2626;
+  --safety-purple: #7C3AED;
+  --safety-purple-soft: #EDE4FF;
+  --safety-highlight: #F5F0FF;
+  --safety-body: #44403C;
+  --safety-note: #78716C;
+  --safety-cancel: #404040;
+  --safety-backdrop: rgba(20,18,24,0.45);
+}
+.safety-overlay { position: fixed; inset: 0; z-index: 80; background: var(--safety-backdrop); }
+.safety-sheet { position: fixed; z-index: 81; left: 0; right: 0; bottom: 0; max-height: calc(100dvh - env(safe-area-inset-top) - 12px); overflow-y: auto; border: 0; border-radius: 24px 24px 0 0; background: var(--safety-surface); color: var(--safety-ink); padding: 10px 20px 40px; display: flex; flex-direction: column; gap: 4px; }
+.safety-handle { width: 40px; height: 5px; min-height: 5px; border-radius: 3px; background: var(--safety-handle); align-self: center; margin-bottom: 10px; }
+.safety-button { border: none; box-shadow: none; font-family: inherit; letter-spacing: 0; white-space: normal; }
+.safety-button:hover { opacity: .9; }
+.safety-options-button { height: 44px; width: 44px; padding: 0; border-radius: 22px; background: var(--safety-soft); color: var(--safety-ink); }
+.safety-options-button svg { width: 20px; height: 20px; }
+.safety-post-trigger { height: 36px; width: 36px; min-width: 36px; padding: 0; border-radius: 18px; background: var(--safety-soft); color: var(--safety-muted); }
+.safety-post-trigger svg { width: 18px; height: 18px; }
+.safety-option { width: 100%; min-height: 64px; height: auto; background: none; padding: 10px 4px; display: flex; align-items: center; justify-content: flex-start; gap: 14px; text-align: left; }
+.safety-option-icon { width: 40px; height: 40px; border-radius: 20px; background: var(--safety-soft); color: var(--safety-ink); display: flex; align-items: center; justify-content: center; flex: none; }
+.safety-option-icon svg { width: 20px; height: 20px; }
+.safety-option-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.safety-option-title { font-size: 16px; font-weight: 700; color: var(--safety-ink); }
+.safety-option-detail { font-size: 13px; font-weight: 400; color: var(--safety-muted); line-height: 1.35; }
+.safety-danger-icon { background: var(--safety-danger-soft); color: var(--safety-danger); }
+.safety-danger-text { color: var(--safety-danger); }
+.safety-divider { height: 1px; flex: none; background: var(--safety-divider); margin: 4px 0; }
+.safety-cancel-button { margin-top: 10px; height: 52px; min-height: 52px; border-radius: 26px; background: var(--safety-soft); font-size: 16px; font-weight: 700; color: var(--safety-ink); }
+.safety-report { gap: 8px; padding-bottom: 36px; }
+.safety-report .safety-handle { margin-bottom: 8px; }
+.safety-report-title { margin: 0; font-size: 20px; line-height: normal; font-weight: 800; }
+.safety-report-description { font-size: 14px; color: var(--safety-muted); }
+.safety-reasons { border: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; }
+.safety-reason { min-height: 48px; display: flex; align-items: center; gap: 12px; font-size: 16px; font-weight: 600; }
+.safety-check { width: 22px; height: 22px; flex: none; accent-color: var(--safety-purple); margin: 0; }
+.safety-details { border-radius: 12px; border: 1px solid var(--safety-handle); padding: 12px 14px; font-family: inherit; font-size: 15px; resize: none; }
+.safety-also-block { min-height: 44px; display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; }
+.safety-send { margin-top: 6px; height: 52px; min-height: 52px; border-radius: 26px; background: var(--safety-purple); color: var(--safety-surface); font-size: 16px; font-weight: 700; }
+.safety-menu-sheet { padding: 10px 16px 36px; gap: 8px; }
+.safety-menu-sheet .safety-handle { margin: 0; }
+.safety-menu-heading { padding: 6px 0 4px; text-align: center; }
+.safety-menu-title { font-size: 17px; font-weight: 700; margin: 0; }
+.safety-menu-description { font-size: 13px; color: var(--safety-muted); margin-top: 2px; }
+.safety-menu-group { border-radius: 16px; background: var(--safety-menu); overflow: hidden; }
+.safety-menu-row { width: 100%; height: 52px; padding: 0 16px; background: none; justify-content: flex-start; text-align: left; font-size: 16px; font-weight: 600; color: var(--safety-ink); border-radius: 0; }
+.safety-menu-rule { height: 1px; background: var(--safety-menu-divider); }
+.safety-menu-block { color: var(--safety-menu-danger); }
+.safety-menu-cancel { height: 52px; min-height: 52px; border-radius: 16px; background: var(--safety-menu); font-size: 16px; font-weight: 600; color: var(--safety-cancel); }
+.safety-confirm { position: fixed; z-index: 81; left: 28px; right: 28px; top: 50%; transform: translateY(-50%); max-width: 440px; margin-inline: auto; max-height: calc(100dvh - 56px); overflow-y: auto; border-radius: 22px; background: var(--safety-surface); color: var(--safety-ink); padding: 22px 20px 18px; display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.safety-confirm-title { margin: 0; font-size: 19px; font-weight: 800; }
+.safety-confirm-body { font-size: 14px; color: var(--safety-body); line-height: 1.45; }
+.safety-confirm-note { font-size: 13px; color: var(--safety-note); }
+.safety-confirm-block { margin-top: 6px; height: 50px; min-height: 50px; border-radius: 25px; background: var(--safety-danger); color: var(--safety-surface); font-size: 16px; font-weight: 700; }
+.safety-confirm-cancel { height: 46px; min-height: 46px; border-radius: 23px; background: var(--safety-soft); color: var(--safety-ink); font-size: 16px; font-weight: 700; }
+.safety-unblock { height: 36px; min-height: 36px; border-radius: 18px; padding: 0 14px; background: var(--safety-purple-soft); color: var(--safety-purple); font-size: 14px; font-weight: 700; }
+.safety-new { background: var(--safety-purple); color: var(--safety-surface); font-size: 11px; font-weight: 800; border-radius: 8px; padding: 2px 7px; letter-spacing: 0; }
+.safety-selected-comment { background: var(--safety-highlight); }
+.safety-settings-label { color: var(--safety-note); }

@@ -4,6 +4,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Bell } from "lucide-react";
 import { isNative } from "@/lib/native";
+import { useQuery } from '@tanstack/react-query';
+import { getSafetyState, safetyQueryKey } from '@/lib/safety.functions';
 
 const AUTO_DISMISS_MS = 4000;
 
@@ -34,7 +36,11 @@ export type ForegroundNotification = {
 export function showForegroundNotification(
   n: ForegroundNotification,
   navigate: (href: string) => void,
+  blocked: readonly string[] = [],
 ) {
+  const data = n.data as { actor_id?: string; sender_id?: string } | null | undefined;
+  const actorId = data?.actor_id ?? data?.sender_id;
+  if (actorId && blocked.includes(actorId)) return;
   const title = (n.title ?? "").trim();
   const body = (n.body ?? "").trim();
   if (!title && !body) return;
@@ -78,6 +84,7 @@ export function showForegroundNotification(
  */
 export function InAppNotifications() {
   const navigate = useNavigate();
+  const { data: safety } = useQuery({ queryKey: safetyQueryKey, queryFn: () => getSafetyState(), enabled: isNative(), staleTime: 30_000 });
 
   useEffect(() => {
     if (!isNative()) return;
@@ -91,7 +98,7 @@ export function InAppNotifications() {
         handle = FirebaseMessaging.addListener("notificationReceived", (event) => {
           const n = event?.notification;
           if (!n) return;
-          showForegroundNotification(n, (href) => void navigate({ href }));
+          showForegroundNotification(n, (href) => void navigate({ href }), safety?.blocked);
         });
       } catch (err) {
         console.warn("[push] foreground listener failed", err);
@@ -102,7 +109,7 @@ export function InAppNotifications() {
       cancelled = true;
       void handle?.then((h) => h.remove()).catch(() => {});
     };
-  }, [navigate]);
+  }, [navigate, safety?.blocked]);
 
   return null;
 }

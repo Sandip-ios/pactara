@@ -17,6 +17,7 @@ import {
   Scale,
   Info,
   Sparkles,
+  Ban,
 } from "lucide-react";
 import { setWeightUnit } from "@/lib/lifts.functions";
 import { LIFT_HISTORY_KEY, useLiftHistory } from "@/lib/exercise-library";
@@ -25,6 +26,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { deleteMyAccount } from "@/lib/profile.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WhatsNewSheet } from "@/components/whats-new/WhatsNewSheet";
+import { useSafetyState } from '@/components/safety/SafetyActions';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -33,12 +35,21 @@ const BG = "#F5F2EE";
 const LABEL = "#8A8580";
 
 export const Route = createFileRoute("/_authenticated/account-settings/")({
+  head: () => ({ meta: [
+    { title: 'Account settings · Pactara' },
+    { name: 'description', content: 'Your Pactara account, preferences and privacy settings.' },
+    { property: 'og:title', content: 'Account settings · Pactara' },
+    { property: 'og:description', content: 'Your Pactara account, preferences and privacy settings.' },
+    { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' },
+  ] }),
   component: AccountSettingsHub,
 });
 
 function AccountSettingsHub() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { data: safety } = useSafetyState();
+  const blockedCount = safety?.own.length ?? 0;
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
@@ -203,6 +214,15 @@ function AccountSettingsHub() {
             </span>
             <span className="flex-1 text-[16px] font-semibold text-neutral-900">Sign out</span>
           </button>
+        </div>
+      </section>
+
+      <section className="px-5 pt-6">
+        <div className="text-[12px] font-semibold tracking-wider mb-3 px-1 flex items-center gap-2" style={{ color: LABEL }}>
+          PRIVACY &amp; SAFETY <span className="safety-new">NEW</span>
+        </div>
+        <div className="rounded-2xl bg-white overflow-hidden">
+          <Row icon={<Ban size={18} style={{ color: PURPLE }} />} iconBg={PURPLE_SOFT} title="Blocked people" subtitle={blockedCount === 0 ? 'No one' : blockedCount === 1 ? '1 person' : `${blockedCount} people`} onClick={() => navigate({ to: '/account-settings/blocked' })} />
         </div>
       </section>
 

@@ -32,6 +32,7 @@ import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { ProfilePlans } from "@/components/plans/ProfilePlans";
 import { HealthProfileRow } from '@/components/health/HealthProfileRow';
+import { SafetyActions, UnblockButton } from '@/components/safety/SafetyActions';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -160,7 +161,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
         onChange={onFileChange}
       />
 
-      <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[40px_1fr_40px] items-center">
+      <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[44px_1fr_44px] items-center">
         {isOwn ? (
           <div className="w-10" />
         ) : (
@@ -204,7 +205,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
              {activeDisplay?.name ?? (isOwn ? "Profile" : firstName)}
           </div>
         )}
-        <div />
+        {!isOwn && data ? <SafetyActions target={{ userId: data.userId, name, avatarUrl: data.avatarUrl, avatarColor: data.avatarColor, groupId: data.groupId, type: 'user', targetId: null, crewNames: displayGroups.map(g => g.name) }} /> : <div />}
       </header>
 
       <PullToRefresh
@@ -304,6 +305,11 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
                 <SlidersHorizontal size={16} />
                 Settings
               </button>
+            ) : data?.blockedByMe ? (
+              <div className="flex items-center justify-between gap-3 text-[14px] font-semibold">
+                <span>You blocked {firstName}</span>
+                <UnblockButton userId={data.userId} name={name} />
+              </div>
             ) : (
               <button
                 type="button"

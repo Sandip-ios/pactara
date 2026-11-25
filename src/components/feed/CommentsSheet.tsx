@@ -15,6 +15,7 @@ import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import GifPickerSheet from "@/components/GifPickerSheet";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import { FeedAvatar } from "@/components/feed/FeedMedia";
+import { SafetyActions, type SafetyTarget } from '@/components/safety/SafetyActions';
 
 const PURPLE = "#7C3AED";
 
@@ -172,8 +173,13 @@ function CommentsSheet({
   fallbackCount: number;
 }) {
   const { data } = useQuery({ ...commentsQueryOptions(postId), enabled: open });
+  const [safetyTarget, setSafetyTarget] = useState<SafetyTarget | null>(null);
+  const [safetyReady, setSafetyReady] = useState(false);
+  const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (safetyTimer.current) clearTimeout(safetyTimer.current); }, []);
   const count = data?.comments.length ?? fallbackCount;
   return (
+    <>
     <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={false}>
       <DrawerContent className="flex h-[85vh] flex-col p-0">
         <DrawerHeader className="border-b py-3" style={{ borderColor: "#F0EDE9" }}>
@@ -188,10 +194,21 @@ function CommentsSheet({
             authorFirstName={authorFirstName}
             ownPost={ownPost}
             unreadAtOpen={unreadAtOpen}
+            selectedCommentId={safetyTarget?.targetId ?? null}
+            onSafety={target => {
+              setSafetyTarget(target);
+              setSafetyReady(false);
+              safetyTimer.current = setTimeout(() => {
+                onOpenChange(false);
+                safetyTimer.current = setTimeout(() => setSafetyReady(true), 350);
+              }, 100);
+            }}
           />
         )}
       </DrawerContent>
     </Drawer>
+    {safetyTarget && safetyReady && <SafetyActions target={safetyTarget} initialOpen onClose={() => { setSafetyTarget(null); setSafetyReady(false); }} />}
+    </>
   );
 }
 
@@ -201,14 +218,22 @@ function CommentThread({
   authorFirstName,
   ownPost,
   unreadAtOpen,
+  selectedCommentId,
+  onSafety,
 }: {
   postId: string;
   groupId: string;
   authorFirstName: string;
   ownPost: boolean;
   unreadAtOpen: number;
+  selectedCommentId: string | null;
+  onSafety: (target: SafetyTarget) => void;
 }) {
   const queryClient = useQueryClient();
+  const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdStart = useRef<{ x: number; y: number } | null>(null);
+  const cancelHold = () => { if (holdTimer.current) clearTimeout(holdTimer.current); holdTimer.current = null; holdStart.current = null; };
+  useEffect(() => cancelHold, []);
   const [text, setText] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -341,7 +366,20 @@ function CommentThread({
   const renderComment = (c: (typeof allComments)[number], isReply: boolean) => {
     const isNew = newIds.has(c.id);
     return (
-      <div className="relative flex items-start gap-3">
+      <div className={`relative flex items-start gap-3 select-none ${selectedCommentId === c.id ? 'safety-selected-comment' : ''}`}
+        onContextMenu={event => { if (!c.isMine) event.preventDefault(); }}
+        onPointerDown={event => {
+          if (c.isMine || event.button !== 0 || (event.target instanceof Element && event.target.closest('button, a'))) return;
+          cancelHold(); holdStart.current = { x: event.clientX, y: event.clientY };
+          holdTimer.current = setTimeout(() => {
+            void hapticLight(); window.getSelection()?.removeAllRanges();
+            onSafety({ userId: c.userId, name: c.authorName, avatarUrl: c.authorAvatarUrl, avatarColor: c.authorColor, groupId, type: 'comment', targetId: c.id });
+            cancelHold();
+          }, 500);
+        }}
+        onPointerMove={event => { const start = holdStart.current; if (start && Math.hypot(event.clientX - start.x, event.clientY - start.y) > 10) cancelHold(); }}
+        onPointerUp={cancelHold} onPointerCancel={cancelHold} onPointerLeave={cancelHold}
+      >
         {isNew && (
           <span
             className="absolute -left-3 top-3.5 h-2 w-2 rounded-full"

@@ -38,6 +38,7 @@ import { Route as AdminEventsRouteImport } from './routes/admin/events'
 import { Route as AdminFunnelRouteImport } from './routes/admin/funnel'
 import { Route as AdminGroupsRouteImport } from './routes/admin/groups'
 import { Route as AdminGrowthRouteImport } from './routes/admin/growth'
+import { Route as AdminReportsRouteImport } from './routes/admin/reports'
 import { Route as AdminRetentionRouteImport } from './routes/admin/retention'
 import { Route as AdminRevenueRouteImport } from './routes/admin/revenue'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
@@ -46,6 +47,7 @@ import { Route as PSlugRouteImport } from './routes/p.$slug'
 import { Route as RSlugRouteImport } from './routes/r.$slug'
 import { Route as WCodeRouteImport } from './routes/w.$code'
 import { Route as AuthenticatedAccountSettingsIndexRouteImport } from './routes/_authenticated/account-settings.index'
+import { Route as AuthenticatedAccountSettingsBlockedRouteImport } from './routes/_authenticated/account-settings.blocked'
 import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/_authenticated/account-settings.email'
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
 import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
@@ -226,6 +228,11 @@ const AdminGrowthRoute = AdminGrowthRouteImport.update({
   path: '/growth',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminRetentionRoute = AdminRetentionRouteImport.update({
   id: '/retention',
   path: '/retention',
@@ -265,6 +272,12 @@ const AuthenticatedAccountSettingsIndexRoute =
   AuthenticatedAccountSettingsIndexRouteImport.update({
     id: '/account-settings/',
     path: '/account-settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSettingsBlockedRoute =
+  AuthenticatedAccountSettingsBlockedRouteImport.update({
+    id: '/account-settings/blocked',
+    path: '/account-settings/blocked',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAccountSettingsEmailRoute =
@@ -480,6 +493,7 @@ export interface FileRoutesByFullPath {
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/growth': typeof AdminGrowthRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/retention': typeof AdminRetentionRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -488,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/account-settings/blocked': typeof AuthenticatedAccountSettingsBlockedRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -549,6 +564,7 @@ export interface FileRoutesByTo {
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/growth': typeof AdminGrowthRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/retention': typeof AdminRetentionRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -557,6 +573,7 @@ export interface FileRoutesByTo {
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin': typeof AdminIndexRoute
+  '/account-settings/blocked': typeof AuthenticatedAccountSettingsBlockedRoute
   '/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -621,6 +638,7 @@ export interface FileRoutesById {
   '/admin/funnel': typeof AdminFunnelRoute
   '/admin/groups': typeof AdminGroupsRoute
   '/admin/growth': typeof AdminGrowthRoute
+  '/admin/reports': typeof AdminReportsRoute
   '/admin/retention': typeof AdminRetentionRoute
   '/admin/revenue': typeof AdminRevenueRoute
   '/admin/settings': typeof AdminSettingsRoute
@@ -629,6 +647,7 @@ export interface FileRoutesById {
   '/r/$slug': typeof RSlugRoute
   '/w/$code': typeof WCodeRoute
   '/admin/': typeof AdminIndexRoute
+  '/_authenticated/account-settings/blocked': typeof AuthenticatedAccountSettingsBlockedRoute
   '/_authenticated/account-settings/email': typeof AuthenticatedAccountSettingsEmailRoute
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -693,6 +712,7 @@ export interface FileRouteTypes {
     | '/admin/funnel'
     | '/admin/groups'
     | '/admin/growth'
+    | '/admin/reports'
     | '/admin/retention'
     | '/admin/revenue'
     | '/admin/settings'
@@ -701,6 +721,7 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/w/$code'
     | '/admin/'
+    | '/account-settings/blocked'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -762,6 +783,7 @@ export interface FileRouteTypes {
     | '/admin/funnel'
     | '/admin/groups'
     | '/admin/growth'
+    | '/admin/reports'
     | '/admin/retention'
     | '/admin/revenue'
     | '/admin/settings'
@@ -770,6 +792,7 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/w/$code'
     | '/admin'
+    | '/account-settings/blocked'
     | '/account-settings/email'
     | '/account-settings/name'
     | '/account-settings/notifications'
@@ -833,6 +856,7 @@ export interface FileRouteTypes {
     | '/admin/funnel'
     | '/admin/groups'
     | '/admin/growth'
+    | '/admin/reports'
     | '/admin/retention'
     | '/admin/revenue'
     | '/admin/settings'
@@ -841,6 +865,7 @@ export interface FileRouteTypes {
     | '/r/$slug'
     | '/w/$code'
     | '/admin/'
+    | '/_authenticated/account-settings/blocked'
     | '/_authenticated/account-settings/email'
     | '/_authenticated/account-settings/name'
     | '/_authenticated/account-settings/notifications'
@@ -1113,6 +1138,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminGrowthRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/retention': {
       id: '/admin/retention'
       path: '/retention'
@@ -1167,6 +1199,13 @@ declare module '@tanstack/react-router' {
       path: '/account-settings'
       fullPath: '/account-settings/'
       preLoaderRoute: typeof AuthenticatedAccountSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account-settings/blocked': {
+      id: '/_authenticated/account-settings/blocked'
+      path: '/account-settings/blocked'
+      fullPath: '/account-settings/blocked'
+      preLoaderRoute: typeof AuthenticatedAccountSettingsBlockedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account-settings/email': {
@@ -1406,6 +1445,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedWorkoutsRoute: typeof AuthenticatedWorkoutsRoute
+  AuthenticatedAccountSettingsBlockedRoute: typeof AuthenticatedAccountSettingsBlockedRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
   AuthenticatedAccountSettingsNameRoute: typeof AuthenticatedAccountSettingsNameRoute
   AuthenticatedAccountSettingsNotificationsRoute: typeof AuthenticatedAccountSettingsNotificationsRoute
@@ -1440,6 +1480,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedWorkoutsRoute: AuthenticatedWorkoutsRoute,
+  AuthenticatedAccountSettingsBlockedRoute:
+    AuthenticatedAccountSettingsBlockedRoute,
   AuthenticatedAccountSettingsEmailRoute:
     AuthenticatedAccountSettingsEmailRoute,
   AuthenticatedAccountSettingsNameRoute: AuthenticatedAccountSettingsNameRoute,
@@ -1478,6 +1520,7 @@ interface AdminRouteRouteChildren {
   AdminFunnelRoute: typeof AdminFunnelRoute
   AdminGroupsRoute: typeof AdminGroupsRoute
   AdminGrowthRoute: typeof AdminGrowthRoute
+  AdminReportsRoute: typeof AdminReportsRoute
   AdminRetentionRoute: typeof AdminRetentionRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
@@ -1490,6 +1533,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminFunnelRoute: AdminFunnelRoute,
   AdminGroupsRoute: AdminGroupsRoute,
   AdminGrowthRoute: AdminGrowthRoute,
+  AdminReportsRoute: AdminReportsRoute,
   AdminRetentionRoute: AdminRetentionRoute,
   AdminRevenueRoute: AdminRevenueRoute,
   AdminSettingsRoute: AdminSettingsRoute,

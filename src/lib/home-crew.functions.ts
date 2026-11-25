@@ -44,6 +44,7 @@ export type HomeCrewMember = {
   weekLabel: string;
   streak: number;
   nudgedToday: boolean;
+  nudgeAllowed?: boolean;
 };
 
 export type HomeCrew = {
@@ -71,6 +72,8 @@ export const getHomeCrew = createServerFn({ method: "GET" })
   }))
   .handler(async ({ context, data }): Promise<HomeCrew | null> => {
     const { supabase, userId } = context;
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = await blockedPairs(supabase, userId);
 
     let groupId = data.groupId;
     if (groupId) {
@@ -122,7 +125,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
     const [profilesRes, checkInsRes, freezesRes, postsRes, workoutsRes, nudgesRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_color, avatar_url, timezone").in("id", safeIds),
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("id, user_id, checkin_date, activity, mood, note, photo_url, created_at")
         .eq("group_id", groupId)
         .gte("checkin_date", windowStart)
@@ -136,14 +139,14 @@ export const getHomeCrew = createServerFn({ method: "GET" })
         .lte("freeze_date", windowEnd)
         .limit(20000),
       supabase
-        .from("daily_posts")
+        .rpc('crew_daily_status')
         .select("user_id, local_date")
         .eq("group_id", groupId)
         .eq("check_in_missed", true)
         .gte("local_date", weekWindowStart)
         .lte("local_date", windowEnd),
       supabase
-        .from("workout_sessions")
+        .rpc('crew_workout_status')
         .select("user_id, started_at")
         .eq("group_id", groupId)
         .eq("status", "active")
@@ -229,6 +232,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
         weekLabel: weekDotsLabel(week.workouts, week.restDays, week.missedDays),
         streak: currentStreak(kept, memberToday),
         nudgedToday: nudged.has(uid),
+        nudgeAllowed: !blocked.has(uid),
       };
     });
 

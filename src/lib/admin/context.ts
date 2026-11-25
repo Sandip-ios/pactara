@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import type { Analytics, RangeKey } from "./analytics-data";
 
-export type AdminCtx = { range: RangeKey; compare: boolean; data: Analytics };
+export type AdminCtx = { range: RangeKey; compare: boolean; data: Analytics; dashboardKey: string };
 
 export const AdminContext = createContext<AdminCtx | null>(null);
 

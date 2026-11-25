@@ -69,6 +69,8 @@ async function collect(
   groupId: string,
   groupName: string,
 ): Promise<RawItem[]> {
+  const { blockedPairs } = await import('./safety.server');
+  const blocked = await blockedPairs(supabase, userId);
   const from = since(WINDOW_DAYS);
   const items: RawItem[] = [];
 
@@ -385,7 +387,7 @@ async function collect(
   }
 
   items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  return items.slice(0, 120);
+  return items.filter(item => !blocked.has(item.actorId)).slice(0, 120);
 }
 
 async function readKeys(supabase: SupabaseClient, userId: string): Promise<Set<string>> {

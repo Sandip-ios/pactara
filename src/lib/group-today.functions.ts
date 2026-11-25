@@ -118,14 +118,14 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const [profilesRes, checkinsRes, postsRes, freezesRes, workoutsRes] = await Promise.all([
       supabase.from("profiles").select("id, name, avatar_color, avatar_url, timezone").in("id", safeIds),
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("group_id, user_id, checkin_date")
         .in("group_id", groupIds)
         .gte("checkin_date", windowStart)
         .lte("checkin_date", windowEnd)
         .limit(20000),
       supabase
-        .from("daily_posts")
+        .rpc('crew_daily_status')
         .select("group_id, user_id, local_date, morning_ritual_text, morning_ritual_posted_at, check_in_missed, check_in_id")
         .in("group_id", groupIds)
         .gte("local_date", postsFrom)
@@ -141,7 +141,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       // Live "working out now" sessions — only recent ones; a session left
       // active for hours (app closed, overnight) is abandoned, not live.
       supabase
-        .from("workout_sessions")
+        .rpc('crew_workout_status')
         .select("id, group_id, user_id, started_at")
         .in("group_id", groupIds)
         .eq("status", "active")
@@ -324,6 +324,11 @@ export const nudgeMember = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<NudgeResult> => {
     const { supabase, userId } = context;
+    const { blockedPairs } = await import('./safety.server');
+    if ((await blockedPairs(supabase, userId)).has(data.userId)) {
+      const result = nudgeDecision({ firstName: '', alreadyNudgedToday: false, targetCoveredToday: false, blocked: true });
+      if (result) return result;
+    }
 
     const { data: mine } = await supabase
       .from("group_members")
@@ -407,6 +412,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
       [data.userId],
       {
         title: `👋 ${actor} nudged you`,
+        actorUserId: userId,
         body: `${groupName} is waiting on you today. You've got this.`,
         url: `/check-in?group=${data.groupId}`,
       },

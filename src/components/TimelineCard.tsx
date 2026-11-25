@@ -47,6 +47,7 @@ import { QuickReplyChips, useCommentsSheet, usePostQuickComment } from "@/compon
 import { useFeedContext } from "@/components/feed/feed-context";
 import { HealthPostedStats } from '@/components/health/HealthUI';
 import { healthWorkoutIcon, healthWorkoutName } from '@/lib/health-workouts';
+import { SafetyActions } from '@/components/safety/SafetyActions';
 
 const PURPLE = "#7C3AED";
 const MUTED = "#57534E";
@@ -597,6 +598,7 @@ export function TimelineCard(props: PostCardProps) {
           <div className="truncate text-[13px]" style={{ color: MUTED }}>{meta}</div>
         </div>
         {item.isMe && current && <OwnPostMenu checkIn={current} />}
+        {!item.isMe && <SafetyActions target={{ userId: item.userId, name: item.name, avatarUrl: item.avatarUrl, avatarColor: item.avatarColor, groupId: item.groupId, type: 'post', targetId: (props.kind === 'checkins' ? current?.id : props.node.id)?.replace(/^[ctr]-/, '') ?? item.id, update: props.kind === 'update' }} />}
       </header>
 
       {note ? <NoteText key={current?.id ?? "u"} text={note} /> : <div className="h-3" />}

@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AlertTriangle, ArrowRight, Sparkles } from "lucide-react";
 import { useAdmin } from "@/lib/admin/context";
+import { useQuery } from '@tanstack/react-query';
+import { getOpenReportCount } from '@/lib/admin/reports.functions';
 import { RANGE_LABELS } from "@/lib/admin/analytics-data";
 import {
   EmptyNote,
@@ -38,12 +40,16 @@ const NORTH_STAR_DEF = {
 };
 
 function OverviewPage() {
-  const { data, compare } = useAdmin();
+  const { data, compare, dashboardKey } = useAdmin();
+  const reports = useQuery({ queryKey: ['admin-report-count'], queryFn: () => getOpenReportCount({ data: { key: dashboardKey } }), staleTime: 30_000 });
   const t = data.summary;
 
   return (
     <div className="space-y-8">
       <PageHeader title="Overview" subtitle="Pactara's real numbers, straight from the app's own database." />
+      <Link to="/admin/reports" className="flex items-center justify-between rounded-lg border border-border bg-card p-4 font-semibold">
+        <span>Open reports</span><span>{reports.isError ? 'Unavailable' : reports.data ?? '…'}</span>
+      </Link>
 
       <Panel title={`Pactara · ${RANGE_LABELS[data.range]}`} description="Activity for the selected period · dates in UTC.">
         <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-6">

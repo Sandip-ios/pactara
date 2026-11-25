@@ -497,6 +497,8 @@ export const cheerWorkout = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!session) throw new Error("That workout is no longer available");
+    const { blockedPairs } = await import('./safety.server');
+    if ((await blockedPairs(supabase, userId)).has(session.user_id as string)) throw new Error('Interaction not allowed');
     if (session.user_id === userId) return { ok: true, alreadyCheered: true };
 
     const { error } = await supabase.from("workout_cheers").insert({
@@ -520,6 +522,7 @@ export const cheerWorkout = createServerFn({ method: "POST" })
         [session.user_id as string],
         {
           title: `${firstName} cheered you on ${data.emoji}`,
+          actorUserId: userId,
           body: "Keep going — your group is watching.",
           url: `/home?group=${session.group_id as string}`,
         },

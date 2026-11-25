@@ -1,5 +1,7 @@
 # Roadmap
 
+- [ ] Profile safety: approved report/block menus, bilateral server enforcement, hidden posts, blocked people settings, admin review and focused tests (do not publish)
+
 - [x] Free plan starts: plan-only paywalls removed, server restrictions audited, start/resume/switch/workout flows tested (unpublished)
 
 - [x] Apple Health: iOS-only adapter, first-check-in prompt, Home workouts, posted stats, Profile settings, native instructions and tests (unpublished)

@@ -27,6 +27,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const { supabase, userId: callerId } = context;
     const targetId = data.userId ?? callerId;
     const isSelf = targetId === callerId;
+    const { data: ownBlock } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', callerId).eq('blocked_id', targetId).maybeSingle();
 
     // Groups the caller belongs to, newest membership first (matches the
     // order every other group switcher sheet uses)
@@ -152,7 +153,9 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       created_at: string;
     }[];
 
-    const dates = rows.map((r) => r.checkin_date);
+    const { data: statusRows, error: statusError } = await supabase.rpc('crew_checkin_status').select('checkin_date').eq('user_id', targetId).eq('group_id', groupId);
+    if (statusError) throw new Error('Could not load member status');
+    const dates = (statusRows ?? []).map(r => r.checkin_date);
 
     const { data: freezeRows } = await supabase
       .from("streak_freezes_used")
@@ -217,13 +220,13 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     // This Mon–Sun week vs. the one before, in the member's timezone.
     const { thisWeek, lastWeek } = weekCounts(dates, today);
 
-    const { count: missedCount } = await supabase
-      .from("daily_posts")
-      .select("id", { count: "exact", head: true })
+    const { data: missedRows } = await supabase
+      .rpc('crew_daily_status')
+      .select("user_id")
       .eq("user_id", targetId)
       .eq("group_id", groupId)
       .eq("check_in_missed", true);
-    const missed = missedCount ?? 0;
+    const missed = missedRows?.length ?? 0;
 
     // Completed Mon–Sun weeks since joining where check-ins met the group's
     // weekly target (member's timezone).
@@ -235,6 +238,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     return {
       isSelf,
+      blockedByMe: !!ownBlock,
       userId: targetId,
       name: profile?.name ?? "",
       avatarColor: profile?.avatar_color ?? "#7C3AED",

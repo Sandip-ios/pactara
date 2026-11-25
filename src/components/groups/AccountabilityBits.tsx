@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Flame, Check, Clock, Hourglass, Hand, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { nudgeMember, type MemberToday, type MemberTodayStatus } from "@/lib/group-today.functions";
+import { useSafetyState } from '@/components/safety/SafetyActions';
 
 export const PURPLE = "#7C3AED";
 export const PURPLE_DEEP = "#5B21B6";
@@ -173,6 +174,7 @@ export function NudgeButton({
   const [covered, setCovered] = useState(false);
   const [sending, setSending] = useState(false);
   const queryClient = useQueryClient();
+  const { data: safety } = useSafetyState();
 
   const send = async () => {
     if (sent || sending) return;
@@ -194,6 +196,7 @@ export function NudgeButton({
   };
 
   const base = "rounded-full font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60";
+  if (safety?.blocked.includes(member.userId)) return null;
   if (variant === "pill") {
     // 32px tall pill; the invisible ::after extends the touch target to 44px.
     return (

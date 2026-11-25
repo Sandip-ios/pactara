@@ -630,7 +630,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
     const [{ data: members }, { data: checkins }] = await Promise.all([
       supabase.from("group_members").select("user_id").eq("group_id", membership.group_id),
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("user_id")
         .eq("group_id", membership.group_id)
         .eq("checkin_date", today),
@@ -768,7 +768,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
         .select("id, name, avatar_color, avatar_url, timezone")
         .in("id", memberIds),
       supabase
-        .from("check_ins")
+        .rpc('crew_checkin_status')
         .select("user_id, checkin_date")
         .eq("group_id", groupId)
         .in("user_id", memberIds)
