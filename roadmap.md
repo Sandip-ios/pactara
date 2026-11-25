@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Profile Phase 2: approved profile/Edit profile layouts, weekly freeze, nudge states, setup progress and Health in Settings; browser-only layout checks and focused/full tests passed (unpublished)
+- [ ] Profile Phase 2 live save/freeze verification: needs an available signed-in account; no test accounts or database rows created
+
 - [x] Profile safety: approved report/block menus, bilateral server enforcement, hidden posts, blocked people settings, admin review and focused tests (unpublished)
 
 - [x] Free plan starts: plan-only paywalls removed, server restrictions audited, start/resume/switch/workout flows tested (unpublished)

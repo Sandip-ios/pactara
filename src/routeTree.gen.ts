@@ -63,6 +63,7 @@ import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
 import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
+import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile_.edit'
 import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
 import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
@@ -368,6 +369,12 @@ const AuthenticatedPlansSlugRoute = AuthenticatedPlansSlugRouteImport.update({
   path: '/plans/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfileEditRoute =
+  AuthenticatedProfileEditRouteImport.update({
+    id: '/profile_/edit',
+    path: '/profile/edit',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
@@ -515,6 +522,7 @@ export interface FileRoutesByFullPath {
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -586,6 +594,7 @@ export interface FileRoutesByTo {
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -660,6 +669,7 @@ export interface FileRoutesById {
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/_authenticated/profile_/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
   '/_authenticated/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/_authenticated/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -734,6 +744,7 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/pact/$groupId'
     | '/plans/$slug'
+    | '/profile/edit'
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
@@ -805,6 +816,7 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/pact/$groupId'
     | '/plans/$slug'
+    | '/profile/edit'
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
@@ -878,6 +890,7 @@ export interface FileRouteTypes {
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/pact/$groupId'
     | '/_authenticated/plans/$slug'
+    | '/_authenticated/profile_/edit'
     | '/_authenticated/u/$userId'
     | '/_authenticated/workout/done'
     | '/_authenticated/workout/log'
@@ -1313,6 +1326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlansSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile_/edit': {
+      id: '/_authenticated/profile_/edit'
+      path: '/profile/edit'
+      fullPath: '/profile/edit'
+      preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/u/$userId': {
       id: '/_authenticated/u/$userId'
       path: '/u/$userId'
@@ -1458,6 +1478,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
   AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
+  AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
   AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
   AuthenticatedWorkoutDoneRoute: typeof AuthenticatedWorkoutDoneRoute
   AuthenticatedWorkoutLogRoute: typeof AuthenticatedWorkoutLogRoute
@@ -1497,6 +1518,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
   AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
+  AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
   AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
   AuthenticatedWorkoutDoneRoute: AuthenticatedWorkoutDoneRoute,
   AuthenticatedWorkoutLogRoute: AuthenticatedWorkoutLogRoute,

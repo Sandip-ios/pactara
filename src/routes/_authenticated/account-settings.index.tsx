@@ -5,7 +5,7 @@ import { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  User as UserIcon,
+  Heart,
   Mail,
   Lock,
   Bell,
@@ -27,6 +27,9 @@ import { deleteMyAccount } from "@/lib/profile.functions";
 import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { WhatsNewSheet } from "@/components/whats-new/WhatsNewSheet";
 import { useSafetyState } from '@/components/safety/SafetyActions';
+import { useAppleHealth } from '@/lib/use-apple-health';
+import { Button } from '@/components/ui/button';
+import '@/components/profile/profile.css';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -46,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/account-settings/")({
 });
 
 function AccountSettingsHub() {
+  const health = useAppleHealth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data: safety } = useSafetyState();
@@ -112,14 +116,6 @@ function AccountSettingsHub() {
         </div>
         <div className="rounded-2xl bg-white overflow-hidden">
           <Row
-            icon={<UserIcon size={18} style={{ color: PURPLE }} />}
-            iconBg={PURPLE_SOFT}
-            title="Name"
-            subtitle="How you appear in your crew"
-            onClick={() => navigate({ to: "/account-settings/name" })}
-          />
-          <Divider />
-          <Row
             icon={<Mail size={18} style={{ color: PURPLE }} />}
             iconBg={PURPLE_SOFT}
             title="Email"
@@ -136,6 +132,15 @@ function AccountSettingsHub() {
           />
         </div>
       </section>
+
+      {health.available && <section className="px-5 pt-6">
+        <div className="text-[12px] font-semibold tracking-wider mb-3 px-1 flex items-center gap-2" style={{ color: LABEL }}>CONNECTED APPS <span className="safety-new">NEW</span></div>
+        <div className="rounded-2xl bg-white overflow-hidden"><Button variant="ghost" onClick={() => void navigate({ to: '/apple-health' })} className="profile-control h-auto w-full justify-start gap-4 rounded-none px-4 py-4 text-left">
+          <span className="profile-health-icon h-10 w-10 rounded-xl flex items-center justify-center shrink-0"><Heart size={18} /></span>
+          <span className="flex-1 min-w-0"><span className="block text-[16px] font-bold">Apple Health</span><span className="block text-[13px] font-normal text-muted-foreground whitespace-normal">Workouts from your iPhone and Watch</span></span>
+          <span className={`profile-health-status ${health.connected ? 'connected' : ''}`}>{health.connected ? 'Connected' : 'Connect'}</span><ChevronRight size={20} className="text-neutral-300 shrink-0" />
+        </Button></div>
+      </section>}
 
       <section className="px-5 pt-6">
         <div

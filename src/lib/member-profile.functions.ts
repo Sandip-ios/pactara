@@ -4,6 +4,7 @@ import { awardBadgesForUser } from "./badges.functions";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isVideoPath, signFeedMedia } from "./media-urls";
 import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts, weeklyTarget, weeksOnGoal } from "./streak-rules";
+import { profileWeek, profileNudge } from './profile-view';
 
 // Streaks and day grids use the member's own local dates (profiles.timezone).
 export type ProfileMedia = {
@@ -27,6 +28,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     const { supabase, userId: callerId } = context;
     const targetId = data.userId ?? callerId;
     const isSelf = targetId === callerId;
+    const { blockedPairs } = await import('./safety.server');
+    const blocked = (await blockedPairs(supabase, callerId)).has(targetId);
     const { data: ownBlock } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', callerId).eq('blocked_id', targetId).maybeSingle();
 
     // Groups the caller belongs to, newest membership first (matches the
@@ -123,7 +126,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, avatar_color, avatar_url, streak_freezes_available, timezone")
+      .select("name, avatar_color, avatar_url, streak_freezes_available, timezone, created_at")
       .eq("id", targetId)
       .maybeSingle();
     const timezone = (profile as { timezone?: string } | null)?.timezone ?? "UTC";
@@ -222,11 +225,14 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: missedRows } = await supabase
       .rpc('crew_daily_status')
-      .select("user_id")
+      .select("user_id, local_date")
       .eq("user_id", targetId)
       .eq("group_id", groupId)
       .eq("check_in_missed", true);
     const missed = missedRows?.length ?? 0;
+    const { data: viewer } = isSelf ? { data: profile } : await supabase.from('profiles').select('timezone').eq('id', callerId).maybeSingle();
+    const { data: priorNudges } = isSelf ? { data: [] } : await supabase.from('member_nudges').select('id').eq('group_id', groupId).eq('nudger_id', callerId).eq('target_id', targetId).eq('local_date', localDateIn(viewer?.timezone ?? 'UTC')).limit(1);
+    const nudgeState = profileNudge({ blocked, covered: keptDays.has(today), sent: Boolean(priorNudges?.length) });
 
     // Completed Mon–Sun weeks since joining where check-ins met the group's
     // weekly target (member's timezone).
@@ -239,6 +245,10 @@ export const getMemberProfile = createServerFn({ method: "GET" })
     return {
       isSelf,
       blockedByMe: !!ownBlock,
+      nudgeState,
+      createdAt: profile?.created_at ?? null,
+      today,
+      weekDays: profileWeek({ today, checkIns: new Set(dates), covered: new Set(frozenDates), missed: new Set((missedRows ?? []).map(row => row.local_date)), workingOut: false }),
       userId: targetId,
       name: profile?.name ?? "",
       avatarColor: profile?.avatar_color ?? "#7C3AED",

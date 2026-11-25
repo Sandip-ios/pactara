@@ -1,7 +1,6 @@
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import {
   Camera,
@@ -12,17 +11,13 @@ import {
   BarChart3,
   Play,
   MessageCircle,
-  SlidersHorizontal,
-  Snowflake,
+  Settings, Pencil, UserPlus,
   TrendingUp,
   TrendingDown,
   Minus,
   Percent,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { getMemberProfile } from "@/lib/member-profile.functions";
-import { setAvatarPath } from "@/lib/profile.functions";
-import { getStreakFreezeInfo, applyStreakFreeze } from "@/lib/streak-freezes.functions";
 import { BADGE_META, BADGE_MILESTONES } from "@/lib/badges";
 import { MediaLightbox } from "@/components/MediaLightbox";
 import { PullToRefresh } from "@/components/PullToRefresh";
@@ -31,35 +26,39 @@ import GroupSwitcherSheet from "@/components/GroupSwitcherSheet";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { ProfilePlans } from "@/components/plans/ProfilePlans";
-import { HealthProfileRow } from '@/components/health/HealthProfileRow';
+import { Button } from '@/components/ui/button';
+import { useAvatarPicker } from './use-avatar-picker';
+import { ProfileWeek } from './ProfileWeek';
+import { ProfileSetup } from './ProfileSetup';
+import { ProfileNudge } from './ProfileNudge';
+import { ProfileInvite } from './ProfileInvite';
+import { memberSince } from '@/lib/profile-view';
+import { useOpenAtTop } from '@/lib/use-open-at-top';
+import './profile.css';
 import { SafetyActions, UnblockButton } from '@/components/safety/SafetyActions';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
-const BG = "#F5F2EE";
 const GREEN_SOFT = "#DCFCE7";
 const RED_SOFT = "#FEE2E2";
-const ICE = "#38BDF8";
-const ICE_SOFT = "#E0F2FE";
 
 type Tab = "posts" | "badges" | "stats";
 
 export function ProfileView({ userId = null }: { userId?: string | null }) {
+  const scroll = useOpenAtTop();
   const navigate = useNavigate();
   const router = useRouter();
   const queryClient = useQueryClient();
   const isOwn = userId === null;
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
+  const avatar = useAvatarPicker();
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [tab, setTab] = useState<Tab>("posts");
   const [bioExpanded, setBioExpanded] = useState(false);
   const [bioClamped, setBioClamped] = useState(false);
   const bioRef = useRef<HTMLDivElement>(null);
   const [groupPickerOpen, setGroupPickerOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [freezeOpen, setFreezeOpen] = useState(false);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
-  const saveAvatarPath = useServerFn(setAvatarPath);
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(() => {
     if (typeof localStorage === "undefined") return null;
@@ -70,11 +69,6 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
     queryKey: ["member-profile", userId, selectedGroupId],
     queryFn: () => getMemberProfile({ data: { userId, groupId: selectedGroupId } }).then(stabilizeSignedUrls),
   });
-
-  const [avatarLoaded, setAvatarLoaded] = useState(false);
-  useEffect(() => {
-    setAvatarLoaded(false);
-  }, [data?.avatarUrl]);
 
   useEffect(() => {
     if (isOwn && data?.groupId && typeof localStorage !== "undefined") {
@@ -112,101 +106,31 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
     return () => window.cancelAnimationFrame(id);
   }, [goalLine, bioExpanded, data?.avatarUrl, name]);
 
-  const openPicker = () => {
-    if (uploading) return;
-    fileInputRef.current?.click();
-  };
-
-  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) return;
-    try {
-      setUploading(true);
-      const { data: userRes, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userRes.user) throw userErr ?? new Error("Not signed in");
-      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
-      const path = `${userRes.user.id}/avatar-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("avatars")
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      await saveAvatarPath({ data: { path } });
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["member-profile"] }),
-        queryClient.invalidateQueries({ queryKey: ["profile-overview"] }),
-        queryClient.invalidateQueries({ queryKey: ["my-group-status"] }),
-        queryClient.invalidateQueries({ queryKey: ["my-groups"] }),
-      ]);
-    } catch (err) {
-      console.error("Avatar upload failed", err);
-      alert("Couldn't update your photo. Please try again.");
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const stat = (n: number) => (n > 0 ? String(n) : "—");
+  const openPicker = avatar.pick;
+  const editProfile = () => navigate({ to: '/profile/edit', search: { group: data?.groupName ? data.groupId : undefined } });
+  const checkIn = () => navigate({ to: '/check-in' });
+  const crewName = activeDisplay?.name ?? data?.groupName ?? 'your crew';
+  const stat = (n: number) => String(n);
 
   return (
     <div
-      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
-      style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
+      ref={scroll} className="profile-page fixed inset-0 w-full overflow-y-auto overscroll-none pb-28" data-scroll-root
     >
       <input
-        ref={fileInputRef}
+        ref={avatar.input}
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={onFileChange}
+        onChange={avatar.onChange}
       />
 
-      <header className="bg-white px-4 pt-safe-5 pb-4 grid grid-cols-[44px_1fr_44px] items-center">
-        {isOwn ? (
-          <div className="w-10" />
-        ) : (
-          <button
-            onClick={() => {
-              if (typeof window !== "undefined" && window.history.length > 1) {
-                router.history.back();
-              } else {
-                navigate({ to: "/home" });
-              }
-            }}
-            aria-label="Back"
-            className="h-9 w-9 rounded-full flex items-center justify-center justify-self-start"
-          >
-            <ChevronLeft size={22} />
-          </button>
-        )}
-        {groups.length > 1 && activeGroup ? (
-          <div className="justify-self-center">
-            <button
-              type="button"
-              onClick={() => setGroupPickerOpen(true)}
-              className="flex items-center gap-1.5 max-w-[220px] active:opacity-70"
-            >
-               {activeDisplay?.emoji && (
-                 <span className="text-[16px] leading-none">{activeDisplay.emoji}</span>
-              )}
-               <span className="text-[17px] font-bold truncate">{activeDisplay?.name}</span>
-              <ChevronDown size={16} className="text-neutral-400 shrink-0" />
-            </button>
-            <GroupSwitcherSheet
-              open={groupPickerOpen}
-              onClose={() => setGroupPickerOpen(false)}
-               groups={displayGroups}
-              selectedGroupId={data?.groupId ?? null}
-              onSelect={(id) => setSelectedGroupId(id)}
-            />
-          </div>
-        ) : (
-          <div className="text-[17px] font-bold truncate text-center justify-self-center">
-             {activeDisplay?.name ?? (isOwn ? "Profile" : firstName)}
-          </div>
-        )}
-        {!isOwn && data ? <SafetyActions target={{ userId: data.userId, name, avatarUrl: data.avatarUrl, avatarColor: data.avatarColor, groupId: data.groupId, type: 'user', targetId: null, crewNames: displayGroups.map(g => g.name) }} /> : <div />}
+      <header className="profile-header">
+        {isOwn ? <span /> : <Button variant="ghost" className="profile-control profile-round" aria-label="Back" onClick={() => { if (router.history.canGoBack()) router.history.back(); else void navigate({ to: '/home' }); }}><ChevronLeft size={22} /></Button>}
+        <h1>{isOwn ? 'Profile' : firstName}</h1>
+        {isOwn ? <Button variant="ghost" className="profile-control profile-round" aria-label="Settings" onClick={() => void navigate({ to: '/account-settings' })}><Settings size={20} /></Button> : data ? <SafetyActions target={{ userId: data.userId, name, avatarUrl: data.avatarUrl, avatarColor: data.avatarColor, groupId: data.groupId, type: 'user', targetId: null, crewNames: displayGroups.map(g => g.name) }} /> : <span />}
       </header>
+      <GroupSwitcherSheet open={groupPickerOpen} onClose={() => setGroupPickerOpen(false)} groups={displayGroups} selectedGroupId={data?.groupId ?? null} onSelect={setSelectedGroupId} />
+      {data?.groupName && <ProfileInvite groupId={data.groupId} groupName={crewName} open={inviteOpen} onOpenChange={setInviteOpen} />}
 
       <PullToRefresh
         onRefresh={() =>
@@ -215,140 +139,36 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
           })
         }
       >
-        {/* Identity */}
-        <section className="bg-white px-6 pb-5 pt-4">
-          <div className="flex items-center gap-6">
+        <section className="profile-identity">
+          <div className="profile-avatar-row">
             <div className="relative shrink-0">
-              <button
-                type="button"
-                onClick={
-                  data?.avatarUrl
-                    ? () => setLightbox({ src: data.avatarUrl!, kind: "image" })
-                    : isOwn
-                      ? openPicker
-                      : undefined
-                }
-                aria-label={data?.avatarUrl ? "View photo" : isOwn ? "Change photo" : firstName}
-                className="h-20 w-20 rounded-full flex items-center justify-center text-white text-[32px] font-bold overflow-hidden"
-                style={{
-                  background:
-                    isPending || (data?.avatarUrl && !avatarLoaded)
-                      ? "hsl(var(--muted))"
-                      : data?.avatarColor || PURPLE,
-                }}
-              >
-                {isPending ? null : data?.avatarUrl ? (
-                  <img
-                    src={data.avatarUrl}
-                    alt={firstName}
-                    onLoad={() => setAvatarLoaded(true)}
-                    onError={() => setAvatarLoaded(true)}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initial
-                )}
-              </button>
-              {isOwn && (
-                <button
-                  type="button"
-                  onClick={openPicker}
-                  aria-label="Change photo"
-                  disabled={uploading}
-                  className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-white border border-neutral-200 flex items-center justify-center shadow-sm disabled:opacity-60"
-                >
-                  <Camera size={14} className="text-neutral-600" />
-                </button>
-              )}
+              {isOwn && !data?.avatarUrl && !isPending ? <Button variant="ghost" className="profile-control profile-add-photo" aria-label="Add a photo" disabled={avatar.uploading} onClick={openPicker}><Camera size={22} />Add photo</Button> : <Button variant="ghost" className="profile-control profile-avatar" aria-label={data?.avatarUrl ? 'View photo' : firstName} onClick={() => { if (data?.avatarUrl) setLightbox({ src: data.avatarUrl, kind: 'image' }); }} style={{ background: data?.avatarColor || PURPLE }}>
+                {isPending ? null : data?.avatarUrl ? <img src={data.avatarUrl} alt={firstName} /> : initial}
+              </Button>}
+              {isOwn && data?.avatarUrl && <Button variant="ghost" className="profile-control profile-camera" aria-label="Change photo" disabled={avatar.uploading} onClick={openPicker}><Camera size={14} /></Button>}
             </div>
-            <div className="flex-1 flex items-center justify-between">
-              <HeadStat value={stat(data?.totalCheckIns ?? 0)} label="check-ins" />
-              <HeadStat value={stat(data?.currentStreak ?? 0)} label="streak" />
-              <HeadStat value={weeksOnGoalValue(data?.weeksOnGoal)} label="weeks on goal" />
-            </div>
+            <div className="profile-stats"><HeadStat value={stat(data?.totalCheckIns ?? 0)} label="check-ins" /><HeadStat value={stat(data?.currentStreak ?? 0)} label="streak" /><HeadStat value={isOwn && data?.totalCheckIns === 0 ? String(data.weeklyTarget ?? 0) : weeksOnGoalValue(data?.weeksOnGoal)} label={isOwn && data?.totalCheckIns === 0 ? 'weekly goal' : 'weeks on goal'} /></div>
           </div>
-
-          <div className="mt-4">
-            <div className="text-[18px] font-bold truncate">{name || firstName}</div>
-            {goalLine && (
-              <>
-                <div
-                  ref={bioRef}
-                  className={`text-[13px] text-neutral-500 mt-0.5 whitespace-pre-line ${
-                    bioExpanded ? "" : "line-clamp-2"
-                  }`}
-                >
-                  {goalLine}
-                </div>
-                {(bioClamped || bioExpanded) && (
-                  <button
-                    type="button"
-                    onClick={() => setBioExpanded((v) => !v)}
-                    className="text-[13px] font-semibold mt-1 active:opacity-70"
-                    style={{ color: PURPLE }}
-                  >
-                    {bioExpanded ? "See less" : "See more"}
-                  </button>
-                )}
-              </>
-            )}
+          <div className="flex flex-col gap-[3px]">
+            <div className="profile-name">{name || firstName}</div>
+            {goalLine && <><div ref={bioRef} className={`profile-goal ${bioExpanded ? '' : 'line-clamp-2'}`}>{goalLine}</div>{(bioClamped || bioExpanded) && <Button variant="ghost" className="profile-control h-auto justify-start self-start p-0 text-[13px] font-semibold text-pactara-purple" onClick={() => setBioExpanded(v => !v)}>{bioExpanded ? 'See less' : 'See more'}</Button>}</>}
+            <div className="profile-since">{memberSince(data?.createdAt)}</div>
           </div>
-
-          <div className="mt-4">
-            {isOwn ? (
-              <button
-                type="button"
-                onClick={() => navigate({ to: "/account-settings" })}
-                className="w-full rounded-full py-2.5 text-[14px] font-semibold flex items-center justify-center gap-2"
-                style={{ background: PURPLE_SOFT, color: PURPLE }}
-              >
-                <SlidersHorizontal size={16} />
-                Settings
-              </button>
-            ) : data?.blockedByMe ? (
-              <div className="flex items-center justify-between gap-3 text-[14px] font-semibold">
-                <span>You blocked {firstName}</span>
-                <UnblockButton userId={data.userId} name={name} />
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() =>
-                  data?.groupId &&
-                  navigate({ to: "/chat/$groupId", params: { groupId: data.groupId } })
-                }
-                className="w-full rounded-full py-2.5 text-white text-[14px] font-semibold flex items-center justify-center gap-2"
-                style={{ background: PURPLE }}
-              >
-                <MessageCircle size={16} />
-                Message
-              </button>
-            )}
-          </div>
-          {isOwn && <ProfilePlans />}
-          {isOwn && <HealthProfileRow />}
-
+          {isOwn ? <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action" onClick={() => void editProfile()}><Pencil size={18} />Edit profile</Button>{data?.groupName && <Button variant="ghost" className="profile-control profile-action" onClick={() => setInviteOpen(true)}><UserPlus size={18} />Invite to crew</Button>}</div> : data?.blockedByMe ? <div className="flex items-center justify-between gap-3 text-[14px] font-semibold"><span>You blocked {firstName}</span><UnblockButton userId={data.userId} name={name} /></div> : data && <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action profile-primary" onClick={() => void navigate({ to: '/chat/$groupId', params: { groupId: data.groupId } })}><MessageCircle size={18} />Message</Button><ProfileNudge key={`${data.groupId}-${data.userId}-${data.today}`} groupId={data.groupId} userId={data.userId} firstName={firstName} initial={data.nudgeState} /></div>}
         </section>
-
-        {/* Tabs */}
-        <div className="bg-white flex border-t border-neutral-100 sticky top-0 z-10">
-          <TabButton active={tab === "posts"} onClick={() => setTab("posts")} label="Posts">
-            <Grid3x3 size={20} />
-          </TabButton>
-          <TabButton active={tab === "badges"} onClick={() => setTab("badges")} label="Badges">
-            <Award size={20} />
-          </TabButton>
-          <TabButton active={tab === "stats"} onClick={() => setTab("stats")} label="Stats">
-            <BarChart3 size={20} />
-          </TabButton>
+        {isOwn && data && <ProfileSetup crewName={crewName} joined={!!data.groupName} photo={!!data.avatarUrl} goal={!!goalLine} checkIns={data.totalCheckIns} onPhoto={openPicker} onGoal={() => void editProfile()} onCheckIn={() => void checkIn()} onJoin={() => void navigate({ to: '/home', search: { crews: '1' } })} />}
+        {data?.groupName && <ProfileWeek isOwn={isOwn} groupId={data.groupId} crewName={crewName} switchable={groups.length > 1} onSwitch={() => setGroupPickerOpen(true)} today={data.today} days={data.weekDays} workouts={data.thisWeek} target={data.weeklyTarget ?? 0} streak={data.currentStreak} best={data.bestStreak} freezes={data.streakFreezesAvailable} />}
+        {isOwn && <ProfilePlans />}
+        <div role="tablist" className="profile-tabs">
+          <TabButton active={tab === 'posts'} onClick={() => setTab('posts')} label="Posts"><Grid3x3 size={18} /></TabButton>
+          <TabButton active={tab === 'badges'} onClick={() => setTab('badges')} label="Badges"><Award size={18} /></TabButton>
+          <TabButton active={tab === 'stats'} onClick={() => setTab('stats')} label="Stats"><BarChart3 size={18} /></TabButton>
         </div>
 
         {tab === "posts" && (
           <section className="bg-white">
             {(data?.media ?? []).length === 0 ? (
-              <div className="py-16 text-center text-[14px] text-neutral-400">
-                No check-ins yet
-              </div>
+              isOwn ? <div className="profile-empty"><strong>Your check-ins show up here</strong><p>Every 5-second proof you post builds this grid.</p></div> : <div className="py-16 text-center text-[14px] text-neutral-400">No check-ins yet</div>
             ) : (
               <div className="grid grid-cols-3 gap-[2px]">
                 {(data?.media ?? []).map((m) => (
@@ -371,8 +191,8 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
                       <img src={m.url} alt="" className="h-full w-full object-cover" />
                     )}
                     {m.kind === "video" && (
-                      <span className="absolute top-1.5 right-1.5 text-white drop-shadow">
-                        <Play size={14} fill="white" />
+                      <span className="profile-video-icon">
+                        <Play size={16} />
                       </span>
                     )}
                   </button>
@@ -392,13 +212,6 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
 
         {tab === "stats" && (
           <section className="px-5 pt-5">
-            {isOwn && (
-              <StreakFreezeCard
-                available={data?.streakFreezesAvailable ?? 0}
-                onUse={() => setFreezeOpen(true)}
-              />
-            )}
-
             <div className="mt-3 rounded-2xl bg-white p-5">
               <div className="text-[16px] font-bold">Past 7 days</div>
               <Past7Days days={data?.past7 ?? []} />
@@ -440,16 +253,6 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
       {historyOpen && (
         <HistorySheet days={data?.past90 ?? []} onClose={() => setHistoryOpen(false)} />
       )}
-      {freezeOpen && (
-        <StreakFreezeSheet
-          groupId={data?.groupId ?? null}
-          onClose={() => setFreezeOpen(false)}
-          onApplied={() => {
-            queryClient.invalidateQueries({ queryKey: ["member-profile"] });
-            setFreezeOpen(false);
-          }}
-        />
-      )}
     </div>
   );
 }
@@ -460,10 +263,7 @@ function weeksOnGoalValue(w: { hit: number; completed: number } | undefined) {
 
 function HeadStat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="text-center px-1">
-      <div className="text-[19px] font-bold leading-tight">{value}</div>
-      <div className="text-[12px] text-neutral-500 leading-tight">{label}</div>
-    </div>
+    <div className="profile-head-stat"><strong>{value}</strong><span>{label}</span></div>
   );
 }
 
@@ -478,21 +278,7 @@ function TabButton({
   label: string;
   children: React.ReactNode;
 }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="flex-1 py-3 flex items-center justify-center gap-1.5 border-b-2"
-      style={{
-        borderColor: active ? PURPLE : "transparent",
-        color: active ? PURPLE : "#A3A3A3",
-      }}
-    >
-      {children}
-      <span className="text-[13px] font-semibold">{label}</span>
-    </button>
-  );
+  return <Button variant="ghost" role="tab" aria-selected={active} onClick={onClick} aria-label={label} className="profile-control profile-tab">{children}<span>{label}</span></Button>;
 }
 
 function Past7Days({ days }: { days: { date: string; checked: boolean }[] }) {
@@ -635,7 +421,7 @@ function HistorySheet({
     const dt = new Date(d.date + "T00:00:00Z");
     const key = dt.toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
     if (!groups.has(key)) groups.set(key, []);
-    groups.get(key)!.push(d);
+    groups.get(key)?.push(d);
   }
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center">
@@ -684,129 +470,6 @@ function HistorySheet({
             style={{ background: PURPLE }}
           >
             Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function StreakFreezeCard({ available, onUse }: { available: number; onUse: () => void }) {
-  const canUse = available > 0;
-  return (
-    <div className="rounded-2xl bg-white p-5 flex items-center gap-3">
-      <span
-        className="h-11 w-11 rounded-xl flex items-center justify-center shrink-0"
-        style={{ background: ICE_SOFT }}
-      >
-        <Snowflake size={20} style={{ color: ICE }} />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="text-[15px] font-bold text-neutral-900 leading-tight">Streak freezes</div>
-        <div className="text-[12px] text-neutral-500 mt-0.5 leading-snug">
-          {canUse
-            ? `${available} left. Apply one to a missed day to keep your streak alive.`
-            : "You've used them all. New freezes coming soon."}
-        </div>
-      </div>
-      <button
-        type="button"
-        onClick={onUse}
-        disabled={!canUse}
-        className="px-3 py-2 rounded-full text-[13px] font-semibold disabled:opacity-40"
-        style={{ background: ICE_SOFT, color: ICE }}
-      >
-        Use
-      </button>
-    </div>
-  );
-}
-
-function StreakFreezeSheet({
-  groupId,
-  onClose,
-  onApplied,
-}: {
-  groupId: string | null;
-  onClose: () => void;
-  onApplied: () => void;
-}) {
-  useHideBottomTabs();
-  const apply = useServerFn(applyStreakFreeze);
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ["streak-freeze-info", groupId],
-    queryFn: () => getStreakFreezeInfo({ data: { groupId } }),
-  });
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      if (!data?.groupId) throw new Error("No crew selected");
-      return apply({ data: { groupId: data.groupId } });
-    },
-    onSuccess: async () => {
-      await refetch();
-      onApplied();
-    },
-    onError: (err: unknown) => {
-      alert(err instanceof Error ? err.message : "Something went wrong");
-    },
-  });
-
-  const available = data?.available ?? 0;
-  const eligibleDate = data?.eligibleDate ?? null;
-  const reason = data?.reason ?? null;
-  const eligibleLabel = eligibleDate
-    ? new Date(eligibleDate + "T00:00:00Z").toLocaleDateString("en-US", {
-        weekday: "long",
-        month: "short",
-        day: "numeric",
-        timeZone: "UTC",
-      })
-    : null;
-
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div
-        className="relative w-full max-w-md bg-white rounded-t-3xl p-6"
-        style={{ fontFamily: "Inter, system-ui, sans-serif" }}
-      >
-        <div className="flex justify-center mb-4">
-          <div className="h-1.5 w-10 rounded-full bg-neutral-200" />
-        </div>
-        <div className="flex items-center gap-3 mb-4">
-          <span
-            className="h-11 w-11 rounded-xl flex items-center justify-center"
-            style={{ background: ICE_SOFT }}
-          >
-            <Snowflake size={20} style={{ color: ICE }} />
-          </span>
-          <div>
-            <div className="text-[18px] font-bold">Use a streak freeze</div>
-            <div className="text-[13px] text-neutral-500">{available} available</div>
-          </div>
-        </div>
-        <div className="text-[14px] text-neutral-600 mb-5">
-          {isLoading
-            ? "Checking your recent days…"
-            : eligibleLabel
-              ? `Apply a freeze to ${eligibleLabel} to keep your streak alive.`
-              : (reason ?? "No missed day to cover right now.")}
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-full bg-neutral-200 text-neutral-800 py-3 font-semibold text-[15px]"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => mutation.mutate()}
-            disabled={!eligibleDate || available <= 0 || mutation.isPending}
-            className="flex-1 rounded-full text-white py-3 font-semibold text-[15px] disabled:opacity-40"
-            style={{ background: PURPLE }}
-          >
-            {mutation.isPending ? "Applying…" : "Use freeze"}
           </button>
         </div>
       </div>
