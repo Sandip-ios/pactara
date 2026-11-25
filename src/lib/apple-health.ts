@@ -38,3 +38,18 @@ let pending: { userId: string; workout: HealthWorkout; at: number } | null = nul
 export function attachHealthWorkout(userId: string, workout: HealthWorkout) { pending = { userId, workout, at: Date.now() }; }
 export function pendingHealthWorkout(userId: string) { return pending?.userId === userId && Date.now() - pending.at < 3600000 ? pending.workout : null; }
 export function clearHealthWorkout() { pending = null; }
+// TODO: remove Apple Health diagnostics after debugging
+export async function appleHealthDiagnostics(): Promise<string> {
+  const yn = (b: boolean) => (b ? 'yes' : 'no');
+  let native = '?', plat = '?', plugin = '?', avail = '-';
+  try { native = yn(Capacitor.isNativePlatform()); } catch (e) { native = `err:${String(e)}`; }
+  try { plat = Capacitor.getPlatform(); } catch (e) { plat = `err:${String(e)}`; }
+  try { plugin = yn(Capacitor.isPluginAvailable('Health')); } catch (e) { plugin = `err:${String(e)}`; }
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const { Health } = await import('@capgo/capacitor-health');
+    const r = await Promise.race([Health.isAvailable(), new Promise<'timeout'>(res => { timer = setTimeout(() => res('timeout'), 15000); })]);
+    avail = r === 'timeout' ? 'timeout' : JSON.stringify(r);
+  } catch (e) { avail = `err:${e instanceof Error ? e.message : String(e)}`; } finally { if (timer) clearTimeout(timer); }
+  return `native:${native} plat:${plat} plugin:${plugin} avail:${avail}`;
+}
