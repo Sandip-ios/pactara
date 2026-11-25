@@ -49,7 +49,6 @@ export function showForegroundNotification(
           toast.dismiss(id);
           if (url) void navigate(url);
         }}
-        style={{ marginTop: "env(safe-area-inset-top)" }}
         className="flex w-full items-start gap-3 rounded-2xl border border-border bg-background/95 px-4 py-3 text-left shadow-lg backdrop-blur"
       >
         <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
