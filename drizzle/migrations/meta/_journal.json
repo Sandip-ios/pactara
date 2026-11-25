@@ -379,6 +379,13 @@
       "when": 1795576961665,
       "tag": "0053_fix_safety_trigger_table_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1795648758101,
+      "tag": "0054_redesign_foundations_profile_fields",
+      "breakpoints": true
     }
   ]
 }

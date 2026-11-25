@@ -2,6 +2,9 @@ import { createFileRoute, Outlet, redirect, useNavigate, useRouterState } from "
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomTabs } from "@/components/BottomTabs";
+import { NewBottomTabs } from "@/components/redesign/NewBottomTabs";
+import { WhatsNewScreen } from "@/components/redesign/WhatsNewScreen";
+import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 import { WorkoutBar } from "@/components/workout/WorkoutBar";
 import { TimezoneSync } from "@/components/TimezoneSync";
 import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
@@ -98,6 +101,8 @@ function AuthLayout() {
     areBottomTabsHidden,
     () => false,
   );
+  const appVersion = useAppVersion();
+  const appPrefs = useAppPrefs();
   const hideTabs =
     tabsHiddenByModal ||
     pathname.startsWith("/check-in/") ||
@@ -188,7 +193,8 @@ function AuthLayout() {
     <>
       <TimezoneSync />
       <Outlet />
-      {!hideTabs && <BottomTabs />}
+      {!hideTabs && (appVersion === "new" ? <NewBottomTabs /> : <BottomTabs />)}
+      {appVersion === "new" && appPrefs.isSuccess && !appPrefs.data?.new_version_seen_at && <WhatsNewScreen />}
       <WorkoutBar tabsVisible={!hideTabs} />
       {introPaywall && !(trialState?.expired) && (
         <TrialEndedPaywall

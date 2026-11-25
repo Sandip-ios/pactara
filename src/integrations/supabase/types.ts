@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -1237,41 +1232,65 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_version: string
           avatar_color: string
           avatar_url: string | null
+          bio: string | null
+          birthday: string | null
           created_at: string
           health_prompt_seen_at: string | null
           id: string
+          interests: string[]
+          is_private: boolean
           name: string
+          new_version_enabled: boolean
+          new_version_seen_at: string | null
           plan_quiz: Json | null
           streak_freezes_available: number
           timezone: string
+          username: string | null
           weight_unit: string
           whats_new_seen: string | null
         }
         Insert: {
+          app_version?: string
           avatar_color?: string
           avatar_url?: string | null
+          bio?: string | null
+          birthday?: string | null
           created_at?: string
           health_prompt_seen_at?: string | null
           id: string
+          interests?: string[]
+          is_private?: boolean
           name?: string
+          new_version_enabled?: boolean
+          new_version_seen_at?: string | null
           plan_quiz?: Json | null
           streak_freezes_available?: number
           timezone?: string
+          username?: string | null
           weight_unit?: string
           whats_new_seen?: string | null
         }
         Update: {
+          app_version?: string
           avatar_color?: string
           avatar_url?: string | null
+          bio?: string | null
+          birthday?: string | null
           created_at?: string
           health_prompt_seen_at?: string | null
           id?: string
+          interests?: string[]
+          is_private?: boolean
           name?: string
+          new_version_enabled?: boolean
+          new_version_seen_at?: string | null
           plan_quiz?: Json | null
           streak_freezes_available?: number
           timezone?: string
+          username?: string | null
           weight_unit?: string
           whats_new_seen?: string | null
         }
@@ -1936,6 +1955,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_my_app_prefs: {
+        Args: never
+        Returns: {
+          app_version: string
+          bio: string
+          birthday: string
+          interests: string[]
+          is_private: boolean
+          new_version_enabled: boolean
+          new_version_seen_at: string
+          username: string
+        }[]
+      }
+      get_usernames: {
+        Args: { _ids: string[] }
+        Returns: {
+          id: string
+          username: string
+        }[]
+      }
       increment_badge_counts: {
         Args: { _user_ids: string[] }
         Returns: {
@@ -2150,3 +2189,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

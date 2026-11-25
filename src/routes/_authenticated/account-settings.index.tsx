@@ -30,6 +30,8 @@ import { useSafetyState } from '@/components/safety/SafetyActions';
 import { useAppleHealth } from '@/lib/use-apple-health';
 import { Button } from '@/components/ui/button';
 import '@/components/profile/profile.css';
+import { NewSettings } from '@/components/redesign/NewSettings';
+import { useAppPrefs, useAppVersion, useSetAppVersion } from '@/hooks/use-app-version';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -45,8 +47,42 @@ export const Route = createFileRoute("/_authenticated/account-settings/")({
     { property: 'og:description', content: 'Your Pactara account, preferences and privacy settings.' },
     { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' },
   ] }),
-  component: AccountSettingsHub,
+  component: AccountSettingsRoute,
 });
+
+function AccountSettingsRoute() {
+  const version = useAppVersion();
+  return version === "new" ? <NewSettings /> : <AccountSettingsHub />;
+}
+
+/** Classic only: lets rollout members return to the new Pactara. */
+function GoBackToNewBanner() {
+  const { data: prefs } = useAppPrefs();
+  const setVersion = useSetAppVersion();
+  const [busy, setBusy] = useState(false);
+  if (!prefs?.new_version_enabled) return null;
+  return (
+    <div className="px-5 pt-5">
+      <button
+        type="button"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true);
+          try { await setVersion("new"); window.location.replace("/home"); } catch { setBusy(false); }
+        }}
+        className="w-full flex items-center gap-3 px-4 py-4 text-left text-white disabled:opacity-70"
+        style={{ borderRadius: 16, background: "#7C3AED" }}
+      >
+        <Sparkles size={22} className="shrink-0" />
+        <span className="flex-1 min-w-0">
+          <span className="block text-[16px] font-bold">Go back to the new Pactara</span>
+          <span className="block text-[13px] opacity-90">Feed, plans and creators. Your data is the same.</span>
+        </span>
+        <ChevronRight size={20} className="shrink-0" />
+      </button>
+    </div>
+  );
+}
 
 function AccountSettingsHub() {
   const health = useAppleHealth();
@@ -106,6 +142,7 @@ function AccountSettingsHub() {
         </button>
         <div className="text-[18px] font-bold">Account settings</div>
       </header>
+      <GoBackToNewBanner />
 
       <section className="px-5 pt-5">
         <div
