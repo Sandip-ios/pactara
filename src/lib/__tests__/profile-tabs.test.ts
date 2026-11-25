@@ -24,6 +24,13 @@ describe('profile badges', () => {
     expect(profileBadges(earned, 0, true, 'José').next?.progress).toBe(0);
     expect(profileBadges([], 100, true, 'José').next?.progress).toBe(1);
   });
+  it.each([true, false])('assigns every medal cell state for own=%s', own => {
+    const states = (badges: typeof earned, streak: number) => profileBadges(badges, streak, own, 'Maya').cells.map(cell => cell.state);
+    expect(states(earned, 18)).toEqual(['earned', 'earned', 'earned', 'earned', 'next', 'locked', 'locked', 'locked', 'locked']);
+    expect(states(earned, 0)).toEqual(['earned', 'earned', 'earned', 'earned', 'next', 'locked', 'locked', 'locked', 'locked']);
+    expect(states([], 0)).toEqual(['next', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked', 'locked']);
+    expect(states(BADGE_MILESTONES.map(streakDays => ({ streakDays, earnedAt: '2026-09-01' })), 90)).toEqual(Array(9).fill('earned'));
+  });
   it('uses the singular freeze wording', () => expect(freezeHint(1)).toBe('Missed a day? Use your 1 freeze to keep your streak.'));
   it('uses the plural freeze wording', () => expect(freezeHint(2)).toBe('Missed a day? Use one of your 2 freezes to keep your streak.'));
 });

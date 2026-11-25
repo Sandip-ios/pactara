@@ -3,16 +3,30 @@ import { Button } from '@/components/ui/button';
 import { freezeHint, profileBadges, type ProfileStats } from '@/lib/profile-tabs';
 import './profile-tabs.css';
 
+function Medal({ n, size, state, progress }: { n: number; size: number; state: 'earned' | 'next' | 'locked'; progress: number }) {
+  const r = size / 2;
+  const circumference = 2 * Math.PI * (r - 3);
+  const tier = n <= 3 ? 'violet' : n <= 14 ? 'amber' : n <= 45 ? 'sky' : n <= 75 ? 'pink' : 'gold';
+  return <svg className={`profile-medal ${state} tier-${tier}`} width={size} height={size} viewBox={`0 0 ${size} ${size}`} role="img" aria-label={`${n}-day badge, ${state === 'earned' ? 'earned' : 'locked'}`}>
+    {state === 'earned' ? <>
+      <circle className="profile-medal-earned" cx={r} cy={r} r={r - 2} />
+      <circle className="profile-medal-inner" cx={r} cy={r} r={r - 9} fill="none" strokeOpacity={0.7} strokeWidth={2} />
+    </> : <circle className="profile-medal-locked" cx={r} cy={r} r={r - 3} strokeWidth={5} />}
+    {state === 'next' && <circle className="profile-medal-ring" cx={r} cy={r} r={r - 3} fill="none" strokeWidth={5} strokeLinecap="round" strokeDasharray={`${circumference * progress} ${circumference}`} transform={`rotate(-90 ${r} ${r})`} />}
+    <text className="profile-medal-number" x={r} y={r + size * 0.13} textAnchor="middle" fontSize={size * 0.36} fontWeight={800}>{n}</text>
+  </svg>;
+}
+
 export function ProfileBadges({ earned, streak, own, firstName, freezes }: { earned: { streakDays: number; earnedAt: string }[]; streak: number; own: boolean; firstName: string; freezes: number }) {
   const view = profileBadges(earned, streak, own, firstName);
   return <>
     {view.next && <section className="profile-card profile-next-badge">
-      <div className="profile-next-row"><img className="profile-badge-art locked" src={view.next.image} alt={view.next.title} width={84} height={84} /><div className="profile-next-copy"><div className="profile-next-label">{view.next.label}</div><div className="profile-next-title">{view.next.title}</div><div className="profile-next-text">{view.next.text}</div></div></div>
+      <div className="profile-next-row"><Medal n={view.next.milestone} size={84} state="next" progress={streak / view.next.milestone} /><div className="profile-next-copy"><div className="profile-next-label">{view.next.label}</div><div className="profile-next-title">{view.next.title}</div><div className="profile-next-text">{view.next.text}</div></div></div>
       <progress className="profile-progress profile-badge-progress" aria-label={view.next.ariaLabel} value={view.next.progress} max={view.next.milestone} />
       {own && freezes > 0 && <div className="profile-badge-freeze"><Snowflake size={15} />{freezeHint(freezes)}</div>}
     </section>}
     <section className="profile-card profile-tab-card"><div className="profile-tab-heading"><h2>Streak badges</h2><span className="profile-earned-count">{view.earned} of 9</span></div><div className="profile-badge-grid">
-      {view.cells.map(cell => <div key={cell.milestone} className={`profile-badge-cell ${cell.state}`}><img className={`profile-badge-art ${cell.state === 'earned' ? '' : 'locked'}`} src={cell.image} alt={cell.title} width={60} height={60} loading="lazy" /><span className="profile-badge-title">{cell.title}</span><span className="profile-badge-caption">{cell.caption}</span></div>)}
+      {view.cells.map(cell => <div key={cell.milestone} className={`profile-badge-cell ${cell.state}`}><Medal n={cell.milestone} size={60} state={cell.state} progress={streak / cell.milestone} /><span className="profile-badge-title">{cell.title}</span><span className="profile-badge-caption">{cell.caption}</span></div>)}
     </div></section>
   </>;
 }
