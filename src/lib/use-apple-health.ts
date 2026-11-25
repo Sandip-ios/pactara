@@ -43,6 +43,5 @@ export function useAppleHealth() {
     else { setError('Health access is unavailable. You can change permissions in the Health app.'); setBusy(false); }
     return ok;
   }
-  return { ready, prefsQuery: prefs, syncQuery: sync, // TODO: remove Apple Health diagnostics after debugging
-     available: available && !prefs.isError && sync.data?.ok !== false, userId, prefs: prefs.data, connected, workouts, lastSynced: sync.data?.syncedAt ?? null, busy, error, connect, update };
+  return { ready, available: available && !prefs.isError && sync.data?.ok !== false, userId, prefs: prefs.data, connected, workouts, lastSynced: sync.data?.syncedAt ?? null, busy, error, connect, update };
 }
