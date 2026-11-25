@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Profile Phase 3: approved Badges/Stats tabs, crew-scoped charts and insights, privacy; 390px/500px browser-only layout checks, typecheck and 544 tests passed; no database test rows or publishing
+- [ ] Profile Phase 3 live data / crew switching / lifts navigation verification: existing-account sign-in unavailable; no test accounts or database rows created
+
 - [x] Profile Phase 2: approved profile/Edit profile layouts, weekly freeze, nudge states, setup progress and Health in Settings; browser-only layout checks and focused/full tests passed (unpublished)
 - [ ] Profile Phase 2 live save/freeze verification: needs an available signed-in account; no test accounts or database rows created
 

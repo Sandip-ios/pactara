@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { isVideoPath, signFeedMedia } from "./media-urls";
 import { bestStreak, currentStreak, localDateIn, pastDays, weekCounts, weeklyTarget, weeksOnGoal } from "./streak-rules";
 import { profileWeek, profileNudge } from './profile-view';
+import { profileStats } from './profile-tabs';
 
 // Streaks and day grids use the member's own local dates (profiles.timezone).
 export type ProfileMedia = {
@@ -244,6 +245,8 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     return {
       isSelf,
+      blocked,
+      stats: blocked ? null : profileStats({ joinedOn: localDateIn(timezone, new Date(joinedAt)), today, checkIns: dates, covered: frozenDates, target: target ?? 0 }),
       blockedByMe: !!ownBlock,
       nudgeState,
       createdAt: profile?.created_at ?? null,
@@ -294,7 +297,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
             myOrder.indexOf(a.id) - myOrder.indexOf(b.id),
         ),
       media,
-      badges,
+      badges: blocked ? [] : badges,
       totalCheckIns: dates.length,
       currentStreak: current,
       bestStreak: best,
