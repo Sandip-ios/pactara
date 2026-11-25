@@ -267,6 +267,7 @@ export const acceptPartnership = createServerFn({ method: "POST" })
     const myName = iAmOne ? n1 : n2;
     const recipients = await filterOptedIn([other], "nudges_enabled");
     await pushToUsers(recipients, {
+      actorUserId: userId,
       title: `${myName} is in 🔥`,
       body: `Your ${srv.PARTNER_DAYS}-day accountability partnership is ready.`,
       url: `/pact/${group.id}`,

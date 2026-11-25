@@ -210,6 +210,7 @@ export async function searchForPartner(userId: string, opts: { goal?: string | n
 
     const recipients = await filterOptedIn([c.user_id as string], "nudges_enabled");
     await pushToUsers(recipients, {
+      actorUserId: userId,
       title: "You've got an accountability partner 🔥",
       body: "Someone's ready to show up with you.",
       url: "/partner",

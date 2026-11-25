@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Profile safety: approved report/block menus, bilateral server enforcement, hidden posts, blocked people settings, admin review and focused tests (do not publish)
+- [x] Profile safety: approved report/block menus, bilateral server enforcement, hidden posts, blocked people settings, admin review and focused tests (unpublished)
 
 - [x] Free plan starts: plan-only paywalls removed, server restrictions audited, start/resume/switch/workout flows tested (unpublished)
 
