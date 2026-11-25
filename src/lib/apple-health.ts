@@ -51,5 +51,9 @@ export async function appleHealthDiagnostics(): Promise<string> {
     const r = await Promise.race([Health.isAvailable(), new Promise<'timeout'>(res => { timer = setTimeout(() => res('timeout'), 15000); })]);
     avail = r === 'timeout' ? 'timeout' : JSON.stringify(r);
   } catch (e) { avail = `err:${e instanceof Error ? e.message : String(e)}`; } finally { if (timer) clearTimeout(timer); }
-  return `native:${native} plat:${plat} plugin:${plugin} avail:${avail}`;
+  const w = (typeof window !== 'undefined' ? (window as any).Capacitor : undefined);
+  let headers = 'none';
+  try { const names = w?.PluginHeaders?.map((h: any) => h.name); if (Array.isArray(names) && names.length) headers = names.join(','); } catch { headers = 'none'; }
+  const cap = w?.version ? ` cap:${String(w.version)}` : '';
+  return `native:${native} plat:${plat} plugin:${plugin} avail:${avail} headers:${headers}${cap}`;
 }
