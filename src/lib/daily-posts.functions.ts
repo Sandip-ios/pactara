@@ -264,6 +264,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       planDay?: { userPlanId: string; week: number; day: number } | null;
       workoutSessionId?: string | null;
       healthWorkout?: HealthWorkout | null;
+      shareWithFollowers?: boolean;
     }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
@@ -278,6 +279,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
           : null,
       workoutSessionId: typeof input?.workoutSessionId === "string" ? input.workoutSessionId.slice(0, 64) : null,
       healthWorkout: input?.healthWorkout ? healthWorkoutSchema.parse(input.healthWorkout) : null,
+      shareWithFollowers: input?.shareWithFollowers === true,
     }),
   )
   .handler(async ({ data, context }) => {
@@ -295,6 +297,14 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     const { count: previousCount, error: countError } = await supabase.from('check_ins').select('id', { count: 'exact', head: true }).eq('user_id', userId);
     const firstCheckIn = !countError && previousCount === 0;
     // Save Health crew copies and feed posts in one idempotent transaction.
+    let shareWithFollowers = false;
+    if (data.shareWithFollowers) {
+      const { followersChoice } = await import('./new-checkin-form');
+      const { isUnder18 } = await import('./redesign-profile');
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+      const { data: me } = await supabaseAdmin.from('profiles').select('birthday').eq('id', userId).maybeSingle();
+      shareWithFollowers = followersChoice(true, !me || isUnder18((me as { birthday?: string | null }).birthday ?? null));
+    }
     const healthPosted = new Map<string, string>();
     if (data.healthWorkout) {
       const { data: rows, error } = await supabase.rpc('post_health_check_in', {
@@ -303,6 +313,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       });
       if (error) throw new Error('This Health workout could not be posted. It may already have been used.');
       for (const row of rows ?? []) healthPosted.set(row.crew_id, row.check_in_id);
+      // Owner-only flag on the caller's own new rows (no client UPDATE policy on check_ins).
+      if (shareWithFollowers && healthPosted.size) await (await import('@/integrations/supabase/client.server')).supabaseAdmin.from('check_ins').update({ share_with_followers: true }).in('id', [...healthPosted.values()]).eq('user_id', userId);
     }
 
     const today = localDateFor(timezone);
@@ -325,6 +337,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
           photo_url: data.photoUrl,
           mood: data.mood,
           activity: data.activity,
+          share_with_followers: shareWithFollowers,
         })
         .select("id")
         .single();

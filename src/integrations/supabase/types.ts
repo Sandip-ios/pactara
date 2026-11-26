@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -100,6 +95,7 @@ export type Database = {
           mood: string | null
           note: string | null
           photo_url: string | null
+          share_with_followers: boolean
           user_id: string
         }
         Insert: {
@@ -112,6 +108,7 @@ export type Database = {
           mood?: string | null
           note?: string | null
           photo_url?: string | null
+          share_with_followers?: boolean
           user_id: string
         }
         Update: {
@@ -124,6 +121,7 @@ export type Database = {
           mood?: string | null
           note?: string | null
           photo_url?: string | null
+          share_with_followers?: boolean
           user_id?: string
         }
         Relationships: [
@@ -2589,3 +2587,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

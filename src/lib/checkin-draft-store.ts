@@ -19,6 +19,9 @@ export type CheckInDraft = {
   /** The logged workout this check-in posts with, if any. */
   workout?: WorkoutCheckIn | null;
   health?: { userId: string; workout: HealthWorkout } | null;
+  /** New version: picked crews and followers choice. */
+  groupIds?: string[] | null;
+  shareWithFollowers?: boolean;
   savedAt: number;
 };
 

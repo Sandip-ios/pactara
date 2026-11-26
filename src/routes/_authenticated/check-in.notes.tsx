@@ -21,12 +21,14 @@ import { clearPlanCheckIn, getPlanCheckIn, setPlanCheckIn, type PlanCheckIn } fr
 import type { PlanDayResult } from "@/lib/workout-plans";
 import { clearWorkoutCheckIn, getWorkoutCheckIn, setWorkoutCheckIn, type WorkoutCheckIn } from "@/lib/active-workout";
 import { pendingHealthWorkout, attachHealthWorkout, clearHealthWorkout, isAppleHealthPlatform } from '@/lib/apple-health';
-import { healthWorkoutSchema, healthWorkoutName, type HealthWorkout } from '@/lib/health-workouts';
+import { healthWorkoutSchema, healthWorkoutName, healthStats, type HealthWorkout } from '@/lib/health-workouts';
 import { HealthPostedStats } from '@/components/health/HealthUI';
 import { HealthPrompt } from '@/components/health/HealthPrompt';
 import { useAppVersion } from "@/hooks/use-app-version";
 import { NewCheckInDone } from "@/components/redesign/NewCheckInDone";
-import { clearNewCheckIn, readNewCheckIn } from "@/lib/redesign-checkin";
+import { clearNewCheckIn, readNewCheckIn, writeNewCheckIn } from "@/lib/redesign-checkin";
+import { NewCheckInCompose, type ComposeCrewChip } from "@/components/redesign/NewCheckInCompose";
+import { restoreCrewSelection } from "@/lib/new-checkin-form";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { Button } from "@/components/ui/button";
 
@@ -143,7 +145,9 @@ function NotesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const version = useAppVersion();
-  const autoSubmitted = useRef(false);
+  const [selected, setSelectedState] = useState<string[] | null>(null);
+  const [followers, setFollowers] = useState(false);
+  const draftGroupIds = useRef<string[] | null>(null);
   const noteAfterDone = useRef(false);
   const [newDoneOpen, setNewDoneOpen] = useState(true);
   const [doneGroups, setDoneGroups] = useState<GroupToday[]>([]);
@@ -167,6 +171,17 @@ function NotesPage() {
   });
   const myGroups = groupsData?.groups ?? [];
   const { data: partnerState } = usePartnerState();
+  const { data: todayData } = useQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 30_000, enabled: version === "new" });
+  const composeCrews: ComposeCrewChip[] = (todayData?.groups ?? []).map((g) => {
+    const relation = relationForGroup(g.id, partnerState);
+    return { id: g.id, name: relation?.name ?? g.name, emoji: relation?.emoji ?? g.emoji ?? null, inToday: g.members.find((m) => m.isYou)?.status === "done" };
+  });
+  const setSelected = (ids: string[]) => {
+    setSelectedState(ids);
+    const session = readNewCheckIn();
+    writeNewCheckIn({ groupIds: ids, returnCrewId: session?.returnCrewId ?? null, ...(session?.returnToActivity ? { returnToActivity: true } : {}) });
+  };
+  const picked = selected ?? [];
   const activeGroupName = (() => {
     const id = getActiveGroupId();
     const g = myGroups.find((x) => (x.id as string) === id) ?? myGroups[0];
@@ -240,6 +255,8 @@ function NotesPage() {
         });
       }
       setAllGroups(draft.allGroups ?? false);
+      draftGroupIds.current = draft.groupIds ?? null;
+      setFollowers(draft.shareWithFollowers === true);
       setDraftRestored(true);
     });
     return () => {
@@ -309,6 +326,7 @@ function NotesPage() {
       planDay?: { userPlanId: string; week: number; day: number } | null;
       workoutSessionId?: string | null;
       healthWorkout?: HealthWorkout | null;
+      shareWithFollowers?: boolean;
     }) =>
       recordCheckInFn({ data: vars }),
   });
@@ -318,7 +336,11 @@ function NotesPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const newSelection = version === "new" ? readNewCheckIn()?.groupIds : null;
+      const newSelection = version === "new" ? picked : null;
+      if (version === "new") {
+        if (!picked.length) return;
+        try { localStorage.setItem("active-group-id", picked[0]!); } catch { /* private mode */ }
+      }
       const activeGroupId = newSelection?.[0] ?? getActiveGroupId();
       let photoUrl: string | undefined;
       const photo = getCheckInPhoto();
@@ -351,6 +373,7 @@ function NotesPage() {
           planDay: planDay ? { userPlanId: planDay.userPlanId, week: planDay.week, day: planDay.day } : null,
           workoutSessionId: workout?.sessionId ?? null,
           healthWorkout,
+          ...(version === "new" && followers ? { shareWithFollowers: true } : {}),
         }),
         POST_TIMEOUT_MS,
         "Posting timed out. Please try again.",
@@ -426,13 +449,12 @@ function NotesPage() {
     }
   };
 
+  // New version: pick the default crews once (draft, then this session, then not-in-yet crews).
   useEffect(() => {
-    if (version !== "new" || !photoPreview || !groupsData || draftRestored || autoSubmitted.current) return;
-    autoSubmitted.current = true;
-    void submit();
-    // Capture state is restored before this runs; never auto-retry a failed post.
+    if (version !== "new" || selected !== null || !todayData) return;
+    setSelected(restoreCrewSelection(draftGroupIds.current ?? readNewCheckIn()?.groupIds, composeCrews));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [version, photoPreview, groupsData, draftRestored]);
+  }, [version, todayData, draftRestored]);
 
   const saveDraft = async () => {
     if (savingDraft) return;
@@ -449,6 +471,7 @@ function NotesPage() {
         planDay,
         workout,
         health: healthWorkout && healthUserId ? { userId: healthUserId, workout: healthWorkout } : null,
+        ...(version === "new" ? { groupIds: picked, shareWithFollowers: followers } : {}),
       });
       if (ok) {
         // The draft now owns the blob; drop the in-memory copy and go home,
@@ -511,12 +534,17 @@ function NotesPage() {
       className="min-h-[100dvh] w-full bg-white flex flex-col"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      {version === "new" ? <div className="redesign-step3 fixed inset-0 bg-[var(--new-bg)] px-4 pt-[72px] text-center text-[var(--new-ink)]">
-        {!shareData && <><h1 className="text-[24px] font-extrabold">{isBusy ? "Saving your check-in" : submitError ? "Your video is still here" : "Your check-in"}</h1>
-          {submitError && <p role="alert" className="mt-3 text-[15px] text-[var(--new-muted)]">{submitError.replaceAll("—", ",")}</p>}
-          {!isBusy && <><Button variant="ghost" disabled={!photoPreview} onClick={() => void submit()} className="mt-5 h-[52px] w-full rounded-full bg-[var(--new-purple)] text-[var(--new-white)]">{submitError ? "Try again" : "Save check-in"}</Button><Button variant="ghost" onClick={() => void saveDraft()} disabled={savingDraft} className="mt-3 h-[52px] w-full rounded-full bg-[var(--new-soft)] text-[var(--new-purple-text)]">Save as draft</Button></>}
-        </>}
-      </div> : <>
+      {version === "new" ? (!shareData ? <NewCheckInCompose
+        src={photoPreview} isVideo={!!getCheckInPhoto()?.blob.type.startsWith("video/")}
+        note={note} onNote={setNote} tags={ACTIVITIES} tag={activity} onTag={setActivity}
+        hasHealth={!!healthWorkout}
+        attached={workout ? { title: workout.title, line: workout.line } : planDay ? { title: planDay.planName, line: `Week ${planDay.week} · Day ${planDay.day}` } : healthWorkout ? { title: healthWorkoutName(healthWorkout.type), line: healthStats(healthWorkout) } : null}
+        crews={composeCrews} selected={picked} onSelected={setSelected}
+        followers={followers} onFollowers={setFollowers}
+        posting={isBusy} error={submitError ? submitError.replaceAll(" — your", ". Your").replaceAll("—", ",") : null}
+        draftRestored={draftRestored} savingDraft={savingDraft}
+        onBack={() => navigate({ to: "/check-in/camera" })} onPost={() => void submit()} onDraft={() => void saveDraft()}
+      /> : null) : <>
       {/* Header */}
       <div className="relative h-14 flex items-center justify-center border-b border-neutral-200 px-4 shrink-0">
         <button

@@ -659,6 +659,13 @@
       "when": 1795724562417,
       "tag": "0093_pactara_discover_workout_names",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1795730928876,
+      "tag": "0094_check_in_share_with_followers",
+      "breakpoints": true
     }
   ]
 }

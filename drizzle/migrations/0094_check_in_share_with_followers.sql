@@ -1,0 +1,1 @@
+ALTER TABLE public.check_ins ADD COLUMN share_with_followers boolean NOT NULL DEFAULT false;

@@ -176,3 +176,10 @@
 
 - [x] Logger rest bar: on warm gray under the white band, 48px, pinned; screenshot p4-7b
 - [x] Workout cover library: 24 credited Unsplash photos in Pactara asset storage, three per focus with equipment variants; stable new-only cover keys from detailed primary muscles/equipment, Pactara plan covers and single-exercise drawings preserved; three 390px captures in public/qa/p4-9c.json; temporary QA accounts/workouts removed; unpublished.
+
+## Phase 5 step 1a: New check-in page (new version only)
+- [x] Camera records only ("5-second check-in" label, record always enabled, already-in note)
+- [x] New check-in page: clip, description, Tag it, workout card, crews, followers switch, pinned button, already-in note, draft keeps crews and followers
+- [x] Followers choice saved per check-in (default off, off for under-18); nothing reads it yet
+- [x] QA: six 390x844 screenshots in public/qa/p5-1a-*.png
+- [ ] Step 1b: extra same-day check-ins rules
