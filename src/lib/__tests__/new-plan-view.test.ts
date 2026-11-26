@@ -28,8 +28,8 @@ describe("this week", () => {
   it("paused shows today as a plain training day", () => {
     expect(thisWeekCells({ ...base, paused: true })[3]!.state).toBe("upcoming");
   });
-  it("days before the start date are rest", () => {
-    expect(thisWeekCells({ ...base, doneDates: [], startsOn: "2026-11-25" }).map((c) => c.state).slice(0, 3)).toEqual(["rest", "rest", "missed"]);
+  it("days before the start date are their own state", () => {
+    expect(thisWeekCells({ ...base, doneDates: [], startsOn: "2026-11-25" }).map((c) => c.state).slice(0, 3)).toEqual(["before", "before", "missed"]);
   });
 });
 

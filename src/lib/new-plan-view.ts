@@ -57,11 +57,11 @@ export const shortDate = (iso: string) => {
 };
 export const longDate = (iso: string) => `${WEEKDAY_NAMES[weekdayIndex(iso)]}, ${shortDate(iso)}`;
 
-export type WeekCell = "done" | "today" | "upcoming" | "rest" | "missed";
+export type WeekCell = "done" | "today" | "upcoming" | "rest" | "missed" | "before";
 
 /**
  * This calendar week (Mon-Sun). Done = a plan workout logged that day; rest =
- * not a training day (or before the start date); today = training day not yet
+ * not a training day; before = ahead of the start date (no state yet); today = training day not yet
  * done (unless paused); missed = a past training day with nothing logged.
  */
 export function thisWeekCells(input: {
@@ -77,7 +77,8 @@ export function thisWeekCells(input: {
     const date = addDaysIso(monday, i);
     let state: WeekCell;
     if (done.has(date)) state = "done";
-    else if (!input.trainingDays.includes(i) || (input.startsOn && date < input.startsOn)) state = "rest";
+    else if (input.startsOn && date < input.startsOn) state = "before";
+    else if (!input.trainingDays.includes(i)) state = "rest";
     else if (date === input.today) state = input.paused ? "upcoming" : "today";
     else if (date < input.today) state = "missed";
     else state = "upcoming";

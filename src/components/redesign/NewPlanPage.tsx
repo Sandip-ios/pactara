@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
-  CalendarDays, Check, ChevronLeft, ChevronRight, CircleX, Dumbbell, Minus, Moon, MoreHorizontal, Pause, Play, Share, Users, Zap,
+  CalendarDays, Check, ChevronLeft, ChevronRight, CircleX, Minus, Moon, MoreHorizontal, Pause, Play, Share, Users, Zap,
 } from "lucide-react";
 import { coverThumb } from "@/lib/plan-filters";
 import { dayForWeek, dayMinutes, scheduleForWeek, weekNoteFor, type Plan } from "@/lib/workout-plans";
@@ -19,7 +19,7 @@ import { getActiveWorkout } from "@/lib/active-workout";
 import { useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { PlanSharePanel } from "@/components/plans/PlanSharePanel";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
-import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetMenuIcon, NewSheetRow, NewSheetChevron } from "./NewSheet";
+import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetRow, NewSheetChevron } from "./NewSheet";
 import { NewConfirm } from "./NewConfirm";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 
@@ -67,9 +67,9 @@ function useBack() {
   };
 }
 
-function CircleButton({ label, onClick, children, solid = false }: { label: string; onClick: () => void; children: React.ReactNode; solid?: boolean }) {
+function CircleButton({ label, onClick, children, tone }: { label: string; onClick: () => void; children: React.ReactNode; tone?: string }) {
   return (
-    <button type="button" aria-label={label} onClick={onClick} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: solid ? "#FFFFFF" : "rgba(255,255,255,.82)", color: INK, backdropFilter: "blur(8px)" }}>
+    <button type="button" aria-label={label} onClick={onClick} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: tone ?? "rgba(255,255,255,.82)", color: INK, backdropFilter: tone ? undefined : "blur(8px)" }}>
       {children}
     </button>
   );
@@ -110,7 +110,7 @@ function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActive
 
       <section className="flex flex-col gap-3 bg-white px-5 pb-5 pt-5">
         <span className="text-[12px] font-extrabold uppercase tracking-[0.5px]" style={{ color: PURPLE }}>Pactara plan · {plan.level}</span>
-        <h1 className="-mt-1 text-[26px] font-extrabold leading-tight tracking-[-0.4px]">{plan.name}</h1>
+        <h1 className="-mt-2 text-[24px] font-extrabold leading-tight tracking-[-0.4px]">{plan.name}</h1>
         <div className="grid grid-cols-3 gap-2">
           <StatTile value={String(plan.weeks)} label="weeks" />
           <StatTile value={String(plan.daysPerWeek)} label="days a week" />
@@ -389,20 +389,22 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
 
   return (
     <div className="fixed inset-0 overflow-y-auto overscroll-none" data-scroll-root style={{ background: PAGE, fontFamily: FONT, color: INK }}>
-      <div className="flex flex-col gap-3 px-4 pt-new-top" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-col gap-3 bg-white px-4 pb-4 pt-new-top">
         <header className="grid grid-cols-[44px_1fr_44px] items-center">
-          <CircleButton label="Back" onClick={back} solid><ChevronLeft size={24} /></CircleButton>
+          <CircleButton label="Back" onClick={back} tone="#F0EDE8"><ChevronLeft size={24} /></CircleButton>
           <h1 className="truncate px-2 text-center text-[17px] font-bold">{plan.name}</h1>
-          <CircleButton label="Plan options" onClick={() => setMenuOpen(true)} solid><MoreHorizontal size={22} /></CircleButton>
+          <CircleButton label="Plan options" onClick={() => setMenuOpen(true)} tone="#F0EDE8"><MoreHorizontal size={22} /></CircleButton>
         </header>
 
         <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-[26px] font-extrabold tracking-[-0.4px]">Week {active.currentWeek} of {plan.weeks}</span>
+          <span className="text-[22px] font-extrabold tracking-[-0.3px]">Week {active.currentWeek} of {plan.weeks}</span>
           <span className="text-[14px]" style={{ color: MUTED }}>{active.workoutsDone} of {total} workouts</span>
         </div>
         <span className="block h-1.5 overflow-hidden rounded-full" style={{ background: "#E7E3DE" }} role="progressbar" aria-label="Plan progress" aria-valuemin={0} aria-valuemax={total} aria-valuenow={active.workoutsDone}>
           <span className="block h-full rounded-full" style={{ background: PURPLE, width: `${Math.min(100, (active.workoutsDone / Math.max(1, total)) * 100)}%` }} />
         </span>
+      </div>
+      <div className="flex flex-col gap-3 px-4" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
 
         <Label>Today</Label>
         <div className="flex flex-col gap-3 rounded-[18px] bg-white p-3.5" data-today-card>
@@ -433,14 +435,13 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
                 </>
               )}
             </span>
-            <ChevronRight size={20} className="shrink-0" style={{ color: "#A8A29E" }} aria-hidden />
           </button>
           {card.kind === "workout" && (
             <>
-              <button type="button" disabled={busy} onClick={() => void startWorkout()} className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full text-[17px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
-                <Play size={18} fill="currentColor" aria-hidden /> Start workout
+              <button type="button" disabled={busy} onClick={() => void startWorkout()} className="flex h-11 w-full items-center justify-center gap-2 rounded-full text-[16px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
+                <Play size={16} fill="currentColor" aria-hidden /> Start workout
               </button>
-              {run?.crewName && <p className="text-center text-[13px]" style={{ color: MUTED }}>When you finish, checking in to {run.crewName} takes 5 seconds.</p>}
+              {run?.crewName && <p className="-mt-1 text-center text-[12px]" style={{ color: MUTED }}>When you finish, checking in to {run.crewName} takes 5 seconds.</p>}
             </>
           )}
           {card.kind === "paused" && (
@@ -482,27 +483,28 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
               )}
             </div>
           ))}
+          {!allWeeks && shownRows.length < rows.length && (
+            <button type="button" onClick={() => setAllWeeks(true)} className="block w-full px-3.5 py-3.5 text-left text-[14px] font-bold" style={{ color: PURPLE, borderTop: "1px solid #F0EDE9" }}>
+              Show weeks {shownRows.length + 1} to {plan.weeks}
+            </button>
+          )}
         </div>
-        {!allWeeks && shownRows.length < rows.length && (
-          <button type="button" onClick={() => setAllWeeks(true)} className="self-center px-2 py-2 text-[14px] font-bold" style={{ color: PURPLE }}>
-            Show weeks {shownRows.length + 1} to {plan.weeks}
-          </button>
-        )}
       </div>
 
       <NewSheet open={menuOpen} onOpenChange={setMenuOpen} title={plan.name} hideTitle>
         <div data-plan-menu>
-          <NewSheetRow simple leading={<NewSheetMenuIcon><CalendarDays /></NewSheetMenuIcon>} title="Change training days" trailing={<NewSheetChevron />} onClick={() => { setMenuOpen(false); setDraftDays(trainingDays); setDaysOpen(true); }} />
-          <NewSheetRow simple leading={<NewSheetMenuIcon><Share /></NewSheetMenuIcon>} title="Share plan" trailing={<NewSheetChevron />} onClick={() => { setMenuOpen(false); setShareOpen(true); }} />
+          <NewSheetRow simple className={MENU_ROW} leading={<CalendarDays />} title="Change training days" trailing={<NewSheetChevron />} onClick={() => { setMenuOpen(false); setDraftDays(trainingDays); setDaysOpen(true); }} />
+          <NewSheetRow simple className={MENU_ROW} leading={<Share />} title="Share plan" trailing={<NewSheetChevron />} onClick={() => { setMenuOpen(false); setShareOpen(true); }} />
           <NewSheetRow
             simple
-            leading={<NewSheetMenuIcon>{paused ? <Play /> : <Pause />}</NewSheetMenuIcon>}
+            className={MENU_ROW}
+            leading={paused ? <Play /> : <Pause />}
             title={paused ? "Resume plan" : "Pause plan"}
             trailing={paused ? undefined : <span className="text-[13px] font-normal" style={{ color: MUTED }}>Keeps your place</span>}
             onClick={() => void togglePause()}
           />
-          <div className="my-1 h-px" style={{ background: "#F0EDE9" }} />
-          <NewSheetRow simple destructive leading={<NewSheetMenuIcon><CircleX className="text-[var(--new-destructive)]" /></NewSheetMenuIcon>} title="End plan" onClick={() => { setMenuOpen(false); setEndOpen(true); }} />
+          <div className="h-px" style={{ background: "#F0EDE9" }} />
+          <NewSheetRow simple destructive className={MENU_ROW} leading={<CircleX className="text-[var(--new-destructive)]" />} title="End plan" onClick={() => { setMenuOpen(false); setEndOpen(true); }} />
         </div>
       </NewSheet>
 
@@ -534,8 +536,23 @@ function Label({ children }: { children: React.ReactNode }) {
 function WeekCellDot({ state, letter }: { state: ReturnType<typeof thisWeekCells>[number]["state"]; letter: string }) {
   const base = "flex h-10 w-10 items-center justify-center rounded-full";
   if (state === "done") return <span className={base} style={{ background: "#DCFCE7", color: "#15803D" }} aria-label="Done"><Check size={18} strokeWidth={3} /></span>;
-  if (state === "today") return <span className={base} style={{ background: PURPLE, color: "#FFFFFF" }} aria-label="Today's workout"><Dumbbell size={18} /></span>;
+  if (state === "today") return <span className={base} style={{ background: PURPLE, color: "#FFFFFF" }} aria-label="Today's workout"><HorizontalDumbbell /></span>;
+  if (state === "before") return <span className={`${base} text-[15px] font-bold`} style={{ background: "#F5F5F4", color: "#A8A29E" }} aria-label="Before your start date">{letter}</span>;
   if (state === "rest") return <span className={base} style={{ background: "#EDE9FE", color: PURPLE }} aria-label="Rest day"><Moon size={17} /></span>;
   if (state === "missed") return <span className={base} style={{ background: "#F0EDE8", color: "#A8A29E" }} aria-label="Missed"><Minus size={18} strokeWidth={3} /></span>;
   return <span className={`${base} text-[15px] font-bold`} style={{ background: "#F0EDE8", color: INK }} aria-label="Training day">{letter}</span>;
+}
+
+/** Menu rows: 56px, 22px icons, 16px/600 labels, no dividers (only the one above End plan). */
+const MENU_ROW = "!h-14 border-b-0 py-0";
+
+function HorizontalDumbbell() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M8 12h8" />
+      <rect x="4.5" y="7" width="3.5" height="10" rx="1" />
+      <rect x="16" y="7" width="3.5" height="10" rx="1" />
+      <path d="M2.5 10v4M21.5 10v4" />
+    </svg>
+  );
 }
