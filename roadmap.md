@@ -142,3 +142,14 @@
 - [x] Captures 38–43 into public/qa/pact.json (42 owner gap, 43 member gap)
 - [x] Crews tab: note removed, "N new" chat badge (new version; no crew limit)
 - [x] Phase 2 step 7: Notifications off banner, Settings screen, Settings row Off (new version)
+
+## Phase 4: Workouts and plans (new version only)
+- [x] Step 1: Discover shell (Workouts placeholder + Plans tab, ?tab=workouts|plans, goal chips, YOUR PLAN card with crewmate line, quiz/match card); 390px captures in public/qa/p4-1.json; classic /groups unchanged.
+- [ ] Step 2: Plan page with start, menu, end, progress
+- [ ] Step 3: Plan day
+- [ ] Step 4: Quiz
+- [ ] Step 5: Workout page (equipment, reps, tip fields)
+- [ ] Step 6: Builder
+- [ ] Step 7: Logger
+- [ ] Step 8: Exercise page
+- [ ] Step 9: Discover Workouts with Pactara + public workouts, saves and did-it counts

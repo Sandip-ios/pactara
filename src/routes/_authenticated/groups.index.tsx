@@ -3,11 +3,14 @@ import { useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PlansDiscover } from "@/components/plans/PlansDiscover";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewDiscover } from "@/components/redesign/NewDiscover";
+import { parseDiscoverTab } from "@/lib/new-discover";
 import { FILTER_KEYS, cleanFilter, readFilterParam, toFilterParam, type FilterKey, type PlanFilters } from "@/lib/plan-filters";
 
 type DiscoverSearch = {
   invite?: string;
-  tab?: "plans" | "crews";
+  tab?: "plans" | "crews" | "workouts";
   complete?: string;
   /** "1": open scrolled to All plans (from the quiz's "Browse all plans with my answers"). */
   list?: string | number;
@@ -23,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/groups/")({
   // Filters live in the URL (comma lists) so coming back from a plan keeps them.
   validateSearch: (s: Record<string, unknown>): DiscoverSearch => ({
     invite: typeof s.invite === "string" && s.invite ? s.invite : undefined,
-    tab: s.tab === "crews" || s.tab === "plans" ? s.tab : undefined,
+    tab: s.tab === "crews" || s.tab === "plans" || s.tab === "workouts" ? s.tab : undefined,
     complete: typeof s.complete === "string" && s.complete ? s.complete : undefined,
     list: readFilterParam(s.list),
     days: readFilterParam(s.days),
@@ -49,6 +52,46 @@ const D_INK = "#141218";
 const DISCOVER_TOP = "max(56px, calc(env(safe-area-inset-top) + 12px))";
 
 function DiscoverPage() {
+  const version = useAppVersion();
+  return version === "new" ? <NewDiscoverPage /> : <ClassicDiscoverPage />;
+}
+
+function useUrlFilters() {
+  const search = Route.useSearch();
+  return useMemo(() => {
+    const f = {} as PlanFilters;
+    for (const k of FILTER_KEYS) f[k] = cleanFilter(k, String(search[k] ?? "").split(","));
+    return f;
+  }, [search]);
+}
+
+function NewDiscoverPage() {
+  useStatusBarScrollToTop();
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const filters = useUrlFilters();
+  return (
+    <NewDiscover
+      tab={parseDiscoverTab(search.tab)}
+      onTab={(t) => navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t }), replace: true, resetScroll: false })}
+      filters={filters}
+      onFiltersChange={(f) =>
+        navigate({
+          to: "/groups",
+          search: (prev) => {
+            const next = { ...prev };
+            for (const k of FILTER_KEYS) next[k] = toFilterParam(f[k]);
+            return next;
+          },
+          replace: true,
+          resetScroll: false,
+        })
+      }
+    />
+  );
+}
+
+function ClassicDiscoverPage() {
   useStatusBarScrollToTop();
   const navigate = useNavigate();
   const search = Route.useSearch();
