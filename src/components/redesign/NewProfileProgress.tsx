@@ -48,15 +48,15 @@ export function NewProfileProgress() {
       <div className="new-progress-legend"><span><i className="is-workout" />Workout</span><span><i className="is-rest" />Rest day</span></div>
     </section>
     <div className="new-progress-label">Badges</div>
-    {next !== null && <section className="new-progress-card new-progress-next">
+    {next !== null && <section className="new-progress-card new-progress-next"><div className="new-progress-next-row">
       <Ring size={84} value={data.streak} max={next}><b className="new-progress-ring-num">{next}</b></Ring>
       <div className="new-progress-next-body">
         <div className="new-progress-next-kicker">NEXT BADGE</div>
         <div className="new-progress-next-name">{BADGE_META[next]?.title ?? `${next} days`}</div>
         <p>{nextBadgeLine(next, data.streak)}</p>
-        <div className="new-progress-bar"><span style={{ width: `${Math.min(100, (data.streak / next) * 100)}%` }} /></div>
-        {hint && <p className="new-progress-hint"><Snowflake size={14} color="#0369A1" aria-hidden />{hint}</p>}
-      </div>
+      </div></div>
+      <div className="new-progress-bar"><span style={{ width: `${Math.min(100, (data.streak / next) * 100)}%` }} /></div>
+      {hint && <p className="new-progress-hint"><Snowflake size={14} color="#0369A1" aria-hidden />{hint}</p>}
     </section>}
     <section className="new-progress-card new-progress-badges">
       <div className="new-progress-badges-head"><h2>Streak badges</h2><span>{earnedCount} of {tiles.length}</span></div>
