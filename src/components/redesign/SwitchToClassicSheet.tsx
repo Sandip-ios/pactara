@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, EyeOff } from "lucide-react";
-import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import { NewSheet, NewSheetButton, NewSheetChip } from "./NewSheet";
 import { supabase } from "@/integrations/supabase/client";
 import { nativePlatform } from "@/lib/native";
 import { useSetAppVersion } from "@/hooks/use-app-version";
@@ -31,11 +31,8 @@ export function SwitchToClassicSheet({ open, onOpenChange }: { open: boolean; on
   };
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="border-0 bg-white px-4 pb-[max(16px,env(safe-area-inset-bottom))]" style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24, fontFamily: "Inter, system-ui, sans-serif" }}>
-        <DrawerTitle className="pt-4 text-[20px] font-bold" style={{ color: "#1C1917" }}>Which Pactara do you want?</DrawerTitle>
-        <DrawerDescription className="mt-1 text-[14px]" style={{ color: "#57534E" }}>You can switch back any time in Settings.</DrawerDescription>
-        <div className="mt-4 grid grid-cols-2 gap-3">
+    <NewSheet open={open} onOpenChange={onOpenChange} title="Which Pactara do you want?" subtitle="You can switch back any time in Settings.">
+        <div className="grid grid-cols-2 gap-3">
           <VersionCard title="New Pactara" sub="Feed, plans, creators" preview={<NewPreview />} />
           <VersionCard title="Classic" sub="Crews and check-ins" preview={<ClassicPreview />} selected />
         </div>
@@ -48,14 +45,13 @@ export function SwitchToClassicSheet({ open, onOpenChange }: { open: boolean; on
           {REASONS.map((r) => {
             const on = reason === r;
             return (
-              <button key={r} type="button" aria-pressed={on} onClick={() => setReason(on ? null : r)} className="rounded-full px-3 text-[13px] font-semibold" style={{ minHeight: 36, background: on ? "#EDE4FF" : "#FFFFFF", color: on ? "#6D28D9" : "#1C1917", border: on ? `1px solid ${PURPLE}` : "1px solid #E7E3DE" }}>{r}</button>
+              <NewSheetChip key={r} selected={on} onClick={() => setReason(on ? null : r)}>{r}</NewSheetChip>
             );
           })}
         </div>
         {err && <div className="mt-3 rounded-xl bg-red-100 px-3 py-2 text-[13px] text-red-800">{err}</div>}
-        <button onClick={doSwitch} disabled={busy} className="mt-5 w-full text-[16px] font-bold text-white disabled:opacity-60" style={{ height: 52, borderRadius: 26, background: PURPLE }}>Switch to classic</button>
-      </DrawerContent>
-    </Drawer>
+        <NewSheetButton onClick={doSwitch} disabled={busy}>Switch to classic</NewSheetButton>
+    </NewSheet>
   );
 }
 

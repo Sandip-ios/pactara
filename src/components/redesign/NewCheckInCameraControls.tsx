@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ChevronDown, Dumbbell, SwitchCamera, X } from "lucide-react";
+import { ChevronDown, Dumbbell, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { NewSheet, NewSheetRow, NewSheetCheckbox, NewSheetButton } from "./NewSheet";
 import { getGroupsToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
 import { eligibleCrewIds, readNewCheckIn, writeNewCheckIn } from "@/lib/redesign-checkin";
@@ -61,22 +61,17 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
       </div>
       <p className="text-[15px] font-semibold" aria-live="polite">{recording ? `Recording · ${left} seconds left` : starting ? "Starting recording" : "Tap to record 5 seconds"}</p>
     </div>
-    <Drawer open={picker} onOpenChange={setPicker}>
-      <DrawerContent className="redesign-step3 rounded-t-[24px] border-0 bg-[var(--new-white)] px-5 pt-[10px] pb-[calc(env(safe-area-inset-bottom)+40px)] text-[var(--new-ink)] [&>div:first-child]:mt-0 [&>div:first-child]:mb-[14px] [&>div:first-child]:h-[5px] [&>div:first-child]:w-9 [&>div:first-child]:rounded-[3px] [&>div:first-child]:bg-[var(--new-handle)]">
-        <DrawerTitle className="m-0 text-[20px] font-extrabold">Check in to</DrawerTitle>
-        <DrawerDescription className="mt-1 text-[14px] text-[var(--new-muted)]">One video counts for every crew you pick.</DrawerDescription>
-        <div className="mt-[10px]">{groups.map((group) => {
+    <NewSheet open={picker} onOpenChange={setPicker} title="Check in to" subtitle="One video counts for every crew you pick.">
+        <div>{groups.map((group) => {
           const done = group.members.find((m) => m.isYou)?.status === "done";
           const counts = crewPageCounts(group.members);
           const checked = selected.includes(group.id);
-          return <Button key={group.id} variant="ghost" disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} className="h-auto w-full justify-start gap-3 whitespace-normal border-b border-[var(--new-divider)] px-0 py-[10px] text-left last:border-b-0 disabled:opacity-50">
-            <span className="w-[70px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={30} limit={3} /></span>
-            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{group.name}</span><span className="mt-1 block text-[12px] font-normal text-[var(--new-muted)]">{done ? "You're in" : `${counts.done} of ${counts.due} in today`}</span></span>
-            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] border ${checked ? "border-[var(--new-purple)] bg-[var(--new-purple)] text-[var(--new-white)]" : "border-[var(--new-muted)]"}`}>{checked && <Check className="!size-[18px]" />}</span>
-          </Button>;
+          return <NewSheetRow key={group.id} disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} title={group.name}
+            subtitle={done ? "You're in" : `${counts.done} of ${counts.due} in today`}
+            leading={<span className="w-[70px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={30} limit={3} /></span>}
+            trailing={<NewSheetCheckbox checked={checked} />} />;
         })}</div>
-        <Button variant="ghost" disabled={!selected.length} onClick={() => setPicker(false)} className="mt-4 h-[52px] w-full rounded-[26px] bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]">Done</Button>
-      </DrawerContent>
-    </Drawer>
+        <NewSheetButton disabled={!selected.length} onClick={() => setPicker(false)}>Done</NewSheetButton>
+    </NewSheet>
   </>;
 }

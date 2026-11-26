@@ -1,11 +1,11 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
-import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils, ChevronRight, UserRound } from "lucide-react";
+import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils, UserRound } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
-import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import { NewSheet, NewSheetRow, NewSheetIcon, NewSheetChevron } from "./NewSheet";
 
 const ACTIVE = "#6D28D9";
 const INACTIVE = "#57534E";
@@ -60,19 +60,15 @@ export function NewBottomTabs() {
           <span className="text-[11px]" style={{ color: isProfile ? ACTIVE : INACTIVE, fontWeight: isProfile ? 700 : 500 }}>Profile</span>
         </button>
       </nav>
-      <Drawer open={createOpen} onOpenChange={setCreateOpen}>
-        <DrawerContent className="border-0 bg-white pb-[max(16px,env(safe-area-inset-bottom))]" style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24, fontFamily: "Inter, system-ui, sans-serif" }}>
-          <DrawerTitle className="px-4 pt-4 pb-2 text-[17px] font-bold" style={{ color: "#1C1917" }}>Create</DrawerTitle>
-          <DrawerDescription className="sr-only">Pick what to create</DrawerDescription>
-          <div className="px-2 pb-2">
-            <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tileBg={PURPLE} tileFg="#FFFFFF" />
-            <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
-            <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" soon />
-            <CreateRow icon={<CalendarDays size={20} />} title="Build a plan" subtitle="A few weeks of your workouts, day by day" soon />
-            <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon tileBg="#FFEDE0" tileFg="#EA580C" />
-          </div>
-        </DrawerContent>
-      </Drawer>
+      <NewSheet open={createOpen} onOpenChange={setCreateOpen} title="Create" description="Pick what to create">
+        <div>
+          <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
+          <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
+          <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" soon />
+          <CreateRow icon={<CalendarDays size={20} />} title="Build a plan" subtitle="A few weeks of your workouts, day by day" soon />
+          <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon tone="meal" />
+        </div>
+      </NewSheet>
     </>
   );
 }
@@ -86,19 +82,8 @@ function Tab({ icon, label, active, onClick, onPointerDown }: { icon: ReactNode;
   );
 }
 
-function CreateRow({ icon, title, subtitle, onClick, soon, tileBg = "#EDE4FF", tileFg = PURPLE }: { icon: ReactNode; title: string; subtitle: string; onClick?: () => void; soon?: boolean; tileBg?: string; tileFg?: string }) {
-  return (
-    <button type="button" disabled={soon} onClick={onClick} className="w-full flex items-center gap-3 rounded-2xl px-2 py-3 text-left" style={{ opacity: soon ? 0.5 : 1 }}>
-      <span className="flex shrink-0 items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, background: tileBg, color: tileFg }}>{icon}</span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[15px] font-bold" style={{ color: "#1C1917" }}>{title}</span>
-        <span className="block text-[13px]" style={{ color: "#57534E" }}>{subtitle}</span>
-      </span>
-      {soon ? (
-        <span className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold" style={{ background: "#F4F2EF", color: "#78716C" }}>Soon</span>
-      ) : (
-        <ChevronRight size={20} className="shrink-0" style={{ color: "#A8A29E" }} />
-      )}
-    </button>
-  );
+function CreateRow({ icon, title, subtitle, onClick, soon, tone = "soft" }: { icon: ReactNode; title: string; subtitle: string; onClick?: () => void; soon?: boolean; tone?: "soft" | "primary" | "meal" }) {
+  return <NewSheetRow disabled={soon} onClick={onClick} title={title} subtitle={subtitle}
+    leading={<NewSheetIcon tone={tone}>{icon}</NewSheetIcon>}
+    trailing={soon ? <span className="shrink-0 rounded-full bg-[var(--new-control)] px-2 py-0.5 text-[11px] font-semibold text-[var(--new-muted)]">Soon</span> : <NewSheetChevron />} />;
 }
