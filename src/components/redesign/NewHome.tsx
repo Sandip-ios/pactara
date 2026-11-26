@@ -45,7 +45,7 @@ export function NewHome() {
       </header>
       {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}
       <div className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-4 py-1">
-        {isLoading ? <div className="h-24 animate-pulse" aria-label="Loading crews" /> : data?.groups.length ? data.groups.slice(0, 3).map((group) => {
+        {isLoading ? <div className="h-24 animate-pulse" aria-label="Loading crews" /> : data?.groups.length ? data.groups.map((group) => {
           const counts = crewPageCounts(group.members);
           const done = group.members.find((m) => m.isYou)?.status === "done";
           return <div key={group.id} className="flex items-center gap-2 border-b border-[var(--new-divider)] py-4 last:border-0">
