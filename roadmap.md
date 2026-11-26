@@ -162,3 +162,4 @@
 - [ ] Exercise picker still has its existing look (not restyled yet).
 
 - [x] Logger rest bar: on warm gray under the white band, 48px, pinned; screenshot p4-7b
+- [x] Workout cover library: 24 credited Unsplash photos in Pactara asset storage, three per focus with equipment variants; stable new-only cover keys from detailed primary muscles/equipment, Pactara plan covers and single-exercise drawings preserved; three 390px captures in public/qa/p4-9c.json; temporary QA accounts/workouts removed; unpublished.

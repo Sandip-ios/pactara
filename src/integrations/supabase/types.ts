@@ -1894,6 +1894,39 @@ export type Database = {
           },
         ]
       }
+      workout_cover_photos: {
+        Row: {
+          credit: string
+          equipment: string[]
+          focus: string
+          key: string
+          slot: number
+          source: string
+          source_url: string
+          url: string
+        }
+        Insert: {
+          credit: string
+          equipment?: string[]
+          focus: string
+          key: string
+          slot: number
+          source: string
+          source_url: string
+          url: string
+        }
+        Update: {
+          credit?: string
+          equipment?: string[]
+          focus?: string
+          key?: string
+          slot?: number
+          source?: string
+          source_url?: string
+          url?: string
+        }
+        Relationships: []
+      }
       workout_sessions: {
         Row: {
           check_in_ids: string[]
@@ -2050,6 +2083,7 @@ export type Database = {
       }
       workouts: {
         Row: {
+          cover_key: string | null
           created_at: string
           equipment: string | null
           exercises: Json
@@ -2063,6 +2097,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cover_key?: string | null
           created_at?: string
           equipment?: string | null
           exercises?: Json
@@ -2076,6 +2111,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cover_key?: string | null
           created_at?: string
           equipment?: string | null
           exercises?: Json
@@ -2088,7 +2124,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workouts_cover_key_fkey"
+            columns: ["cover_key"]
+            isOneToOne: false
+            referencedRelation: "workout_cover_photos"
+            referencedColumns: ["key"]
+          },
+        ]
       }
     }
     Views: {
@@ -2380,6 +2424,11 @@ export type Database = {
         Returns: undefined
       }
       unfollow_user: { Args: { target: string }; Returns: undefined }
+      workout_cover_hash: { Args: { _workout_id: string }; Returns: number }
+      workout_cover_key: {
+        Args: { _equipment: string; _exercises: Json; _workout_id: string }
+        Returns: string
+      }
       workout_detail_for_check_in: {
         Args: { _check_in_id: string }
         Returns: Json

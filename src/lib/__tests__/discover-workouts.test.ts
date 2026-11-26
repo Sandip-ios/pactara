@@ -46,6 +46,33 @@ const row = (o: Partial<FeedRow>): FeedRow => ({
   saves: 0, saves_week: 0, did_it: 0, my_copy_id: null, my_copy_name: null, my_copy_exercises: null, ...o,
 });
 
+const snap = (exerciseId: string, sets: number) => ({ exerciseId, sets, repsTarget: null, secondsTarget: null });
+
+describe("workout covers", () => {
+  it("a multi-exercise member workout uses its stock photo, never an exercise drawing", () => {
+    const c = toCard(row({ cover_url: "/__l5e/assets-v1/photo/back-1.jpg", exercises: [snap("barbell-row", 4), snap("curl", 3)] }), ex);
+    expect(c.coverUrl).toBe("/__l5e/assets-v1/photo/back-1.jpg");
+    expect(c.drawing).toBeNull();
+  });
+  it("a multi-exercise workout never uses a drawing when another exercise is not visible", () => {
+    const c = toCard(row({ cover_url: "/__l5e/assets-v1/photo/back-1.jpg", exercises: [snap("barbell-row", 4), snap("member-custom", 3)] }), ex);
+    expect(c.exercises).toBe(1);
+    expect(c.coverUrl).toBe("/__l5e/assets-v1/photo/back-1.jpg");
+    expect(c.drawing).toBeNull();
+  });
+  it("a Pactara workout keeps its plan cover", () => {
+    const c = toCard(row({ pactara: true, cover_url: "https://images.unsplash.com/plan.jpg", exercises: [snap("barbell-row", 4), snap("curl", 3)] }), ex);
+    expect(c.coverUrl).toBe("https://images.unsplash.com/plan.jpg");
+    expect(c.drawing).toBeNull();
+  });
+  it("only a single-exercise workout falls back to its exercise drawing", () => {
+    const c = toCard(row({ cover_url: null }), ex);
+    expect(c.exercises).toBe(1);
+    expect(c.coverUrl).toBeNull();
+    expect(c.drawing).toEqual({ src: "/row.webp", bg: "#D8F1FD" });
+  });
+});
+
 describe("counts and card text", () => {
   it("saves read 1.2k, hide · 0 saves", () => {
     expect(compactCount(1234)).toBe("1.2k");

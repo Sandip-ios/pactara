@@ -98,7 +98,7 @@ export type DiscoverCard = {
   pactara: boolean;
   author: string;
   coverUrl: string | null;
-  /** No cover: the first exercise drawing on its light blue. */
+  /** Single-exercise fallback only: the exercise drawing on its light blue. */
   drawing: { src: string; bg: string } | null;
   exercises: number;
   minutes: number;
@@ -157,8 +157,8 @@ export function toCard(row: FeedRow, ex: ReadonlyMap<string, ExerciseFacts>): Di
     name: row.name,
     pactara: row.pactara,
     author: row.pactara ? "Pactara" : (row.owner_name ?? "").trim().replace(/\s+/g, " ") || "a member",
-    coverUrl: row.cover_url,
-    drawing: first ? { src: first.imageStart!, bg: first.imageBg ?? "#D8F1FD" } : null,
+    coverUrl: row.pactara || row.exercises.length > 1 ? row.cover_url : null,
+    drawing: row.exercises.length === 1 && items.length === 1 && first ? { src: first.imageStart!, bg: first.imageBg ?? "#D8F1FD" } : null,
     exercises: items.length,
     minutes: estimateMinutes(sets),
     equipment,

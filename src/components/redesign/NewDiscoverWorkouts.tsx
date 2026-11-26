@@ -112,7 +112,7 @@ function Drawing({ card, className }: { card: DiscoverCard; className: string })
   const cover = coverThumb(card.coverUrl, 480);
   if (cover && !failed) return <img src={cover} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className={`${className} object-cover`} />;
   if (card.drawing) return <span className={`${className} block`} style={{ background: card.drawing.bg }}><img src={card.drawing.src} alt="" loading="lazy" className="h-full w-full object-cover object-center" /></span>;
-  return <span className={`${className} block`} style={{ background: "#D8F1FD" }} />;
+  return <span className={`${className} block`} style={{ background: card.exercises > 1 ? "#ECE8E1" : "#D8F1FD" }} />;
 }
 
 /** 2×2 photo cards: "Most saved this week". */
