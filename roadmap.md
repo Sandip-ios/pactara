@@ -1,6 +1,6 @@
 # Roadmap
 
-- [ ] Redesign phase 2 step 5: discoverable crews, private owner/requester join requests with 14-day expiry and safe approval; Find/preview/requests/pending switcher/first-goal/settings UI; draft-only QA request/approve/decline and seven captures; classic invites unchanged.
+- [x] Redesign phase 2 step 5: discoverable crews, private owner/requester join requests with 14-day expiry and safe approval; Find/preview/requests/pending switcher/first-goal/settings UI; draft-only QA request/approve/decline and seven captures in public/qa/join-requests.json; classic invites unchanged; push delivery and blocked-owner filtering verified in code only; 568 tests pass, unpublished.
 
 - [x] Redesign top spacing: shared safe minimum for new-only headers and Settings subpages, preserve larger intro/done spacing and camera placement; four captures saved in top-spacing.json at 390×844 with first-row centers y=78; new Settings/subpages 56px vs classic 20px, simulated insets 0/47/59 verified; 564 tests pass, unpublished.
 
