@@ -45,7 +45,7 @@ export function useStartWorkout() {
 
   return {
     /** A saved workout, or a past session done again (`id: null` when it isn't saved). */
-    async startSaved(workout: Pick<SavedWorkout, "name" | "exercises"> & { id: string | null }) {
+    async startSaved(workout: Pick<SavedWorkout, "name" | "exercises"> & { id: string | null }, from: string | null = null) {
       const { lib, hist } = await load();
       const exercises: LiveExercise[] = [];
       for (const it of workout.exercises) {
@@ -53,9 +53,10 @@ export function useStartWorkout() {
         if (!ex) continue;
         // A timed move copied from a crewmate keeps their time as the target.
         const target = it.seconds && ex.logType === "timed" ? { sets: it.sets, repsLo: null, repsHi: null, seconds: it.seconds } : null;
-        exercises.push(buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds, target }));
+        const live = buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds, target });
+        exercises.push(it.tip ? { ...live, authorTip: it.tip } : live);
       }
-      begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, untracked: [], exercises });
+      begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, from, untracked: [], exercises });
     },
     /**
      * A plan day in the logger with its doses prefilled. Only your plan's next
@@ -84,6 +85,7 @@ export function useStartWorkout() {
       begin({
         title: day.title,
         workoutId: null,
+        from: "your plan",
         unit: hist.unit,
         untracked,
         exercises,

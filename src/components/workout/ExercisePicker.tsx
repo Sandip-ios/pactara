@@ -29,6 +29,7 @@ export function ExercisePicker({
   open,
   single = false,
   initialPicked,
+  similarTo,
   hint = "In the order you picked. You can reorder in the workout.",
   onClose,
   onDone,
@@ -37,6 +38,8 @@ export function ExercisePicker({
   single?: boolean;
   /** Picks to show as already chosen when it opens (going back from New workout). */
   initialPicked?: string[];
+  /** Swapping: list this exercise's same-variation moves first. */
+  similarTo?: { variationGroup: string | null; excludeId: string } | null;
   /** Footer line shown once something is picked. */
   hint?: string;
   onClose: () => void;
@@ -69,6 +72,10 @@ export function ExercisePicker({
     const list = library.filter(match);
     if (tab !== "all") return list.length ? [{ key: tab, label: tabLabel(tab), items: list }] : [];
     const out: Section[] = [];
+    if (similarTo?.variationGroup) {
+      const similar = list.filter((e) => e.variationGroup === similarTo.variationGroup && e.id !== similarTo.excludeId);
+      if (similar.length) out.push({ key: "similar", label: "Similar", items: similar });
+    }
     const recentIds = (history?.recent ?? []).filter((id) => list.some((e) => e.id === id));
     if (recentIds.length) {
       out.push({ key: "recent", label: "Recent", items: recentIds.map((id) => list.find((e) => e.id === id)!) });
@@ -81,7 +88,7 @@ export function ExercisePicker({
       if (items.length) out.push({ key: t.id, label: t.label, items });
     }
     return out;
-  }, [library, history?.recent, query, tab, equip]);
+  }, [library, history?.recent, query, tab, equip, similarTo?.variationGroup, similarTo?.excludeId]);
 
   if (!open) return null;
 

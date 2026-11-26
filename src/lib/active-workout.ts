@@ -46,6 +46,8 @@ export type LiveExercise = {
   restSeconds: number;
   notes: string;
   tip: string | null;
+  /** The workout author's own tip for this exercise (new-version logger shows it). */
+  authorTip?: string | null;
   target: Target | null;
   last: LastSession | null;
   /** Heaviest set before today, for live personal bests. */
@@ -63,6 +65,8 @@ export type ActiveWorkout = {
   startedAt: number;
   unit: WeightUnit;
   plan: PlanCheckIn | null;
+  /** Where it came from, for the new logger header ("Maya", "your plan"); null for your own. */
+  from?: string | null;
   /** Plan moves with no library match: shown, not logged. */
   untracked: { name: string; dose: string }[];
   exercises: LiveExercise[];

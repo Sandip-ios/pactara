@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Bookmark, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Play, Share, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { newToast as toast } from "./new-toast";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 import { NewConfirm } from "./NewConfirm";
 import { NewSheet, NewSheetRow } from "./NewSheet";
@@ -96,7 +96,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
       return;
     }
     const wk = asSaved();
-    flow.run(() => flow.start.startSaved({ ...wk, id: page.workoutId ?? page.savedWorkoutId }));
+    flow.run(() => flow.start.startSaved({ ...wk, id: page.workoutId ?? page.savedWorkoutId }, page.author.kind === "member" ? page.author.name.split(" ")[0] ?? null : page.author.kind === "pactara" ? "Pactara" : null));
   };
 
   const edit = () => {

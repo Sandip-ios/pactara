@@ -1,35 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useEffect, useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { Check, ChevronDown, Minus, MoreHorizontal, Plus, Timer, Trophy } from "lucide-react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { ExercisePicker } from "@/components/workout/ExercisePicker";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
 import { ExerciseThumb, FONT, W } from "@/components/workout/WorkoutBits";
 import { useNow } from "@/components/workout/WorkoutBar";
-import { primeRestSound } from "@/components/workout/RestAlarm";
-import { endWorkoutWithoutCompleting } from "@/lib/workouts.functions";
-import { finishLoggedSession } from "@/lib/lifts.functions";
-import { LIFT_HISTORY_KEY, MY_WORKOUTS_KEY, useExerciseMap, useLiftHistory, type LibraryExercise } from "@/lib/exercise-library";
-import {
-  buildLiveExercise,
-  currentKey,
-  emptySet,
-  finishPayload,
-  recordQuickPick,
-  setActiveWorkout,
-  setCounts,
-  setFinishedWorkout,
-  updateActiveWorkout,
-  useActiveWorkout,
-  withPrs,
-  type ActiveWorkout,
-  type LiveExercise,
-  type LiveSet,
-} from "@/lib/active-workout";
-import { canCheckOffSet, carryLoggedSetForward, fmtClock, fmtNum, lastCell, lastSetLabel, setsShort, shortDay, weightStep } from "@/lib/lift-rules";
+import { type LibraryExercise } from "@/lib/exercise-library";
+import { currentKey, emptySet, setCounts, useActiveWorkout, withPrs, type ActiveWorkout, type LiveExercise, type LiveSet } from "@/lib/active-workout";
+import { takeExit, update, updateEx, useLoggerActions } from "@/components/workout/useLoggerActions";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewWorkoutLogger } from "@/components/redesign/NewWorkoutLogger";
+import { canCheckOffSet, fmtClock, fmtNum, lastCell, lastSetLabel, setsShort, shortDay, weightStep } from "@/lib/lift-rules";
 import { hapticLight } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/workout/log")({
@@ -46,41 +29,28 @@ export const Route = createFileRoute("/_authenticated/workout/log")({
   component: WorkoutLogger,
 });
 
-const update = (fn: (w: ActiveWorkout) => ActiveWorkout) => updateActiveWorkout(fn);
-const updateEx = (key: string, fn: (e: LiveExercise) => LiveExercise) =>
-  update((w) => ({ ...w, exercises: w.exercises.map((e) => (e.key === key ? fn(e) : e)) }));
-
-// Where the logger goes once the workout is cleared (finish → done, discard → home).
-let exitTo: "/home" | "/workout/done" | null = null;
-
 function WorkoutLogger() {
   const w = useActiveWorkout();
   const navigate = useNavigate();
+  const version = useAppVersion();
   useEffect(() => {
     if (w) return;
-    const to = exitTo ?? "/workout";
-    exitTo = null;
-    navigate({ to, replace: true });
+    navigate({ to: takeExit(), replace: true });
   }, [w, navigate]);
   if (!w) return <div className="fixed inset-0" style={{ background: W.bg }} />;
-  return <Logger w={w} />;
+  return version === "new" ? <NewWorkoutLogger w={w} /> : <Logger w={w} />;
 }
 
 function Logger({ w }: { w: ActiveWorkout }) {
   const scrollRef = useOpenAtTop();
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const now = useNow(1000);
-  const { data: history } = useLiftHistory();
-  const { map: lib } = useExerciseMap();
-  const finishFn = useServerFn(finishLoggedSession);
-  const endFn = useServerFn(endWorkoutWithoutCompleting);
+  const actions = useLoggerActions(w);
+  const { history, toggleSet, saving, err } = actions;
   const [picker, setPicker] = useState<null | { replace: string | null }>(null);
   const [menuKey, setMenuKey] = useState<string | null>(null);
   const [notesOpen, setNotesOpen] = useState<Set<string>>(new Set());
   const [confirm, setConfirm] = useState<null | "finish" | "empty" | "discard">(null);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   const { done, total } = setCounts(w);
   const cur = currentKey(w);
@@ -92,107 +62,21 @@ function Logger({ w }: { w: ActiveWorkout }) {
     else navigate({ to: "/home" });
   };
 
-  const toggleSet = (ex: LiveExercise, set: LiveSet) => {
-    primeRestSound();
-    void hapticLight();
-    const nowIso = new Date().toISOString();
-    update((x) => {
-      const exercises = x.exercises.map((e) => {
-        if (e.key !== ex.key) return e;
-        const idx = e.sets.findIndex((s) => s.id === set.id);
-        const cur = e.sets[idx];
-        if (!cur) return e;
-        // An empty set can't be checked off; undoing a done set is always allowed.
-        if (!cur.done && !canCheckOffSet(cur, e)) return e;
-        let sets = e.sets.map((s) => (s.id === set.id ? { ...s, done: !s.done, doneAt: !s.done ? nowIso : null } : s));
-        if (!cur.done) sets = carryLoggedSetForward(sets, idx);
-        return withPrs({ ...e, sets }, x.unit);
-      });
-      let rest = x.rest;
-      const changed = exercises.find((y) => y.key === ex.key)?.sets.find((s) => s.id === set.id);
-      if (!set.done && changed?.done) {
-        const e = exercises.find((y) => y.key === ex.key)!;
-        const nextIdx = e.sets.findIndex((s) => !s.done);
-        const nextEx = exercises.find((y) => y.key !== ex.key && y.sets.some((s) => !s.done));
-        const label = nextIdx >= 0 ? `Rest · next: set ${nextIdx + 1}` : nextEx ? `Rest · next: ${nextEx.name}` : "Rest · all sets done";
-        rest = { endsAt: Date.now() + e.restSeconds * 1000, total: e.restSeconds, label, exKey: ex.key };
-      }
-      return { ...x, exercises, rest, focusKey: x.focusKey === ex.key && exercises.find((y) => y.key === ex.key)!.sets.every((s) => s.done) ? null : x.focusKey };
-    });
-  };
-
   const addExercises = (picked: LibraryExercise[]) => {
-    const unit = w.unit;
-    const built = picked.map((e) => buildLiveExercise(e, history?.byExercise[e.id], { unit }));
-    if (picker?.replace) {
-      const key = picker.replace;
-      update((x) => ({ ...x, exercises: x.exercises.map((e) => (e.key === key ? built[0] ?? e : e)) }));
-    } else {
-      update((x) => ({ ...x, exercises: [...x.exercises, ...built] }));
-    }
+    actions.addExercises(picked, picker?.replace ?? null);
     setPicker(null);
   };
 
   const finish = async (force = false) => {
-    const payload = finishPayload(w);
-    if (!payload.length) return setConfirm("empty");
-    if (!force && done < total) return setConfirm("finish");
     setConfirm(null);
-    setSaving(true);
-    setErr(null);
-    try {
-      const res = await finishFn({
-        data: {
-          sessionId: w.sessionId,
-          groupId: w.groupId,
-          title: w.title,
-          workoutId: w.workoutId,
-          plan: w.plan ? { name: w.plan.planName, week: w.plan.week, day: w.plan.day } : null,
-          startedAt: new Date(w.startedAt).toISOString(),
-          exercises: payload,
-        },
-      });
-      setFinishedWorkout({
-        sessionId: res.sessionId,
-        title: w.title,
-        workoutId: w.workoutId,
-        groupId: w.groupId,
-        finishedAt: Date.now(),
-        localDate: res.localDate,
-        summary: res.summary,
-        template: w.exercises
-          .filter((e) => e.sets.some((s) => s.done))
-          .map((e) => ({ exerciseId: e.exerciseId, sets: e.sets.filter((s) => s.done).length, restSeconds: e.restSeconds, primary: e.primary })),
-        plan: w.plan,
-      });
-      recordQuickPick("logged");
-      exitTo = "/workout/done";
-      setActiveWorkout(null);
-      void qc.invalidateQueries({ queryKey: LIFT_HISTORY_KEY });
-      void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
-      void qc.invalidateQueries({ queryKey: ["workouts-overview"] });
-      void qc.invalidateQueries({ queryKey: ["home-crew"] });
-      void qc.invalidateQueries({ queryKey: ["groups-today"] });
-    } catch (e) {
-      console.error("[workout] finish failed", e);
-      setErr("Couldn't save your workout. Check your connection and tap Finish again.");
-    } finally {
-      setSaving(false);
-    }
+    const r = await actions.finish(force);
+    if (r === "empty") setConfirm("empty");
+    else if (r === "confirm") setConfirm("finish");
   };
 
-  const discard = async () => {
+  const discard = () => {
     setConfirm(null);
-    const sessionId = w.sessionId;
-    exitTo = "/home";
-    setActiveWorkout(null);
-    // Refresh "Working out" on Crew today / crew pages once the session has ended.
-    const refresh = () => {
-      void qc.invalidateQueries({ queryKey: ["home-crew"] });
-      void qc.invalidateQueries({ queryKey: ["groups-today"] });
-    };
-    refresh();
-    if (sessionId) endFn({ data: { sessionId } }).catch(() => {}).finally(refresh);
+    actions.discard();
   };
 
   // ---- Long-press to reorder ----

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
 export function NewConfirm({ open, onOpenChange, title, subtitle, action, cancelLabel = 'Cancel', busy, error, onConfirm, top, note, tone = 'destructive' }: {
-  top?: ReactNode; note?: string; tone?: 'destructive' | 'primary';
+  top?: ReactNode; note?: string; tone?: 'destructive' | 'primary' | 'success';
   open: boolean; onOpenChange: (open: boolean) => void; title: string; subtitle: string;
   action: string; cancelLabel?: string; busy: boolean; error: string | null; onConfirm: () => void;
 }) {
@@ -16,7 +16,7 @@ export function NewConfirm({ open, onOpenChange, title, subtitle, action, cancel
         <AlertDialog.Description className={subtitle ? "mt-2 text-[14px] leading-[1.45] text-[var(--new-muted)]" : "sr-only"}>{subtitle || title}</AlertDialog.Description>
         {note && <p className="mt-2 text-[13px] text-[var(--new-disabled-text)]">{note}</p>}
         {error && <p role="alert" className="mt-2 text-[13px] text-[var(--new-destructive)]">{error}</p>}
-        <Button variant="ghost" disabled={busy} onClick={onConfirm} className={`mt-5 h-12 w-full rounded-[24px] text-[16px] font-bold text-[var(--new-white)] hover:text-[var(--new-white)] ${tone === 'primary' ? 'bg-[var(--new-purple)] hover:bg-[var(--new-purple)]' : 'bg-[var(--new-confirm-destructive)] hover:bg-[var(--new-confirm-destructive)]'}`}>{action}</Button>
+        <Button variant="ghost" disabled={busy} onClick={onConfirm} className={`mt-5 h-12 w-full rounded-[24px] text-[16px] font-bold text-[var(--new-white)] hover:text-[var(--new-white)] ${tone === 'primary' ? 'bg-[var(--new-purple)] hover:bg-[var(--new-purple)]' : tone === 'success' ? 'bg-[#16A34A] hover:bg-[#16A34A]' : 'bg-[var(--new-confirm-destructive)] hover:bg-[var(--new-confirm-destructive)]'}`}>{action}</Button>
         <AlertDialog.Cancel asChild>
           <Button variant="ghost" disabled={busy} className="h-12 w-full bg-transparent text-[16px] font-bold text-[var(--new-ink)] hover:bg-transparent hover:text-[var(--new-ink)]">{cancelLabel}</Button>
         </AlertDialog.Cancel>

@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import { newToast as toast } from "./new-toast";
 import { NewConfirm } from "./NewConfirm";
 import { NewSheet, NewSheetButton, NewSheetChip } from "./NewSheet";
 import { workoutPageKey } from "./NewWorkoutPage";
@@ -238,7 +238,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
                     >
                       <DragDots />
                     </button>
-                    <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ background: ex?.imageBg ?? "#E8F1FB" }} aria-hidden>
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ background: ex?.imageBg ?? "#E8F1FB" }} aria-hidden>
                       {ex?.imageStart && <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />}
                     </span>
                     <span className="min-w-0 flex-1 text-[16px] font-bold leading-[1.25] [overflow-wrap:anywhere]">{name}</span>
@@ -249,7 +249,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
                       <Trash2 size={19} />
                     </button>
                   </div>
-                  <div className="mt-2 pl-[30px]">
+                  <div className="mt-2 pl-[88px]">
                     {editingTip ? (
                       <TipEditor value={it.tip} onChange={(v) => patch(it.key, { tip: v })} onDone={() => setTipKey(null)} />
                     ) : it.tip.trim() ? (
