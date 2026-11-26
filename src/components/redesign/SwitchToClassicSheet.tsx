@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Shield, Archive } from "lucide-react";
+import { Check, EyeOff } from "lucide-react";
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { supabase } from "@/integrations/supabase/client";
 import { nativePlatform } from "@/lib/native";
@@ -40,15 +40,15 @@ export function SwitchToClassicSheet({ open, onOpenChange }: { open: boolean; on
           <VersionCard title="Classic" sub="Crews and check-ins" preview={<ClassicPreview />} selected />
         </div>
         <div className="mt-4 flex flex-col gap-3 text-[13px]" style={{ color: "#44403C" }}>
-          <div className="flex gap-2"><Shield size={16} className="mt-0.5 shrink-0" style={{ color: "#15803D" }} />Your crews, streaks, check-ins and workouts stay exactly the same.</div>
-          <div className="flex gap-2"><Archive size={16} className="mt-0.5 shrink-0" style={{ color: "#57534E" }} />Classic doesn't have the feed, Discover or plans from creators. Your posts and plans are kept for when you come back.</div>
+          <div className="flex gap-2"><Check size={16} className="mt-0.5 shrink-0" style={{ color: "#15803D" }} />Your crews, streaks, check-ins and workouts stay exactly the same.</div>
+          <div className="flex gap-2"><EyeOff size={16} className="mt-0.5 shrink-0" style={{ color: "#57534E" }} />Classic doesn't have the feed, Discover or plans from creators. Your posts and plans are kept for when you come back.</div>
         </div>
         <div className="mt-5 text-[14px] font-bold" style={{ color: "#1C1917" }}>What made you switch? (optional)</div>
         <div className="mt-2 flex flex-wrap gap-2">
           {REASONS.map((r) => {
             const on = reason === r;
             return (
-              <button key={r} type="button" aria-pressed={on} onClick={() => setReason(on ? null : r)} className="rounded-full px-3 text-[13px] font-semibold" style={{ minHeight: 36, background: on ? "#EDE4FF" : "#F4F2EF", color: on ? "#6D28D9" : "#44403C", border: on ? `1px solid ${PURPLE}` : "1px solid transparent" }}>{r}</button>
+              <button key={r} type="button" aria-pressed={on} onClick={() => setReason(on ? null : r)} className="rounded-full px-3 text-[13px] font-semibold" style={{ minHeight: 36, background: on ? "#EDE4FF" : "#FFFFFF", color: on ? "#6D28D9" : "#1C1917", border: on ? `1px solid ${PURPLE}` : "1px solid #E7E3DE" }}>{r}</button>
             );
           })}
         </div>
@@ -63,7 +63,7 @@ function VersionCard({ title, sub, preview, selected }: { title: string; sub: st
   return (
     <div className="relative p-2" style={{ borderRadius: 16, border: selected ? `2px solid ${PURPLE}` : "1px solid #E7E3DE" }}>
       {selected && <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full" style={{ background: PURPLE }}><Check size={14} color="#FFFFFF" strokeWidth={3} /></span>}
-      <div className="overflow-hidden" style={{ borderRadius: 10, background: "#F5F2EE" }}>{preview}</div>
+      <div className="overflow-hidden" style={{ borderRadius: 10, background: "#F4F2EF" }}>{preview}</div>
       <div className="mt-2 px-1 text-[15px] font-bold" style={{ color: "#1C1917" }}>{title}</div>
       <div className="px-1 pb-1 text-[12px]" style={{ color: "#57534E" }}>{sub}</div>
     </div>
@@ -73,22 +73,33 @@ function VersionCard({ title, sub, preview, selected }: { title: string; sub: st
 function NewPreview() {
   return (
     <svg viewBox="0 0 120 80" className="block w-full" aria-hidden>
-      <rect x="10" y="8" width="100" height="40" rx="6" fill="#DDD6FE" />
-      <circle cx="18" cy="56" r="4" fill="#A78BFA" />
-      <rect x="26" y="53" width="50" height="6" rx="3" fill="#D6D3D1" />
-      <rect x="10" y="66" width="100" height="10" rx="3" fill="#FFFFFF" />
-      <rect x="54" y="67" width="12" height="8" rx="3" fill="#7C3AED" />
+      <defs>
+        <linearGradient id="new-preview-card" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#1C1917" />
+          <stop offset="1" stopColor="#44403C" />
+        </linearGradient>
+      </defs>
+      <rect x="10" y="5" width="100" height="70" rx="7" fill="#F4F2EF" />
+      <rect x="15" y="10" width="25" height="4" rx="2" fill="#1C1917" />
+      <rect x="15" y="18" width="90" height="14" rx="4" fill="#FFFFFF" />
+      <rect x="15" y="36" width="90" height="25" rx="6" fill="url(#new-preview-card)" />
+      <circle cx="36" cy="69" r="2.5" fill="#A8A29E" />
+      <circle cx="46" cy="69" r="2.5" fill="#A8A29E" />
+      <rect x="54" y="66" width="24" height="6" rx="3" fill="#7C3AED" />
+      <circle cx="86" cy="69" r="2.5" fill="#A8A29E" />
+      <circle cx="96" cy="69" r="2.5" fill="#A8A29E" />
     </svg>
   );
 }
 function ClassicPreview() {
   return (
     <svg viewBox="0 0 120 80" className="block w-full" aria-hidden>
-      <rect x="10" y="8" width="100" height="26" rx="6" fill="#FFFFFF" />
-      {[0, 1, 2, 3].map((i) => <circle key={i} cx={26 + i * 22} cy="21" r="7" fill={i < 2 ? "#7C3AED" : "#D6D3D1"} />)}
-      <rect x="10" y="40" width="100" height="22" rx="6" fill="#FFFFFF" />
-      <rect x="18" y="47" width="60" height="6" rx="3" fill="#D6D3D1" />
-      <rect x="10" y="66" width="100" height="10" rx="3" fill="#FFFFFF" />
+      <rect x="10" y="5" width="100" height="70" rx="7" fill="#F4F2EF" />
+      <rect x="15" y="10" width="90" height="14" rx="5" fill="#7C3AED" />
+      <rect x="15" y="30" width="90" height="16" rx="5" fill="#FFFFFF" />
+      <rect x="15" y="52" width="90" height="11" rx="4" fill="#FFFFFF" />
+      <rect x="15" y="69" width="90" height="5" rx="2.5" fill="#FFFFFF" />
+
     </svg>
   );
 }

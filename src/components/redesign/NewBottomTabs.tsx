@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
-import { Home, Compass, Users, Plus, Zap, ImagePlus, Dumbbell, CalendarDays, Utensils, ChevronRight } from "lucide-react";
+import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils, ChevronRight } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
@@ -65,11 +65,11 @@ export function NewBottomTabs() {
           <DrawerTitle className="px-4 pt-4 pb-2 text-[17px] font-bold" style={{ color: "#1C1917" }}>Create</DrawerTitle>
           <DrawerDescription className="sr-only">Pick what to create</DrawerDescription>
           <div className="px-2 pb-2">
-            <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} />
-            <CreateRow icon={<ImagePlus size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
+            <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tileBg={PURPLE} tileFg="#FFFFFF" />
+            <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
             <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" soon />
             <CreateRow icon={<CalendarDays size={20} />} title="Build a plan" subtitle="A few weeks of your workouts, day by day" soon />
-            <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon />
+            <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon tileBg="#FFEDE0" tileFg="#EA580C" />
           </div>
         </DrawerContent>
       </Drawer>
@@ -86,10 +86,10 @@ function Tab({ icon, label, active, onClick, onPointerDown }: { icon: ReactNode;
   );
 }
 
-function CreateRow({ icon, title, subtitle, onClick, soon }: { icon: ReactNode; title: string; subtitle: string; onClick?: () => void; soon?: boolean }) {
+function CreateRow({ icon, title, subtitle, onClick, soon, tileBg = "#EDE4FF", tileFg = PURPLE }: { icon: ReactNode; title: string; subtitle: string; onClick?: () => void; soon?: boolean; tileBg?: string; tileFg?: string }) {
   return (
     <button type="button" disabled={soon} onClick={onClick} className="w-full flex items-center gap-3 rounded-2xl px-2 py-3 text-left" style={{ opacity: soon ? 0.5 : 1 }}>
-      <span className="flex shrink-0 items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, background: "#EDE4FF", color: PURPLE }}>{icon}</span>
+      <span className="flex shrink-0 items-center justify-center" style={{ width: 40, height: 40, borderRadius: 12, background: tileBg, color: tileFg }}>{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="block text-[15px] font-bold" style={{ color: "#1C1917" }}>{title}</span>
         <span className="block text-[13px]" style={{ color: "#57534E" }}>{subtitle}</span>
