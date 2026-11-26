@@ -77,7 +77,7 @@ export function NewCrewsScreen() {
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[17px] font-extrabold">{name}</span>
                   <span className="mt-0.5 block text-[13px] leading-[1.35]" style={{ color: MUTED }}>
-                    {inTodayLine(counts)} · {group.groupStreak}-day crew streak
+                    {inTodayLine(counts)} · {group.groupStreak > 0 ? `${group.groupStreak}-day crew streak` : "Crew streak starts today"}
                   </span>
                 </span>
                 {unreadCount > 0 && (
