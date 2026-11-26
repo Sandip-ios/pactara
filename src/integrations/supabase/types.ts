@@ -210,6 +210,47 @@ export type Database = {
           },
         ]
       }
+      crew_join_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          goal_prompt_seen_at: string | null
+          group_id: string
+          id: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          goal_prompt_seen_at?: string | null
+          group_id: string
+          id?: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          goal_prompt_seen_at?: string | null
+          group_id?: string
+          id?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crew_join_requests_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_posts: {
         Row: {
           check_in_id: string | null
@@ -635,6 +676,7 @@ export type Database = {
           about: string | null
           created_at: string
           days_per_week: number
+          discoverable: boolean
           duration_days: number
           emoji: string
           ended_at: string | null
@@ -654,6 +696,7 @@ export type Database = {
           about?: string | null
           created_at?: string
           days_per_week?: number
+          discoverable?: boolean
           duration_days?: number
           emoji?: string
           ended_at?: string | null
@@ -673,6 +716,7 @@ export type Database = {
           about?: string | null
           created_at?: string
           days_per_week?: number
+          discoverable?: boolean
           duration_days?: number
           emoji?: string
           ended_at?: string | null
@@ -1906,8 +1950,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cancel_crew_join_request: {
+        Args: { _request_id: string }
+        Returns: string
+      }
       claim_evening_push: {
         Args: { _hour: number; _local_date: string; _user_id: string }
+        Returns: boolean
+      }
+      complete_crew_join_goal: {
+        Args: { _goal?: string; _group_id: string }
         Returns: boolean
       }
       crew_active_plans: {
@@ -1964,6 +2016,10 @@ export type Database = {
           status: string
           user_id: string
         }[]
+      }
+      decide_crew_join_request: {
+        Args: { _decision: string; _request_id: string }
+        Returns: Json
       }
       end_crew: { Args: { _group_id: string }; Returns: undefined }
       get_my_app_prefs: {
@@ -2031,6 +2087,7 @@ export type Database = {
           crew_id: string
         }[]
       }
+      request_crew_join: { Args: { _group_id: string }; Returns: Json }
       review_content_report: {
         Args: { _action: string; _id: string }
         Returns: undefined

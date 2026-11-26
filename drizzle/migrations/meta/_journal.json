@@ -414,6 +414,13 @@
       "when": 1795659808668,
       "tag": "0058_ended_crew_operational_rpcs",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1795660453461,
+      "tag": "0059_crew_discovery_and_join_requests",
+      "breakpoints": true
     }
   ]
 }
