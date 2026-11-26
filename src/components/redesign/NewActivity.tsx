@@ -43,7 +43,7 @@ export function NewActivity() {
     ...data.items.map(i => ({ ...i, name: i.actorName, postId: null, media: null, mediaKind: null, canFollow: false, relationship: 'none' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   // Own actions and pending follow requests never show as rows; they are still marked read.
-  const rows = allRows.filter(r => r.actorId !== user.id && r.kind !== 'follow_request');
+  const rows = allRows.filter(r => (r.actorId !== user.id || r.kind === 'reminder' || r.kind === 'pact_complete') && r.kind !== 'follow_request');
   const unread = allRows.filter(i => !i.read).map(i => i.key).join('|');
   useEffect(() => {
     const keys = unread.split('|').filter(key => key && !submitted.current.has(key)); if (!keys.length) return;

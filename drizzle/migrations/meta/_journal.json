@@ -568,6 +568,13 @@
       "when": 1795676664083,
       "tag": "0080_redesign_social_lists_activity",
       "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1795688537083,
+      "tag": "0081_activity_hide_own_actions",
+      "breakpoints": true
     }
   ]
 }
