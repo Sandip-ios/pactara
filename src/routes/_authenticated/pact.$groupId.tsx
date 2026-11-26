@@ -10,6 +10,8 @@ import ConfettiBurst from "@/components/ConfettiBurst";
 import { recordAuthenticatedOnboardingStep } from "@/lib/onboarding-analytics.functions";
 import { clearOnboardingJourney, readOnboardingJourney } from "@/lib/onboarding-analytics";
 import { usePartnerState } from "@/hooks/use-partner-state";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { useToastAbove } from "@/lib/toast-offset";
 import { relationForGroup } from "@/lib/group-display";
 
 const PURPLE = "#7C3AED";
@@ -46,6 +48,9 @@ export const Route = createFileRoute("/_authenticated/pact/$groupId")({
 function PactPage() {
   const { groupId } = Route.useParams();
   const navigate = useNavigate();
+  const version = useAppVersion();
+  const actionRef = useRef<HTMLDivElement>(null);
+  useToastAbove(actionRef, version === "new");
   const queryClient = useQueryClient();
   const fetchPact = useServerFn(getPact);
   const sign = useServerFn(signPact);
@@ -287,6 +292,7 @@ function PactPage() {
         className="fixed inset-x-0 bottom-0 px-4 pt-4 bg-gradient-to-t from-[#F5F2EE] via-[#F5F2EE] to-transparent"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)" }}
       >
+        <div ref={actionRef}>
         {signed ? (
           <button
             onClick={enterGroup}
@@ -308,6 +314,7 @@ function PactPage() {
             />
           </>
         )}
+        </div>
       </div>
 
       {showSuccess && data && (

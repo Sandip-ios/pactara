@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BodyMap } from "@/components/plans/BodyMap";
 import { useMyPlans, usePlans } from "@/components/plans/PlanBits";
@@ -11,6 +11,7 @@ import { getMyGroupStatus } from "@/lib/groups.functions";
 import { muscleLegend, newPlanDayLabel, newPlanDayMeta, shortDose } from "@/lib/new-plan-day-view";
 import { resolvePlanDayPosition } from "@/lib/plan-day-view";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useToastAbove } from "@/lib/toast-offset";
 import { dayForWeek, dayMinutes, movesForWeek, weekNoteFor, type MuscleMap, type PlanMove } from "@/lib/workout-plans";
 
 const PURPLE = "#7C3AED";
@@ -34,9 +35,11 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
   const { data: status } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
   const [busy, setBusy] = useState(false);
   const scrollRef = useOpenAtTop();
+  const actionRef = useRef<HTMLButtonElement>(null);
 
   const plan = (plans ?? []).find((p) => p.slug === slug) ?? null;
   const active = mine?.active ?? null;
+  useToastAbove(actionRef, !!plan);
   const onThisPlan = !!plan && !!active && active.planId === plan.id;
   const back = () => {
     if (window.history.length > 1) router.history.back();
@@ -100,7 +103,7 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
       </div>
 
       <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 px-4 pt-3" style={{ fontFamily: FONT, background: "linear-gradient(to bottom, rgba(245,242,236,0), #F5F2EC 18px)", bottom: "var(--workout-bar-pad, 0px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
-        <button type="button" onClick={() => void onStart()} disabled={busy || !day} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
+        <button ref={actionRef} type="button" onClick={() => void onStart()} disabled={busy || !day} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
           {busy ? "One moment…" : onThisPlan ? "Start workout" : "Start this workout"}
         </button>
         {crew && <p className="text-center text-[13px]" style={{ color: MUTED }}>When you finish, checking in to {crew} takes 5 seconds.</p>}

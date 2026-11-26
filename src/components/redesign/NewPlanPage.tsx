@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -17,6 +17,7 @@ import {
 } from "@/lib/new-plan-view";
 import { localDateIn } from "@/lib/streak-rules";
 import { getActiveWorkout } from "@/lib/active-workout";
+import { useToastAbove } from "@/lib/toast-offset";
 import { useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { PlanSharePanel } from "@/components/plans/PlanSharePanel";
 import { useStartWorkout } from "@/components/workout/useStartWorkout";
@@ -84,6 +85,8 @@ function usePlanInfo(planId: string) {
 
 function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActivePlan | null }) {
   const back = useBack();
+  const actionRef = useRef<HTMLButtonElement>(null);
+  useToastAbove(actionRef);
   const navigate = useNavigate();
   const { data: info } = usePlanInfo(plan.id);
   const [shareOpen, setShareOpen] = useState(false);
@@ -148,6 +151,7 @@ function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActive
 
       <div className="fixed inset-x-0 bottom-0 z-20 bg-white px-4 pt-3" style={{ borderTop: "1px solid #ECE8E1", bottom: "var(--workout-bar-pad, 0px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
         <button
+          ref={actionRef}
           type="button"
           onClick={() => (otherActive ? setConfirmSwitch(true) : setSheetOpen(true))}
           className="flex h-[52px] w-full items-center justify-center gap-2 rounded-full text-[17px] font-bold text-white"

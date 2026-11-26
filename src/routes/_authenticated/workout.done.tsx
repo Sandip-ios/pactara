@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
-import { useEffect, useState } from "react";
+import { useToastAbove } from "@/lib/toast-offset";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Dumbbell, Trophy, Video } from "lucide-react";
@@ -49,6 +50,8 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   // Already in My workouts: offer to update it. Plan days and unsaved sessions: offer to save.
   const isNew = !fw.workoutId;
   const version = useAppVersion();
+  const actionRef = useRef<HTMLButtonElement>(null);
+  useToastAbove(actionRef, version === "new");
   const { data: myWorkouts } = useMyWorkouts();
   const { map: exMap } = useExerciseMap();
   const saved = fw.workoutId ? myWorkouts?.find((x) => x.id === fw.workoutId)?.exercises ?? null : null;
@@ -255,6 +258,7 @@ function Done({ fw }: { fw: FinishedWorkout }) {
 
       <div className="fixed inset-x-0 bottom-0 px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3" style={{ background: `linear-gradient(180deg, rgba(245,242,238,0) 0%, ${W.bg} 24%)` }}>
         <button
+          ref={actionRef}
           type="button"
           disabled={busy}
           onClick={() => void leave(true)}

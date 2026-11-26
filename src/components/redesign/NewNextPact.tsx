@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,6 +9,7 @@ import { startNextPact } from "@/lib/pact-cycle.functions";
 import { PACT_LENGTHS, nextPactStartLabel, notifyNamesLine } from "@/lib/pact-cycle";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useToastAbove } from "@/lib/toast-offset";
 import { pactStatusOptions } from "./pact-query";
 
 const INK = "#1C1917", MUTED = "#57534E";
@@ -20,10 +21,12 @@ export function NewNextPact({ groupId }: { groupId: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
+  const actionRef = useRef<HTMLButtonElement>(null);
   const { data: status } = useQuery(pactStatusOptions(groupId));
   const { data: today } = useQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 30_000 });
   const start = useServerFn(startNextPact);
   const group = today?.groups.find((g) => g.id === groupId);
+  useToastAbove(actionRef, !!status && !!group && status.isOwner && status.done);
   const [days, setDays] = useState<30 | 60 | 90>(30);
   const [perWeek, setPerWeek] = useState(7);
   const [busy, setBusy] = useState(false);
@@ -99,7 +102,7 @@ export function NewNextPact({ groupId }: { groupId: string }) {
         </div>
       </main>
       <div className="shrink-0 px-6 pt-3" style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 16px) + 24px)" }}>
-        <button type="button" disabled={busy} onClick={() => void go()} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white disabled:opacity-60" style={{ background: "#7C3AED" }}>
+        <button ref={actionRef} type="button" disabled={busy} onClick={() => void go()} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white disabled:opacity-60" style={{ background: "#7C3AED" }}>
           {busy ? "Starting…" : `Start ${nextPactStartLabel(startDay)}`}
         </button>
       </div>

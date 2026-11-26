@@ -1,5 +1,9 @@
 # Roadmap
 
+## Toast clearance above pinned actions
+- [x] Registered the new-version plan, plan-day, quiz, pact, notification and done-screen primary actions with useToastAbove; shared classic surfaces opt in only for the new version. Existing tab, Resume, classic builder and Share your win offsets remain.
+- [x] Saved toast-planday-2.png and toast-plan.png at 390×844; both measured exactly 12px from toast bottom to button top. 836 tests and typecheck pass; temporary QA plan/account removed.
+
 ## Discover Pactara workout names
 - [x] Applied the no-op-safe row update for 28 approved key-to-name mappings; this draft had no matching Pactara rows. Plan days and members' saved copies were untouched.
 - [x] Replaced the plan-title overwrite in refresh_pactara_workouts with the approved mapping; verified all keys against the database, unique names and no A/B/C suffixes. 836 tests and typecheck pass.

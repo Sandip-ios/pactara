@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useToastAbove } from "@/lib/toast-offset";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
@@ -239,8 +240,10 @@ function BottomBar({ children }: { children: React.ReactNode }) {
 }
 
 function Primary({ children, disabled, onClick }: { children: React.ReactNode; disabled?: boolean; onClick: () => void }) {
+  const ref = useRef<HTMLButtonElement>(null);
+  useToastAbove(ref);
   return (
-    <button type="button" disabled={disabled} onClick={onClick} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:cursor-not-allowed" style={{ background: disabled ? "#D6D3D1" : PURPLE }}>
+    <button ref={ref} type="button" disabled={disabled} onClick={onClick} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:cursor-not-allowed" style={{ background: disabled ? "#D6D3D1" : PURPLE }}>
       {children}
     </button>
   );

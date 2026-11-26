@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { openAppSettings } from "@/lib/contacts";
 import { usePushPermission } from "@/lib/use-push-permission";
+import { useToastAbove } from "@/lib/toast-offset";
 
 /** "Turn on notifications in Settings": closes itself once permission is back on. */
 export function NewNotifSettings() {
@@ -11,6 +12,8 @@ export function NewNotifSettings() {
   const navigate = useNavigate();
   const router = useRouter();
   const { permission } = usePushPermission();
+  const actionRef = useRef<HTMLButtonElement>(null);
+  useToastAbove(actionRef);
   const back = () => (window.history.length > 1 ? router.history.back() : navigate({ to: "/home" }));
   useEffect(() => { if (permission === "granted") back(); }, [permission]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -24,7 +27,7 @@ export function NewNotifSettings() {
         <p className="text-center text-[16px]" style={{ marginTop: 10, color: "#57534E", lineHeight: 1.45 }}>You said no earlier, so iPhone needs you to turn them on yourself. Tap below, then Notifications, then Allow.</p>
       </main>
       <div className="shrink-0 px-6 pt-3" style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 16px) + 24px)" }}>
-        <button type="button" onClick={() => void openAppSettings()} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white" style={{ background: "#7C3AED" }}>Open iPhone Settings</button>
+        <button ref={actionRef} type="button" onClick={() => void openAppSettings()} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white" style={{ background: "#7C3AED" }}>Open iPhone Settings</button>
         <button type="button" onClick={back} className="mt-2 h-11 w-full text-[15px] font-semibold" style={{ color: "#57534E" }}>Not now</button>
       </div>
     </div>

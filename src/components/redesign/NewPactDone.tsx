@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -9,6 +9,7 @@ import { markPactSeen } from "@/lib/pact-cycle.functions";
 import { pactDoneSubtitle, shareResultText } from "@/lib/pact-cycle";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useToastAbove } from "@/lib/toast-offset";
 import { CrewAvatar } from "./CrewAvatars";
 import { pactStatusOptions } from "./pact-query";
 
@@ -20,10 +21,12 @@ export function NewPactDone({ groupId }: { groupId: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
+  const actionRef = useRef<HTMLButtonElement>(null);
   const { data: status } = useQuery(pactStatusOptions(groupId));
   const { data: today } = useQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 30_000 });
   const mark = useServerFn(markPactSeen);
   const group = today?.groups.find((g) => g.id === groupId);
+  useToastAbove(actionRef, !!status && !!group);
 
   useEffect(() => {
     if (!status?.done || status.doneSeen) return;
@@ -70,7 +73,7 @@ export function NewPactDone({ groupId }: { groupId: string }) {
         </section>
       </main>
       <div className="shrink-0 px-6" style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 16px) + 24px)" }}>
-          <button type="button" onClick={() => status.isOwner ? navigate({ to: "/crews/$groupId/next-pact", params: { groupId } }) : navigate({ to: "/crews/$groupId", params: { groupId } })} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white" style={{ background: "#7C3AED" }}>
+          <button ref={actionRef} type="button" onClick={() => status.isOwner ? navigate({ to: "/crews/$groupId/next-pact", params: { groupId } }) : navigate({ to: "/crews/$groupId", params: { groupId } })} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white" style={{ background: "#7C3AED" }}>
             {status.isOwner ? "Start the next pact" : "Back to crew"}
           </button>
           <button type="button" onClick={() => void share()} className="mt-3 h-[52px] w-full rounded-[26px] text-[17px] font-bold" style={{ background: "#EDE4FF", color: "#6D28D9" }}>Share your result</button>
