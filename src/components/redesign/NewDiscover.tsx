@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Search, Sparkles, X, Zap } from "lucide-react";
+import { ChevronRight, Search, Sparkle, X, Zap } from "lucide-react";
 import { coverThumb, filterPlans, type PlanFilters } from "@/lib/plan-filters";
 import { searchPlans, type Plan } from "@/lib/workout-plans";
 import { matchPlans } from "@/lib/plan-quiz";
@@ -41,8 +41,8 @@ export function NewDiscover({
   return (
     <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
       <div className="flex flex-col gap-4 px-4 pb-[130px] pt-new-top">
-        <h1 className="text-[28px] font-extrabold tracking-[-0.5px]">Discover</h1>
-        <label className="flex h-[46px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#ECE8E1" }}>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.5px]">Discover</h1>
+        <label className="flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#ECE8E1" }}>
           <Search size={18} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
           <input
             value={query}
@@ -58,7 +58,7 @@ export function NewDiscover({
             </button>
           )}
         </label>
-        <div role="tablist" aria-label="Discover sections" className="grid grid-cols-2 rounded-[12px] p-[3px]" style={{ background: "#ECE8E1" }}>
+        <div role="tablist" aria-label="Discover sections" className="grid h-[42px] grid-cols-2 rounded-[12px] p-[3px]" style={{ background: "#ECE8E1" }}>
           {(["workouts", "plans"] as const).map((t) => {
             const on = tab === t;
             return (
@@ -68,7 +68,7 @@ export function NewDiscover({
                 aria-selected={on}
                 type="button"
                 onClick={() => onTab(t)}
-                className="h-9 rounded-[10px] text-[14px]"
+                className="h-full rounded-[10px] text-[14px]"
                 style={{ background: on ? "#FFFFFF" : "transparent", color: on ? INK : "#78716C", fontWeight: on ? 800 : 600, boxShadow: on ? "0 1px 2px rgba(0,0,0,.08)" : undefined }}
               >
                 {t === "workouts" ? "Workouts" : "Plans"}
@@ -106,7 +106,7 @@ function PlansTab({ query, filters, onFiltersChange }: { query: string; filters:
 
   return (
     <>
-      <p className="text-[14px] leading-snug" style={{ color: "#57534E" }}>
+      <p className="text-[13px] leading-[1.35]" style={{ color: "#57534E" }}>
         A plan is a few weeks of workouts. It tells you what to do each day.
       </p>
       {active && activePlan && (
@@ -130,7 +130,7 @@ function PlansTab({ query, filters, onFiltersChange }: { query: string; filters:
           );
         })}
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-[10px]">
         {isLoading && [0, 1, 2].map((i) => <div key={i} className="h-[108px] animate-pulse rounded-[18px] bg-white/70" />)}
         {!isLoading && list.length === 0 && (
           <p className="rounded-[18px] bg-white px-4 py-6 text-center text-[15px] font-semibold" style={{ color: "#57534E" }}>
@@ -168,11 +168,11 @@ function Cover({ plan }: { plan: Plan }) {
 function PlanText({ plan, line }: { plan: Plan; line?: string }) {
   return (
     <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
-      <span className="text-[17px] font-bold leading-tight">{plan.name}</span>
-      <span className="text-[14px]" style={{ color: "#44403C" }}>
+      <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
+      <span className="text-[13px]" style={{ color: "#44403C" }}>
         {line ?? `${plan.weeks} weeks · ${plan.daysPerWeek} days a week · ${plan.minutes} min`}
       </span>
-      <span className="line-clamp-2 text-[13px] font-semibold" style={{ color: "#57534E" }}>
+      <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
         {plan.gearShort ?? gearText(plan)} · {plan.level}
       </span>
     </span>
@@ -193,9 +193,9 @@ function ActivePlanCard({ plan, line, onOpen }: { plan: Plan; line: string; onOp
           <span className="rounded-full px-2 py-[2px] text-[11px] font-bold uppercase tracking-[0.4px]" style={{ background: "#EDE4FF", color: "#6D28D9" }}>
             Your plan
           </span>
-          <span className="text-[17px] font-bold leading-tight">{plan.name}</span>
-          <span className="text-[14px]" style={{ color: "#44403C" }}>{line}</span>
-          <span className="line-clamp-2 text-[13px] font-semibold" style={{ color: "#57534E" }}>
+          <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
+          <span className="text-[13px]" style={{ color: "#44403C" }}>{line}</span>
+          <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
             {plan.gearShort ?? gearText(plan)} · {plan.level}
           </span>
         </span>
@@ -205,7 +205,7 @@ function ActivePlanCard({ plan, line, onOpen }: { plan: Plan; line: string; onOp
           <span className="block h-5 w-5 shrink-0 overflow-hidden rounded-full" style={{ background: "#E4DAFB", color: "#F8F5FF" }}>
             {mate.avatarUrl ? <img src={mate.avatarUrl} alt="" className="h-full w-full object-cover" /> : <NewAvatarFallback />}
           </span>
-          <span className="truncate text-[13px] font-semibold" style={{ color: "#6D28D9" }}>
+          <span className="truncate text-[12px] font-semibold" style={{ color: "#6D28D9" }}>
             {crewmateOnPlanLine(mate.firstName, mate.crewName)}
           </span>
         </span>
@@ -220,10 +220,10 @@ function QuizCard({ onOpen }: { onOpen: () => void }) {
   return (
     <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-[18px] p-[14px] text-left" style={{ background: GRADIENT }}>
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "rgba(255,255,255,.18)" }}>
-        <Sparkles size={22} color="#FFFFFF" aria-hidden />
+        <Sparkle size={22} color="#FFFFFF" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[16px] font-bold" style={{ color: "#FFFFFF" }}>Not sure which plan?</span>
+        <span className="text-[16px] font-extrabold" style={{ color: "#FFFFFF" }}>Not sure which plan?</span>
         <span className="text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>Answer 4 quick questions and we'll match you</span>
       </span>
       <ChevronRight size={20} color="#FFFFFF" className="shrink-0" aria-hidden />
@@ -249,7 +249,7 @@ function MatchCard({ saved, plans }: { saved: SavedQuiz; plans: Plan[] }) {
       </span>
       <button type="button" onClick={() => navigate({ to: "/plans/$slug", params: { slug: bp.slug } })} className="flex w-full items-center gap-3 text-left">
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "rgba(255,255,255,.18)" }}>
-          <Sparkles size={22} color="#FFFFFF" aria-hidden />
+          <Sparkle size={22} color="#FFFFFF" aria-hidden />
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] font-bold" style={{ color: "#FFFFFF" }}>{bp.name}</span>
