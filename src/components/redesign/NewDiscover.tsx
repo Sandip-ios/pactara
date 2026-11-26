@@ -46,9 +46,9 @@ export function NewDiscover({
   const [query, setQuery] = useState("");
   return (
     <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
-      <div className="flex flex-col gap-4 px-4 pb-[130px] pt-new-top">
+      <div className="flex flex-col gap-4 bg-white px-4 pb-[14px] pt-new-top">
         <h1 className="text-[26px] font-extrabold tracking-[-0.5px]">Discover</h1>
-        <label className="flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#ECE8E1" }}>
+        <label className="flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#F4F2EF" }}>
           <Search size={18} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
           <input
             value={query}
@@ -64,7 +64,7 @@ export function NewDiscover({
             </button>
           )}
         </label>
-        <div role="tablist" aria-label="Discover sections" className="grid h-[42px] grid-cols-2 rounded-[12px] p-[3px]" style={{ background: "#ECE8E1" }}>
+        <div role="tablist" aria-label="Discover sections" className="grid h-[42px] grid-cols-2 rounded-[12px] p-[3px]" style={{ background: "#EFEAE4" }}>
           {(["workouts", "plans"] as const).map((t) => {
             const on = tab === t;
             return (
@@ -82,6 +82,8 @@ export function NewDiscover({
             );
           })}
         </div>
+      </div>
+      <div className="flex flex-col gap-4 px-4 pb-[130px] pt-[14px]">
         {tab === "workouts" ? (
           <p className="rounded-[18px] bg-white px-4 py-8 text-center text-[15px] font-semibold" style={{ color: "#57534E" }}>
             Workouts are coming in this update.
