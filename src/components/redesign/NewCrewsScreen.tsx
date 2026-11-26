@@ -8,6 +8,7 @@ import { inTodayLine } from "@/lib/your-crews";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { CrewAvatarOverlap } from "./CrewAvatars";
+import { NewCrewFindSection } from "./NewCrewDiscovery";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
 const BG = "#F5F2EE";
@@ -99,6 +100,8 @@ export function NewCrewsScreen() {
       )}
 
       {groups.length > 0 && <p className="px-5 text-[13px] leading-[1.45]" style={{ color: MUTED }}>The number is new chat messages. You can be in up to 3 crews.</p>}
+
+      <NewCrewFindSection />
     </div>
   );
 }

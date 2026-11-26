@@ -166,6 +166,7 @@ function NewPactaraFlow() {
             durationDays,
           frequency: "daily",
           daysPerWeek: 7,
+          discoverable: true,
 
         },
       });

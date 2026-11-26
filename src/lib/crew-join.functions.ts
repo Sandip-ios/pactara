@@ -73,3 +73,10 @@ export const completeCrewJoinGoal = createServerFn({method:"POST"}).middleware([
   if(error)throw new Error(error.message);
   return {ok:true};
 });
+// True when this member was approved into the crew through a join request. The
+// new version's own goal sheet covers those crews, so the classic goal screen
+// must not take over the screen for them.
+export const wasApprovedIntoCrew = createServerFn({method:"GET"}).middleware([requireSupabaseAuth]).inputValidator(input=>crewIdInput.parse(input)).handler(async({data,context})=>{
+  const {data:rows}=await context.supabase.from("crew_join_requests").select("id").eq("group_id",data.groupId).eq("requester_id",context.userId).eq("status","approved").limit(1);
+  return {approved:Boolean(rows?.length)};
+});

@@ -70,6 +70,8 @@ import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
 import { Route as AuthenticatedWorkoutLogRouteImport } from './routes/_authenticated/workout.log'
+import { Route as AuthenticatedCrewsGroupIdPreviewRouteImport } from './routes/_authenticated/crews.$groupId_.preview'
+import { Route as AuthenticatedCrewsGroupIdRequestsRouteImport } from './routes/_authenticated/crews.$groupId_.requests'
 import { Route as AuthenticatedCrewsGroupIdSettingsRouteImport } from './routes/_authenticated/crews.$groupId_.settings'
 import { Route as AuthenticatedExercisesExerciseIdHowToRouteImport } from './routes/_authenticated/exercises.$exerciseId_.how-to'
 import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
@@ -411,6 +413,18 @@ const AuthenticatedWorkoutLogRoute = AuthenticatedWorkoutLogRouteImport.update({
   path: '/workout/log',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCrewsGroupIdPreviewRoute =
+  AuthenticatedCrewsGroupIdPreviewRouteImport.update({
+    id: '/crews/$groupId_/preview',
+    path: '/crews/$groupId/preview',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCrewsGroupIdRequestsRoute =
+  AuthenticatedCrewsGroupIdRequestsRouteImport.update({
+    id: '/crews/$groupId_/requests',
+    path: '/crews/$groupId/requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrewsGroupIdSettingsRoute =
   AuthenticatedCrewsGroupIdSettingsRouteImport.update({
     id: '/crews/$groupId_/settings',
@@ -553,6 +567,8 @@ export interface FileRoutesByFullPath {
   '/crews/': typeof AuthenticatedCrewsIndexRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/workout/': typeof AuthenticatedWorkoutIndexRoute
+  '/crews/$groupId/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
+  '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
@@ -628,6 +644,8 @@ export interface FileRoutesByTo {
   '/crews': typeof AuthenticatedCrewsIndexRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
   '/workout': typeof AuthenticatedWorkoutIndexRoute
+  '/crews/$groupId/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
+  '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
@@ -706,6 +724,8 @@ export interface FileRoutesById {
   '/_authenticated/crews/': typeof AuthenticatedCrewsIndexRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/workout/': typeof AuthenticatedWorkoutIndexRoute
+  '/_authenticated/crews/$groupId_/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
+  '/_authenticated/crews/$groupId_/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/_authenticated/crews/$groupId_/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/_authenticated/exercises/$exerciseId_/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
@@ -784,6 +804,8 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/groups/'
     | '/workout/'
+    | '/crews/$groupId/preview'
+    | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
@@ -859,6 +881,8 @@ export interface FileRouteTypes {
     | '/crews'
     | '/groups'
     | '/workout'
+    | '/crews/$groupId/preview'
+    | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
@@ -936,6 +960,8 @@ export interface FileRouteTypes {
     | '/_authenticated/crews/'
     | '/_authenticated/groups/'
     | '/_authenticated/workout/'
+    | '/_authenticated/crews/$groupId_/preview'
+    | '/_authenticated/crews/$groupId_/requests'
     | '/_authenticated/crews/$groupId_/settings'
     | '/_authenticated/exercises/$exerciseId_/how-to'
     | '/_authenticated/plans/$slug_/day'
@@ -1413,6 +1439,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/crews/$groupId_/preview': {
+      id: '/_authenticated/crews/$groupId_/preview'
+      path: '/crews/$groupId/preview'
+      fullPath: '/crews/$groupId/preview'
+      preLoaderRoute: typeof AuthenticatedCrewsGroupIdPreviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/crews/$groupId_/requests': {
+      id: '/_authenticated/crews/$groupId_/requests'
+      path: '/crews/$groupId/requests'
+      fullPath: '/crews/$groupId/requests'
+      preLoaderRoute: typeof AuthenticatedCrewsGroupIdRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crews/$groupId_/settings': {
       id: '/_authenticated/crews/$groupId_/settings'
       path: '/crews/$groupId/settings'
@@ -1548,6 +1588,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrewsIndexRoute: typeof AuthenticatedCrewsIndexRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
   AuthenticatedWorkoutIndexRoute: typeof AuthenticatedWorkoutIndexRoute
+  AuthenticatedCrewsGroupIdPreviewRoute: typeof AuthenticatedCrewsGroupIdPreviewRoute
+  AuthenticatedCrewsGroupIdRequestsRoute: typeof AuthenticatedCrewsGroupIdRequestsRoute
   AuthenticatedCrewsGroupIdSettingsRoute: typeof AuthenticatedCrewsGroupIdSettingsRoute
   AuthenticatedExercisesExerciseIdHowToRoute: typeof AuthenticatedExercisesExerciseIdHowToRoute
   AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
@@ -1592,6 +1634,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrewsIndexRoute: AuthenticatedCrewsIndexRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
   AuthenticatedWorkoutIndexRoute: AuthenticatedWorkoutIndexRoute,
+  AuthenticatedCrewsGroupIdPreviewRoute: AuthenticatedCrewsGroupIdPreviewRoute,
+  AuthenticatedCrewsGroupIdRequestsRoute:
+    AuthenticatedCrewsGroupIdRequestsRoute,
   AuthenticatedCrewsGroupIdSettingsRoute:
     AuthenticatedCrewsGroupIdSettingsRoute,
   AuthenticatedExercisesExerciseIdHowToRoute:

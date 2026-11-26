@@ -4,6 +4,7 @@ import { useQueryClient, useSuspenseQuery, queryOptions } from "@tanstack/react-
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, Crown, MoreHorizontal, User, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { endCrew, getCrewManagement, manageCrewMember, saveCrewSettings } from "@/lib/crew-management.functions";
 import { joinedCrewDate } from "@/lib/crew-management";
@@ -30,6 +31,8 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
   const [memberId, setMemberId] = useState<string | null>(null);
   const [remove, setRemove] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [discoverable, setDiscoverable] = useState(data.discoverable ?? false);
+  useEffect(() => { setDiscoverable(data.discoverable ?? false); }, [data.discoverable]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const save = useServerFn(saveCrewSettings);
@@ -40,8 +43,18 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
   const isOwner = data.owner_id === data.viewerId;
   const changed = name.trim() !== data.name || about.trim() !== (data.about ?? "");
   const refresh = () => queryClient.invalidateQueries();
-  const memberAction = async (action: "transfer" | "remove") => {
-    if (!member) return;
+  const toggleDiscover = async (next: boolean) => {
+    setBusy(true); setError(null);
+    try {
+      const editing = name.trim().length > 0;
+      await save({ data: { groupId, name: editing ? name.trim() : data.name, about: editing ? (about.trim() || null) : (data.about ?? null), discoverable: next } });
+      setDiscoverable(next);
+      await refresh();
+    }
+    catch (e) { setError(e instanceof Error ? e.message : "Couldn't update this. Try again."); }
+    finally { setBusy(false); }
+  };
+  const memberAction = async (action: "transfer" | "remove") => {    if (!member) return;
     setBusy(true); setError(null);
     try { await manage({ data: { groupId, memberId: member.id, action } }); setMemberId(null); setRemove(false); await refresh(); }
     catch (e) { setError(e instanceof Error ? e.message : "Couldn't update this member. Try again."); }
@@ -59,6 +72,13 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
           <input id="crew-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className="mt-2 h-14 w-full rounded-[14px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 text-[17px] outline-none focus:border-[var(--new-purple)]" />
           <label htmlFor="crew-about" className="mt-4 block text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">WHAT IT'S ABOUT</label>
           <textarea id="crew-about" placeholder="What's this crew about?" value={about} maxLength={120} onChange={(e) => setAbout(e.target.value)} rows={3} className="mt-2 min-h-14 w-full resize-none rounded-[14px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 py-3 text-[17px] outline-none placeholder:text-[var(--new-chevron)] focus:border-[var(--new-purple)]" />
+        </section>
+        <section className="mx-4 mt-3 flex items-center gap-3 rounded-[20px] bg-[var(--new-white)] p-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[16px] font-bold">Let people find this crew</p>
+            <p className="mt-0.5 text-[13px] leading-[1.45] text-[var(--new-muted)]">They can see the name, about and first names, then ask to join.</p>
+          </div>
+          <Switch checked={discoverable} disabled={busy} onCheckedChange={(v) => void toggleDiscover(Boolean(v))} className="shrink-0 data-[state=checked]:bg-[var(--new-purple)]" aria-label="Let people find this crew" />
         </section>
         <h2 className="px-4 pb-2 pt-2 text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">MEMBERS · {data.members.length} OF {data.memberLimit}</h2>
         <section className="mx-4 overflow-hidden rounded-[20px] bg-[var(--new-white)] px-4">

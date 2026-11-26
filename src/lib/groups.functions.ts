@@ -401,6 +401,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
       frequency?: "daily" | "weekly" | "specific";
       daysPerWeek?: number;
       kind?: "group" | "solo";
+      discoverable?: boolean;
     }) => {
       if (!input || typeof input.name !== "string" || typeof input.emoji !== "string") {
         throw new Error("Invalid input");
@@ -427,7 +428,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
           ? Math.floor(input.daysPerWeek)
           : 7;
       const kind: "group" | "solo" = input.kind === "solo" ? "solo" : "group";
-      return { id, name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek, kind };
+      return { id, name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek, kind, discoverable: input.discoverable === true };
     },
   )
 
@@ -449,6 +450,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
         days_per_week: data.daysPerWeek,
         start_date: today,
         kind: data.kind,
+        discoverable: data.discoverable,
       } as never)
       .select("id, name, emoji")
       .single();

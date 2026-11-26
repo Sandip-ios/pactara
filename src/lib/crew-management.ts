@@ -4,6 +4,7 @@ export const crewSettingsInput = z.object({
   groupId: z.string().uuid(),
   name: z.string().trim().min(1, "Crew name required").max(80),
   about: z.string().trim().max(120, "Keep it to 120 characters").nullable(),
+  discoverable: z.boolean().optional(),
 });
 export const crewMemberActionInput = z.object({
   groupId: z.string().uuid(), memberId: z.string().uuid(), action: z.enum(["transfer", "remove"]),

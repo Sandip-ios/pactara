@@ -11,6 +11,8 @@ import { TrialEndedPaywall } from "@/components/TrialEndedPaywall";
 import { areBottomTabsHidden, subscribeBottomTabsHidden } from "@/hooks/use-hide-bottom-tabs";
 import { getPendingPact } from "@/lib/pact.functions";
 import { getPendingGoal } from "@/lib/member-goal.functions";
+import { wasApprovedIntoCrew } from "@/lib/crew-join.functions";
+import { parseVersionParam, previewOverrideAllowed } from "@/lib/app-version";
 import { getPartnerState } from "@/lib/partners.functions";
 import { hasActiveMembership } from "@/lib/membership";
 import { didStartupChecksRun, useLaunchHold } from "@/lib/launch-screen";
@@ -69,8 +71,19 @@ function AuthLayout() {
         ]);
         if (cancelled) return;
         if (goalRes?.groupId) {
-          navigate({ to: "/goal/$groupId", params: { groupId: goalRes.groupId }, replace: true });
-          return;
+          // The preview-only ?v= switch is applied by the router after the first
+          // render, so read it straight off the address here as well.
+          const override = previewOverrideAllowed(window.location.hostname) ? parseVersionParam(window.location.search) : null;
+          const effective = override ?? appVersion;
+          // A member approved through a join request answers the new version's
+          // own goal sheet instead of being sent to the classic goal screen.
+          const approvedIn = effective === "new"
+            ? await wasApprovedIntoCrew({ data: { groupId: goalRes.groupId } }).then((r) => r.approved).catch(() => false)
+            : false;
+          if (!approvedIn) {
+            navigate({ to: "/goal/$groupId", params: { groupId: goalRes.groupId }, replace: true });
+            return;
+          }
         }
         if (res?.groupId) {
           navigate({ to: "/pact/$groupId", params: { groupId: res.groupId }, replace: true });

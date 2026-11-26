@@ -23,9 +23,12 @@ import type { CheckInNode } from "@/lib/feed-days";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
-import { NewSheet, NewSheetButton } from "./NewSheet";
+import { NewSheet, NewSheetButton, NewSheetChip } from "./NewSheet";
 import { NewCrewControls } from "./NewCrewControls";
 import { beginNewCheckIn } from "@/lib/redesign-checkin";
+import { useServerFn } from "@tanstack/react-start";
+import { completeCrewJoinGoal, getCrewJoinGoal } from "@/lib/crew-join.functions";
+import { JOIN_GOAL_MAX } from "@/lib/crew-join";
 
 const BG = "#F5F2EE";
 const INK = "#1C1917";
@@ -71,6 +74,20 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   });
   const { data: prefs } = useQuery({ queryKey: ["notification-prefs"], queryFn: () => getNotificationPrefs() });
   const { data: partnerState } = usePartnerState();
+  const { data: joinGoal } = useQuery({ queryKey: ["crew-join-goal", groupId], queryFn: () => getCrewJoinGoal({ data: { groupId } }), staleTime: 60_000 });
+  const [goalOpen, setGoalOpen] = useState(false);
+  const [goalAnswered, setGoalAnswered] = useState(false);
+  const [goalText, setGoalText] = useState("");
+  const [goalBusy, setGoalBusy] = useState(false);
+  const finishGoal = useServerFn(completeCrewJoinGoal);
+  useEffect(() => { if (joinGoal?.show && !goalAnswered) setGoalOpen(true); }, [joinGoal?.show, goalAnswered]);
+  const answerGoal = async (goal: string | null) => {
+    setGoalBusy(true);
+    try { await finishGoal({ data: { groupId, goal } }); } catch { /* the prompt comes back next visit */ }
+    setGoalBusy(false);
+    setGoalOpen(false);
+    setGoalAnswered(true);
+  };
   const groupFeed = useGroupFeed(groupId, { staleTime: 30_000 });
 
   useEffect(() => {
@@ -117,11 +134,11 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
             </button>
             <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} />
           </div>
-          <div className="mt-3 flex items-center gap-3 px-4 pb-4">
+          <div className="mt-2 flex items-center gap-3 px-4 pb-3">
             <CrewAvatarOverlap members={group.members.map(avatarMember)} size={40} />
             <div className="min-w-0">
               <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} header />
-              <p className="mt-1 flex items-center gap-1.5 text-[13px]" style={{ color: MUTED }}>
+              <p className="mt-[2px] flex items-center gap-1.5 text-[13px] leading-[15px]" style={{ color: MUTED }}>
                 <Lock size={13} aria-hidden /> Private crew · day {group.dayNumber} of {group.durationDays}
               </p>
             </div>
@@ -218,6 +235,19 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
             <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>{counts.done} of {counts.due} members are in today. Everyone needs to be in to keep the crew streak.</p>
           </div>
           <NewSheetButton onClick={() => setStreakOpen(false)}>Done</NewSheetButton>
+      </NewSheet>
+      <NewSheet open={goalOpen} onOpenChange={(o) => { if (!o) { setGoalOpen(false); setGoalAnswered(true); } }} title={`You're in ${displayName}`} subtitle="What's your goal in this crew? Everyone has their own, and your crewmates see it on your row.">
+        <div>
+          <textarea aria-label="Your goal" maxLength={JOIN_GOAL_MAX} value={goalText} onChange={(e) => setGoalText(e.target.value)} rows={3} className="w-full rounded-[14px] border border-[var(--new-handle)] p-3 text-[17px]" />
+          <p className="mt-1 text-right text-[12px]" style={{ color: MUTED }}>{goalText.length}/{JOIN_GOAL_MAX}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {["Build muscle", "Lose fat", "Stay consistent"].map((chip) => (
+              <NewSheetChip key={chip} selected={goalText === chip} onClick={() => setGoalText(chip)}>{chip}</NewSheetChip>
+            ))}
+          </div>
+          <NewSheetButton disabled={goalBusy || !goalText.trim()} onClick={() => void answerGoal(goalText.trim())}>Save goal</NewSheetButton>
+          <NewSheetButton secondary disabled={goalBusy} onClick={() => void answerGoal(null)}>Skip for now</NewSheetButton>
+        </div>
       </NewSheet>
       {media && <MediaLightbox src={media.src} kind={media.kind} onClose={() => setMedia(null)} />}
     </FeedContext.Provider>

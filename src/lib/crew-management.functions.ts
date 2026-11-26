@@ -9,7 +9,7 @@ export const getCrewManagement = createServerFn({ method: "GET" })
   .inputValidator((input: { groupId: string }) => ({ groupId: crewSettingsInput.shape.groupId.parse(input.groupId) }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const { data: group, error } = await supabase.from("groups").select("id,name,about,owner_id").is("ended_at", null).eq("id", data.groupId).maybeSingle();
+    const { data: group, error } = await supabase.from("groups").select("id,name,about,owner_id,discoverable").is("ended_at", null).eq("id", data.groupId).maybeSingle();
     if (error || !group) throw new Error("This crew is no longer available");
     const { data: rows, error: memberError } = await supabase.from("group_members").select("user_id,joined_at, groups!inner(ended_at)").is("groups.ended_at", null).eq("group_id", group.id).order("joined_at").order("user_id");
     if (memberError || !rows?.some((row) => row.user_id === userId)) throw new Error("You are not in this crew");
@@ -29,7 +29,7 @@ export const saveCrewSettings = createServerFn({ method: "POST" })
     const { data: group } = await context.supabase.from("groups").select("owner_id").is("ended_at", null).eq("id", data.groupId).maybeSingle();
     if (!group) throw new Error("This crew is no longer available");
     requireCrewOwner(group.owner_id, context.userId);
-    const { data: updated, error } = await context.supabase.from("groups").update({ name: data.name, about: data.about || null }).eq("id", data.groupId).eq("owner_id", context.userId).select("id").maybeSingle();
+    const { data: updated, error } = await context.supabase.from("groups").update({ name: data.name, about: data.about || null, ...(data.discoverable === undefined ? {} : { discoverable: data.discoverable }) }).eq("id", data.groupId).eq("owner_id", context.userId).select("id").maybeSingle();
     if (error || !updated) throw new Error("Could not save crew settings");
     return { ok: true };
   });

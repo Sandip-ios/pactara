@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CalendarDays, Check, ChevronDown, CircleSlash, Copy, Mail, MessageCircle, MoreHorizontal, Plus, Search, Settings, Share2, Target, UserPlus } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, CircleSlash, Copy, Mail, MessageCircle, MoreHorizontal, Plus, Search, Settings, Share2, Target, UserPlus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { GroupToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
@@ -13,6 +13,8 @@ import { inviteLinkFor, CREW_INVITE_TEXT } from "@/components/groups/GroupOverfl
 import { getMemberGoal, setMemberGoal, GOAL_MAX } from "@/lib/member-goal.functions";
 import { NewSheet, NewSheetAvatars, NewSheetButton, NewSheetChevron, NewSheetRow } from "./NewSheet";
 import { NewConfirm } from "./NewConfirm";
+import { getCrewJoinOverview } from "@/lib/crew-join.functions";
+import { discoveryAvatars } from "./NewCrewDiscovery";
 
 export function NewCrewControls({ group, groups, tab, name, header = false }: {
   group: GroupToday; groups: GroupToday[]; tab: "today" | "posts" | "chat"; name: string; header?: boolean;
@@ -29,6 +31,9 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
   const saveGoal = useServerFn(setMemberGoal);
   const fetchGoal = useServerFn(getMemberGoal);
   const { data: unread } = useQuery({ queryKey: ["unread-chat-counts"], queryFn: () => getUnreadChatCounts(), staleTime: 15_000 });
+  const { data: joinOverview } = useQuery({ queryKey: ["crew-join-overview"], queryFn: () => getCrewJoinOverview(), staleTime: 15_000 });
+  const pending = joinOverview?.pending ?? [];
+  const requestCount = joinOverview?.counts[group.id] ?? 0;
   const { data: management } = useQuery({ queryKey: ["crew-management", group.id], queryFn: () => getCrewManagement({ data: { groupId: group.id } }), enabled: sheet === "leave" });
   const hasOtherUnread = groups.some((g) => g.id !== group.id && (unread?.counts[g.id] ?? 0) > 0);
   const next = management?.members.find((member) => member.id !== management.viewerId);
@@ -50,7 +55,7 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
   };
   return <>
     {header ? <Button variant="ghost" onClick={() => open("switch")} aria-label="Switch crew" className="h-auto max-w-full justify-start gap-2 p-0 text-[var(--new-ink)] hover:bg-transparent">
-      <h1 className="truncate text-[24px] font-extrabold leading-tight">{name}</h1>
+      <h1 className="truncate text-[22px] font-extrabold leading-[24px]">{name}</h1>
       <ChevronDown size={18} className="!size-[18px] shrink-0 text-[var(--new-muted)]" />
       {hasOtherUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--new-purple)]" aria-label="Unread activity in another crew" />}
     </Button> : <Button variant="ghost" size="icon" aria-label="Crew options" onClick={() => open("menu")} className="h-11 w-11 rounded-full bg-[var(--new-control)] text-[var(--new-ink)] hover:bg-[var(--new-control)]"><MoreHorizontal size={22} className="!size-[22px]" /></Button>}
@@ -64,6 +69,10 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
           trailing={current ? <Check size={22} className="!size-[22px] text-[var(--new-purple)]" /> : count > 0 ? <span className="flex h-6 shrink-0 items-center rounded-full bg-[var(--new-purple)] px-2 text-[13px] font-bold text-[var(--new-white)]">{count} new</span> : undefined}
           onClick={() => go(() => navigate({ to: "/crews/$groupId", params: { groupId: crew.id }, search: tab === "today" ? {} : { crewTab: tab } }))} />;
       })}</div>
+      {pending.length > 0 && <div className="mt-4">
+        <p className="px-1 pb-1 text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">PENDING</p>
+        {pending.map((crew) => <NewSheetRow key={crew.id} title={crew.name} subtitle={`Requested · waiting on ${crew.ownerFirstName}`} leading={<NewSheetAvatars members={discoveryAvatars(crew)} />} trailing={<span className="flex h-7 shrink-0 items-center rounded-full bg-[var(--new-control)] px-2.5 text-[13px] font-bold text-[var(--new-muted)]">Pending</span>} onClick={() => go(() => navigate({ to: "/crews/$groupId/preview", params: { groupId: crew.id } }))} />)}
+      </div>}
       <div className="mt-4 grid grid-cols-2 gap-[10px]">
         <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => navigate({ to: "/crews" }))}><Search size={18} />Find a crew</NewSheetButton>
         <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => navigate({ to: "/new-pactara" }))}><Plus size={18} />New crew</NewSheetButton>
@@ -73,6 +82,7 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
       <div>
         {group.isAdmin && <NewSheetRow simple title="Crew settings" leading={<Settings size={22} />} trailing={<NewSheetChevron />} onClick={() => go(() => navigate({ to: "/crews/$groupId/settings", params: { groupId: group.id } }))} />}
         <NewSheetRow simple title="Invite people" leading={<UserPlus size={22} />} trailing={<NewSheetChevron />} onClick={() => void invite()} />
+        {group.isAdmin && <NewSheetRow simple title="Join requests" leading={<Users size={22} />} trailing={<span className="flex shrink-0 items-center gap-2">{requestCount > 0 && <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-[var(--new-purple)] px-1.5 text-[13px] font-bold text-[var(--new-white)]">{requestCount}</span>}<NewSheetChevron /></span>} onClick={() => go(() => navigate({ to: "/crews/$groupId/requests", params: { groupId: group.id } }))} />}
         <NewSheetRow simple title="Your goal in this crew" leading={<Target size={22} />} trailing={<NewSheetChevron />} onClick={() => void editGoal()} />
         <NewSheetRow simple title="Schedule and pact" leading={<CalendarDays size={22} />} trailing={<span className="flex shrink-0 items-center gap-2"><span className="text-[14px] font-normal text-[var(--new-muted)]">Day {group.dayNumber} of {group.durationDays}</span><NewSheetChevron /></span>} onClick={() => go(() => navigate({ to: "/pact/$groupId", params: { groupId: group.id } }))} />
         <NewSheetRow simple destructive title="Leave crew" leading={<CircleSlash size={22} className="text-[var(--new-destructive)]" />} onClick={() => open("leave")} />
