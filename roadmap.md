@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Account deletion: both block endpoints cascade from auth.users like follows; reports untouched; two database regressions and actual Settings deletion for classic/new verify both blocks disappear, the complete report survives, audit is written and sign-out reaches /login; 638 tests pass, build OK; temporary accounts/reports/audits removed; no screenshots or publishing.
+
 - [x] New-version avatars share the filled full-disc silhouette across profiles/editor, crew rows/stacks/switcher, chat, requests, pact screens and version-gated shared feed/safety avatars; 47/53/57 and Crews saved as base64 in public/qa/p3-avatar.json; signed-in 20–96px avatars, editor, Block and chat checked at 390px; classic profile/chat retain their fallbacks; 636 tests pass, build OK; temporary accounts/crew removed, unpublished.
 
 - [x] Phase 3 step 2: new-only own profile/menu/editor, crew week/plan/follow data, debounced username validation and real save/reload, working interim privacy/blocked/progress destinations; both account states and captures 47–52 verified at 390×844 in public/qa/p3-step2.json; second crew, plan link, photo picker, discard/Keep editing and classic profile/editor checked; 628 tests pass, compilation clean; both test accounts, crews, temporary plan and their rows removed, including plan history and subscriptions; classic unchanged, unpublished.
