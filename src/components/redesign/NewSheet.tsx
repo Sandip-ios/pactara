@@ -44,7 +44,7 @@ export function NewSheetIcon({ children, tone = "soft" }: { children: ReactNode;
 
 /** Avatar rows use the stack's own width; NewSheetRow supplies the 12px text gap. */
 export function NewSheetAvatars({ members }: { members: RedesignCrewAvatarMember[] }) {
-  return <CrewAvatarOverlap members={members} size={30} limit={3} />;
+  return <CrewAvatarOverlap members={members} size={30} limit={4} />;
 }
 
 export function NewSheetChevron() { return <ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" />; }
