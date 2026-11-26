@@ -346,8 +346,8 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
       style={{
         fontFamily: "Inter, system-ui, sans-serif",
         height: viewportHeight
-          ? `${embedded ? Math.max(320, viewportHeight - 228) : viewportHeight}px`
-          : embedded ? "calc(100dvh - 228px)" : "100dvh",
+          ? `${embedded ? Math.max(320, viewportHeight - 312) : viewportHeight}px`
+          : embedded ? "calc(100dvh - 312px - env(safe-area-inset-bottom))" : "100dvh",
         transform: `translateY(${viewportTop}px)`,
         // Ease the resize so the chat glides with the keyboard instead of
         // snapping frame-by-frame.
@@ -613,7 +613,7 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
-        style={{ paddingBottom: embedded ? "max(16px, env(safe-area-inset-bottom))" : "20px" }}
+        style={{ paddingBottom: embedded ? "16px" : "20px" }}
       >
         {pendingPreview && (
           <div className="mb-2 relative inline-block">

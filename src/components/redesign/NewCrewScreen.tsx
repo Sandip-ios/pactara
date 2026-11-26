@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Check, ChevronLeft, ChevronRight, CircleCheck, Flame, Lock, Moon, Snowflake } from "lucide-react";
@@ -103,7 +103,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
 
   return (
     <FeedContext.Provider value={{ me: feedMe, weeklyTarget: homeCrew?.weeklyTarget ?? 5 }}>
-      <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[max(24px,env(safe-area-inset-bottom))]" style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]" style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
         <header className="bg-white pt-safe-5">
           <div className="flex items-center justify-between px-4">
             <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
@@ -159,7 +159,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               <p className="mt-2 text-[15px] leading-[1.45]" style={{ color: MUTED }}>{crewShowedUpLine(counts.done, counts.due, viewerDone)}</p>
               <button type="button" onClick={() => setStreakOpen(true)} className="mt-4 flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-extrabold" style={{ background: "#FFEDE0", color: "#9A3412" }}>
                 <Flame size={16} style={{ color: "#EA580C" }} fill="#EA580C" aria-hidden />
-                {group.groupStreak}-day crew streak
+                {group.groupStreak > 0 ? `${group.groupStreak}-day crew streak` : "Crew streak starts today"}
                 <ChevronRight size={16} aria-hidden />
               </button>
               {viewerDone ? (
@@ -181,7 +181,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
 
             <SectionLabel>WHERE EVERYONE STANDS</SectionLabel>
             <section className="mx-4 overflow-hidden rounded-[20px] bg-white">
-              {group.members.map((member, index) => (
+              {youLast(group.members).map((member, index) => (
                 <MemberRow
                   key={member.userId}
                   member={member}
@@ -246,7 +246,7 @@ function WeekCard({ crew }: { crew: HomeCrewMember[] }) {
       <div className="grid items-center gap-1" style={{ gridTemplateColumns: "minmax(64px, 1fr) repeat(7, 32px)" }}>
         <span />
         {WEEK_LETTERS.map((letter, index) => <span key={`${letter}-${index}`} className="text-center text-[12px] font-bold" style={{ color: index === todayIndex ? "#6D28D9" : MUTED }}>{letter}</span>)}
-        {crew.map((member) => {
+        {youLast(crew).map((member) => {
           const covers = new Map(member.coverKinds.map((cover) => [cover.date, cover.kind]));
           return (
             <div key={member.userId} className="col-span-8 grid grid-cols-subgrid items-center gap-1 py-1.5">
@@ -262,8 +262,10 @@ function WeekCard({ crew }: { crew: HomeCrewMember[] }) {
           );
         })}
       </div>
-      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px]" style={{ color: MUTED }}>
-        <span>Checked in</span><span aria-hidden>·</span><span>Rest day</span><span aria-hidden>·</span><span>Freeze used</span>
+      <div className="mt-3 flex flex-wrap items-center justify-start gap-x-4 gap-y-1.5 text-[12px]" style={{ color: MUTED }}>
+        <LegendItem bg="#DCFCE7" icon={<Check size={9} strokeWidth={3} style={{ color: "#15803D" }} />} label="Checked in" />
+        <LegendItem bg="#F3EEFF" icon={<Moon size={9} style={{ color: "#A78BFA" }} fill="#A78BFA" />} label="Rest day" />
+        <LegendItem bg="#E0F2FE" icon={<Snowflake size={9} style={{ color: "#0284C7" }} />} label="Freeze used" />
       </div>
     </section>
   );
@@ -344,5 +346,18 @@ function CrewCheerButton({ item }: { item: FeedItem }) {
     >
       {cheers.myEmoji ? `${cheers.myEmoji} Cheered` : "Cheer"}
     </button>
+  );
+}
+
+function youLast<T extends { isYou: boolean }>(members: T[]): T[] {
+  return [...members.filter((member) => !member.isYou), ...members.filter((member) => member.isYou)];
+}
+
+function LegendItem({ bg, icon, label }: { bg: string; icon: ReactNode; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full" style={{ background: bg }} aria-hidden>{icon}</span>
+      {label}
+    </span>
   );
 }
