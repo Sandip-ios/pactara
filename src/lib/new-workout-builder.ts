@@ -63,10 +63,14 @@ export function toggleEach(v: string): string {
   return / each$/i.test(r) ? r.replace(/ each$/i, "") : `${r} each`;
 }
 
-/** The pill on each row: "4 × 8", "3 × 10 each", or "3 sets". */
-/** Always sets × reps ("4 × 8", "3 × 30s"); "N sets" only for old saved items with neither. */
+/** Reps done on each side ("10 each"): the builder shows "each side" under the name instead of in the pill. */
+export function isEachSide(reps: string): boolean {
+  return / each$/i.test(cleanReps(reps));
+}
+
+/** Always sets × reps ("4 × 8", "3 × 30s"), without "each"; "N sets" only for old saved items with neither. */
 export function pillText(item: Pick<BuilderItem, "sets" | "reps"> & { seconds?: number }): string {
-  const r = cleanReps(item.reps);
+  const r = cleanReps(item.reps).replace(/ each$/i, "");
   if (r) return `${item.sets} × ${r}`;
   if (item.seconds && item.seconds > 0) return `${item.sets} × ${item.seconds}s`;
   return `${item.sets} sets`;
@@ -119,3 +123,4 @@ export function canSaveBuilder(s: Pick<BuilderState, "name" | "items">): boolean
 }
 
 export const reorderItems = moveItem;
+

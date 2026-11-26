@@ -229,7 +229,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
             const style = { color: INK, borderTop: i === 0 ? undefined : `1px solid ${HAIR}` };
             if (!r.ex) return <div key={`${r.exerciseId}-${i}`} className={cls} style={style}>{body}<span className="w-5" /></div>;
             return (
-              <Link key={`${r.exerciseId}-${i}`} to="/exercises/$exerciseId/how-to" params={{ exerciseId: r.ex.id }} className={cls} style={style} aria-label={`How to do ${r.name}`}>
+              <Link key={`${r.exerciseId}-${i}`} to="/exercises/$exerciseId" params={{ exerciseId: r.ex.id }} search={{ tab: "howto", workout: page.key }} className={cls} style={style} aria-label={`How to do ${r.name}`}>
                 {body}
                 <ChevronRight size={20} className="shrink-0" style={{ color: "#A8A29E" }} aria-hidden />
               </Link>

@@ -81,3 +81,10 @@ describe("new exercise defaults and pill", () => {
   it("reps show sets × reps", () => expect(_pillText({ sets: 4, reps: "8" })).toBe("4 × 8"));
   it("old saved item with no reps keeps N sets", () => expect(_pillText({ sets: 3, reps: "" })).toBe("3 sets"));
 });
+
+import { isEachSide as _isEachSide } from "../new-workout-builder";
+describe("builder each side", () => {
+  it("pill drops each", () => expect(_pillText({ sets: 3, reps: "10 each" })).toBe("3 × 10"));
+  it("each side shown under name", () => expect(_isEachSide("10 each")).toBe(true));
+  it("plain reps are not each side", () => expect(_isEachSide("10")).toBe(false));
+});

@@ -79,11 +79,12 @@ function NewDiscoverPage() {
   return (
     <NewDiscover
       tab={parseDiscoverTab(search.tab)}
-      onTab={(t) => navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t }), replace: true, resetScroll: false })}
+      onTab={(t) => navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, tab: t }), replace: true, resetScroll: false })}
       filters={filters}
       quiz={search.quiz ? { dropped: parseDropped(search.dropped) } : null}
       onClearQuiz={() =>
         navigate({
+          from: "/groups/",
           to: "/groups",
           search: (prev) => {
             const next = { ...prev, quiz: undefined, dropped: undefined };
@@ -96,6 +97,7 @@ function NewDiscoverPage() {
       }
       onFiltersChange={(f) =>
         navigate({
+          from: "/groups/",
           to: "/groups",
           search: (prev) => {
             const next = { ...prev };
@@ -123,6 +125,7 @@ function ClassicDiscoverPage() {
   }, [search]);
   const setFilters = (f: PlanFilters) =>
     navigate({
+      from: "/groups/",
       to: "/groups",
       search: (prev) => {
         const next = { ...prev };
@@ -176,10 +179,10 @@ function ClassicDiscoverPage() {
           completeSlug={completeSlug}
           scrollToList={!!search.list}
           onScrolledToList={() =>
-            navigate({ to: "/groups", search: (prev) => ({ ...prev, list: undefined }), replace: true, resetScroll: false })
+            navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, list: undefined }), replace: true, resetScroll: false })
           }
           onCloseComplete={() =>
-            navigate({ to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
+            navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
           }
         />
       </div>

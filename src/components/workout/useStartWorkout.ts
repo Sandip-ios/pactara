@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { getLiftHistory, startLoggedSession, type SavedWorkout } from "@/lib/lifts.functions";
 import { EXERCISE_LIBRARY_KEY, LIFT_HISTORY_KEY, fetchExerciseLibrary } from "@/lib/exercise-library";
 import { buildLiveExercise, setActiveWorkout, uid, updateActiveWorkout, type ActiveWorkout, type LiveExercise } from "@/lib/active-workout";
-import { parseDose } from "@/lib/lift-rules";
+import { parseDose, repsFromTarget } from "@/lib/lift-rules";
 import { checkInActivityFor, dayForWeek, movesForWeek, weekNoteFor, type Plan } from "@/lib/workout-plans";
 import type { MyActivePlan } from "@/lib/plans.functions";
 
@@ -53,7 +53,10 @@ export function useStartWorkout() {
         if (!ex) continue;
         // A timed move copied from a crewmate keeps their time as the target.
         const target = it.seconds && ex.logType === "timed" ? { sets: it.sets, repsLo: null, repsHi: null, seconds: it.seconds } : null;
-        const live = buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds, target });
+        const built = buildLiveExercise(ex, hist.byExercise[ex.id], { unit: hist.unit, count: it.sets, restSeconds: it.restSeconds, target });
+        // Reps target from the builder (new version) wins over last time's reps.
+        const targetReps = built.logType === "reps" ? repsFromTarget(it.reps) : null;
+        const live = targetReps != null ? { ...built, sets: built.sets.map((s) => ({ ...s, reps: targetReps })) } : built;
         exercises.push(it.tip ? { ...live, authorTip: it.tip } : live);
       }
       begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, from, untracked: [], exercises });

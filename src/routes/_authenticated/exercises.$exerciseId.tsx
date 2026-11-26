@@ -1,4 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
+import { NewExercisePage } from "@/components/redesign/NewExercisePage";
+import { parseExerciseTab, type ExerciseTab } from "@/lib/exercise-page";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,7 +11,13 @@ import { getExerciseProgress } from "@/lib/lifts.functions";
 import { useExerciseMap } from "@/lib/exercise-library";
 import { bestOf, convertWeight, historyDateLabel, fmtDurationShort, fmtNum, nextTimeTip, plural, repsLabel, type SetEntry, type WeightUnit } from "@/lib/lift-rules";
 
+type ExerciseSearch = { tab?: ExerciseTab; workout?: string };
+
 export const Route = createFileRoute("/_authenticated/exercises/$exerciseId")({
+  validateSearch: (s: Record<string, unknown>): ExerciseSearch => ({
+    ...(s["tab"] === "howto" || s["tab"] === "progress" ? { tab: s["tab"] } : {}),
+    ...(typeof s["workout"] === "string" && s["workout"] ? { workout: s["workout"].slice(0, 80) } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Exercise progress · Pactara" },
@@ -19,8 +28,19 @@ export const Route = createFileRoute("/_authenticated/exercises/$exerciseId")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: ExerciseProgressPage,
+  component: ExerciseRoute,
 });
+
+function ExerciseRoute() {
+  const { exerciseId } = Route.useParams();
+  const { tab, workout } = Route.useSearch();
+  const version = useAppVersion();
+  const { isLoading } = useAppPrefs();
+  if (isLoading) return null;
+  // New version: one exercise page with How to and Your progress tabs; classic keeps its progress page.
+  if (version === "new") return <NewExercisePage exerciseId={exerciseId} tab={parseExerciseTab(tab)} workout={workout} />;
+  return <ExerciseProgressPage />;
+}
 
 
 function ExerciseProgressPage() {

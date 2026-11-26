@@ -17,7 +17,7 @@ import { TIP_MAX } from "@/lib/new-workout-view";
 import { clampSets, MAX_SETS, MIN_SETS } from "@/lib/workout-builder";
 import {
   builderDirty, builderMinutes, builderSignature, canSaveBuilder, cleanReps, cleanTip, EQUIPMENT_OPTIONS, equipmentFromExercises,
-  newItemDose, pillText, reorderItems, savePayload, stepReps, toggleEach, type BuilderItem, type BuilderState, type WorkoutEquipment,
+  isEachSide, newItemDose, pillText, reorderItems, savePayload, stepReps, toggleEach, type BuilderItem, type BuilderState, type WorkoutEquipment,
 } from "@/lib/new-workout-builder";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
@@ -241,8 +241,11 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
                     <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ background: ex?.imageBg ?? "#E8F1FB" }} aria-hidden>
                       {ex?.imageStart && <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />}
                     </span>
-                    <span className="min-w-0 flex-1 text-[16px] font-bold leading-[1.25] [overflow-wrap:anywhere]">{name}</span>
-                    <button type="button" onClick={() => setDoseKey(it.key)} className="h-9 shrink-0 whitespace-nowrap rounded-full px-3 text-[15px] font-bold" style={{ background: WARM, color: INK }} aria-label={`Sets and reps for ${name}: ${pillText(it)}`}>
+                    <span className="min-w-0 flex-1">
+                      <span className="line-clamp-2 text-[16px] font-bold leading-[1.25] [hyphens:none] [overflow-wrap:normal]">{name}</span>
+                      {isEachSide(it.reps) && <span className="block text-[12px] leading-[1.3]" style={{ color: MUTED }}>each side</span>}
+                    </span>
+                    <button type="button" onClick={() => setDoseKey(it.key)} className="h-9 shrink-0 whitespace-nowrap rounded-full px-3 text-[15px] font-bold" style={{ background: WARM, color: INK }} aria-label={`Sets and reps for ${name}: ${pillText(it)}${isEachSide(it.reps) ? " each side" : ""}`}>
                       {pillText(it)}
                     </button>
                     <button type="button" onClick={() => remove(it)} aria-label={`Remove ${name}`} className="-mr-1 flex h-11 w-9 shrink-0 items-center justify-center" style={{ color: "#A8A29E" }}>

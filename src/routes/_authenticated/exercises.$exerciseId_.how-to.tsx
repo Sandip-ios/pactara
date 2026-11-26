@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Navigate, useNavigate } from "@tanstack/react-router";
+import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, Pause, Play, X } from "lucide-react";
 import { FONT } from "@/components/workout/WorkoutBits";
@@ -23,8 +24,19 @@ export const Route = createFileRoute("/_authenticated/exercises/$exerciseId_/how
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: HowToPage,
+  component: HowToRoute,
 });
+
+function HowToRoute() {
+  const { exerciseId } = Route.useParams();
+  const { swap } = Route.useSearch();
+  const version = useAppVersion();
+  const { isLoading } = useAppPrefs();
+  if (isLoading) return null;
+  // New version: How to lives on the exercise page (classic's swap-from-logger link keeps this page).
+  if (version === "new" && !swap) return <Navigate to="/exercises/$exerciseId" params={{ exerciseId }} search={{ tab: "howto" }} replace />;
+  return <HowToPage />;
+}
 
 const C = {
   ink: "#141218",

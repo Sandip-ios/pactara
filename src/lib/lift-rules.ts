@@ -320,6 +320,16 @@ export function prefillSets(input: {
   return out;
 }
 
+/**
+ * A saved workout's reps target as the logger's starting reps: "12" → 12,
+ * "8-12" → 8 (low end), "10 each" → 10. Null when there's no number.
+ */
+export function repsFromTarget(reps: string | null | undefined): number | null {
+  const m = /^\s*(\d+)/.exec(reps ?? "");
+  const n = m ? Number(m[1]) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
 /** Exercise progress page "Next time" tip and the chart's dashed next-weight dot: same rule as the logger. */
 export function nextTimeTip(
   last: LastSession | null,

@@ -150,7 +150,7 @@ function MoveRow({ move, ex, first }: { move: PlanMove; ex: LibraryExercise | nu
   const style = { color: INK, borderTop: first ? undefined : `1px solid ${HAIR}` };
   if (!ex) return <div className={cls} style={style}>{body}</div>;
   return (
-    <Link to="/exercises/$exerciseId/how-to" params={{ exerciseId: ex.id }} className={cls} style={style} aria-label={`How to do ${move.name}`}>
+    <Link to="/exercises/$exerciseId" params={{ exerciseId: ex.id }} search={{ tab: "howto" }} className={cls} style={style} aria-label={`How to do ${move.name}`}>
       {body}
       <ChevronRight size={20} className="shrink-0" style={{ color: "#A8A29E" }} aria-hidden />
     </Link>

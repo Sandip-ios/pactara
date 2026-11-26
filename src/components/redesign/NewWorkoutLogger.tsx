@@ -83,13 +83,13 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
         <div className="mx-4 mt-3 rounded-[14px] bg-red-50 px-3 py-2 text-[14px] font-semibold text-red-700" role="alert">{actions.err}</div>
       )}
 
-      <div className="flex flex-col gap-3 px-4 pb-[calc(32px+env(safe-area-inset-bottom))] pt-3">
+      <div className="flex flex-col gap-[10px] px-4 pb-[calc(32px+env(safe-area-inset-bottom))] pt-3">
         {w.exercises.map((ex) => (
           <ExerciseCard key={ex.key} ex={ex} w={w} imageBg={lib.get(ex.exerciseId)?.imageBg ?? null} onMenu={() => setMenuKey(ex.key)} onToggle={(s) => actions.toggleSet(ex, s)} />
         ))}
 
         {w.untracked.length > 0 && (
-          <section className="rounded-[18px] bg-white p-4">
+          <section className="rounded-[18px] bg-white p-[14px]">
             <div className="text-[11px] font-extrabold uppercase tracking-[0.6px]" style={{ color: MUTED }}>Also today · not logged here</div>
             <ul className="mt-1.5 flex flex-col gap-1">
               {w.untracked.map((m) => (
@@ -182,13 +182,13 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
   const setField = (setId: string, patch: Partial<LiveSet>) =>
     updateEx(ex.key, (e) => withPrs({ ...e, sets: e.sets.map((s) => (s.id === setId ? { ...s, ...patch } : s)) }, unit));
   return (
-    <section className="rounded-[18px] bg-white p-4" aria-label={ex.name}>
+    <section className="rounded-[18px] bg-white p-[14px]" aria-label={ex.name}>
       <div className="flex items-start gap-3">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[12px]" style={{ background: imageBg ?? "#E8F1FB" }} aria-hidden>
           {ex.imageStart && <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />}
         </span>
         <div className="min-w-0 flex-1 pt-0.5">
-          <Link to="/exercises/$exerciseId" params={{ exerciseId: ex.exerciseId }} className="block text-[16px] font-extrabold leading-[1.25]" style={{ color: PURPLE }}>{ex.name}</Link>
+          <Link to="/exercises/$exerciseId" params={{ exerciseId: ex.exerciseId }} search={{ tab: "howto", ...(w.workoutId ? { workout: w.workoutId } : {}) }} className="block text-[16px] font-extrabold leading-[1.25]" style={{ color: PURPLE }}>{ex.name}</Link>
           {tip && <p className="mt-0.5 text-[13px] leading-[1.35]" style={{ color: MUTED }}>{tip}</p>}
         </div>
         <button type="button" aria-label={`More options for ${ex.name}`} onClick={onMenu} className="-mr-2 -mt-1 flex h-11 w-11 shrink-0 items-center justify-center" style={{ color: MUTED }}>
@@ -196,7 +196,7 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
         </button>
       </div>
 
-      <div className="mt-3 grid items-center gap-[7px] text-[11px] font-extrabold uppercase tracking-[0.5px]" style={{ gridTemplateColumns: GRID, color: MUTED }}>
+      <div className="mb-2 mt-3 grid items-center gap-[7px] text-[11px] font-extrabold uppercase tracking-[0.5px]" style={{ gridTemplateColumns: GRID, color: MUTED }}>
         <span>Set</span>
         <span>Last time</span>
         <span className="text-center">{unit.toUpperCase()}</span>
@@ -207,7 +207,7 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
         const st = setRowState(s);
         const last = lastCell(ex.last?.sets[i] ?? null, unit, ex.logType).replace("×", " × ");
         return (
-          <div key={s.id} className="grid h-12 items-center gap-[7px]" style={{ gridTemplateColumns: GRID }} data-set-row data-done={s.done || undefined}>
+          <div key={s.id} className="grid h-11 items-center gap-[7px]" style={{ gridTemplateColumns: GRID }} data-set-row data-done={s.done || undefined}>
             <span className="text-[15px] font-extrabold">{i + 1}</span>
             <span className="truncate text-[14px]" style={{ color: MUTED }}>{last}</span>
             <NumBox value={s.weight} bg={st.boxBg} decimal placeholder={ex.loadable ? "0" : "—"} ariaLabel={`Set ${i + 1} weight in ${unit}`} onChange={(v) => setField(s.id, { weight: v })} />
@@ -219,17 +219,17 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
               ariaLabel={`Set ${i + 1} ${timed ? (ex.minutes ? "minutes" : "seconds") : "reps"}`}
               onChange={(v) => setField(s.id, timed ? { seconds: v == null ? null : Math.round(ex.minutes ? v * 60 : v) } : { reps: v == null ? null : Math.round(v) })}
             />
-            <span className="relative flex h-[42px] w-[42px]">
+            <span className="relative flex h-[34px] w-[34px]">
               <button
                 type="button"
                 aria-label={s.done ? `Undo set ${i + 1}` : `Done with set ${i + 1}`}
                 aria-pressed={s.done}
                 aria-disabled={!s.done && !canCheckOffSet(s, ex) ? true : undefined}
                 onClick={() => { if (s.done || canCheckOffSet(s, ex)) onToggle(s); }}
-                className="flex h-[42px] w-[42px] items-center justify-center rounded-[10px]"
+                className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px]"
                 style={{ background: st.checkBg, color: s.done ? "#FFFFFF" : "#C9C3BA" }}
               >
-                {s.done && <Check size={22} strokeWidth={3} />}
+                {s.done && <Check size={18} strokeWidth={3} />}
               </button>
               {st.showPr && (
                 <span className="absolute -right-2 -top-1.5 rounded-full px-1.5 py-px text-[10px] font-extrabold leading-[14px]" style={{ background: "#F59E0B", color: "#FFFFFF" }}>PR</span>
@@ -238,7 +238,7 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
           </div>
         );
       })}
-      <button type="button" onClick={() => updateEx(ex.key, (e) => ({ ...e, sets: [...e.sets, emptySet(e)] }))} className="mx-auto mt-1 flex h-10 items-center justify-center gap-1 px-3 text-[14px] font-extrabold" style={{ color: PURPLE }}>
+      <button type="button" onClick={() => updateEx(ex.key, (e) => ({ ...e, sets: [...e.sets, emptySet(e)] }))} className="mx-auto mb-1 mt-2 flex h-6 items-center justify-center gap-1 px-3 text-[14px] font-extrabold" style={{ color: PURPLE }}>
         <Plus size={16} strokeWidth={2.75} /> Add set
       </button>
     </section>
@@ -268,7 +268,7 @@ function NumBox({ value, bg, decimal, placeholder, ariaLabel, onChange }: { valu
       }}
       onBlur={() => setDraft(null)}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
-      className="h-[42px] w-full min-w-0 rounded-[10px] text-center text-[17px] font-extrabold outline-none placeholder:font-semibold placeholder:text-[#A8A29E] focus:ring-2 focus:ring-[#C4B5FD]"
+      className="h-[34px] w-full min-w-0 rounded-[8px] text-center text-[16px] font-extrabold outline-none placeholder:font-semibold placeholder:text-[#A8A29E] focus:ring-2 focus:ring-[#C4B5FD]"
       style={{ background: bg, color: INK, fontVariantNumeric: "tabular-nums" }}
     />
   );
