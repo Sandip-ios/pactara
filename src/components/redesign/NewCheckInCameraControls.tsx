@@ -55,9 +55,9 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
     </div>
     <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-4 px-4 pb-[calc(env(safe-area-inset-bottom)+24px)]">
       {attachment && <span className="flex max-w-full items-center gap-2 rounded-full bg-[var(--new-camera-plan)] px-3.5 py-2 text-[14px] font-bold"><Dumbbell size={17} /><span className="truncate">{attachment}</span></span>}
-      <div className="relative flex h-[76px] w-[76px] items-center justify-center">
-        <svg className="pointer-events-none absolute inset-0 text-[var(--new-white)]" width="76" height="76" viewBox="0 0 76 76" aria-hidden><circle cx="38" cy="38" r="35" stroke="currentColor" strokeWidth="3" fill="none" opacity={recording ? .35 : 1} />{recording && <circle cx="38" cy="38" r="35" stroke="currentColor" strokeWidth="3" fill="none" strokeDasharray={`${220 * progress} 220`} transform="rotate(-90 38 38)" />}</svg>
-        <Button variant="ghost" size="icon" onClick={record} disabled={recording || starting || !selected.length} aria-label={recording ? "Recording" : "Start recording"} className="h-[62px] w-[62px] rounded-full bg-[var(--new-red)] text-[28px] font-extrabold text-[var(--new-white)] disabled:opacity-100 hover:bg-[var(--new-red)]">{recording ? left : ""}</Button>
+      <div className="relative flex h-[80px] w-[80px] items-center justify-center">
+        <svg className="pointer-events-none absolute inset-0 text-[var(--new-white)]" width="80" height="80" viewBox="0 0 80 80" aria-hidden><circle cx="40" cy="40" r="37.5" stroke="currentColor" strokeWidth="5" fill="none" opacity=".35" />{recording && <circle cx="40" cy="40" r="37.5" stroke="currentColor" strokeWidth="5" fill="none" pathLength="1" strokeDasharray={`${progress} 1`} transform="rotate(-90 40 40)" />}</svg>
+        <Button variant="ghost" size="icon" onClick={record} disabled={recording || starting || !selected.length} aria-label={recording ? "Recording" : "Start recording"} className="h-[58px] w-[58px] rounded-full border-0 bg-[var(--new-red)] text-[28px] font-extrabold text-[var(--new-white)] shadow-none disabled:opacity-100 hover:bg-[var(--new-red)] hover:text-[var(--new-white)]">{recording ? left : ""}</Button>
       </div>
       <p className="text-[15px] font-semibold" aria-live="polite">{recording ? `Recording · ${left} seconds left` : starting ? "Starting recording" : "Tap to record 5 seconds"}</p>
     </div>
