@@ -22,7 +22,7 @@ export const getSocialList = createServerFn({ method: 'GET' }).middleware([requi
   });
 
 export type ExtraActivityItem = {
-  key: string; kind: 'nudge' | 'crew_request' | 'crew_approved' | 'milestone' | 'pact_restart' | 'reminder';
+  key: string; kind: 'nudge' | 'crew_request' | 'crew_approved' | 'milestone' | 'pact_restart' | 'reminder' | 'plan_invite';
   actorId: string; actorName: string; avatar: string | null; createdAt: string;
   groupId: string; groupName: string; text: string; canCheckIn: boolean; read: boolean; targetId?: string | null;
 };
@@ -61,11 +61,13 @@ export const getActivityExtras = createServerFn({ method: 'GET' }).middleware([r
       };
     }));
     items.push(...approvedItems.filter(item => item !== null));
+    const { planInviteItems } = await import('./profile-social.server');
+    items.push(...await planInviteItems(context.supabase, context.userId));
     const requestList = requests.data as unknown as Omit<SocialList, 'hasMore'>;
     const pending = prefs.data?.[0]?.is_private ? requestList.people.slice(0, 2) : [];
     const read = new Set((reads.data ?? []).map(r => r.item_key));
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
     const avatars = await signAvatarThumbs(supabaseAdmin, [...items.map(i => i.avatar), ...pending.map(p => p.avatar)]);
     const signed = (avatar: string | null) => avatar?.startsWith('https://') ? avatar : avatars.get(avatar ?? '') ?? null;
-    return { items: items.map(i => ({ ...i, targetId: i.kind === 'crew_request' || i.kind === 'crew_approved' ? (i.targetId ?? i.key.split(':')[1] ?? null) : null, read: read.has(i.key), avatar: signed(i.avatar) })), pending: pending.map(p => ({ ...p, avatar: signed(p.avatar) })), pendingCount: pending.length ? requestList.total : 0, isPrivate: prefs.data?.[0]?.is_private ?? false, userId: context.userId };
+    return { items: items.map(i => ({ ...i, targetId: i.kind === 'crew_request' || i.kind === 'crew_approved' || i.kind === 'plan_invite' ? (i.targetId ?? i.key.split(':')[1] ?? null) : null, read: read.has(i.key), avatar: signed(i.avatar) })), pending: pending.map(p => ({ ...p, avatar: signed(p.avatar) })), pendingCount: pending.length ? requestList.total : 0, isPrivate: prefs.data?.[0]?.is_private ?? false, userId: context.userId };
   });

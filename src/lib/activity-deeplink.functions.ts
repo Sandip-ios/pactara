@@ -7,7 +7,7 @@ import { localDateIn } from "./streak-rules";
 const kinds = [
   "comment", "reply", "comment_like", "reaction", "checkin", "nudge", "reminder",
   "crew_request", "crew_approved", "pact_signed", "pact_restart", "pact_complete",
-  "join", "milestone", "follow", "follow_request", "follow_accepted", "message",
+  "join", "milestone", "follow", "follow_request", "follow_accepted", "message", "plan_invite",
 ] as const;
 
 const input = z.object({
@@ -115,6 +115,14 @@ export const resolveActivityDeepLink = createServerFn({ method: "GET" })
         const { data: request, error } = await supabase.from("follows").select("follower_id")
           .eq("follower_id", data.actorId).eq("following_id", userId).eq("status", "requested").maybeSingle();
         return !error && request ? { href: "/follow-requests", checkInGroupId: null } : none;
+      }
+      if (data.kind === "plan_invite") {
+        if (!data.requestId) return none;
+        const { data: invite, error } = await supabase.from("plan_invite_notifications")
+          .select("actor_id, plans!inner(slug, is_published)").eq("id", data.requestId).eq("recipient_id", userId).maybeSingle();
+        const plan = invite?.plans as unknown as { slug: string; is_published: boolean } | undefined;
+        if (error || !invite || !plan?.is_published || await blockedPairs(invite.actor_id)) return none;
+        return { href: `/plans/${plan.slug}`, checkInGroupId: null };
       }
       if (["milestone", "follow", "follow_accepted"].includes(data.kind)) {
         return { href: await profileHref(data.actorId), checkInGroupId: null };

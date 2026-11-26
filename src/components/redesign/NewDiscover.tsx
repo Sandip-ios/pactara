@@ -186,30 +186,28 @@ function ActivePlanCard({ plan, line, onOpen }: { plan: Plan; line: string; onOp
     staleTime: 60_000,
   });
   return (
-    <button type="button" onClick={onOpen} className="flex w-full flex-col gap-2 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
-      <span className="flex w-full items-center gap-3">
-        <Cover plan={plan} />
-        <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
-          <span className="rounded-full px-2 py-[2px] text-[11px] font-bold uppercase tracking-[0.4px]" style={{ background: "#EDE4FF", color: "#6D28D9" }}>
-            Your plan
-          </span>
-          <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
-          <span className="text-[13px]" style={{ color: "#44403C" }}>{line}</span>
-          <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
-            {plan.gearShort ?? gearText(plan)} · {plan.level}
-          </span>
+    <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
+      <Cover plan={plan} />
+      <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
+        <span className="rounded-full px-2 py-[2px] text-[11px] font-bold uppercase tracking-[0.4px]" style={{ background: "#EDE4FF", color: "#6D28D9" }}>
+          Your plan
         </span>
+        <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
+        <span className="text-[13px]" style={{ color: "#44403C" }}>{line}</span>
+        <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
+          {plan.gearShort ?? gearText(plan)} · {plan.level}
+        </span>
+        {mate && (
+          <span className="flex max-w-full items-center gap-2" data-crewmate-line>
+            <span className="block h-5 w-5 shrink-0 overflow-hidden rounded-full" style={{ background: "#E4DAFB", color: "#F8F5FF" }}>
+              {mate.avatarUrl ? <img src={mate.avatarUrl} alt="" className="h-full w-full object-cover" /> : <NewAvatarFallback />}
+            </span>
+            <span className="truncate text-[12px] font-semibold" style={{ color: "#6D28D9" }}>
+              {crewmateOnPlanLine(mate.firstName, mate.crewName)}
+            </span>
+          </span>
+        )}
       </span>
-      {mate && (
-        <span className="flex items-center gap-2" data-crewmate-line>
-          <span className="block h-5 w-5 shrink-0 overflow-hidden rounded-full" style={{ background: "#E4DAFB", color: "#F8F5FF" }}>
-            {mate.avatarUrl ? <img src={mate.avatarUrl} alt="" className="h-full w-full object-cover" /> : <NewAvatarFallback />}
-          </span>
-          <span className="truncate text-[12px] font-semibold" style={{ color: "#6D28D9" }}>
-            {crewmateOnPlanLine(mate.firstName, mate.crewName)}
-          </span>
-        </span>
-      )}
     </button>
   );
 }

@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -1164,6 +1159,48 @@ export type Database = {
           },
         ]
       }
+      plan_invite_notifications: {
+        Row: {
+          actor_id: string
+          created_at: string
+          group_id: string
+          id: string
+          plan_id: string
+          recipient_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+          plan_id: string
+          recipient_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          plan_id?: string
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_invite_notifications_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_invite_notifications_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_workout_logs: {
         Row: {
           check_in_id: string | null
@@ -1748,9 +1785,12 @@ export type Database = {
           current_week: number
           id: string
           next_day: number
+          paused_at: string | null
           plan_id: string
           started_at: string
+          starts_on: string | null
           status: string
+          training_days: number[] | null
           updated_at: string
           user_id: string
         }
@@ -1760,9 +1800,12 @@ export type Database = {
           current_week?: number
           id?: string
           next_day?: number
+          paused_at?: string | null
           plan_id: string
           started_at?: string
+          starts_on?: string | null
           status?: string
+          training_days?: number[] | null
           updated_at?: string
           user_id: string
         }
@@ -1772,9 +1815,12 @@ export type Database = {
           current_week?: number
           id?: string
           next_day?: number
+          paused_at?: string | null
           plan_id?: string
           started_at?: string
+          starts_on?: string | null
           status?: string
+          training_days?: number[] | null
           updated_at?: string
           user_id?: string
         }
@@ -2167,6 +2213,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      invite_crew_to_plan: {
+        Args: { _group_id: string; _plan_id: string }
+        Returns: {
+          id: string
+          recipient_id: string
+        }[]
+      }
       is_group_member: {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
@@ -2200,6 +2253,7 @@ export type Database = {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined
       }
+      plan_active_count: { Args: { _plan_id: string }; Returns: number }
       plan_tags_for_check_ins: {
         Args: { _check_in_ids: string[] }
         Returns: {
@@ -2419,3 +2473,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

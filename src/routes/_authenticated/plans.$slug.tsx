@@ -18,6 +18,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewPlanPage } from "@/components/redesign/NewPlanPage";
 import { LeavePlanSheet, PlanOptionsSheet, SwitchPlanSheet, planWeekTitle } from "@/components/plans/PlanSheets";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { initials, plural } from "@/lib/lift-rules";
@@ -43,8 +45,13 @@ export const Route = createFileRoute("/_authenticated/plans/$slug")({
       { name: "description", content: "A Pactara workout plan: schedule, moves and how it works." },
     ],
   }),
-  component: PlanDetailPage,
+  component: PlanRoute,
 });
+
+function PlanRoute() {
+  const { slug } = Route.useParams();
+  return useAppVersion() === "new" ? <NewPlanPage slug={slug} /> : <PlanDetailPage />;
+}
 
 function PlanDetailPage() {
   const { slug } = Route.useParams();

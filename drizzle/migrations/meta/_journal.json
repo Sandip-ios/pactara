@@ -575,6 +575,27 @@
       "when": 1795688537083,
       "tag": "0081_activity_hide_own_actions",
       "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1795701836682,
+      "tag": "0082_plan_schedule_and_invites",
+      "breakpoints": true
+    },
+    {
+      "idx": 83,
+      "version": "7",
+      "when": 1795702283573,
+      "tag": "0083_fix_invite_crew_to_plan",
+      "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795702297484,
+      "tag": "0084_plan_invites_read_policy",
+      "breakpoints": true
     }
   ]
 }
