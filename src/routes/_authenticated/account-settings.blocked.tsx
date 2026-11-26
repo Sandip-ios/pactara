@@ -25,8 +25,8 @@ function BlockedPeople() {
   const qc = useQueryClient();
   const version = useAppVersion();
   if (version === 'new') return <NewBlockedPeople queryKey={blockedPeopleQuery.queryKey} />;
-  return <div className={`fixed inset-0 overflow-y-auto overscroll-none bg-health-surface ${version === 'new' ? 'pb-[max(24px,env(safe-area-inset-bottom))]' : 'pb-28'}`}>
-    <header className={`flex items-center gap-2 bg-card px-4 ${version === 'new' ? 'pt-new-top' : 'pt-safe-5'} pb-4`}>
+  return <div className={`fixed inset-0 overflow-y-auto overscroll-none bg-health-surface pb-28`}>
+    <header className={`flex items-center gap-2 bg-card px-4 pt-safe-5 pb-4`}>
       <Button variant="ghost" size="icon" asChild className="rounded-full"><Link to="/account-settings" aria-label="Back"><ChevronLeft size={22} /></Link></Button>
       <h1 className="text-[18px] font-bold">Blocked people</h1>
     </header>
