@@ -242,7 +242,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
                       {ex?.imageStart && <img src={ex.imageStart} alt="" loading="lazy" className="h-full w-full object-contain" />}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="line-clamp-2 text-[16px] font-bold leading-[1.25] [hyphens:none] [overflow-wrap:normal]">{name}</span>
+                      <span className="line-clamp-3 text-[16px] font-bold leading-[1.25] [hyphens:none] [overflow-wrap:normal]">{name}</span>
                       {isEachSide(it.reps) && <span className="block text-[12px] leading-[1.3]" style={{ color: MUTED }}>each side</span>}
                     </span>
                     <button type="button" onClick={() => setDoseKey(it.key)} className="h-9 shrink-0 whitespace-nowrap rounded-full px-3 text-[15px] font-bold" style={{ background: WARM, color: INK }} aria-label={`Sets and reps for ${name}: ${pillText(it)}${isEachSide(it.reps) ? " each side" : ""}`}>

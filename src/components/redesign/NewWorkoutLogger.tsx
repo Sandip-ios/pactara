@@ -210,12 +210,12 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
           <div key={s.id} className="grid h-11 items-center gap-[7px]" style={{ gridTemplateColumns: GRID }} data-set-row data-done={s.done || undefined}>
             <span className="text-[15px] font-extrabold">{i + 1}</span>
             <span className="truncate text-[14px]" style={{ color: MUTED }}>{last}</span>
-            <NumBox value={s.weight} bg={st.boxBg} decimal placeholder={ex.loadable ? "0" : "—"} ariaLabel={`Set ${i + 1} weight in ${unit}`} onChange={(v) => setField(s.id, { weight: v })} />
+            <NumBox value={emptyWhenZero(s.weight, s.done)} bg={st.boxBg} decimal placeholder={ex.loadable ? "" : "—"} ariaLabel={`Set ${i + 1} weight in ${unit}`} onChange={(v) => setField(s.id, { weight: v })} />
             <NumBox
-              value={timed ? (s.seconds == null ? null : ex.minutes ? Math.round((s.seconds / 60) * 10) / 10 : s.seconds) : s.reps}
+              value={timed ? (s.seconds == null ? null : ex.minutes ? Math.round((s.seconds / 60) * 10) / 10 : s.seconds) : emptyWhenZero(s.reps, s.done)}
               bg={st.boxBg}
               decimal={timed && ex.minutes}
-              placeholder="0"
+              placeholder=""
               ariaLabel={`Set ${i + 1} ${timed ? (ex.minutes ? "minutes" : "seconds") : "reps"}`}
               onChange={(v) => setField(s.id, timed ? { seconds: v == null ? null : Math.round(ex.minutes ? v * 60 : v) } : { reps: v == null ? null : Math.round(v) })}
             />
@@ -243,6 +243,11 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
       </button>
     </section>
   );
+}
+
+/** No last time and no target: the box stays empty instead of showing 0. */
+function emptyWhenZero(v: number | null, done: boolean): number | null {
+  return v === 0 && !done ? null : v;
 }
 
 function NumBox({ value, bg, decimal, placeholder, ariaLabel, onChange }: { value: number | null; bg: string; decimal?: boolean; placeholder: string; ariaLabel: string; onChange: (v: number | null) => void }) {

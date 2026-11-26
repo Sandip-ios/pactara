@@ -47,3 +47,10 @@ export function activePlanProgressLine(p: { currentWeek: number; weeks: number; 
 }
 
 export const crewmateOnPlanLine = (firstName: string, crewName: string) => `${firstName} from ${crewName} is on this`;
+
+/** Discover › Plans search: plan name only, every typed word must match. */
+export function plansByName<T extends { name: string }>(plans: readonly T[], query: string): T[] {
+  const n = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
+  const words = n(query).split(/\s+/).filter(Boolean);
+  return words.length ? plans.filter((p) => words.every((w) => n(p.name).includes(w))) : [...plans];
+}

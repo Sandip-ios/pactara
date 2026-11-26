@@ -1641,29 +1641,44 @@ export type Database = {
       shared_workouts: {
         Row: {
           code: string
+          cover_url: string | null
           created_at: string
+          discover: boolean
+          equipment: string | null
           exercises: Json
           id: string
           name: string
           owner_id: string
+          pactara_key: string | null
+          updated_at: string
           workout_id: string | null
         }
         Insert: {
           code: string
+          cover_url?: string | null
           created_at?: string
+          discover?: boolean
+          equipment?: string | null
           exercises?: Json
           id?: string
           name: string
           owner_id: string
+          pactara_key?: string | null
+          updated_at?: string
           workout_id?: string | null
         }
         Update: {
           code?: string
+          cover_url?: string | null
           created_at?: string
+          discover?: boolean
+          equipment?: string | null
           exercises?: Json
           id?: string
           name?: string
           owner_id?: string
+          pactara_key?: string | null
+          updated_at?: string
           workout_id?: string | null
         }
         Relationships: []
@@ -2174,6 +2189,30 @@ export type Database = {
         Args: { _decision: string; _request_id: string }
         Returns: Json
       }
+      discover_author_visible: {
+        Args: { _owner: string; _viewer: string }
+        Returns: boolean
+      }
+      discover_workout_feed: {
+        Args: never
+        Returns: {
+          code: string
+          cover_url: string
+          created_at: string
+          did_it: number
+          equipment: string
+          exercises: Json
+          my_copy_exercises: Json
+          my_copy_id: string
+          my_copy_name: string
+          name: string
+          owner_id: string
+          owner_name: string
+          pactara: boolean
+          saves: number
+          saves_week: number
+        }[]
+      }
       end_crew: { Args: { _group_id: string }; Returns: undefined }
       exercise_muscles_detail: {
         Args: { _name: string; _primary: string[] }
@@ -2263,6 +2302,7 @@ export type Database = {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined
       }
+      pactara_author_id: { Args: never; Returns: string }
       plan_active_count: { Args: { _plan_id: string }; Returns: number }
       plan_tags_for_check_ins: {
         Args: { _check_in_ids: string[] }
@@ -2289,6 +2329,8 @@ export type Database = {
           crew_id: string
         }[]
       }
+      random_share_code: { Args: never; Returns: string }
+      refresh_pactara_workouts: { Args: never; Returns: number }
       remove_follower: { Args: { follower: string }; Returns: undefined }
       request_crew_join: { Args: { _group_id: string }; Returns: Json }
       respond_follow_request: {
@@ -2342,6 +2384,7 @@ export type Database = {
         Args: { _check_in_id: string }
         Returns: Json
       }
+      workout_snapshot_items: { Args: { _items: Json }; Returns: Json }
       workout_summaries_for_check_ins: {
         Args: { _check_in_ids: string[] }
         Returns: {

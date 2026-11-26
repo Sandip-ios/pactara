@@ -6,12 +6,11 @@ import { NewAvatarFallback } from "./NewAvatarFallback";
 import { exerciseKicker } from "@/components/workout/WorkoutBits";
 import { usePlans } from "@/components/plans/PlanBits";
 import { useExerciseDetail, useExerciseLibrary, type LibraryExercise } from "@/lib/exercise-library";
-import { changeLabel, historyRows, nextTarget, progressStats, swapOptions, tipCard, type ExerciseTab } from "@/lib/exercise-page";
+import { SHOW_COMMON_MISTAKES, changeLabel, exercisePageChips, historyRows, nextTarget, progressStats, swapOptions, tipCard, type ExerciseTab } from "@/lib/exercise-page";
 import { buildHowTo, planMoveFor } from "@/lib/how-to-view";
 import { getExerciseProgress } from "@/lib/lifts.functions";
 import { EQUIPMENT_LABEL, fmtDurationShort, fmtNum, type WeightUnit } from "@/lib/lift-rules";
 import { getWorkoutPage } from "@/lib/new-workout.functions";
-import { topMuscleChips } from "@/lib/new-workout-view";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
 const PURPLE = "#7C3AED";
@@ -47,7 +46,7 @@ export function NewExercisePage({ exerciseId, tab, workout }: { exerciseId: stri
       </div>
     );
   }
-  const chips = topMuscleChips([{ primary: ex.primary, detail: ex.detail }]);
+  const chips = exercisePageChips(ex);
 
   return (
     <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: WARM, color: INK, fontFamily: FONT }}>
@@ -67,7 +66,8 @@ export function NewExercisePage({ exerciseId, tab, workout }: { exerciseId: stri
             ))}
           </div>
         )}
-        <div role="tablist" className="mt-4 grid grid-cols-2" style={{ borderBottom: `1px solid ${HAIR}` }}>
+      </div>
+      <div role="tablist" className="grid w-full grid-cols-2 bg-white pt-4" style={{ borderBottom: `1px solid ${HAIR}` }}>
           {(["howto", "progress"] as const).map((t) => {
             const on = tab === t;
             return (
@@ -77,7 +77,6 @@ export function NewExercisePage({ exerciseId, tab, workout }: { exerciseId: stri
               </button>
             );
           })}
-        </div>
       </div>
 
       <div className="px-4 pb-[calc(40px+env(safe-area-inset-bottom))] pt-4">
@@ -104,7 +103,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
 function Drawing({ src, bg, label, alt }: { src: string | null; bg: string | null; label: string; alt: string }) {
   return (
     <div className="relative h-full overflow-hidden" style={{ background: bg ?? "#D8F1FD" }}>
-      {src && <img src={src} alt={alt} className="h-full w-full object-contain" />}
+      {src && <img src={src} alt={alt} className="h-full w-full object-cover object-center" />}
       <span className="absolute bottom-3 left-3 rounded-full bg-white px-2 py-[3px] text-[11px] font-extrabold tracking-[0.4px]" style={{ color: INK }}>{label}</span>
     </div>
   );
@@ -152,7 +151,7 @@ function HowToTab({ ex, library, workout }: { ex: LibraryExercise; library: Libr
         </>
       )}
 
-      {mistakes.length > 0 && (
+      {SHOW_COMMON_MISTAKES && mistakes.length > 0 && (
         <>
           <Label>Common mistakes</Label>
           <ul className="m-0 list-none rounded-[16px] bg-white px-[14px] py-1">
@@ -252,11 +251,11 @@ function Tile({ value, label, green }: { value: string; label: string; green?: b
   );
 }
 
-/** Purple line, hollow points, last point filled, dashed segment to a hollow dashed next-target point. */
+/** Purple line on 3 light gridlines, hollow points, last point filled, dashed segment to a hollow dashed next-target point. */
 function Chart({ points, next, unit }: { points: { date: string; w: number }[]; next: number | null; unit: WeightUnit }) {
   const width = 330;
-  const height = 160;
-  const pad = { l: 34, r: 30, t: 24, b: 12 };
+  const height = 170;
+  const pad = { l: 22, r: 22, t: 28, b: 30 };
   const all = [...points.map((p) => p.w), ...(next != null ? [next] : [])];
   const min = Math.min(...all);
   const max = Math.max(...all);
@@ -267,20 +266,21 @@ function Chart({ points, next, unit }: { points: { date: string; w: number }[]; 
   const path = points.map((p, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(p.w).toFixed(1)}`).join(" ");
   const lastI = points.length - 1;
   const lo = Math.min(...points.map((p) => p.w));
-  const hi = Math.max(...points.map((p) => p.w));
+  const loI = points.findIndex((p) => p.w === lo);
+  const grid = [0, 0.5, 1].map((f) => pad.t + f * (height - pad.t - pad.b));
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="mt-2 w-full" role="img" aria-label={`Heaviest set each session, from ${fmtNum(points[0]?.w ?? 0)} to ${fmtNum(points[lastI]?.w ?? 0)} ${unit}`}>
-      <text x={0} y={y(hi) + 4} fontSize={11} fill={MUTED}>{fmtNum(hi)}</text>
-      {lo !== hi && <text x={0} y={y(lo) + 4} fontSize={11} fill={MUTED}>{fmtNum(lo)}</text>}
+      {grid.map((gy) => <line key={gy} x1={0} x2={width} y1={gy} y2={gy} stroke={HAIR} strokeWidth={1} />)}
       {next != null && lastI >= 0 && <line x1={x(lastI)} y1={y(points[lastI]!.w)} x2={x(lastI + 1)} y2={y(next)} stroke={PURPLE} strokeWidth={2} strokeDasharray="4 4" />}
       <path d={path} fill="none" stroke={PURPLE} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
       {points.map((p, i) => (
         <circle key={i} cx={x(i)} cy={y(p.w)} r={4.5} fill={i === lastI ? PURPLE : "#FFFFFF"} stroke={PURPLE} strokeWidth={2} />
       ))}
+      {loI >= 0 && <text x={x(loI)} y={y(lo) + 20} fontSize={12} fill={MUTED} textAnchor="middle">{`${fmtNum(lo)} ${unit}`}</text>}
       {next != null && lastI >= 0 && (
         <>
           <circle cx={x(lastI + 1)} cy={y(next)} r={4.5} fill="#FFFFFF" stroke={PURPLE} strokeWidth={2} strokeDasharray="2 2" />
-          <text x={x(lastI + 1)} y={y(next) - 10} fontSize={11} fontWeight={800} fill={PURPLE_INK} textAnchor="middle">{`${fmtNum(next)} ${unit}`}</text>
+          <text x={x(lastI + 1)} y={y(next) - 12} fontSize={12} fill={MUTED} textAnchor="middle">{`${fmtNum(next)} ${unit}`}</text>
         </>
       )}
     </svg>

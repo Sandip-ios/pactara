@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Search, Sparkle, X, Zap } from "lucide-react";
 import { coverThumb, filterPlans, type PlanFilters } from "@/lib/plan-filters";
-import { searchPlans, type Plan } from "@/lib/workout-plans";
+import type { Plan } from "@/lib/workout-plans";
 import { matchPlans } from "@/lib/plan-quiz";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
@@ -16,12 +16,14 @@ import {
   chipFilters,
   crewmateOnPlanLine,
   plansWithoutActive,
+  plansByName,
   selectedChipKey,
   type DiscoverTab,
 } from "@/lib/new-discover";
 import { gearText, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { useSavedQuiz } from "@/components/plans/QuizMatchCard";
 import { NewAvatarFallback } from "./NewAvatarFallback";
+import { NewWorkoutsTab } from "./NewDiscoverWorkouts";
 
 const BG = "#F5F2EC";
 const INK = "#1C1917";
@@ -44,6 +46,15 @@ export function NewDiscover({
   onClearQuiz?: () => void;
 }) {
   const [query, setQuery] = useState("");
+  const navigate = useNavigate();
+  // Workouts tab: typing opens the Workouts list page with the search; Plans tab filters the plan list by name.
+  const onQuery = (v: string) => {
+    if (tab === "workouts" && v.trim()) {
+      void navigate({ to: "/discover/workouts", search: { q: v } });
+      return;
+    }
+    setQuery(v);
+  };
   return (
     <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
       <div className="flex flex-col bg-white px-4 pb-[14px] pt-new-top">
@@ -52,7 +63,7 @@ export function NewDiscover({
           <Search size={18} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => onQuery(e.target.value)}
             placeholder="Search workouts and plans"
             aria-label="Search workouts and plans"
             enterKeyHint="search"
@@ -85,9 +96,7 @@ export function NewDiscover({
       </div>
       <div className="flex flex-col gap-4 px-4 pb-[130px] pt-[14px]">
         {tab === "workouts" ? (
-          <p className="rounded-[18px] bg-white px-4 py-8 text-center text-[15px] font-semibold" style={{ color: "#57534E" }}>
-            Workouts are coming in this update.
-          </p>
+          <NewWorkoutsTab />
         ) : (
           <PlansTab query={query} filters={filters} onFiltersChange={onFiltersChange} quiz={quiz} onClearQuiz={onClearQuiz} />
         )}
@@ -105,7 +114,7 @@ function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { quer
   const active = mine?.active ?? null;
   const activePlan = active ? all.find((p) => p.slug === active.slug) ?? null : null;
   const list = useMemo(
-    () => plansWithoutActive(filterPlans(searchPlans(all, query), filters), active?.slug ?? null),
+    () => plansWithoutActive(filterPlans(plansByName(all, query), filters), active?.slug ?? null),
     [all, query, filters, active?.slug],
   );
   const chipOn = selectedChipKey(filters);

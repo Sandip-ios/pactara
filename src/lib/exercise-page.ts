@@ -4,6 +4,7 @@
  * Weight progression itself stays in lift-rules.ts.
  */
 import type { LibraryExercise } from "@/lib/exercise-library";
+import { detailWord, muscleWord } from "@/lib/new-workout-view";
 import {
   DEFAULT_REPS_HI,
   DEFAULT_REPS_LO,
@@ -135,4 +136,22 @@ export function swapOptions(ex: LibraryExercise, library: readonly LibraryExerci
     .filter((o) => o.id !== ex.id && !o.custom && o.variationGroup === ex.variationGroup)
     .sort((a, b) => Number(a.equipment !== ex.equipment) - Number(b.equipment !== ex.equipment) || a.name.localeCompare(b.name))
     .slice(0, limit);
+}
+
+/** Owner decision: Common mistakes stays hidden until we have mistakes data; flip to true to show it again. */
+export const SHOW_COMMON_MISTAKES = false;
+
+/**
+ * Up to 3 muscle chips: the detailed primary muscles first (falling back to
+ * primary), then the secondary muscles. Barbell row → Upper back, Lats, Biceps.
+ */
+export function exercisePageChips(ex: Pick<LibraryExercise, "primary" | "detail" | "secondary">, limit = 3): string[] {
+  const detail = (ex.detail ?? []).filter((t) => t.trim());
+  const primary = detail.length ? detail.map(detailWord) : ex.primary.map(muscleWord);
+  const out: string[] = [];
+  for (const label of [...primary, ...(ex.secondary ?? []).map(muscleWord)]) {
+    if (label && !out.includes(label)) out.push(label);
+    if (out.length === limit) break;
+  }
+  return out;
 }

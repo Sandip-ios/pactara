@@ -13,6 +13,8 @@ export async function loadSharedWorkout(
 ): Promise<{
   ownerId: string;
   workoutId: string | null;
+  /** A Pactara workout (built from a plan day), credited "by Pactara". */
+  pactara: boolean;
   workout: PublicSharedWorkout;
   /** Signed-in viewers only (server use): full name, privacy and whether the viewer follows the owner. */
   owner?: { fullName: string | null; isPrivate: boolean; iFollow: boolean };
@@ -21,7 +23,7 @@ export async function loadSharedWorkout(
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: row } = await supabaseAdmin
     .from("shared_workouts")
-    .select("code, owner_id, workout_id, name, exercises")
+    .select("code, owner_id, workout_id, name, exercises, pactara_key")
     .eq("code", code)
     .maybeSingle();
   if (!row) return null;
@@ -59,6 +61,7 @@ export async function loadSharedWorkout(
   return {
     ...(ownerInfo ? { owner: ownerInfo } : {}),
     ownerId: row.owner_id as string,
+    pactara: !!row.pactara_key,
     workoutId: (row.workout_id as string | null) ?? null,
     workout: {
       code: row.code as string,
@@ -179,6 +182,8 @@ export async function currentSnapshot(
     .select("code, name, exercises")
     .eq("owner_id", userId)
     .eq("workout_id", wk.id)
+    // The Discover listing row follows edits, so share links never reuse it.
+    .eq("discover", false)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();

@@ -23,7 +23,7 @@ export function NewBottomTabs() {
   useToastAbove(navRef);
   const isProfile = pathname === "/profile";
   const onHome = pathname === "/home" || pathname.startsWith("/home/");
-  const onGroups = pathname.startsWith("/groups") || pathname.startsWith("/plans") || pathname.startsWith("/find-plan");
+  const onGroups = pathname.startsWith("/groups") || pathname.startsWith("/discover") || pathname.startsWith("/plans") || pathname.startsWith("/find-plan");
   const onCrews = pathname === "/crews" || pathname.startsWith("/crews/");
   const preload = (to: string) => () => { router.preloadRoute({ to }).catch(() => {}); };
 

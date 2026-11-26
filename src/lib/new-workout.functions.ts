@@ -62,7 +62,9 @@ export const getWorkoutPage = createServerFn({ method: "GET" })
         shareCode: data.id,
         name: w.name,
         isMine,
-        author: { kind: isMine ? "you" : "member", name: isMine ? "you" : found.owner ? authorDisplayName(found.owner) : w.ownerFirstName, avatarUrl: w.ownerAvatarUrl, avatarColor: w.ownerAvatarColor },
+        author: found.pactara
+          ? { kind: "pactara", name: "Pactara", avatarUrl: null, avatarColor: "#7C3AED" }
+          : { kind: isMine ? "you" : "member", name: isMine ? "you" : found.owner ? authorDisplayName(found.owner) : w.ownerFirstName, avatarUrl: w.ownerAvatarUrl, avatarColor: w.ownerAvatarColor },
         savedWorkoutId: (saved?.id as string | undefined) ?? null,
         equipment: null,
         exercises: w.exercises.map((e) => ({

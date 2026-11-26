@@ -610,6 +610,13 @@
       "when": 1795707434201,
       "tag": "0086_exercise_muscles_detail",
       "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1795710948181,
+      "tag": "0087_discover_workouts",
+      "breakpoints": true
     }
   ]
 }
