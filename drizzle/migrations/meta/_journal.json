@@ -533,6 +533,13 @@
       "when": 1795672252977,
       "tag": "0075_redesign_profile_username_check",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795673078713,
+      "tag": "0076_redesign_profile_public_default",
+      "breakpoints": true
     }
   ]
 }

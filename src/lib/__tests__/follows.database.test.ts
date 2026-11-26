@@ -77,11 +77,18 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     }
     if (errors.length) throw new Error(errors.join('; '));
   });
-  it('keeps both new accounts private by default until they choose otherwise', async () => {
+  it('creates both new accounts public by default before any explicit privacy choice', async () => {
     for (const id of createdIds) {
       // Creation defaults were captured before beforeEach makes an explicit choice.
-      expect(creationPrivacy.get(id)).toBe(true);
+      expect(creationPrivacy.get(id)).toBe(false);
     }
+  });
+  it('preserves existing private and public choices when other profile fields change', async () => {
+    const { pub, priv } = accounts();
+    await patchProfile(priv.id, { bio: 'Private profile bio' });
+    await patchProfile(pub.id, { bio: 'Public profile bio' });
+    expect((await rows('profiles', `id=eq.${priv.id}&select=is_private`))[0]?.['is_private']).toBe(true);
+    expect((await rows('profiles', `id=eq.${pub.id}&select=is_private`))[0]?.['is_private']).toBe(false);
   });
   it('refuses classic targets with the exact message and creates no follow or event', async () => {
     const { pub, priv } = accounts();
@@ -176,6 +183,7 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     await rpc(pub, 'set_profile_privacy', { private: false });
     expect((await rows('profiles', `id=eq.${pub.id}&select=is_private`))[0]?.['is_private']).toBe(true);
     await patchProfile(pub.id, { birthday: born(18) });
+    expect((await rows('profiles', `id=eq.${pub.id}&select=is_private`))[0]?.['is_private']).toBe(true);
     await rpc(pub, 'set_profile_privacy', { private: false });
     expect((await rows('profiles', `id=eq.${pub.id}&select=is_private`))[0]?.['is_private']).toBe(false);
   });

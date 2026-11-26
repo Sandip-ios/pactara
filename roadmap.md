@@ -2,7 +2,7 @@
 
 - [x] Phase 3 step 2: new-only own profile/menu/editor, crew week/plan/follow data, debounced username validation and real save/reload, working interim privacy/blocked/progress destinations; both account states and captures 47–52 verified at 390×844 in public/qa/p3-step2.json; second crew, plan link, photo picker, discard/Keep editing and classic profile/editor checked; 628 tests pass, compilation clean; both test accounts, crews, temporary plan and their rows removed, including plan history and subscriptions; classic unchanged, unpublished.
 
-- [x] Step 1 review: migration 0074 restores all-account private default, refuses classic follow targets, exposes can_follow and preserves follows on version switch; 620 tests pass including 19 database cases, both transient accounts and their data removed; no UI or publishing.
+- [x] Step 1 review: migration 0074 refuses classic follow targets, exposes can_follow and preserves follows on version switch; its private default is superseded by the owner's public-default decision. Regression coverage keeps existing privacy choices and teen protection intact; no UI or publishing.
 
 - [x] Redesign profiles/follows step 1: migrations 0071–0073, locked follow/privacy RPCs, safe profile/list reads using existing streak rules, new-only notification source sharing read keys and opted-in push dispatch; 616 tests pass, two transient draft accounts followed/requested/accepted/blocked and removed with their data; no UI or publishing. Physical push delivery remains untested; next UI must call the server mutation wrappers for push dispatch.
 
