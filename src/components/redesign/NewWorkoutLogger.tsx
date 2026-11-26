@@ -53,7 +53,8 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
 
   return (
     <div ref={scrollRef} className="fixed inset-0 overflow-y-auto" style={{ background: BG, color: INK, fontFamily: FONT }} data-scroll-root>
-      <div className="sticky top-0 z-10 bg-white px-4 pb-3 pt-new-top">
+      <div className="sticky top-0 z-10">
+        <div className="bg-white px-4 pb-3 pt-new-top">
         <header className="flex items-center gap-3">
           <button type="button" aria-label="Minimize workout" onClick={minimize} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: WARM }}>
             <ChevronDown size={22} strokeWidth={2.5} />
@@ -68,13 +69,17 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
             {actions.saving ? "Saving…" : "Finish"}
           </button>
         </header>
+        </div>
+        {/* Rest bar sits on the warm gray under the white band and stays pinned there while scrolling. */}
         {w.rest && restLeft > 0 && (
-          <div className="mt-3 flex h-[52px] items-center gap-2.5 rounded-[14px] px-4 text-white" style={{ background: INK }} role="timer" aria-live="off">
+          <div className="px-4 pt-3" style={{ background: BG }}>
+          <div className="flex h-12 items-center gap-2.5 rounded-[14px] px-4 text-white" style={{ background: INK }} role="timer" aria-live="off">
             <Timer size={20} style={{ color: "#F59E0B" }} aria-hidden />
             <span className="flex-1 text-[16px] font-extrabold" style={{ fontVariantNumeric: "tabular-nums" }}>Rest {fmtClock(restLeft)}</span>
             <button type="button" aria-label="15 seconds less rest" onClick={() => update((x) => ({ ...x, rest: adjustRest(x.rest, -15, Date.now()) }))} className="h-10 px-1.5 text-[14px] font-semibold" style={{ color: "rgba(255,255,255,.7)" }}>−15s</button>
             <button type="button" aria-label="15 seconds more rest" onClick={() => update((x) => ({ ...x, rest: adjustRest(x.rest, 15, Date.now()) }))} className="h-10 px-1.5 text-[14px] font-semibold" style={{ color: "rgba(255,255,255,.7)" }}>+15s</button>
             <button type="button" onClick={() => update((x) => ({ ...x, rest: skipRest() }))} className="h-10 pl-1.5 text-[14px] font-extrabold text-white">Skip</button>
+          </div>
           </div>
         )}
       </div>

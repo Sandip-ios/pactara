@@ -160,3 +160,5 @@
 - [x] Workout list names wrap; workout menu matches plan menu; Discover top spacing 13/12px.
 - [x] New-version builder (new/edit), Build a workout in + Create, captures in public/qa/p4-6.json; test data removed.
 - [ ] Exercise picker still has its existing look (not restyled yet).
+
+- [x] Logger rest bar: on warm gray under the white band, 48px, pinned; screenshot p4-7b
