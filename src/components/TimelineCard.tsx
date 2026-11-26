@@ -59,7 +59,7 @@ const noSelectTouchStyle = {
   touchAction: "manipulation",
 } as CSSProperties & { WebkitTouchCallout?: string; WebkitUserSelect?: string };
 
-function clock(iso: string) {
+export function clock(iso: string) {
   const d = new Date(iso);
   let h = d.getHours();
   const m = d.getMinutes();
@@ -352,7 +352,7 @@ function CommentsPreview({ item, unread, onOpen }: { item: FeedItem; unread: num
 
 /* ----------------------------- Own menu ----------------------------- */
 
-function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
+export function OwnPostMenu({ checkIn, compact = false }: { checkIn: CheckInNode; compact?: boolean }) {
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -394,7 +394,7 @@ function OwnPostMenu({ checkIn }: { checkIn: CheckInNode }) {
           pending.current = null;
           setMenuOpen(true);
         }}
-        className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-neutral-700 after:absolute after:-inset-1 after:content-[''] active:scale-95"
+        className={`relative flex ${compact ? "h-8 w-8" : "h-9 w-9"} shrink-0 items-center justify-center rounded-full text-neutral-700 after:absolute after:-inset-1 after:content-[''] active:scale-95`}
         style={{ background: "#F4F2EF" }}
       >
         <MoreHorizontal size={18} />

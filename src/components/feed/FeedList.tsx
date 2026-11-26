@@ -7,6 +7,8 @@ import type { FeedItem, FeedMeta } from "@/lib/daily-posts.functions";
 import { buildFeedDays, type FeedEntry } from "@/lib/feed-days";
 import { localDateIn } from "@/lib/streak-rules";
 import { TimelineCard, TimelineCardSkeleton } from "@/components/TimelineCard";
+import { RedesignPostCard } from "@/components/redesign/RedesignPostCard";
+import { crewStreakKept, redesignDayLabel } from "@/lib/redesign-feed-view";
 import { FeedContext } from "@/components/feed/feed-context";
 import { MilestoneRow, MissedRow, NotYetRow, QuietDayRow, RestedRow } from "@/components/feed/QuietRows";
 
@@ -111,7 +113,9 @@ function StatusBarCover({ target, active }: { target: React.RefObject<HTMLElemen
   );
 }
 
-function Entry({ entry, groupId, autoOpen }: { entry: FeedEntry; groupId: string; autoOpen: boolean }) {
+function Entry({ entry, groupId, autoOpen, redesign = false }: { entry: FeedEntry; groupId: string; autoOpen: boolean; redesign?: boolean }) {
+  if (redesign && entry.kind === "checkins") return <RedesignPostCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} />;
+  if (redesign && entry.kind === "update") return <RedesignPostCard kind="update" item={entry.item} node={entry.node} autoOpenComments={autoOpen} />;
   switch (entry.kind) {
     case "checkins":
       return <TimelineCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} />;
@@ -152,6 +156,7 @@ export function FeedList({
   loadingMore = false,
   loadMoreFailed = false,
   onLoadMore,
+  variant = "classic",
 }: {
   items: FeedItem[] | undefined;
   meta: FeedMeta | null | undefined;
@@ -171,7 +176,10 @@ export function FeedList({
   loadingMore?: boolean;
   loadMoreFailed?: boolean;
   onLoadMore?: () => void;
+  /** The redesign's crew Posts tab: new day headers and post cards, same data and actions. */
+  variant?: "classic" | "redesign";
 }) {
+  const redesign = variant === "redesign";
   const days = useMemo(() => buildFeedDays(items ?? [], meta, localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone)), [items, meta]);
   const me = meta?.members.find((m) => m.isMe) ?? null;
   const hasPosts = days.some((d) => d.entries.some((e) => e.kind === "checkins" || e.kind === "update"));
@@ -279,7 +287,7 @@ export function FeedList({
   const anchored = new Set<string>();
   return (
     <FeedContext.Provider value={{ me, weeklyTarget: meta?.weeklyTarget ?? 5 }}>
-      <StatusBarCover target={listRef} active={hasPosts} />
+      <StatusBarCover target={listRef} active={hasPosts && !redesign} />
       <div ref={listRef} className="pb-2">
         {banner}
         {days.map((day) => {
@@ -292,6 +300,19 @@ export function FeedList({
                 : null;
           return (
             <section key={day.date} aria-label={day.label}>
+              {redesign ? (
+                <div className="flex items-center gap-2.5" style={{ padding: "18px 16px 8px" }}>
+                  <h2 className="shrink-0 text-[13px] font-extrabold" style={{ color: MUTED, letterSpacing: "0.6px" }}>
+                    {redesignDayLabel(day.date, viewerToday ?? day.date)}
+                  </h2>
+                  <span className="h-px flex-1" style={{ background: "#E7E3DE" }} aria-hidden />
+                  {isToday
+                    ? counts && counts.due > 0 && (
+                        <span className="shrink-0 text-[13px] font-bold" style={{ color: MUTED }}>{Math.min(counts.in, counts.due)} of {counts.due} in</span>
+                      )
+                    : crewStreakKept(day.stat) && <span className="shrink-0 text-[13px] font-bold" style={{ color: "#15803D" }}>Crew streak kept</span>}
+                </div>
+              ) : (
               <div
                 className="sticky z-10 flex items-baseline justify-between px-4 pb-1.5 pt-4"
                 style={{ top: "env(safe-area-inset-top)", background: BG }}
@@ -303,6 +324,7 @@ export function FeedList({
                   </span>
                 )}
               </div>
+              )}
               {day.entries.map((entry) => {
                 const pid = entry.kind === "quiet"
                   ? entry.missedItems.find((i) => i.id === deepLinkPost)?.id ?? null
@@ -320,7 +342,7 @@ export function FeedList({
                         autoOpenItem={autoOpen ? entry.missedItems.find((i) => i.id === pid) : undefined}
                       />
                     ) : (
-                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} />
+                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} redesign={redesign} />
                     )}
                   </div>
                 );

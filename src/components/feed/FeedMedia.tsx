@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, Volume2, VolumeX } from "lucide-react";
+import { Loader2, Play, Volume2, VolumeX } from "lucide-react";
 import { attachVideoDurationFix, effectiveDuration } from "@/lib/video-playback";
 import { MemberPhoto } from "@/components/MemberPhoto";
 
@@ -58,7 +58,7 @@ function RetryBlock({ label, onRetry }: { label: string; onRetry: () => void }) 
  * viewport, poster frame first. Shows a blurred "Processing video…" state
  * instead of a black box, and a retry when loading fails.
  */
-export function FeedVideo({ src, poster, onOpen }: { src: string; poster?: string | null; onOpen: () => void }) {
+export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: string; poster?: string | null; onOpen: () => void; variant?: "classic" | "redesign" }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
@@ -136,7 +136,7 @@ export function FeedVideo({ src, poster, onOpen }: { src: string; poster?: strin
           onOpen();
         }
       }}
-      className="relative aspect-square w-full overflow-hidden bg-neutral-800"
+      className={`relative ${variant === "redesign" ? "aspect-[4/3]" : "aspect-square"} w-full overflow-hidden bg-neutral-800`}
     >
       <video
         key={attempt}
@@ -229,7 +229,12 @@ export function FeedVideo({ src, poster, onOpen }: { src: string; poster?: strin
           </span>
         </button>
       )}
-      {!failed && duration !== null && (
+      {!failed && duration !== null && variant === "redesign" && (
+        <span className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold text-white" style={{ background: "rgba(0,0,0,.6)" }}>
+          <Play size={11} fill="currentColor" aria-hidden /> {formatDuration(duration)}
+        </span>
+      )}
+      {!failed && duration !== null && variant === "classic" && (
         <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/55 px-2 py-0.5 text-[12px] font-semibold text-white">
           {formatDuration(duration)}
         </span>

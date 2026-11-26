@@ -22,6 +22,7 @@ import { CrewAvatar, CrewAvatarOverlap } from "./CrewAvatars";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode } from "@/lib/feed-days";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 
@@ -48,6 +49,8 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
   const [tab, setTab] = useState<Tab>("today");
+  // The design hides the bottom bar in Chat so the composer sits at the bottom.
+  useHideBottomTabs(tab === "chat", false);
   const [streakOpen, setStreakOpen] = useState(false);
   const [media, setMedia] = useState<MediaState>(null);
 
@@ -103,7 +106,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
 
   return (
     <FeedContext.Provider value={{ me: feedMe, weeklyTarget: homeCrew?.weeklyTarget ?? 5 }}>
-      <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]" style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div ref={scrollRef} data-scroll-root className={`fixed inset-0 w-full overflow-y-auto overscroll-none ${tab === "chat" ? "" : "pb-[calc(104px+env(safe-area-inset-bottom))]"}`} style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
         <header className="bg-white pt-safe-5">
           <div className="flex items-center justify-between px-4">
             <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
@@ -210,11 +213,13 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               loadingMore={groupFeed.loadingMore}
               loadMoreFailed={groupFeed.loadMoreFailed}
               onLoadMore={groupFeed.loadMore}
+              todayCounts={{ inCount: counts.done, dueCount: counts.due }}
+              variant="redesign"
             />
           </main>
         )}
 
-        {tab === "chat" && <main><GroupChatView groupId={group.id} embedded /></main>}
+        {tab === "chat" && <main><GroupChatView groupId={group.id} embedded crewName={displayName} /></main>}
       </div>
 
       <Drawer open={streakOpen} onOpenChange={setStreakOpen}>

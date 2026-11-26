@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { CalendarDays, ChevronLeft, ChevronRight, Dumbbell, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus, Trash2 } from "lucide-react";
+import { Camera, CalendarDays, ChevronLeft, ChevronRight, Dumbbell, Image as ImageIcon, Send, MessageSquareMore, X, Loader2, Plus, Trash2 } from "lucide-react";
 import { getGroupChat, sendGroupMessage, markGroupRead, toggleMessageReaction, deleteGroupMessage } from "@/lib/chat.functions";
 import { ExerciseThumb } from "@/components/workout/WorkoutBits";
 import { ConfirmSheet } from "@/components/workout/ConfirmSheet";
@@ -33,7 +33,7 @@ function GroupChatPage() {
 }
 
 /** Existing crew chat, optionally embedded in the redesign's Chat tab. */
-export function GroupChatView({ groupId, embedded = false }: { groupId: string; embedded?: boolean }) {
+export function GroupChatView({ groupId, embedded = false, crewName }: { groupId: string; embedded?: boolean; crewName?: string }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -342,12 +342,12 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
 
   return (
     <div
-      className={embedded ? "flex flex-col bg-white" : "fixed inset-x-0 top-0 flex flex-col bg-white"}
+      className={embedded ? "flex flex-col" : "fixed inset-x-0 top-0 flex flex-col bg-white"}
       style={{
         fontFamily: "Inter, system-ui, sans-serif",
         height: viewportHeight
-          ? `${embedded ? Math.max(320, viewportHeight - 312) : viewportHeight}px`
-          : embedded ? "calc(100dvh - 312px - env(safe-area-inset-bottom))" : "100dvh",
+          ? `${embedded ? Math.max(320, viewportHeight - 228) : viewportHeight}px`
+          : embedded ? "calc(100dvh - 228px)" : "100dvh",
         transform: `translateY(${viewportTop}px)`,
         // Ease the resize so the chat glides with the keyboard instead of
         // snapping frame-by-frame.
@@ -417,15 +417,19 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
           </div>
         ) : (
           <ul className="space-y-3 select-none">
-            {messages.map((m) => {
+            {messages.map((m, i) => {
               const mine = m.userId === currentUserId;
+              // Redesign: name above the first bubble of a run, avatar beside the last.
+              const firstOfRun = messages[i - 1]?.userId !== m.userId;
+              const lastOfRun = messages[i + 1]?.userId !== m.userId;
               const initial = (m.authorName || "U").slice(0, 1).toUpperCase();
               const isWorkout = !!m.sharedWorkoutCode;
               const isPlan = !isWorkout && !!m.sharedPlanSlug;
               const isCard = isWorkout || isPlan;
               return (
                 <li key={m.id} className={`flex gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-                  {!mine && (
+                  {!mine && embedded && !lastOfRun && <span className="w-8 shrink-0" aria-hidden />}
+                  {!mine && (!embedded || lastOfRun) && (
                     <MemberProfileLink userId={m.userId} className="shrink-0 self-end">
                       <div
                         className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold overflow-hidden"
@@ -450,7 +454,9 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
                         {isPlan ? chatPlanShareLabel(firstNameOf(m.authorName), mine) : chatShareLabel(firstNameOf(m.authorName), mine)}
                       </span>
                     ) : (
-                      !mine && <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>
+                      !mine && (embedded
+                        ? firstOfRun && <span className="ml-2 mb-1 text-[12px] font-bold" style={{ color: "#57534E" }}>{firstNameOf(m.authorName)}</span>
+                        : <span className="text-[11px] text-neutral-500 ml-2 mb-0.5">{m.authorName}</span>)
                     )}
 
                     {pickerFor === m.id && (
@@ -522,10 +528,12 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
                       {isPlan && <ChatPlanCard card={m.sharedPlan} />}
                       {!isCard && m.body && (
                         <div
-                          className={`px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
+                          className={embedded
+                            ? `whitespace-pre-wrap break-words rounded-[18px] px-3.5 py-2.5 text-[16px] leading-snug ${mine ? "rounded-br-[4px] text-white" : "rounded-bl-[4px] bg-white"}`
+                            : `px-3.5 py-2 rounded-2xl text-[15px] leading-snug whitespace-pre-wrap break-words ${
                             mine ? "rounded-br-md text-white" : "rounded-bl-md bg-white text-neutral-900"
                           }`}
-                          style={mine ? { background: PURPLE } : undefined}
+                          style={mine ? { background: PURPLE } : embedded ? { color: "#1C1917" } : undefined}
                         >
                           {m.body}
                         </div>
@@ -612,8 +620,10 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
-        style={{ paddingBottom: embedded ? "16px" : "20px" }}
+        className={embedded ? "shrink-0 border-t" : "shrink-0 bg-white border-t border-neutral-100 px-3 py-3"}
+        style={embedded
+          ? { background: BG, borderColor: "#E7E3DE", padding: "10px 12px", paddingBottom: "calc(10px + env(safe-area-inset-bottom))" }
+          : { paddingBottom: "20px" }}
       >
         {pendingPreview && (
           <div className="mb-2 relative inline-block">
@@ -631,6 +641,36 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
         {error && (
           <div className="mb-2 text-[12px] text-red-500">{error}</div>
         )}
+        {embedded ? (
+          <div className="flex items-center gap-2">
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
+            <button type="button" aria-label="Add photo" onClick={() => fileInputRef.current?.click()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full" style={{ background: "#EDEAE6", color: "#1C1917" }}>
+              <Camera size={20} />
+            </button>
+            <div className="flex h-11 min-w-0 flex-1 items-center rounded-full pl-4 pr-1.5" style={{ background: "#EDEAE6" }}>
+              <input
+                ref={inputRef}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder={`Message ${crewName ?? displayName}`}
+                className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-[#A8A29E]"
+                style={{ color: "#1C1917" }}
+              />
+              <button type="button" aria-label="Add GIF" onClick={() => setGifOpen(true)} className="flex h-8 shrink-0 items-center rounded-full px-2" style={{ color: "#57534E" }}>
+                <span className="rounded border border-current px-1 py-0.5 text-[10px] font-black leading-none">GIF</span>
+              </button>
+            </div>
+            <button
+              type="submit"
+              aria-label="Send"
+              disabled={(!text.trim() && !pendingFile) || send.isPending || uploading}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-white disabled:opacity-50"
+              style={{ background: PURPLE }}
+            >
+              {uploading || send.isPending ? <Loader2 size={20} className="animate-spin" /> : <Send size={19} />}
+            </button>
+          </div>
+        ) : (
         <div className="flex min-h-13 items-center gap-1 rounded-full bg-muted px-2 py-1.5 transition-colors focus-within:ring-2 focus-within:ring-pactara-purple/20">
           <input
             ref={fileInputRef}
@@ -681,6 +721,7 @@ export function GroupChatView({ groupId, embedded = false }: { groupId: string; 
             </div>
           )}
         </div>
+        )}
       </form>
     </div>
   );
