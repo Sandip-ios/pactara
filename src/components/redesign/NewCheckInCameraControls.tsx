@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, Dumbbell, SwitchCamera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { NewSheet, NewSheetRow, NewSheetCheckbox, NewSheetButton } from "./NewSheet";
+import { NewSheet, NewSheetRow, NewSheetCheckbox, NewSheetButton, NewSheetAvatars } from "./NewSheet";
 import { getGroupsToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
 import { eligibleCrewIds, readNewCheckIn, writeNewCheckIn } from "@/lib/redesign-checkin";
 import { getPlanCheckIn } from "@/lib/plan-checkin";
 import { getWorkoutCheckIn } from "@/lib/active-workout";
-import { CrewAvatarOverlap } from "./CrewAvatars";
 
 export function NewCheckInCameraControls({ recording, starting, elapsed, switching, onCancel, onFlip, onRecord }: {
   recording: boolean; starting: boolean; elapsed: number; switching: boolean;
@@ -68,7 +67,7 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
           const checked = selected.includes(group.id);
           return <NewSheetRow key={group.id} disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} title={group.name}
             subtitle={done ? "You're in" : `${counts.done} of ${counts.due} in today`}
-            leading={<span className="w-[70px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={30} limit={3} /></span>}
+            leading={<NewSheetAvatars members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} />}
             trailing={<NewSheetCheckbox checked={checked} />} />;
         })}</div>
         <NewSheetButton disabled={!selected.length} onClick={() => setPicker(false)}>Done</NewSheetButton>

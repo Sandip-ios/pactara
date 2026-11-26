@@ -4,6 +4,7 @@ import { Check, ChevronRight } from "lucide-react";
 import { Drawer, DrawerPortal, DrawerOverlay, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CrewAvatarOverlap, type RedesignCrewAvatarMember } from "./CrewAvatars";
 
 /** All redesign sheets share this surface; classic DrawerContent stays untouched. */
 export function NewSheet({ open, onOpenChange, title, subtitle, description, children }: {
@@ -39,6 +40,11 @@ export function NewSheetRow({ title, subtitle, leading, trailing, simple = false
 
 export function NewSheetIcon({ children, tone = "soft" }: { children: ReactNode; tone?: "soft" | "primary" | "meal" }) {
   return <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]", tone === "primary" ? "bg-[var(--new-purple)] text-[var(--new-white)]" : tone === "meal" ? "bg-[var(--new-orange-soft)] text-[var(--new-orange-icon)]" : "bg-[var(--new-soft)] text-[var(--new-purple)]")}>{children}</span>;
+}
+
+/** Avatar rows use the stack's own width; NewSheetRow supplies the 12px text gap. */
+export function NewSheetAvatars({ members }: { members: RedesignCrewAvatarMember[] }) {
+  return <CrewAvatarOverlap members={members} size={30} limit={3} />;
 }
 
 export function NewSheetChevron() { return <ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" />; }
