@@ -69,9 +69,8 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
           trailing={current ? <Check size={22} className="!size-[22px] text-[var(--new-purple)]" /> : count > 0 ? <span className="flex h-6 shrink-0 items-center rounded-full bg-[var(--new-purple)] px-2 text-[13px] font-bold text-[var(--new-white)]">{count} new</span> : undefined}
           onClick={() => go(() => navigate({ to: "/crews/$groupId", params: { groupId: crew.id }, search: tab === "today" ? {} : { crewTab: tab } }))} />;
       })}</div>
-      {pending.length > 0 && <div className="mt-4">
-        <p className="px-1 pb-1 text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">PENDING</p>
-        {pending.map((crew) => <NewSheetRow key={crew.id} title={crew.name} subtitle={`Requested · waiting on ${crew.ownerFirstName}`} leading={<NewSheetAvatars members={discoveryAvatars(crew)} />} trailing={<span className="flex h-7 shrink-0 items-center rounded-full bg-[var(--new-control)] px-2.5 text-[13px] font-bold text-[var(--new-muted)]">Pending</span>} onClick={() => go(() => navigate({ to: "/crews/$groupId/preview", params: { groupId: crew.id } }))} />)}
+      {pending.length > 0 && <div>
+        {pending.map((crew) => <NewSheetRow key={crew.id} title={crew.name} subtitle={`Requested · waiting on ${crew.ownerFirstName}`} leading={<NewSheetAvatars members={discoveryAvatars(crew)} />} trailing={<span className="shrink-0 text-[13px] font-bold text-[var(--new-muted)]">Pending</span>} onClick={() => go(() => navigate({ to: "/crews/$groupId/preview", params: { groupId: crew.id } }))} />)}
       </div>}
       <div className="mt-4 grid grid-cols-2 gap-[10px]">
         <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => navigate({ to: "/crews" }))}><Search size={18} />Find a crew</NewSheetButton>

@@ -29,6 +29,7 @@ import { beginNewCheckIn } from "@/lib/redesign-checkin";
 import { useServerFn } from "@tanstack/react-start";
 import { completeCrewJoinGoal, getCrewJoinGoal } from "@/lib/crew-join.functions";
 import { JOIN_GOAL_MAX } from "@/lib/crew-join";
+import { Button } from "@/components/ui/button";
 
 const BG = "#F5F2EE";
 const INK = "#1C1917";
@@ -238,7 +239,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
       </NewSheet>
       <NewSheet open={goalOpen} onOpenChange={(o) => { if (!o) { setGoalOpen(false); setGoalAnswered(true); } }} title={`You're in ${displayName}`} subtitle="What's your goal in this crew? Everyone has their own, and your crewmates see it on your row.">
         <div>
-          <textarea aria-label="Your goal" maxLength={JOIN_GOAL_MAX} value={goalText} onChange={(e) => setGoalText(e.target.value)} rows={3} className="w-full rounded-[14px] border border-[var(--new-handle)] p-3 text-[17px]" />
+          <input aria-label="Your goal" maxLength={JOIN_GOAL_MAX} value={goalText} onChange={(e) => setGoalText(e.target.value)} className="h-[52px] w-full rounded-[16px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 text-[16px] text-[var(--new-ink)] outline-none focus:border-[var(--new-purple)]" />
           <p className="mt-1 text-right text-[12px]" style={{ color: MUTED }}>{goalText.length}/{JOIN_GOAL_MAX}</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {["Build muscle", "Lose fat", "Stay consistent"].map((chip) => (
@@ -246,7 +247,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
             ))}
           </div>
           <NewSheetButton disabled={goalBusy || !goalText.trim()} onClick={() => void answerGoal(goalText.trim())}>Save goal</NewSheetButton>
-          <NewSheetButton secondary disabled={goalBusy} onClick={() => void answerGoal(null)}>Skip for now</NewSheetButton>
+          <Button variant="ghost" disabled={goalBusy} onClick={() => void answerGoal(null)} className="mt-[10px] h-11 w-full bg-transparent text-[15px] font-bold text-[var(--new-muted)] hover:bg-transparent hover:text-[var(--new-muted)]">Skip for now</Button>
         </div>
       </NewSheet>
       {media && <MediaLightbox src={media.src} kind={media.kind} onClose={() => setMedia(null)} />}
