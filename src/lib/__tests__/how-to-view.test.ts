@@ -12,6 +12,7 @@ const lib = (id: string, over: Partial<LibraryExercise> = {}): LibraryExercise =
   logType: "reps",
   imageStart: null,
   imagePeak: null,
+  imageBg: null,
   custom: false,
   difficulty: "intermediate",
   variationGroup: "bench-press",

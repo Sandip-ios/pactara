@@ -14,6 +14,8 @@ export type LibraryExercise = {
   logType: LogType;
   imageStart: string | null;
   imagePeak: string | null;
+  /** Background color behind the drawing. */
+  imageBg: string | null;
   custom: boolean;
   /** RepDB difficulty (beginner / intermediate / advanced); null for your own exercises. */
   difficulty: string | null;
@@ -24,7 +26,7 @@ export type LibraryExercise = {
 export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
   const { data, error } = await supabase
     .from("exercises")
-    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, owner_id, difficulty, variation_group")
+    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, image_bg, owner_id, difficulty, variation_group")
     .order("name")
     .range(0, 2999);
   if (error) throw new Error(error.message);
@@ -38,6 +40,7 @@ export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
     logType: e.log_type as LogType,
     imageStart: e.image_start,
     imagePeak: e.image_peak,
+    imageBg: e.image_bg ?? null,
     custom: !!e.owner_id,
     difficulty: e.difficulty ?? null,
     variationGroup: e.variation_group ?? null,

@@ -15,6 +15,8 @@ import { formatPlanDose, levelChip, planDayBlocks, planDayKicker, resolvePlanDay
 import { dayForWeek, dayMinutes, movesForWeek, muscleChips, scheduleForWeek, weekNoteFor, type MuscleMap, type Plan, type PlanMove } from "@/lib/workout-plans";
 import { gearText, useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { BodyMap } from "@/components/plans/BodyMap";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewPlanDay } from "@/components/redesign/NewPlanDay";
 
 type DaySearch = { week?: number; day?: number };
 const toInt = (v: unknown) => {
@@ -41,8 +43,14 @@ export const Route = createFileRoute("/_authenticated/plans/$slug_/day")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: PlanDayPage,
+  component: PlanDayRoute,
 });
+
+function PlanDayRoute() {
+  const { slug } = Route.useParams();
+  const search = Route.useSearch();
+  return useAppVersion() === "new" ? <NewPlanDay slug={slug} search={search} /> : <PlanDayPage />;
+}
 
 const C = {
   bg: "#F4F2EF",

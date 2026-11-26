@@ -20,11 +20,11 @@ function Mirror({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Outline() {
+function Outline({ skin = SKIN }: { skin?: string }) {
   return (
     <>
       <Mirror>
-        <path d={HALF_FILL} fill={SKIN} />
+        <path d={HALF_FILL} fill={skin} />
       </Mirror>
       <Mirror>
         <path d={EDGE} fill="none" stroke={LINE} strokeWidth={0.9} strokeLinejoin="round" strokeLinecap="round" />
@@ -72,17 +72,22 @@ function Back({ f }: { f: (r: MuscleRegion) => string }) {
  * purple = main focus, amber = also worked, grey = not worked.
  * `labels` adds FRONT / BACK under the figures (for the large map on the day page).
  */
-export function BodyMap({ muscles, width, height, labels = false }: { muscles: MuscleMap; width: number; height: number; labels?: boolean }) {
-  const f = (r: MuscleRegion) => LEVEL_FILL[muscles[r] ?? 0];
+/** "new" = the redesign colors: beige #E7E2DA base, amber #F59E0B, purple #7C3AED. */
+const NEW_FILL = ["#D9D2C7", "#F59E0B", "#7C3AED"] as const;
+
+export function BodyMap({ muscles, width, height, labels = false, tone = "classic" }: { muscles: MuscleMap; width: number; height: number; labels?: boolean; tone?: "classic" | "new" }) {
+  const fills = tone === "new" ? NEW_FILL : LEVEL_FILL;
+  const skin = tone === "new" ? "#E7E2DA" : SKIN;
+  const f = (r: MuscleRegion) => fills[muscles[r] ?? 0];
   const h = labels ? 204 : 192;
   return (
     <svg viewBox={`0 0 148 ${h}`} width={width} height={height} role="img" aria-label={muscleMapLabel(muscles)}>
       <g transform="translate(-16 0)">
-        <Outline />
+        <Outline skin={skin} />
         <Front f={f} />
       </g>
       <g transform="translate(64 0)">
-        <Outline />
+        <Outline skin={skin} />
         <Back f={f} />
       </g>
       {labels && (
