@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { markNotificationsRead } from '@/lib/notifications.functions';
 import { followUser } from '@/lib/follows.functions';
 import { activityReadBatches, activitySection, activityTime, requestSummary } from '@/lib/profile-social';
+import { groupActivityRows, type ActivityDisplayRow, type ActivityRow } from '@/lib/activity-groups';
 import { ACTIVITY_UNAVAILABLE, withActivityReturn, type ActivityDeepLinkKind } from '@/lib/activity-deeplink';
 import { resolveActivityDeepLink } from '@/lib/activity-deeplink.functions';
 import { syncAppBadge } from '@/lib/badge-client';
@@ -18,21 +19,17 @@ import { activityOptions } from './social-query';
 import { SocialAvatar, SocialHeader } from './NewSocialBits';
 import { CrewAvatarOverlap } from './CrewAvatars';
 
-type ActivityRow = {
-  key: string; kind: ActivityDeepLinkKind; actorId: string; name: string; avatar: string | null;
-  text: string; createdAt: string; read: boolean; groupId: string | null; groupName: string;
-  postId: string | null; commentId: string | null; targetId: string | null;
-  media: string | null; mediaKind: string | null; canFollow: boolean; canCheckIn: boolean; relationship: string;
-};
-
-function ActivityCopy({ row }: { row: ActivityRow }) {
+function ActivityCopy({ row }: { row: ActivityDisplayRow }) {
   const hideActor = row.kind === 'reminder' || row.kind === 'pact_complete' || row.kind === 'crew_approved';
-  const text = row.kind.startsWith('follow') ? row.text.replace(/^\S+\s+/, '') : row.text;
+  const actorLabel = row.grouped ? row.groupActorLabel ?? '' : row.name;
+  const text = row.grouped
+    ? (row.groupText ?? '').slice(actorLabel.length).trimStart()
+    : row.kind.startsWith('follow') ? row.text.replace(/^\S+\s+/, '') : row.text;
   const index = row.groupName ? text.indexOf(row.groupName) : -1;
-  return <span>{!hideActor && <><strong>{row.name}</strong>{' '}</>}{index >= 0 ? <>{text.slice(0, index)}<strong>{row.groupName}</strong>{text.slice(index + row.groupName.length)}</> : text}</span>;
+  return <span>{!hideActor && <><strong>{actorLabel}</strong>{' '}</>}{index >= 0 ? <>{text.slice(0, index)}<strong>{row.groupName}</strong>{text.slice(index + row.groupName.length)}</> : text}</span>;
 }
 
-function ActivityThumbnail({ row, onOpen }: { row: ActivityRow; onOpen: () => void }) {
+function ActivityThumbnail({ row, onOpen }: { row: ActivityDisplayRow; onOpen: () => void }) {
   const [failed, setFailed] = useState<string | null>(null);
   const hasImage = row.media && row.media !== failed && row.mediaKind !== 'video';
   return <Button variant="ghost" className="new-activity-thumbnail" aria-label={`Open ${row.name}'s post`} onClick={onOpen}>{hasImage ? <img src={row.media ?? ''} alt="" onError={() => setFailed(row.media)} /> : row.mediaKind === 'video' || row.media?.includes('.poster.jpg') ? <Play size={18} aria-hidden /> : <ImageIcon size={18} aria-hidden />}</Button>;
@@ -81,7 +78,7 @@ export function NewActivity() {
     ...data.items.map(i => ({ ...i, name: i.actorName, postId: null, commentId: null, targetId: i.targetId ?? null, media: null, mediaKind: null, canFollow: false, relationship: 'none' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   // Own actions and individual pending follow requests never show as rows; the summary row covers the latter.
-  const rows = allRows.filter(r => (r.actorId !== user.id || r.kind === 'reminder' || r.kind === 'pact_complete') && r.kind !== 'follow_request');
+  const rows = groupActivityRows(allRows.filter(r => (r.actorId !== user.id || r.kind === 'reminder' || r.kind === 'pact_complete') && r.kind !== 'follow_request'));
   const unread = allRows.filter(i => !i.read).map(i => i.key).join('|');
   useEffect(() => {
     const keys = unread.split('|').filter(key => key && !submitted.current.has(key));
@@ -96,13 +93,18 @@ export function NewActivity() {
     });
   }, [unread, mark, qc]);
 
-  const open = async (row: ActivityRow, kind: ActivityDeepLinkKind = row.kind) => {
+  const open = async (row: ActivityDisplayRow, kind: ActivityDeepLinkKind = row.kind, actorId = row.actorId, profileOnly = false) => {
     if (opening) return;
     setOpening(row.key);
     try {
+      if (row.grouped && row.kind === 'follow' && !profileOnly) {
+        try { sessionStorage.setItem('activity-return-scroll', JSON.stringify({ index: activityIndex, top: scroll.current?.scrollTop ?? 0 })); } catch { /* private mode */ }
+        await navigate({ href: `/u/${user.id}/follows?socialTab=followers` });
+        return;
+      }
       const destination = await resolve({ data: {
         kind, groupId: row.groupId, postId: row.postId, commentId: row.commentId,
-        actorId: row.actorId, requestId: row.targetId,
+        actorId, requestId: row.targetId,
       } });
       if (destination.checkInGroupId) {
         try { sessionStorage.setItem('activity-return-scroll', JSON.stringify({ index: activityIndex, top: scroll.current?.scrollTop ?? 0 })); } catch { /* private mode */ }
@@ -138,14 +140,16 @@ export function NewActivity() {
         <div className="new-activity-content">
           {row.kind === 'reminder'
             ? <Button variant="ghost" className="new-activity-avatar" aria-label="Open check-in reminder" onClick={() => void open(row)}><span className="new-activity-icon"><Flame size={20} /></span></Button>
-            : <Button variant="ghost" className="new-activity-avatar" aria-label={row.actorId === user.id ? 'Your profile' : `${row.name}'s profile`} onClick={() => void open(row, 'follow')}><SocialAvatar url={row.avatar} size={40} /></Button>}
+            : row.groupKind === 'people'
+              ? <div className="new-activity-group-avatars">{row.actors.slice(0, 2).map(actor => <Button key={actor.id} variant="ghost" className="new-activity-group-avatar" aria-label={actor.id === user.id ? 'Your profile' : `${actor.name}'s profile`} onClick={() => void open(row, 'follow', actor.id, true)}><SocialAvatar url={actor.avatar} size={32} /></Button>)}</div>
+              : <Button variant="ghost" className="new-activity-avatar" aria-label={row.actorId === user.id ? 'Your profile' : `${row.name}'s profile`} onClick={() => void open(row, 'follow')}><SocialAvatar url={row.avatar} size={40} /></Button>}
           <Button variant="ghost" className="new-activity-open" disabled={opening === row.key} onClick={() => void open(row)}>
             <span className="new-activity-copy"><ActivityCopy row={row} /><small>{activityTime(row.createdAt)}</small></span>
           </Button>
         </div>
         {row.kind === 'crew_request'
           ? <Button variant="ghost" className="new-activity-pill primary" onClick={() => void open(row)}>Review</Button>
-          : row.kind === 'follow' && row.canFollow && !['following', 'requested'].includes(row.relationship)
+          : row.kind === 'follow' && !row.grouped && row.canFollow && !['following', 'requested'].includes(row.relationship)
             ? <Button variant="ghost" className="new-activity-pill primary" disabled={busy === row.key} onClick={async () => {
                 if (busy) return;
                 setBusy(row.key);

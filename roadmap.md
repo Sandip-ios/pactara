@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] New-version Activity grouping within Today/This week/Earlier: grouped reactions/comments/cheers/check-ins/follows, per-person multi-post groups, unread union, safe actions and grouped followers navigation; dl3-grouped.png added to public/qa/deeplinks.json; 677 tests and typecheck pass; temporary accounts/crew/activity removed; unpublished.
+
 - [x] New-version Activity rows and matching pushes open their exact check-in, comment, profile, request or crew destination; deleted/blocked targets toast and stay on Activity; Back restores the same scroll position; two 390px QA captures in public/qa/deeplinks.json; 669 tests and typecheck pass; throwaway accounts and crews removed; unpublished.
 
 ## Phase 3 step 4
