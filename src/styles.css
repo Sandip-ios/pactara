@@ -101,6 +101,7 @@
 .new-profile-day.freeze { background: var(--new-blue-soft); color: var(--new-profile-ice-icon); border: 0; }
 .new-profile-day.today { background: var(--new-white); border: 2px dashed var(--new-purple); }
 .new-profile-week-chips { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.new-profile-week-chips-single { grid-template-columns: minmax(0,1fr); }
 .new-profile-week-chips > span { display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 12px; padding: 10px; font-size: 13px; font-weight: 700; white-space: nowrap; }
 .new-profile-streak-chip { background: var(--new-profile-fire-bg); color: var(--new-orange-strong); }
 .new-profile-streak-chip > svg { color: var(--new-orange); flex-shrink: 0; }

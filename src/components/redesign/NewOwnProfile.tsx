@@ -5,7 +5,8 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake, UserRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getHomeCrew } from '@/lib/home-crew.functions';
-import { newProfileWeek } from '@/lib/redesign-profile';
+import { newProfileWeek, profileWeekChips } from '@/lib/redesign-profile';
+import { cn } from '@/lib/utils';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
@@ -58,10 +59,11 @@ export function NewProfileWeekCard({ groupId, crewName, showPicker, onPick, free
 }) {
   const { data: crew } = useQuery({ queryKey: ['home-crew', groupId], queryFn: () => getHomeCrew({ data: { groupId } }), staleTime: 30_000 });
   const me = crew?.members.find(member => memberId ? member.userId === memberId : member.isYou);
+  const chips = profileWeekChips(me?.streak, freezes);
   return <section className="new-profile-week" aria-label="This week">
     <div className="new-profile-week-heading"><div><h2>THIS WEEK</h2><strong>{me?.workouts ?? 0} of {me?.target ?? crew?.weeklyTarget ?? 0} workouts</strong></div>{showPicker && <Button variant="ghost" className="new-profile-crew-pill" onClick={onPick}><span>In {crewName}</span><ChevronDown size={14} /></Button>}</div>
     <progress className="new-profile-week-progress" aria-label="This week's workouts" value={Math.min(me?.workouts ?? 0, me?.target ?? 1)} max={Math.max(1, me?.target ?? 1)} />
     {me ? <div className="new-profile-week-days">{newProfileWeek(me).map((day, index) => <div key={day.date}><span className={`new-profile-day ${day.state}`} aria-label={`${day.date}: ${day.state}`}>{day.state === 'checked' ? <Check size={18} /> : day.state === 'rest' ? 'Rest' : day.state === 'freeze' ? <Snowflake size={16} /> : null}</span><small>{['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}</small></div>)}</div> : <div className="h-[57px]" aria-label="Loading week" />}
-    <div className="new-profile-week-chips"><span className="new-profile-streak-chip"><Flame size={17} /><span>{me?.streak ?? 0}-day streak</span></span>{freezes !== null && <span className="new-profile-freeze-chip"><Snowflake size={17} /><span>{freezes} freezes</span></span>}</div>
+    {chips.any && <div className={cn('new-profile-week-chips', chips.single && 'new-profile-week-chips-single')}>{chips.streak && <span className="new-profile-streak-chip"><Flame size={17} /><span>{me?.streak}-day streak</span></span>}{chips.freezes && <span className="new-profile-freeze-chip"><Snowflake size={17} /><span>{freezes} freezes</span></span>}</div>}
   </section>;
 }

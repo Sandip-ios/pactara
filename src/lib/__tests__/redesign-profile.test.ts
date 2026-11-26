@@ -45,11 +45,24 @@ describe('New profile editing rules', () => {
   });
 });
 import { progressSummary } from '../redesign-profile';
+import { profileWeekChips } from '../redesign-profile';
 describe('progressSummary', () => {
   it('hides zero parts', () => {
     expect(progressSummary(0, 0)).toBe('');
     expect(progressSummary(5, 0)).toBe('5-day streak');
     expect(progressSummary(0, 3)).toBe('3 badges');
     expect(progressSummary(12, 2)).toBe('12-day streak · 2 badges');
+  });
+});
+describe('profileWeekChips', () => {
+  it('never shows a zero-day streak', () => {
+    expect(profileWeekChips(0, 2)).toEqual({ streak: false, freezes: true, any: true, single: true });
+    expect(profileWeekChips(0, null)).toEqual({ streak: false, freezes: false, any: false, single: false });
+    expect(profileWeekChips(null, null)).toEqual({ streak: false, freezes: false, any: false, single: false });
+  });
+  it('shows a streak above zero and freezes only when the count is known', () => {
+    expect(profileWeekChips(12, 2)).toEqual({ streak: true, freezes: true, any: true, single: false });
+    expect(profileWeekChips(12, null)).toEqual({ streak: true, freezes: false, any: true, single: true });
+    expect(profileWeekChips(undefined, 0)).toEqual({ streak: false, freezes: true, any: true, single: true });
   });
 });

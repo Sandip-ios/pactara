@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserRound } from 'lucide-react';
+import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserRound, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { getRedesignMemberProfile } from '@/lib/redesign-profile.functions';
@@ -14,7 +14,7 @@ import { stabilizeSignedUrls } from '@/lib/stable-urls';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
-import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetChevron, NewSheetRow } from './NewSheet';
+import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetChevron, NewSheetMenuIcon, NewSheetRow } from './NewSheet';
 import { NewConfirm } from './NewConfirm';
 import { NewProfileWeekCard } from './NewOwnProfile';
 
@@ -122,10 +122,10 @@ export function NewMemberProfile({ target }: { target: string }) {
     {body === 'private' && <div className="new-member-private"><span className="new-member-lock"><Lock size={28} /></span><h2>This account is private</h2><p>Follow {first} to see their progress.</p></div>}
 
     <NewSheet open={sheet === 'menu'} onOpenChange={open => setSheet(open ? 'menu' : null)} title={`Options for ${first}`} hideTitle>
-      <NewSheetRow title={`Report ${first}`} subtitle="Tell us what's going on. We review every report." leading={<Flag />} trailing={<NewSheetChevron />} onClick={openReport} />
-      {following && <NewSheetRow title="Unfollow" disabled={busy} onClick={() => run(() => unfollow({ data: { target: profile.id } }))} />}
-      {profile.followsMe && <NewSheetRow title="Remove follower" subtitle={`${first} won't be told.`} disabled={busy} onClick={() => run(() => remove({ data: { follower: profile.id } }))} />}
-      <NewSheetRow destructive title={`Block ${first}`} leading={<Ban className="text-[var(--new-destructive)]" />} onClick={() => { setSheet(null); setBlockError(null); setTimeout(() => setBlockOpen(true), 350); }} />
+      <NewSheetRow title={`Report ${first}`} subtitle="Tell us what's going on. We review every report." leading={<NewSheetMenuIcon><Flag /></NewSheetMenuIcon>} trailing={<NewSheetChevron />} onClick={openReport} />
+      {following && <NewSheetRow title="Unfollow" disabled={busy} leading={<NewSheetMenuIcon><UserMinus /></NewSheetMenuIcon>} onClick={() => run(() => unfollow({ data: { target: profile.id } }))} />}
+      {profile.followsMe && <NewSheetRow title="Remove follower" subtitle={`${first} won't be told.`} disabled={busy} leading={<NewSheetMenuIcon><UserX /></NewSheetMenuIcon>} onClick={() => run(() => remove({ data: { follower: profile.id } }))} />}
+      <NewSheetRow destructive title={`Block ${first}`} leading={<NewSheetMenuIcon><Ban className="text-[var(--new-destructive)]" /></NewSheetMenuIcon>} onClick={() => { setSheet(null); setBlockError(null); setTimeout(() => setBlockOpen(true), 350); }} />
     </NewSheet>
     <NewSheet open={sheet === 'requested'} onOpenChange={open => setSheet(open ? 'requested' : null)} title="Cancel follow request?">
       <NewSheetRow simple title={red('Cancel request')} disabled={busy} onClick={() => run(() => unfollow({ data: { target: profile.id } }))} />

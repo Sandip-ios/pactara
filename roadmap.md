@@ -1,6 +1,7 @@
 # Roadmap
 
 - [x] Phase 3 step 2: new-only own profile/menu/editor, crew week/plan/follow data, debounced username validation and real save/reload, working interim privacy/blocked/progress destinations; both account states and captures 47–52 verified at 390×844 in public/qa/p3-step2.json; second crew, plan link, photo picker, discard/Keep editing and classic profile/editor checked; 628 tests pass, compilation clean; both test accounts, crews, temporary plan and their rows removed, including plan history and subscriptions; classic unchanged, unpublished.
+- [x] Phase 3 step 3 review: week card never shows a "0-day streak" chip (own and someone else's profile; a lone freezes chip goes full width), ••• menu rows share one 16px/2.25 icon (Report flag, Unfollow UserMinus, Remove follower UserX, Block last in red); captures 57 and 59 retaken into public/qa/p3-step3b.json; 636 tests pass, compilation clean; demo accounts, follows, crews and check-ins removed; classic unchanged, unpublished.
 
 - [x] Step 1 review: migration 0074 refuses classic follow targets, exposes can_follow and preserves follows on version switch; its private default is superseded by the owner's public-default decision. Regression coverage keeps existing privacy choices and teen protection intact; no UI or publishing.
 

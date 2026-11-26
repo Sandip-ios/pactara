@@ -38,6 +38,13 @@ export function progressSummary(streak: number, badges: number): string {
   return parts.join(' · ');
 }
 
+/** This week card chips: a 0-day streak is never shown, freezes only when the count is known. */
+export function profileWeekChips(streak: number | null | undefined, freezes: number | null): { streak: boolean; freezes: boolean; any: boolean; single: boolean } {
+  const showStreak = (streak ?? 0) > 0;
+  const showFreezes = freezes !== null;
+  return { streak: showStreak, freezes: showFreezes, any: showStreak || showFreezes, single: showStreak !== showFreezes };
+}
+
 export type MemberRelationship = 'none' | 'requested' | 'following' | 'follows_you' | 'blocked';
 export type MemberFollowButton = 'follow' | 'follow_back' | 'requested' | 'following' | null;
 

@@ -38,6 +38,11 @@ export function NewSheetRow({ title, subtitle, leading, trailing, simple = false
   </Button>;
 }
 
+/** Menu-row icon: 16px at semibold weight, shared so every row in a menu lines up. */
+export function NewSheetMenuIcon({ children }: { children: ReactNode }) {
+  return <span aria-hidden className="flex shrink-0 items-center [&>svg]:size-4 [&>svg]:[stroke-width:2.25]">{children}</span>;
+}
+
 export function NewSheetIcon({ children, tone = "soft" }: { children: ReactNode; tone?: "soft" | "primary" | "meal" }) {
   return <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] [&>svg]:!size-5", tone === "primary" ? "bg-[var(--new-purple)] text-[var(--new-white)]" : tone === "meal" ? "bg-[var(--new-orange-soft)] text-[var(--new-orange-icon)]" : "bg-[var(--new-soft)] text-[var(--new-purple)]")}>{children}</span>;
 }

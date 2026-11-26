@@ -9,6 +9,7 @@
   - Handle: 36×5px, radius 3px, #E7E3DE, centered, 14px gap below. Title: 20px/800, #1C1917, no top margin. Optional subtitle: 14px, #57534E, 4px under title. Content: 10px below subtitle, or title without subtitle.
   - Rows: padding 12px 0, gap 12px, 1px #F0EDE9 divider between rows only. Leading icon tile: 40×40px, radius 12px; or 30px avatars, 2px white ring, -10px overlap. Title: 16px/700 #1C1917; subtitle: 13px #57534E, 2px below. Trailing: 20px #A8A29E chevron, pill, or 24px checkbox radius 7px, checked #7C3AED with white check.
   - Simple menus without subtitles: 16px/600, 52px row height. Destructive rows: #DC2626, always last.
+  - Icon-only menu rows pass their icon through NewSheetMenuIcon (16px, stroke 2.25) instead of a bare element, so every row in a menu shares one icon size and weight. Why: rows without a tile otherwise inherit the row wrapper's 22px sizing and drift apart.
   - Avatar rows use NewSheetAvatars at the stack's intrinsic width, never a fixed-width avatar column; each row title starts 12px after that row's own avatars. Why: the spacing follows each crew's actual avatar count.
   - Primary action: full width, 52px height, radius 26px, #7C3AED, 17px/700 white, 16px gap above. Secondary: same size, #EDE4FF background, #6D28D9 text, 10px below primary.
   - Chips: height 36px, radius 999px, white background, 1px #E7E3DE border, 14px/600 #1C1917. Selected: #EDE4FF background, #7C3AED border, #6D28D9 text.
