@@ -1,6 +1,8 @@
-import pactaraAppIcon from "../../../native-assets/ios/AppIcon-1024.png";
+import pactaraAppIconAsset from "@/assets/pactara-app-icon.png.asset.json";
 
-/** The native Pactara app icon, clipped like an iOS icon rather than an avatar. */
+const pactaraAppIcon = pactaraAppIconAsset.url;
+
+/** The real Pactara app icon (plain white P on purple), clipped like an iOS icon rather than an avatar. */
 export function PactaraAuthorIcon({ size }: { size: 16 | 24 }) {
   return (
     <img
