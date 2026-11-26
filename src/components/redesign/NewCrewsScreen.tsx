@@ -34,8 +34,8 @@ export function NewCrewsScreen() {
 
   return (
     <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
-      <header className="flex items-center justify-between bg-white px-4 pb-4 pt-safe-5">
-        <h1 className="text-[26px] font-extrabold">Crews</h1>
+      <header className="flex items-center justify-between bg-white px-4 pb-4 pt-new-top">
+        <h1 className="flex h-11 items-center text-[26px] font-extrabold">Crews</h1>
         <button
           type="button"
           onClick={startCrew}

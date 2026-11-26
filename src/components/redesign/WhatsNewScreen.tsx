@@ -22,7 +22,7 @@ export function WhatsNewScreen({ onClose }: { onClose?: () => void }) {
     navigate({ to: "/home" });
   };
   return (
-    <div className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-white px-6 pt-[max(48px,calc(env(safe-area-inset-top)+24px))] pb-[max(16px,env(safe-area-inset-bottom))]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div className="fixed inset-0 z-[90] flex flex-col overflow-y-auto bg-white px-6 pt-[max(48px,calc(env(safe-area-inset-top)+24px),calc(max(env(safe-area-inset-top),44px)+12px))] pb-[max(16px,env(safe-area-inset-bottom))]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
       <div className="text-[12px] font-extrabold tracking-[0.6px]" style={{ color: "#7C3AED" }}>WHAT'S NEW</div>
       <h1 className="mt-2 text-[30px] leading-tight" style={{ fontWeight: 800, color: "#1C1917" }}>Pactara has a new look</h1>
       <p className="mt-2 text-[15px]" style={{ color: "#57534E" }}>Your crews, streaks and check-ins didn't change. Here's what's new.</p>

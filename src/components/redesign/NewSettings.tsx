@@ -60,7 +60,7 @@ export function NewSettings() {
 
   return (
     <div className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[max(24px,env(safe-area-inset-bottom))]" style={{ background: "#F5F2EE", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <header className="relative flex items-center justify-center bg-white px-4 pt-safe-5 pb-3">
+      <header className="relative flex items-center justify-center bg-white px-4 pt-new-top pb-3">
         <button onClick={() => navigate({ to: "/profile" })} aria-label="Back" className="absolute left-4 bottom-3 flex items-center justify-center rounded-full" style={{ width: 44, height: 44, background: GRAY_SOFT }}>
           <ChevronLeft size={22} />
         </button>

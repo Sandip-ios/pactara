@@ -45,7 +45,7 @@ export function SubPage({
       className={`fixed inset-0 w-full overflow-y-auto overscroll-none ${version === "new" ? "pb-[max(24px,env(safe-area-inset-bottom))]" : "pb-28"}`}
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
-      <header className="bg-white px-4 pt-safe-5 pb-4 flex items-center gap-2">
+      <header className={`bg-white px-4 ${version === "new" ? "pt-new-top" : "pt-safe-5"} pb-4 flex items-center gap-2`}>
         <button
           onClick={onBack}
           aria-label="Back"

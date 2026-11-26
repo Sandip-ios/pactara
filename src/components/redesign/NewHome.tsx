@@ -35,7 +35,7 @@ export function NewHome() {
   };
   return (
     <div ref={scrollRef} data-scroll-root className="redesign-step3 fixed inset-0 overflow-y-auto overscroll-none bg-[var(--new-bg)] pb-[calc(104px+env(safe-area-inset-bottom))] text-[var(--new-ink)]">
-      <header className="flex items-center justify-between bg-[var(--new-white)] px-5 pb-3 pt-safe-5">
+      <header className="flex items-center justify-between bg-[var(--new-white)] px-5 pb-3 pt-new-top">
         <h1 className="text-[28px] font-extrabold"><span className="text-[var(--new-purple-text)]">P</span>actara</h1>
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Search" onClick={() => navigate({ to: "/groups" })}><Search className="!size-5" /></Button>

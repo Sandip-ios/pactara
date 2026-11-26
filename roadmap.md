@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Redesign top spacing: shared safe minimum for new-only headers and Settings subpages, preserve larger intro/done spacing and camera placement; four captures saved in top-spacing.json at 390×844 with first-row centers y=78; new Settings/subpages 56px vs classic 20px, simulated insets 0/47/59 verified; 564 tests pass, unpublished.
+
 - [x] Redesign phase 2 step 4 visual follow-up: shared centered destructive alerts, round crew menu button, current crew first, about placeholder; captures 23, 25, 27, 28 verified at 390×844 and saved in phase2-step4b.json; Cancel checked, no destructive actions or new data; classic unchanged, unpublished.
 
 - [x] Redesign phase 2 step 4: NewSheet crew switcher/menu, owner settings/about, locked owner-only transfer/removal and departure; existing invite/goal/pact/leave logic reused; captures 23–28; Save/reload/restore and rejected non-owner writes verified with existing QA accounts, no new rows or destructive actions; classic unchanged, unpublished. Notifications/mute/check-in unread controls omitted because they do not exist.

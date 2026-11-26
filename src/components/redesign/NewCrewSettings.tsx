@@ -45,7 +45,7 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
   };
   return <div className="redesign-step3 fixed inset-0 bg-[var(--new-bg)] text-[var(--new-ink)]">
     <div ref={scrollRef} data-scroll-root className="h-full overflow-y-auto pb-[calc(100px+env(safe-area-inset-bottom))]">
-      <header className="grid grid-cols-[44px_1fr_44px] items-center bg-[var(--new-white)] px-4 pb-4 pt-safe-5">
+      <header className="grid grid-cols-[44px_1fr_44px] items-center bg-[var(--new-white)] px-4 pb-4 pt-new-top">
         <Button variant="ghost" size="icon" aria-label="Back" className="h-11 w-11 rounded-full bg-[var(--new-control)]" onClick={() => navigate({ to: "/crews/$groupId", params: { groupId } })}><ChevronLeft className="!size-[22px]" /></Button>
         <h1 className="text-center text-[17px] font-bold">Crew settings</h1>
       </header>

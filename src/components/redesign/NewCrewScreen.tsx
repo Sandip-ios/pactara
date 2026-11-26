@@ -97,7 +97,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   if (!group) {
     return (
       <div className="fixed inset-0 overflow-y-auto" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
-        <header className="bg-white px-4 pb-4 pt-safe-5">
+        <header className="bg-white px-4 pb-4 pt-new-top">
           <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}><ChevronLeft size={22} /></button>
         </header>
         <div className="m-4 rounded-[20px] bg-white p-6 text-center text-[16px] font-bold">This crew is no longer available</div>
@@ -110,7 +110,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   return (
     <FeedContext.Provider value={{ me: feedMe, weeklyTarget: homeCrew?.weeklyTarget ?? 5 }}>
       <div ref={scrollRef} data-scroll-root className={`redesign-step3 fixed inset-0 w-full overflow-y-auto overscroll-none ${tab === "chat" ? "" : "pb-[calc(104px+env(safe-area-inset-bottom))]"}`} style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
-        <header className="bg-white pt-safe-5">
+        <header className="bg-white pt-new-top">
           <div className="flex items-center justify-between px-4">
             <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
               <ChevronLeft size={22} />

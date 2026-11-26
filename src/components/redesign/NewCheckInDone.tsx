@@ -11,7 +11,7 @@ export function NewCheckInDone({ groups, streak, onDone, onNote }: { groups: Gro
   const crew = groups[0];
   const crewStreak = crew?.groupStreak ?? 0;
   const badge = nextCheckInBadge(streak);
-  return <div ref={scrollRef} data-scroll-root className="redesign-step3 fixed inset-0 z-40 overflow-y-auto bg-[var(--new-bg)] px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-[72px] text-[var(--new-ink)]">
+  return <div ref={scrollRef} data-scroll-root className="redesign-step3 fixed inset-0 z-40 overflow-y-auto bg-[var(--new-bg)] px-4 pb-[calc(24px+env(safe-area-inset-bottom))] pt-[max(72px,calc(max(env(safe-area-inset-top),44px)+12px))] text-[var(--new-ink)]">
     <div className="mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-full bg-[var(--new-green-soft)] text-[var(--new-green)]"><Check size={38} strokeWidth={3} /></div>
     <h1 className="mt-4 text-center text-[30px] font-extrabold">You're in</h1>
     <p className="mt-2 text-center text-[16px] leading-[1.45] text-[var(--new-muted)]">{doneCrewLine(groups)}</p>
