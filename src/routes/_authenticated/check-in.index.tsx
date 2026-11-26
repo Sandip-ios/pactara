@@ -22,6 +22,7 @@ export const MOODS = [
 export type MoodId = (typeof MOODS)[number]["id"];
 
 export const Route = createFileRoute("/_authenticated/check-in/")({
+  head: () => ({ meta: [{ title: 'Check-in options · Pactara' }, { name: 'description', content: 'Check in with your active Pactara crews.' }, { property: 'og:title', content: 'Check-in options · Pactara' }, { property: 'og:description', content: 'Check in with your active Pactara crews.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: CheckInRouter,
 });
 

@@ -23,7 +23,7 @@ export const Route = createFileRoute("/api/public/og/invite/$groupId")({
             const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
             const { data: group } = await supabaseAdmin
               .from("groups")
-              .select("name, owner_id")
+              .select("name, owner_id").is("ended_at", null)
               .eq("id", groupId)
               .maybeSingle();
             if (group) {

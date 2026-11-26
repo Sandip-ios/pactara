@@ -637,6 +637,8 @@ export type Database = {
           days_per_week: number
           duration_days: number
           emoji: string
+          ended_at: string | null
+          ended_by: string | null
           frequency: string
           goal: string | null
           id: string
@@ -654,6 +656,8 @@ export type Database = {
           days_per_week?: number
           duration_days?: number
           emoji?: string
+          ended_at?: string | null
+          ended_by?: string | null
           frequency?: string
           goal?: string | null
           id?: string
@@ -671,6 +675,8 @@ export type Database = {
           days_per_week?: number
           duration_days?: number
           emoji?: string
+          ended_at?: string | null
+          ended_by?: string | null
           frequency?: string
           goal?: string | null
           id?: string
@@ -1940,6 +1946,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      crew_is_active: { Args: { _group_id: string }; Returns: boolean }
       crew_on_plan: {
         Args: { _plan_id: string }
         Returns: {
@@ -1958,6 +1965,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      end_crew: { Args: { _group_id: string }; Returns: undefined }
       get_my_app_prefs: {
         Args: never
         Returns: {
@@ -2038,6 +2046,10 @@ export type Database = {
         Returns: boolean
       }
       safety_visible: { Args: { _author: string }; Returns: boolean }
+      shares_active_crew_with: {
+        Args: { _a: string; _b: string }
+        Returns: boolean
+      }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
       submit_content_report: {
         Args: {

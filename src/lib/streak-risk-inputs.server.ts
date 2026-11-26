@@ -1,3 +1,4 @@
+import { crewIsActive } from "./crew-lifecycle";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RiskGroupInput } from "@/lib/streak-risk-plan";
 
@@ -56,12 +57,12 @@ export async function loadRiskInputs(
 
   const groupIds = [...new Set(memberships.map((m) => m.group_id))];
   const groups = groupIds.length
-    ? await fetchAll<{ id: string; name: string; frequency: string | null; days_per_week: number | null }>(
+    ? await fetchAll<{ id: string; name: string; frequency: string | null; days_per_week: number | null; ended_at: string | null }>(
         (from, to) =>
-          admin.from("groups").select("id, name, frequency, days_per_week").in("id", groupIds).order("id").range(from, to),
+          admin.from("groups").select("id, name, frequency, days_per_week, ended_at").is("ended_at", null).in("id", groupIds).order("id").range(from, to),
       )
     : [];
-  const groupById = new Map(groups.map((g) => [g.id, g]));
+  const groupById = new Map(groups.filter(crewIsActive).map((g) => [g.id, g]));
 
   const byUser = new Map<string, Map<string, RiskGroupInput>>();
   for (const m of memberships) {

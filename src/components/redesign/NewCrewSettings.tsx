@@ -4,8 +4,10 @@ import { useQueryClient, useSuspenseQuery, queryOptions } from "@tanstack/react-
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, Crown, MoreHorizontal, User, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getCrewManagement, manageCrewMember, saveCrewSettings } from "@/lib/crew-management.functions";
+import { toast } from "sonner";
+import { endCrew, getCrewManagement, manageCrewMember, saveCrewSettings } from "@/lib/crew-management.functions";
 import { joinedCrewDate } from "@/lib/crew-management";
+import type { GroupToday } from "@/lib/group-today.functions";
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
@@ -27,10 +29,12 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
   const [about, setAbout] = useState(data.about ?? "");
   const [memberId, setMemberId] = useState<string | null>(null);
   const [remove, setRemove] = useState(false);
+  const [ending, setEnding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const save = useServerFn(saveCrewSettings);
   const manage = useServerFn(manageCrewMember);
+  const end = useServerFn(endCrew);
   useEffect(() => { setName(data.name); setAbout(data.about ?? ""); }, [data.name, data.about]);
   const member = data.members.find((m) => m.id === memberId);
   const isOwner = data.owner_id === data.viewerId;
@@ -65,6 +69,7 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
           </div>)}
         </section>
         <p className="mx-4 mt-3 text-[13px] text-[var(--new-muted)]">Tap ••• next to someone to make them run the crew or remove them.</p>
+        <Button variant="ghost" className="mx-auto mt-3 flex h-12 text-[15px] font-bold text-[var(--new-destructive)] hover:bg-transparent hover:text-[var(--new-destructive)]" onClick={() => { setError(null); setEnding(true); }}>End {data.name}</Button>
         {error && !memberId && <p role="alert" className="mx-4 mt-3 text-[13px] text-[var(--new-destructive)]">{error}</p>}
       </>}
     </div>
@@ -85,5 +90,17 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
       {error && <p role="alert" className="mt-2 text-[13px] text-[var(--new-destructive)]">{error}</p>}
     </NewSheet>
     <NewConfirm open={!!member && remove} onOpenChange={(o) => { if (!o) setRemove(false); }} title={`Remove ${member?.name.split(" ")[0] ?? "member"} from ${data.name}?`} subtitle="They won't see the crew's check-ins, posts or chat anymore. Their own streak and workouts stay with them. We won't tell them who removed them." action="Remove" busy={busy} error={error} onConfirm={() => void memberAction("remove")} />
+    <NewConfirm open={ending} onOpenChange={setEnding} title={`End ${data.name}?`} subtitle="Everyone loses access to its check-ins, posts and chat. Each person keeps their own streak and workouts." action="End crew" busy={busy} error={error} onConfirm={async () => {
+      setBusy(true); setError(null);
+      try {
+        await end({ data: { groupId } });
+        setEnding(false);
+        queryClient.setQueriesData<{ groups: GroupToday[]; firstName: string }>({ queryKey: ["groups-today"] }, old => old ? { ...old, groups: old.groups.filter(crew => crew.id !== groupId) } : old);
+        void queryClient.invalidateQueries({ refetchType: "none" });
+        await navigate({ to: "/crews" });
+        toast.success(`${data.name} ended.`);
+      } catch (e) { setError(e instanceof Error ? e.message : "Couldn't end this crew. Try again."); }
+      finally { setBusy(false); }
+    }} />
   </div>;
 }

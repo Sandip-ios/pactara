@@ -393,6 +393,27 @@
       "when": 1795657893679,
       "tag": "0055_redesign_crew_management",
       "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1795659360617,
+      "tag": "0056_history_preserving_end_crew",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1795659510894,
+      "tag": "0057_ended_crew_media_and_session_guards",
+      "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1795659808668,
+      "tag": "0058_ended_crew_operational_rpcs",
+      "breakpoints": true
     }
   ]
 }

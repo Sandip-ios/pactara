@@ -35,6 +35,8 @@ export const Route = createFileRoute("/api/public/invite/defer")({
 
         try {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: crew, error: crewError } = await supabaseAdmin.from("groups").select("id").eq("id", groupId).is("ended_at", null).maybeSingle();
+          if (crewError || !crew) return Response.json({ ok: false }, { status: 200 });
           await supabaseAdmin.from("deferred_invites").insert({
             group_id: groupId,
             ip_hash: await fingerprint(ip),

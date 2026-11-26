@@ -82,7 +82,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
     if (groupId) {
       const { data: mine } = await supabase
         .from("group_members")
-        .select("group_id")
+        .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("group_id", groupId)
         .eq("user_id", userId)
         .maybeSingle();
@@ -91,7 +91,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
     if (!groupId) {
       const { data: latest } = await supabase
         .from("group_members")
-        .select("group_id, joined_at")
+        .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .order("joined_at", { ascending: false })
         .limit(1)
@@ -103,12 +103,12 @@ export const getHomeCrew = createServerFn({ method: "GET" })
     const [{ data: group }, { data: roster }, { data: me }] = await Promise.all([
       supabase
         .from("groups")
-        .select("id, created_at, duration_days, start_date, frequency, days_per_week")
+        .select("id, created_at, duration_days, start_date, frequency, days_per_week").is("ended_at", null)
         .eq("id", groupId)
         .maybeSingle(),
       supabase
         .from("group_members")
-        .select("user_id, joined_at")
+        .select("user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("group_id", groupId)
         .order("joined_at", { ascending: true }),
       supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle(),

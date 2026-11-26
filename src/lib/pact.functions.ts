@@ -42,7 +42,7 @@ export const getPact = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, start_date, pact_promise, kind")
+      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, start_date, pact_promise, kind").is("ended_at", null)
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -50,7 +50,7 @@ export const getPact = createServerFn({ method: "GET" })
 
     const { data: members, error: mErr } = await supabaseAdmin
       .from("group_members")
-      .select("user_id, joined_at, pact_signed_at, personal_goal")
+      .select("user_id, joined_at, pact_signed_at, personal_goal, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .order("joined_at", { ascending: true });
     if (mErr) throw new Error(mErr.message);
@@ -129,7 +129,7 @@ export const signPact = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("group_members")
-      .select("id, pact_signed_at")
+      .select("id, pact_signed_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -151,9 +151,9 @@ export const signPact = createServerFn({ method: "POST" })
       const [{ data: members }, { data: group }] = await Promise.all([
         supabaseAdmin
           .from("group_members")
-          .select("user_id, pact_signed_at")
+          .select("user_id, pact_signed_at, groups!inner(ended_at)").is("groups.ended_at", null)
           .eq("group_id", data.groupId),
-        supabaseAdmin.from("groups").select("name").eq("id", data.groupId).maybeSingle(),
+        supabaseAdmin.from("groups").select("name").is("ended_at", null).eq("id", data.groupId).maybeSingle(),
       ]);
       const rows2 = (members ?? []) as Array<{ user_id: string; pact_signed_at: string | null }>;
       const others = rows2.map((m) => m.user_id).filter((id) => id !== userId);
@@ -195,7 +195,7 @@ export const getPendingPact = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("group_members")
-      .select("group_id, joined_at, pact_signed_at, groups!inner(kind)")
+      .select("group_id, joined_at, pact_signed_at, groups!inner(kind)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .is("pact_signed_at", null)
       // Personal spaces for people waiting on a partner don't need a pact.

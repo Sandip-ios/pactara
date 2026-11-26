@@ -260,7 +260,7 @@ function JoinPage() {
 
     // Already a member — the resolver redirect handles it, but make the CTA
     // safe too (never a dead button).
-    if (resolution === "ALREADY_MEMBER" || ctx?.isMember) {
+    if (resolution === "ALREADY_MEMBER" || (ctx?.group?.active && ctx.isMember)) {
       clearPendingInvite();
       navigate({ to: "/groups/$groupId", params: { groupId }, replace: true });
       return;

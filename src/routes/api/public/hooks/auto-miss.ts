@@ -1,3 +1,4 @@
+import { crewIsActive } from "@/lib/crew-lifecycle";
 import { createFileRoute } from "@tanstack/react-router";
 import { closedDayFor, key, planAutoMiss, type PlanMembership, type PlanPost } from "@/lib/auto-miss-plan";
 
@@ -63,14 +64,14 @@ export const Route = createFileRoute("/api/public/hooks/auto-miss")({
 
         const [profsRes, groupsRes] = await Promise.all([
           supabaseAdmin.from("profiles").select("id, timezone").in("id", userIds),
-          supabaseAdmin.from("groups").select("id, frequency, days_per_week").in("id", groupIds),
+          supabaseAdmin.from("groups").select("id, frequency, days_per_week, ended_at").is("ended_at", null).in("id", groupIds),
         ]);
         if (profsRes.error) return Response.json({ error: profsRes.error.message }, { status: 500 });
         if (groupsRes.error) return Response.json({ error: groupsRes.error.message }, { status: 500 });
 
         const tzByUser = new Map<string, string>();
         for (const p of profsRes.data ?? []) tzByUser.set(p.id, p.timezone || "UTC");
-        const groupById = new Map((groupsRes.data ?? []).map((g) => [g.id, g]));
+        const groupById = new Map((groupsRes.data ?? []).filter(crewIsActive).map((g) => [g.id, g]));
 
         const now = new Date();
         const planMemberships: PlanMembership[] = [];

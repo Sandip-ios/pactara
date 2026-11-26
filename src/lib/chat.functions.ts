@@ -9,7 +9,7 @@ export const getUnreadChatCounts = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     const { data: memberships, error: mErr } = await supabase
       .from("group_members")
-      .select("group_id, last_read_at")
+      .select("group_id, last_read_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId);
     if (mErr) throw new Error(mErr.message);
     const list = memberships ?? [];
@@ -63,7 +63,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji")
+      .select("id, name, emoji").is("ended_at", null)
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -71,7 +71,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
 
     const { data: membership } = await supabase
       .from("group_members")
-      .select("id")
+      .select("id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -133,7 +133,7 @@ export const getGroupChat = createServerFn({ method: "GET" })
 
     const { data: memberRows } = await supabase
       .from("group_members")
-      .select("user_id, joined_at")
+      .select("user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .order("joined_at", { ascending: true });
     const memberIds = (memberRows ?? []).map((m) => m.user_id);

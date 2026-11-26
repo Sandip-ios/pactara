@@ -28,6 +28,7 @@ import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
+  head: () => ({ meta: [{ title: 'Crew activity · Pactara' }, { name: 'description', content: 'See check-ins, streaks and activity in your Pactara crew.' }, { property: 'og:title', content: 'Crew activity · Pactara' }, { property: 'og:description', content: 'See check-ins, streaks and activity in your Pactara crew.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: GroupDetailPage,
 });
 

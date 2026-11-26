@@ -35,7 +35,7 @@ export const getGroupPreview = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, created_at")
+      .select("id, name, emoji, goal, duration_days, frequency, days_per_week, owner_id, created_at").is("ended_at", null)
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -44,7 +44,7 @@ export const getGroupPreview = createServerFn({ method: "GET" })
 
     const { data: members, error: mErr } = await supabaseAdmin
       .from("group_members")
-      .select("user_id, joined_at")
+      .select("user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .order("joined_at", { ascending: true });
     if (mErr) throw new Error(mErr.message);
@@ -108,7 +108,7 @@ export const joinGroupById = createServerFn({ method: "POST" })
 
     const { data: group, error: gErr } = await supabaseAdmin
       .from("groups")
-      .select("id")
+      .select("id").is("ended_at", null)
       .eq("id", data.groupId)
       .maybeSingle();
     if (gErr) throw new Error(gErr.message);
@@ -119,7 +119,7 @@ export const joinGroupById = createServerFn({ method: "POST" })
     const findMembership = async () => {
       const { data: row } = await supabaseAdmin
         .from("group_members")
-        .select("id")
+        .select("id, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("group_id", data.groupId)
         .eq("user_id", userId)
         .maybeSingle();
@@ -175,7 +175,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
     // Find a group the user is a member of (most recently joined).
     const { data: membership, error: memErr } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false })
       .limit(1)
@@ -210,7 +210,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
 
     const { data: group, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji, created_at")
+      .select("id, name, emoji, created_at").is("ended_at", null)
       .eq("id", membership.group_id)
       .maybeSingle();
 
@@ -218,7 +218,7 @@ export const getMyGroupStatus = createServerFn({ method: "GET" })
 
     const { count, error: cErr } = await supabase
       .from("group_members")
-      .select("id", { count: "exact", head: true })
+      .select("id, groups!inner(ended_at)", { count: "exact", head: true }).is("groups.ended_at", null)
       .eq("group_id", membership.group_id);
     if (cErr) throw new Error(cErr.message);
 
@@ -245,7 +245,7 @@ export const hasCheckedInToday = createServerFn({ method: "GET" })
 
     const { data: memberships, error: mErr } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId);
     if (mErr) throw new Error(mErr.message);
 
@@ -275,7 +275,7 @@ export const listMyGroups = createServerFn({ method: "GET" })
 
     const { data: memberships, error: mErr } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false });
     if (mErr) throw new Error(mErr.message);
@@ -302,13 +302,13 @@ export const listMyGroups = createServerFn({ method: "GET" })
     const groupIds = memberships.map((m) => m.group_id);
     const { data: groups, error: gErr } = await supabase
       .from("groups")
-      .select("id, name, emoji, goal, owner_id, created_at, duration_days, start_date, frequency, days_per_week")
+      .select("id, name, emoji, goal, owner_id, created_at, duration_days, start_date, frequency, days_per_week").is("ended_at", null)
       .in("id", groupIds);
     if (gErr) throw new Error(gErr.message);
 
     const { data: allMembers, error: amErr } = await supabase
       .from("group_members")
-      .select("group_id, user_id, joined_at")
+      .select("group_id, user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .in("group_id", groupIds);
     if (amErr) throw new Error(amErr.message);
 
@@ -605,7 +605,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
     if (data.groupId) {
       const { data: m } = await supabase
         .from("group_members")
-        .select("group_id")
+        .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .eq("group_id", data.groupId)
         .maybeSingle();
@@ -614,7 +614,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
     if (!membership) {
       const { data: m } = await supabase
         .from("group_members")
-        .select("group_id, joined_at")
+        .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .order("joined_at", { ascending: false })
         .limit(1)
@@ -628,7 +628,7 @@ export const getPendingCheckIns = createServerFn({ method: "GET" })
     const today = localDateFor(await getUserTimezone(supabase, userId));
 
     const [{ data: members }, { data: checkins }] = await Promise.all([
-      supabase.from("group_members").select("user_id").eq("group_id", membership.group_id),
+      supabase.from("group_members").select("user_id, groups!inner(ended_at)").is("groups.ended_at", null).eq("group_id", membership.group_id),
       supabase
         .rpc('crew_checkin_status')
         .select("user_id")
@@ -679,7 +679,7 @@ export const createCheckIn = createServerFn({ method: "POST" })
 
     const { data: membership } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false })
       .limit(1)
@@ -733,7 +733,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
     if (!groupId) {
       const { data: m } = await supabase
         .from("group_members")
-        .select("group_id, joined_at")
+        .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .order("joined_at", { ascending: false })
         .limit(1)
@@ -749,7 +749,7 @@ export const getGroupMemberStreaks = createServerFn({ method: "GET" })
 
     const { data: members } = await supabase
       .from("group_members")
-      .select("user_id, joined_at, personal_goal")
+      .select("user_id, joined_at, personal_goal, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", groupId)
       .order("joined_at", { ascending: true });
     const memberIds = (members ?? []).map((m) => m.user_id as string);
@@ -842,7 +842,7 @@ export const getMyCommitmentPace = createServerFn({ method: "GET" })
     if (!groupId) {
       const { data: m } = await supabase
         .from("group_members")
-        .select("group_id, joined_at")
+        .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .order("joined_at", { ascending: false })
         .limit(1)
@@ -853,7 +853,7 @@ export const getMyCommitmentPace = createServerFn({ method: "GET" })
 
     const { data: group } = await supabase
       .from("groups")
-      .select("start_date, created_at, duration_days, frequency, days_per_week")
+      .select("start_date, created_at, duration_days, frequency, days_per_week").is("ended_at", null)
       .eq("id", groupId)
       .maybeSingle();
     if (!group) return null;

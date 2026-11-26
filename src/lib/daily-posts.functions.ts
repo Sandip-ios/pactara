@@ -104,9 +104,11 @@ async function getMyGroupAndTz(
 ) {
   let groupId: string | null = null;
   if (preferredGroupId) {
+    const { requireActiveCrew } = await import("./crew-lifecycle.server");
+    await requireActiveCrew(supabase, preferredGroupId);
     const { data: member } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .eq("group_id", preferredGroupId)
       .maybeSingle();
@@ -115,7 +117,7 @@ async function getMyGroupAndTz(
   if (!groupId) {
     const { data: membership } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false })
       .limit(1)
@@ -147,7 +149,7 @@ async function getMyTargetGroupsAndTz(
   if (groupIds && groupIds.length > 0) {
     const { data: members } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .in("group_id", groupIds);
     const allowed = (members ?? []).map((m) => m.group_id as string);
@@ -159,6 +161,7 @@ async function getMyTargetGroupsAndTz(
         .maybeSingle();
       return { groupIds: allowed, timezone: profile?.timezone ?? "UTC" };
     }
+    return { groupIds: [], timezone: "UTC" };
   }
   const { groupId, timezone } = await getMyGroupAndTz(supabase, userId, preferredGroupId);
   return { groupIds: groupId ? [groupId] : [], timezone };
@@ -604,9 +607,11 @@ export const getGroupFeed = createServerFn({ method: "GET" })
     const visible = (postId: string) => visiblePost(userId, postId, hiddenRows ?? []);
     let groupId: string | null = data.groupId;
     if (groupId) {
+      const { requireActiveCrew } = await import("./crew-lifecycle.server");
+      await requireActiveCrew(supabase, groupId);
       const { data: m } = await supabase
         .from("group_members")
-        .select("group_id")
+        .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("user_id", userId)
         .eq("group_id", groupId)
         .maybeSingle();
@@ -616,6 +621,8 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       ({ groupId } = await getMyGroupAndTz(supabase, userId));
     }
     if (!groupId) return { items: [], meta: null, nextBefore: null };
+    const { requireActiveCrew } = await import("./crew-lifecycle.server");
+    await requireActiveCrew(supabase, groupId);
 
     // The page covers 7 of the viewer's local days: today and the 6 before it,
     // or the 7 days before `before`. The first page has no upper bound so a
@@ -682,7 +689,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       nudgesRes,
     ] = await Promise.all([
       supabase.from("groups").select("frequency, days_per_week").eq("id", groupId).maybeSingle(),
-      supabase.from("group_members").select("user_id, joined_at").eq("group_id", groupId),
+      supabase.from("group_members").select("user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null).eq("group_id", groupId),
       postIds.length
         ? supabase
             .from("check_ins")
@@ -1426,7 +1433,7 @@ export const getCheckInCelebrationData = createServerFn({ method: "GET" })
     const dayAfter = addDaysIso(today, 2);
     const [{ data: group }, { data: members }, { data: nearCheckIns }, { data: nearCovered }] = await Promise.all([
       supabase.from("groups").select("name, frequency, days_per_week").eq("id", groupId).maybeSingle(),
-      supabase.from("group_members").select("user_id").eq("group_id", groupId),
+      supabase.from("group_members").select("user_id, groups!inner(ended_at)").is("groups.ended_at", null).eq("group_id", groupId),
       supabase
         .rpc('crew_checkin_status')
         .select("user_id, checkin_date")

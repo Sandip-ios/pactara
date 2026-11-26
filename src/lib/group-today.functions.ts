@@ -94,7 +94,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
 
     const { data: myMemberships } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false });
     const groupIds = (myMemberships ?? []).map((m) => m.group_id as string);
@@ -103,11 +103,11 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     const [groupsRes, membersRes] = await Promise.all([
       supabase
         .from("groups")
-        .select("id, name, emoji, goal, owner_id, created_at, duration_days, start_date, frequency, days_per_week")
+        .select("id, name, emoji, goal, owner_id, created_at, duration_days, start_date, frequency, days_per_week").is("ended_at", null)
         .in("id", groupIds),
       supabase
         .from("group_members")
-        .select("group_id, user_id, joined_at")
+        .select("group_id, user_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
         .in("group_id", groupIds),
     ]);
 
@@ -332,7 +332,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
 
     const { data: mine } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -341,14 +341,14 @@ export const nudgeMember = createServerFn({ method: "POST" })
 
     const { data: theirs } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", data.userId)
       .maybeSingle();
     if (!theirs) throw new Error("That member is not in this group");
 
     const [{ data: group }, { data: people }] = await Promise.all([
-      supabase.from("groups").select("name").eq("id", data.groupId).maybeSingle(),
+      supabase.from("groups").select("name").is("ended_at", null).eq("id", data.groupId).maybeSingle(),
       supabase.from("profiles").select("id, name, timezone").in("id", [userId, data.userId]),
     ]);
     const me = (people ?? []).find((p) => p.id === userId);

@@ -20,6 +20,7 @@ import { createGroupForUser } from "@/lib/groups.functions";
 import { setMemberGoal } from "@/lib/member-goal.functions";
 
 export const Route = createFileRoute("/_authenticated/new-pactara")({
+  head: () => ({ meta: [{ title: 'Create a crew · Pactara' }, { name: 'description', content: 'Create a Pactara crew and choose its weekly goal.' }, { property: 'og:title', content: 'Create a crew · Pactara' }, { property: 'og:description', content: 'Create a Pactara crew and choose its weekly goal.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: NewPactaraFlow,
 });
 

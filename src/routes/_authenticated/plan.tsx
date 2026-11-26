@@ -17,6 +17,7 @@ import {
 import { isNative } from "@/lib/native";
 
 export const Route = createFileRoute("/_authenticated/plan")({
+  head: () => ({ meta: [{ title: 'Membership · Pactara' }, { name: 'description', content: 'Manage your Pactara membership.' }, { property: 'og:title', content: 'Membership · Pactara' }, { property: 'og:description', content: 'Manage your Pactara membership.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   ssr: false,
   component: PlanPage,
 });

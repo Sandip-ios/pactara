@@ -12,7 +12,7 @@ async function loadGroupSummary(groupId: string): Promise<InviteGroupSummary | n
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: group, error } = await supabaseAdmin
     .from("groups")
-    .select("id, name, emoji")
+    .select("id, name, emoji").is("ended_at", null)
     .eq("id", groupId)
     .maybeSingle();
   // A transient/backend error must NOT be reported as "group no longer active" —
@@ -22,7 +22,7 @@ async function loadGroupSummary(groupId: string): Promise<InviteGroupSummary | n
 
   const { count } = await supabaseAdmin
     .from("group_members")
-    .select("id", { count: "exact", head: true })
+    .select("id, groups!inner(ended_at)", { count: "exact", head: true }).is("groups.ended_at", null)
     .eq("group_id", groupId);
 
   return {
@@ -58,7 +58,7 @@ export const getInviteContext = createServerFn({ method: "POST" })
 
     const { data: membership } = await supabaseAdmin
       .from("group_members")
-      .select("id")
+      .select("id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();

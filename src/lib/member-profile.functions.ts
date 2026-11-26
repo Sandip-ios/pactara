@@ -75,7 +75,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: group } = await supabase
       .from("groups")
-      .select("id, name, emoji, duration_days, start_date, frequency, days_per_week")
+      .select("id, name, emoji, duration_days, start_date, frequency, days_per_week, ended_at")
       .eq("id", groupId)
       .maybeSingle();
 
@@ -257,6 +257,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
       avatarColor: profile?.avatar_color ?? "#7C3AED",
       avatarUrl,
       groupId,
+      crewActive: Boolean(group && group.ended_at === null),
       groupName: group?.name ?? null,
       groupEmoji: (group as { emoji?: string } | null)?.emoji ?? null,
       durationDays: (group as { duration_days?: number } | null)?.duration_days ?? null,

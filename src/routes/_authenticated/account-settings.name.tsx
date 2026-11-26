@@ -7,6 +7,7 @@ import { getAccountSettings, updateProfileName } from "@/lib/profile.functions";
 import { SubPage, Field, PrimaryButton, Flash, useFlash } from "@/components/account/SettingsKit";
 
 export const Route = createFileRoute("/_authenticated/account-settings/name")({
+  head: () => ({ meta: [{ title: 'Display name · Pactara' }, { name: 'description', content: 'Update the name you use in your Pactara crews.' }, { property: 'og:title', content: 'Display name · Pactara' }, { property: 'og:description', content: 'Update the name you use in your Pactara crews.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: NamePage,
 });
 

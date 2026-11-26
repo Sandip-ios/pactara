@@ -424,14 +424,14 @@ export const getNotifications = createServerFn({ method: "GET" })
 
     const { data: groups } = await supabase
       .from("groups")
-      .select("id, name")
+      .select("id, name").is("ended_at", null)
       .in("id", groupIds);
     const nameById = new Map(
       ((groups ?? []) as Array<{ id: string; name: string }>).map((g) => [g.id, g.name]),
     );
 
     const lists = await Promise.all(
-      groupIds.map((id) => collect(supabase, userId, id, nameById.get(id) ?? "your group")),
+      (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name)),
     );
     const raw = lists
       .flat()
@@ -505,7 +505,7 @@ export const getUnreadNotificationCount = createServerFn({ method: "GET" })
 
     const { data: groups } = await supabase
       .from("groups")
-      .select("id, name")
+      .select("id, name").is("ended_at", null)
       .in("id", groupIds);
     const nameById = new Map(
       ((groups ?? []) as Array<{ id: string; name: string }>).map((g) => [g.id, g.name]),
@@ -513,7 +513,7 @@ export const getUnreadNotificationCount = createServerFn({ method: "GET" })
 
     const read = await readKeys(supabase, userId);
     const lists = await Promise.all(
-      groupIds.map((id) => collect(supabase, userId, id, nameById.get(id) ?? "your group")),
+      (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name)),
     );
     let total = 0;
     for (const list of lists) {
@@ -548,14 +548,14 @@ async function computeUnreadTotal(supabase: SupabaseClient, userId: string): Pro
   const groupIds = ((memberships ?? []) as Array<{ group_id: string }>).map((m) => m.group_id);
   if (groupIds.length === 0) return 0;
 
-  const { data: groups } = await supabase.from("groups").select("id, name").in("id", groupIds);
+  const { data: groups } = await supabase.from("groups").select("id, name").is("ended_at", null).in("id", groupIds);
   const nameById = new Map(
     ((groups ?? []) as Array<{ id: string; name: string }>).map((g) => [g.id, g.name]),
   );
 
   const read = await readKeys(supabase, userId);
   const lists = await Promise.all(
-    groupIds.map((id) => collect(supabase, userId, id, nameById.get(id) ?? "your group")),
+    (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name)),
   );
   let total = 0;
   for (const list of lists) {
@@ -604,7 +604,7 @@ export const markGroupNotificationsRead = createServerFn({ method: "POST" })
 
     const { data: membership } = await supabase
       .from("group_members")
-      .select("id")
+      .select("id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();

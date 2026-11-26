@@ -27,7 +27,7 @@ export const LAST_CALL_HOUR = 20;
 export const STREAK_RISK_HOUR = 21;
 export type EveningPushHour = typeof LAST_CALL_HOUR | typeof STREAK_RISK_HOUR;
 
-export type PushPayload = { title: string; body: string; url: string };
+export type PushPayload = { title: string; body: string; url: string; crewIds?: string[] };
 export type EveningPushSource = "last_call" | "streak_risk" | "daily_reminder";
 export type EveningPushPlan = {
   hour: EveningPushHour;
@@ -116,7 +116,7 @@ export async function sendEveningPush(
 ): Promise<{ claimed: boolean; delivered: number }> {
   const localDate = localDateIn(timezone, now);
   if (!(await deps.claim(userId, localDate, plan.hour))) return { claimed: false, delivered: 0 };
-  const result = await deps.push(userId, plan.message).catch(() => ({ webSent: 0, fcmSent: 0 }));
+  const result = await deps.push(userId, { ...plan.message, crewIds: plan.groupIds }).catch(() => ({ webSent: 0, fcmSent: 0 }));
   const delivered = result.webSent + result.fcmSent;
   await deps.finish(userId, localDate, delivered > 0 ? "sent" : "failed", plan.groupIds, plan.source);
   return { claimed: true, delivered };

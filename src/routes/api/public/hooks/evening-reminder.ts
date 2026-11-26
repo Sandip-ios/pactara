@@ -89,7 +89,7 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
               const groups = eveningReminderGroups(hour, tz, inputs.get(userId) ?? [], now);
               if (groups.length === 0) continue;
               reminded += 1;
-              const result = await pushToUsers([userId], eveningReminderMessage(hour, groups)).catch(() => ({
+              const result = await pushToUsers([userId], { ...eveningReminderMessage(hour, groups), crewIds: groups.map(group => group.groupId) }).catch(() => ({
                 webSent: 0,
                 fcmSent: 0,
               }));
@@ -107,7 +107,7 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
           const cutoff = new Date(now.getTime() - 24 * 3600 * 1000).toISOString();
           const { data: pending } = await supabaseAdmin
             .from("group_members")
-            .select("id, user_id, group_id, joined_at, pact_signed_at, pact_nudged_at")
+            .select("id, user_id, group_id, joined_at, pact_signed_at, pact_nudged_at, groups!inner(ended_at)").is("groups.ended_at", null)
             .is("pact_signed_at", null)
             .is("pact_nudged_at", null)
             .lt("joined_at", cutoff)
@@ -139,7 +139,7 @@ export const Route = createFileRoute("/api/public/hooks/evening-reminder")({
         try {
           const { data: groups } = await supabaseAdmin
             .from("groups")
-            .select("id, name, owner_id, created_at, solo_nudge_count")
+            .select("id, name, owner_id, created_at, solo_nudge_count").is("ended_at", null)
             .lt("solo_nudge_count", 2)
             .lt("created_at", new Date(now.getTime() - 24 * 3600 * 1000).toISOString())
             .gt("created_at", new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString())

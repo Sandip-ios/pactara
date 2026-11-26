@@ -48,6 +48,8 @@ export const Route = createFileRoute("/api/public/invite/claim")({
             .maybeSingle();
 
           if (!data) return Response.json({ groupId: null });
+          const { data: crew, error: crewError } = await supabaseAdmin.from("groups").select("id").eq("id", data.group_id).is("ended_at", null).maybeSingle();
+          if (crewError || !crew) return Response.json({ groupId: null });
 
           await supabaseAdmin
             .from("deferred_invites")

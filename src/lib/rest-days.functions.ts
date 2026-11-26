@@ -30,13 +30,13 @@ async function restInfo(supabase: SupabaseClient, userId: string) {
 
   const { data: memberships } = await supabase
     .from("group_members")
-    .select("group_id")
+    .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
     .eq("user_id", userId);
   const groupIds = (memberships ?? []).map((m: { group_id: string }) => m.group_id);
   const safeIds = groupIds.length ? groupIds : ["00000000-0000-0000-0000-000000000000"];
 
   const [{ data: groups }, { data: rests }, { data: checkIns }] = await Promise.all([
-    supabase.from("groups").select("id, frequency, days_per_week").in("id", safeIds),
+    supabase.from("groups").select("id, frequency, days_per_week").is("ended_at", null).in("id", safeIds),
     supabase
       .from("streak_freezes_used")
       .select("group_id, freeze_date, kind")

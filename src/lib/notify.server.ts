@@ -12,6 +12,8 @@ export type PushPayload = {
   threadId?: string | null;
   /** Internal only, never included in notification copy. */
   actorUserId?: string;
+  /** Internal destinations, rechecked immediately before sending a crew reminder. */
+  crewIds?: string[];
 };
 
 type PrefColumn =
@@ -55,6 +57,14 @@ export async function pushToUsers(
 ): Promise<{ webSent: number; fcmSent: number }> {
   if (userIds.length === 0) return { webSent: 0, fcmSent: 0 };
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+  const destination = new URL(payload.url ?? "/home", "https://pactara.lovable.app");
+  const groupId = payload.threadId ?? destination.searchParams.get("group") ?? destination.pathname.match(/^\/(?:chat|groups|crews|pact)\/([0-9a-f-]{36})(?:\/|$)/i)?.[1];
+  const crewIds = [...new Set([...(payload.crewIds ?? []), ...(groupId ? [groupId] : [])])];
+  if (crewIds.length) {
+    const { data: crews, error } = await supabaseAdmin.from("groups").select("id").in("id", crewIds).is("ended_at", null);
+    if (error || crews?.length !== crewIds.length) return { webSent: 0, fcmSent: 0 };
+  }
 
   let webSent = 0;
   let fcmSent = 0;
@@ -198,7 +208,7 @@ export async function notifyGroupWorkout(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: members } = await supabaseAdmin
       .from("group_members")
-      .select("user_id")
+      .select("user_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", groupId);
     const recipients = (members ?? [])
       .map((m) => m.user_id as string)
@@ -223,7 +233,7 @@ export async function notifyGroupActivity(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: members } = await supabaseAdmin
       .from("group_members")
-      .select("user_id")
+      .select("user_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", groupId);
     const recipients = (members ?? [])
       .map((m) => m.user_id as string)
@@ -269,7 +279,7 @@ export async function notifyPostAuthor(
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: post } = await supabaseAdmin
       .from("daily_posts")
-      .select("user_id, group_id")
+      .select("user_id, group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("id", postId)
       .maybeSingle();
     const authorId = post?.user_id as string | undefined;
@@ -299,9 +309,10 @@ export async function notifyPostComment(
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [{ data: post }, { data: commenters }] = await Promise.all([
-      supabaseAdmin.from("daily_posts").select("user_id, group_id").eq("id", postId).maybeSingle(),
+      supabaseAdmin.from("daily_posts").select("user_id, group_id, groups!inner(ended_at)").is("groups.ended_at", null).eq("id", postId).maybeSingle(),
       supabaseAdmin.from("post_comments").select("user_id").eq("post_id", postId),
     ]);
+    if (!post) return;
     const ids = new Set<string>();
     const authorId = post?.user_id as string | undefined;
     if (authorId) ids.add(authorId);

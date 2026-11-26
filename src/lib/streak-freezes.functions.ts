@@ -28,7 +28,7 @@ async function resolveEligibility(
   if (!groupId) {
     const { data: m } = await supabase
       .from("group_members")
-      .select("group_id, joined_at")
+      .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .order("joined_at", { ascending: false })
       .limit(1)
@@ -48,7 +48,7 @@ async function resolveEligibility(
 
   const { data: membership } = await supabase
     .from("group_members")
-    .select("joined_at")
+    .select("joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
     .eq("user_id", userId)
     .eq("group_id", groupId)
     .maybeSingle();

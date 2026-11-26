@@ -62,10 +62,10 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
   });
 
   useEffect(() => {
-    if (isOwn && data?.groupId && typeof localStorage !== "undefined") {
+    if (isOwn && data?.crewActive && data.groupId && typeof localStorage !== "undefined") {
       localStorage.setItem("active-group-id", data.groupId);
     }
-  }, [isOwn, data?.groupId]);
+  }, [isOwn, data?.groupId, data?.crewActive]);
 
   const groups = data?.sharedGroups ?? [];
   const activeGroup = groups.find((g) => g.id === data?.groupId) ?? null;
@@ -98,7 +98,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
   }, [goalLine, bioExpanded, data?.avatarUrl, name]);
 
   const openPicker = avatar.pick;
-  const editProfile = () => navigate({ to: '/profile/edit', search: { group: data?.groupName ? data.groupId : undefined } });
+  const editProfile = () => navigate({ to: '/profile/edit', search: { group: data?.crewActive ? data.groupId : undefined } });
   const checkIn = () => navigate({ to: '/check-in' });
   const openLifts = async () => {
     // Reach the existing Workouts lifts area without changing that screen.
@@ -140,7 +140,7 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
         {isOwn ? <Button variant="ghost" className="profile-control profile-round" aria-label="Settings" onClick={() => void navigate({ to: '/account-settings' })}><Settings size={20} /></Button> : data ? <SafetyActions target={{ userId: data.userId, name, avatarUrl: data.avatarUrl, avatarColor: data.avatarColor, groupId: data.groupId, type: 'user', targetId: null, crewNames: displayGroups.map(g => g.name) }} /> : <span />}
       </header>
       <GroupSwitcherSheet open={groupPickerOpen} onClose={() => setGroupPickerOpen(false)} groups={displayGroups} selectedGroupId={data?.groupId ?? null} onSelect={setSelectedGroupId} />
-      {data?.groupName && <ProfileInvite groupId={data.groupId} groupName={crewName} open={inviteOpen} onOpenChange={setInviteOpen} />}
+      {data?.crewActive && data.groupName && <ProfileInvite groupId={data.groupId} groupName={crewName} open={inviteOpen} onOpenChange={setInviteOpen} />}
 
       <PullToRefresh
         onRefresh={() =>
@@ -164,10 +164,10 @@ export function ProfileView({ userId = null }: { userId?: string | null }) {
             {goalLine && <><div ref={bioRef} className={`profile-goal ${bioExpanded ? '' : 'line-clamp-2'}`}>{goalLine}</div>{(bioClamped || bioExpanded) && <Button variant="ghost" className="profile-control h-auto justify-start self-start p-0 text-[13px] font-semibold text-pactara-purple" onClick={() => setBioExpanded(v => !v)}>{bioExpanded ? 'See less' : 'See more'}</Button>}</>}
             <div className="profile-since">{memberSince(data?.createdAt)}</div>
           </div>
-          {isOwn ? <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action" onClick={() => void editProfile()}><Pencil size={18} />Edit profile</Button>{data?.groupName && <Button variant="ghost" className="profile-control profile-action" onClick={() => setInviteOpen(true)}><UserPlus size={18} />Invite to crew</Button>}</div> : data?.blockedByMe ? <div className="flex items-center justify-between gap-3 text-[14px] font-semibold"><span>You blocked {firstName}</span><UnblockButton userId={data.userId} name={name} /></div> : data && <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action profile-primary" onClick={() => void navigate({ to: '/chat/$groupId', params: { groupId: data.groupId } })}><MessageCircle size={18} />Message</Button><ProfileNudge key={`${data.groupId}-${data.userId}-${data.today}`} groupId={data.groupId} userId={data.userId} firstName={firstName} initial={data.nudgeState} /></div>}
+          {isOwn ? <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action" onClick={() => void editProfile()}><Pencil size={18} />Edit profile</Button>{data?.crewActive && data.groupName && <Button variant="ghost" className="profile-control profile-action" onClick={() => setInviteOpen(true)}><UserPlus size={18} />Invite to crew</Button>}</div> : data?.blockedByMe ? <div className="flex items-center justify-between gap-3 text-[14px] font-semibold"><span>You blocked {firstName}</span><UnblockButton userId={data.userId} name={name} /></div> : data?.crewActive && <div className="profile-actions"><Button variant="ghost" className="profile-control profile-action profile-primary" onClick={() => void navigate({ to: '/chat/$groupId', params: { groupId: data.groupId } })}><MessageCircle size={18} />Message</Button><ProfileNudge key={`${data.groupId}-${data.userId}-${data.today}`} groupId={data.groupId} userId={data.userId} firstName={firstName} initial={data.nudgeState} /></div>}
         </section>
-        {isOwn && data && <ProfileSetup crewName={crewName} joined={!!data.groupName} photo={!!data.avatarUrl} goal={!!goalLine} checkIns={data.totalCheckIns} onPhoto={openPicker} onGoal={() => void editProfile()} onCheckIn={() => void checkIn()} onJoin={() => void navigate({ to: '/home', search: { crews: '1' } })} />}
-        {data?.groupName && <ProfileWeek isOwn={isOwn} groupId={data.groupId} crewName={crewName} switchable={groups.length > 1} onSwitch={() => setGroupPickerOpen(true)} today={data.today} days={data.weekDays} workouts={data.thisWeek} target={data.weeklyTarget ?? 0} streak={data.currentStreak} best={data.bestStreak} freezes={data.streakFreezesAvailable} />}
+        {isOwn && data && (!data.groupName || data.crewActive) && <ProfileSetup crewName={crewName} joined={!!data.groupName} photo={!!data.avatarUrl} goal={!!goalLine} checkIns={data.totalCheckIns} onPhoto={openPicker} onGoal={() => void editProfile()} onCheckIn={() => void checkIn()} onJoin={() => void navigate({ to: '/home', search: { crews: '1' } })} />}
+        {data?.groupName && <ProfileWeek isOwn={isOwn && data.crewActive} groupId={data.groupId} crewName={crewName} switchable={groups.length > 1} onSwitch={() => setGroupPickerOpen(true)} today={data.today} days={data.weekDays} workouts={data.thisWeek} target={data.weeklyTarget ?? 0} streak={data.currentStreak} best={data.bestStreak} freezes={data.streakFreezesAvailable} />}
         {isOwn && <ProfilePlans />}
         <div role="tablist" className="profile-tabs">
           <TabButton active={tab === 'posts'} onClick={() => setTab('posts')} label="Posts"><Grid3x3 size={18} /></TabButton>

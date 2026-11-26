@@ -24,6 +24,7 @@ const PURPLE = "#7C3AED";
 const LABEL = "#8A8580";
 
 export const Route = createFileRoute("/_authenticated/account-settings/notifications")({
+  head: () => ({ meta: [{ title: 'Notification preferences · Pactara' }, { name: 'description', content: 'Manage your Pactara reminders and crew activity notifications.' }, { property: 'og:title', content: 'Notification preferences · Pactara' }, { property: 'og:description', content: 'Manage your Pactara reminders and crew activity notifications.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: NotificationsPage,
 });
 

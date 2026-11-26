@@ -7,6 +7,7 @@ import { getAccountSettings } from "@/lib/profile.functions";
 import { SubPage, Field, PrimaryButton, Flash, useFlash } from "@/components/account/SettingsKit";
 
 export const Route = createFileRoute("/_authenticated/account-settings/password")({
+  head: () => ({ meta: [{ title: 'Change password · Pactara' }, { name: 'description', content: 'Update your Pactara account password.' }, { property: 'og:title', content: 'Change password · Pactara' }, { property: 'og:description', content: 'Update your Pactara account password.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: PasswordPage,
 });
 

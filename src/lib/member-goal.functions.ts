@@ -25,11 +25,11 @@ export const getMemberGoal = createServerFn({ method: "GET" })
     const [{ data: member, error: mErr }, { data: group }] = await Promise.all([
       supabaseAdmin
         .from("group_members")
-        .select("id, personal_goal")
+        .select("id, personal_goal, groups!inner(ended_at)").is("groups.ended_at", null)
         .eq("group_id", data.groupId)
         .eq("user_id", userId)
         .maybeSingle(),
-      supabaseAdmin.from("groups").select("id, name, emoji").eq("id", data.groupId).maybeSingle(),
+      supabaseAdmin.from("groups").select("id, name, emoji").is("ended_at", null).eq("id", data.groupId).maybeSingle(),
     ]);
     if (mErr) throw new Error(mErr.message);
     if (!member) throw new Error("You're not a member of this group");
@@ -58,7 +58,7 @@ export const setMemberGoal = createServerFn({ method: "POST" })
 
     const { data: row, error } = await supabaseAdmin
       .from("group_members")
-      .select("id")
+      .select("id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("group_id", data.groupId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -83,7 +83,7 @@ export const getLatestMemberGoal = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("group_members")
-      .select("personal_goal, personal_goal_set_at")
+      .select("personal_goal, personal_goal_set_at, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .not("personal_goal", "is", null)
       .order("personal_goal_set_at", { ascending: false, nullsFirst: false })
@@ -105,7 +105,7 @@ export const getPendingGoal = createServerFn({ method: "GET" })
 
     const { data, error } = await supabaseAdmin
       .from("group_members")
-      .select("group_id, joined_at, personal_goal")
+      .select("group_id, joined_at, personal_goal, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .is("personal_goal", null)
       .order("joined_at", { ascending: true })

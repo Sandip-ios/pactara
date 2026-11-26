@@ -97,7 +97,7 @@ export const getPartnerState = createServerFn({ method: "GET" })
         ? current.group_id
           ? supabaseAdmin
               .from("group_members")
-              .select("user_id")
+              .select("user_id, groups!inner(ended_at)").is("groups.ended_at", null)
               .eq("group_id", current.group_id as string)
               .in("user_id", [partnerId, userId])
               .then((r) => ({ data: (r.data ?? []).length === 2 ? true : null }))

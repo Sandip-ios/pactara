@@ -6,6 +6,7 @@ import { getAccountSettings } from "@/lib/profile.functions";
 import { SubPage, Field } from "@/components/account/SettingsKit";
 
 export const Route = createFileRoute("/_authenticated/account-settings/email")({
+  head: () => ({ meta: [{ title: 'Sign-in email · Pactara' }, { name: 'description', content: 'View your Pactara sign-in email.' }, { property: 'og:title', content: 'Sign-in email · Pactara' }, { property: 'og:description', content: 'View your Pactara sign-in email.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
   component: EmailPage,
 });
 

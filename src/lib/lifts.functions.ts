@@ -217,7 +217,7 @@ async function resolveGroup(supabase: SupabaseClient, userId: string, groupId: s
   if (groupId) {
     const { data } = await supabase
       .from("group_members")
-      .select("group_id")
+      .select("group_id, groups!inner(ended_at)").is("groups.ended_at", null)
       .eq("user_id", userId)
       .eq("group_id", groupId)
       .maybeSingle();
@@ -225,7 +225,7 @@ async function resolveGroup(supabase: SupabaseClient, userId: string, groupId: s
   }
   const { data } = await supabase
     .from("group_members")
-    .select("group_id, joined_at")
+    .select("group_id, joined_at, groups!inner(ended_at)").is("groups.ended_at", null)
     .eq("user_id", userId)
     .order("joined_at", { ascending: false })
     .limit(1)

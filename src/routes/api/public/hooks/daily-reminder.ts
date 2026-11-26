@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
         // Challenge position per group, so a single-group push can say "Day 12 of 30".
         const groupIds = Array.from(new Set([...inputs.values()].flat().map((g) => g.groupId)));
         const { data: groups } = groupIds.length
-          ? await supabaseAdmin.from("groups").select("id, start_date, duration_days").in("id", groupIds)
+          ? await supabaseAdmin.from("groups").select("id, start_date, duration_days").is("ended_at", null).in("id", groupIds)
           : { data: [] as Array<{ id: string; start_date: string; duration_days: number }> };
         const groupById = new Map((groups ?? []).map((g) => [g.id, g]));
 
@@ -112,7 +112,7 @@ export const Route = createFileRoute("/api/public/hooks/daily-reminder")({
             sent += r.delivered;
             continue;
           }
-          const result = await pushToUsers([userId], message).catch(() => ({ webSent: 0, fcmSent: 0 }));
+          const result = await pushToUsers([userId], { ...message, crewIds: need.map(group => group.groupId) }).catch(() => ({ webSent: 0, fcmSent: 0 }));
           sent += result.webSent + result.fcmSent;
         }
 
