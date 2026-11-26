@@ -2075,6 +2075,7 @@ export type Database = {
         Args: { _group_id: string; _user_id: string }
         Returns: boolean
       }
+      is_new_version_user: { Args: { _user_id: string }; Returns: boolean }
       leave_crew: { Args: { _group_id: string }; Returns: undefined }
       manage_redesign_crew: {
         Args: { _action: string; _group_id: string; _member_id: string }

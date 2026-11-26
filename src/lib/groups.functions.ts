@@ -428,13 +428,17 @@ export const createGroupForUser = createServerFn({ method: "POST" })
           ? Math.floor(input.daysPerWeek)
           : 7;
       const kind: "group" | "solo" = input.kind === "solo" ? "solo" : "group";
-      return { id, name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek, kind, discoverable: input.discoverable === true };
+      return { id, name, emoji: input.emoji.slice(0, 8) || "🔥", goal, durationDays, frequency, daysPerWeek, kind, discoverable: typeof input.discoverable === "boolean" ? input.discoverable : undefined };
     },
   )
 
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { discoverableOnCreate } = await import("@/lib/crew-discovery-rules");
+    const { data: creator } = await supabaseAdmin.from("profiles").select("new_version_enabled,app_version").eq("id", userId).maybeSingle();
+    const discoverable = data.kind === "group" && discoverableOnCreate(creator, data.discoverable);
 
     const today = new Date().toISOString().slice(0, 10);
     const { data: group, error: gErr } = await supabaseAdmin
@@ -450,7 +454,7 @@ export const createGroupForUser = createServerFn({ method: "POST" })
         days_per_week: data.daysPerWeek,
         start_date: today,
         kind: data.kind,
-        discoverable: data.discoverable,
+        discoverable,
       } as never)
       .select("id, name, emoji")
       .single();

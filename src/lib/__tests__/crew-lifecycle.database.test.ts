@@ -27,3 +27,12 @@ describe.skipIf(!process.env['PGHOST'])('End crew database regression rules', ()
     expect(scalar("SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='qa_end_crew_benchmark'")).toBe('0');
   });
 });
+
+describe.skipIf(!process.env['PGHOST'])('Crew discovery needs a new-version owner', () => {
+  it('request_crew_join refuses crews whose owner is not on the new version', () => {
+    expect(scalar("SELECT position('is_new_version_user(g.owner_id)' in prosrc)>0 FROM pg_proc WHERE proname='request_crew_join'")).toBe('t');
+  });
+  it('new crews owned by classic members are saved hidden', () => {
+    expect(scalar("SELECT position('is_new_version_user(NEW.owner_id)' in prosrc)>0 FROM pg_proc WHERE proname='normalize_crew_discovery'")).toBe('t');
+  });
+});

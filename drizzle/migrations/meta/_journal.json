@@ -484,6 +484,13 @@
       "when": 1795664480991,
       "tag": "0068_next_pact",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1795667781118,
+      "tag": "0069_discovery_requires_new_version_owner",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import { MAX_GROUP_MEMBERS } from "./invite-resolver";
 import { currentStreak, groupStreak, localDateIn, weeklyTarget } from "./streak-rules";
 import { effectiveRequestStatus, type DiscoveryCrew } from "./crew-join";
 import { signAvatarThumbs } from "./media-urls";
+import { shownInFindACrew } from "./crew-discovery-rules";
 
 type DB = SupabaseClient<Database>;
 async function all<T>(query: { range: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: { message: string } | null }> }): Promise<T[]> {
@@ -34,7 +35,10 @@ export async function discoveryCrews(db: DB, viewerId: string, mode: "find" | "p
   } else query = query.eq("discoverable", true).limit(100);
   const { data: groups, error } = await query;
   if (error) throw new Error("Couldn't load crews. Try again.");
-  const visible = (groups ?? []).filter(g => !blocked.has(g.owner_id) && (mode !== "find" || !mine.has(g.id)) && (g.discoverable || mine.has(g.id) || pending.some(r => r.group_id === g.id)));
+  const ownerIds = [...new Set((groups ?? []).map(g => g.owner_id))];
+  const { data: owners } = ownerIds.length ? await db.from("profiles").select("id,new_version_enabled,app_version").in("id", ownerIds) : { data: [] };
+  const ownerById = new Map((owners ?? []).map(o => [o.id, o]));
+  const visible = (groups ?? []).filter(g => !blocked.has(g.owner_id) && (mode !== "find" || !mine.has(g.id)) && (mine.has(g.id) || pending.some(r => r.group_id === g.id) || shownInFindACrew(g.discoverable, ownerById.get(g.owner_id))));
   if (!visible.length) return [];
   const ids = visible.map(g => g.id);
   const roster = await all(db.from("group_members").select("group_id,user_id,joined_at").in("group_id", ids).order("joined_at").order("user_id"));
