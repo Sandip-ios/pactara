@@ -122,11 +122,11 @@ export function NewCrewPreview({ groupId }: { groupId: string }) {
             <div className="mt-3 px-4">
               {crew.requested ? (
                 <>
-                  <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-control)] text-[17px] font-bold text-[var(--new-chevron)] disabled:opacity-100">Requested</Button>
+                  <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-disabled-bg)] text-[17px] font-bold text-[var(--new-disabled-text)] disabled:opacity-100">Requested</Button>
                   <Button variant="ghost" disabled={busy} onClick={() => void drop()} className="mt-2 h-11 w-full bg-transparent text-[15px] font-bold text-[var(--new-purple-text)] hover:bg-transparent hover:text-[var(--new-purple-text)]">Cancel request</Button>
                 </>
               ) : full ? (
-                <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-control)] text-[17px] font-bold text-[var(--new-chevron)] disabled:opacity-100">Crew is full</Button>
+                <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-disabled-bg)] text-[17px] font-bold text-[var(--new-disabled-text)] disabled:opacity-100">Crew is full</Button>
               ) : (
                 <Button variant="ghost" disabled={busy} onClick={() => void join()} className="h-[52px] w-full rounded-[26px] bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)] hover:text-[var(--new-white)] disabled:opacity-60">{busy ? "Asking…" : "Ask to join"}</Button>
               )}
