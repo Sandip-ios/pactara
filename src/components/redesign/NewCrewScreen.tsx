@@ -9,7 +9,6 @@ import { crewPageCanNudge, crewPageCounts, crewPageStatus } from "@/lib/group-to
 import { checkedInSubline, crewShowedUpLine, redesignWeekCell, reminderClock } from "@/lib/redesign-crew-view";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
-import { GroupOverflowMenu } from "@/components/groups/GroupOverflowMenu";
 import { elapsedLabel, NudgeButton } from "@/components/groups/AccountabilityBits";
 import { FeedList } from "@/components/feed/FeedList";
 import { useGroupFeed } from "@/components/feed/use-group-feed";
@@ -24,7 +23,8 @@ import type { CheckInNode } from "@/lib/feed-days";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { NewSheet, NewSheetButton } from "./NewSheet";
+import { NewCrewControls } from "./NewCrewControls";
 import { beginNewCheckIn } from "@/lib/redesign-checkin";
 
 const BG = "#F5F2EE";
@@ -49,7 +49,10 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const navigate = useNavigate();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
-  const [tab, setTab] = useState<Tab>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("crewTab") === "chat" ? "chat" : "today");
+  const [tab, setTab] = useState<Tab>(() => {
+    const value = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("crewTab") : null;
+    return value === "chat" || value === "posts" ? value : "today";
+  });
   // The design hides the bottom bar in Chat so the composer sits at the bottom.
   useHideBottomTabs(tab === "chat", false);
   const [streakOpen, setStreakOpen] = useState(false);
@@ -77,7 +80,6 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const group = data?.groups.find((item) => item.id === groupId);
   const relation = relationForGroup(groupId, partnerState);
   const displayName = relation?.name ?? group?.name ?? "Crew";
-  const displayEmoji = relation?.emoji ?? group?.emoji ?? "🔥";
   const me = group?.members.find((member) => member.isYou);
   const viewerDone = !!me && crewPageStatus(me) === "done";
   const counts = group ? crewPageCounts(group.members) : { done: 0, due: 0 };
@@ -107,32 +109,18 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
 
   return (
     <FeedContext.Provider value={{ me: feedMe, weeklyTarget: homeCrew?.weeklyTarget ?? 5 }}>
-      <div ref={scrollRef} data-scroll-root className={`fixed inset-0 w-full overflow-y-auto overscroll-none ${tab === "chat" ? "" : "pb-[calc(104px+env(safe-area-inset-bottom))]"}`} style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <div ref={scrollRef} data-scroll-root className={`redesign-step3 fixed inset-0 w-full overflow-y-auto overscroll-none ${tab === "chat" ? "" : "pb-[calc(104px+env(safe-area-inset-bottom))]"}`} style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
         <header className="bg-white pt-safe-5">
           <div className="flex items-center justify-between px-4">
             <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
               <ChevronLeft size={22} />
             </button>
-            <GroupOverflowMenu
-              tone="onLight"
-              crew={{
-                id: group.id,
-                name: displayName,
-                emoji: displayEmoji,
-                isAdmin: group.isAdmin,
-                duration: group.durationDays,
-                frequency: group.frequency,
-                daysPerWeek: group.daysPerWeek,
-                memberCount: group.memberCount,
-                others: group.members.filter((member) => !member.isYou).map(avatarMember),
-              }}
-              onDeleted={() => navigate({ to: "/crews" })}
-            />
+            <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} />
           </div>
           <div className="mt-3 flex items-center gap-3 px-4 pb-4">
             <CrewAvatarOverlap members={group.members.map(avatarMember)} size={40} />
             <div className="min-w-0">
-              <h1 className="truncate text-[24px] font-extrabold leading-tight">{displayName}</h1>
+              <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} header />
               <p className="mt-1 flex items-center gap-1.5 text-[13px]" style={{ color: MUTED }}>
                 <Lock size={13} aria-hidden /> Private crew · day {group.dayNumber} of {group.durationDays}
               </p>
@@ -223,18 +211,14 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
         {tab === "chat" && <main><GroupChatView groupId={group.id} embedded crewName={displayName} /></main>}
       </div>
 
-      <Drawer open={streakOpen} onOpenChange={setStreakOpen}>
-        <DrawerContent className="border-0 bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))]" style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24, fontFamily: "Inter, system-ui, sans-serif" }}>
-          <DrawerTitle className="pt-3 text-center text-[20px] font-extrabold">Crew streak</DrawerTitle>
-          <DrawerDescription className="sr-only">Today's crew streak details</DrawerDescription>
+      <NewSheet open={streakOpen} onOpenChange={setStreakOpen} title="Crew streak" description="Today's crew streak details">
           <div className="flex flex-col items-center py-5 text-center">
             <span className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#FFEDE0" }}><Flame size={30} style={{ color: "#EA580C" }} fill="#EA580C" /></span>
             <div className="mt-3 text-[28px] font-extrabold">{group.groupStreak} {group.groupStreak === 1 ? "day" : "days"}</div>
             <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>{counts.done} of {counts.due} members are in today. Everyone needs to be in to keep the crew streak.</p>
           </div>
-          <button type="button" onClick={() => setStreakOpen(false)} className="h-12 w-full rounded-full text-[16px] font-bold text-white" style={{ background: PURPLE }}>Done</button>
-        </DrawerContent>
-      </Drawer>
+          <NewSheetButton onClick={() => setStreakOpen(false)}>Done</NewSheetButton>
+      </NewSheet>
       {media && <MediaLightbox src={media.src} kind={media.kind} onClose={() => setMedia(null)} />}
     </FeedContext.Provider>
   );

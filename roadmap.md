@@ -1,5 +1,8 @@
 # Roadmap
 
+- [x] Redesign phase 2 step 4: NewSheet crew switcher/menu, owner settings/about, locked owner-only transfer/removal and departure; existing invite/goal/pact/leave logic reused; captures 23–28; Save/reload/restore and rejected non-owner writes verified with existing QA accounts, no new rows or destructive actions; classic unchanged, unpublished. Notifications/mute/check-in unread controls omitted because they do not exist.
+- [ ] Redesign End crew: blocked because today's delete-group action deletes crew history, contrary to the requested promise that personal streaks remain; requires the owner's decision before adding preservation logic.
+
 - [x] Redesign phase 2 step 3: new-version Home, camera/crew picker and done screen on existing check-in flow; QA screenshots 16–19 and combined base64 JSON; real five-second recording/upload/post and focused chat verified, temporary video/post/badge removed, optional QA Crew 2 retained; classic unchanged, 560 tests passed, unpublished
 
 - [x] Profile Phase 3: approved Badges/Stats tabs, crew-scoped charts and insights, privacy; 390px/500px browser-only layout checks, typecheck and 544 tests passed; no database test rows or publishing

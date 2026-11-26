@@ -386,6 +386,13 @@
       "when": 1795648758101,
       "tag": "0054_redesign_foundations_profile_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1795657893679,
+      "tag": "0055_redesign_crew_management",
+      "breakpoints": true
     }
   ]
 }

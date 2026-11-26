@@ -29,7 +29,7 @@ export function NewSheetRow({ title, subtitle, leading, trailing, simple = false
   title: ReactNode; subtitle?: ReactNode; leading?: ReactNode; trailing?: ReactNode; simple?: boolean; destructive?: boolean;
 }) {
   return <Button variant="ghost" {...props} className={cn("h-auto w-full justify-start gap-3 whitespace-normal rounded-none border-b border-[var(--new-divider)] px-0 py-3 text-left last:border-b-0 disabled:opacity-50", simple && "h-[52px]", className)}>
-    {leading}
+    {leading && <span className="flex shrink-0 items-center [&>svg]:!size-[22px]">{leading}</span>}
     <span className="min-w-0 flex-1">
       <span className={cn("block text-[16px] text-[var(--new-ink)]", simple ? "font-semibold" : "font-bold", destructive && "text-[var(--new-destructive)]")}>{title}</span>
       {subtitle && <span className="mt-0.5 block text-[13px] font-normal text-[var(--new-muted)]">{subtitle}</span>}
@@ -39,7 +39,7 @@ export function NewSheetRow({ title, subtitle, leading, trailing, simple = false
 }
 
 export function NewSheetIcon({ children, tone = "soft" }: { children: ReactNode; tone?: "soft" | "primary" | "meal" }) {
-  return <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px]", tone === "primary" ? "bg-[var(--new-purple)] text-[var(--new-white)]" : tone === "meal" ? "bg-[var(--new-orange-soft)] text-[var(--new-orange-icon)]" : "bg-[var(--new-soft)] text-[var(--new-purple)]")}>{children}</span>;
+  return <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] [&>svg]:!size-5", tone === "primary" ? "bg-[var(--new-purple)] text-[var(--new-white)]" : tone === "meal" ? "bg-[var(--new-orange-soft)] text-[var(--new-orange-icon)]" : "bg-[var(--new-soft)] text-[var(--new-purple)]")}>{children}</span>;
 }
 
 /** Avatar rows use the stack's own width; NewSheetRow supplies the 12px text gap. */
@@ -47,10 +47,10 @@ export function NewSheetAvatars({ members }: { members: RedesignCrewAvatarMember
   return <CrewAvatarOverlap members={members} size={30} limit={4} />;
 }
 
-export function NewSheetChevron() { return <ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" />; }
+export function NewSheetChevron() { return <ChevronRight size={20} className="!size-5 shrink-0 text-[var(--new-chevron)]" />; }
 export function NewSheetCheckbox({ checked }: { checked: boolean }) {
   return <span aria-hidden className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] border", checked ? "border-[var(--new-purple)] bg-[var(--new-purple)] text-[var(--new-white)]" : "border-[var(--new-muted)]")}>
-    {checked && <Check size={18} />}
+    {checked && <Check size={18} className="!size-[18px]" />}
   </span>;
 }
 export function NewSheetButton({ secondary = false, className, ...props }: SheetButtonProps & { secondary?: boolean }) {

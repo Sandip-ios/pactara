@@ -4,7 +4,7 @@ import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 
 export const Route = createFileRoute("/_authenticated/crews/$groupId")({
   validateSearch: (search: Record<string, unknown>) => ({
-    ...(search["crewTab"] === "chat" ? { crewTab: "chat" as const } : {}),
+    ...(search["crewTab"] === "chat" || search["crewTab"] === "posts" ? { crewTab: search["crewTab"] } : {}),
     ...(search["compose"] === true || search["compose"] === 1 || search["compose"] === "1" ? { compose: true } : {}),
   }),
   head: () => ({ meta: [

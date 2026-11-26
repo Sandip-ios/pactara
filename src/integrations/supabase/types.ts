@@ -632,6 +632,7 @@ export type Database = {
       }
       groups: {
         Row: {
+          about: string | null
           created_at: string
           days_per_week: number
           duration_days: number
@@ -648,6 +649,7 @@ export type Database = {
           start_date: string
         }
         Insert: {
+          about?: string | null
           created_at?: string
           days_per_week?: number
           duration_days?: number
@@ -664,6 +666,7 @@ export type Database = {
           start_date?: string
         }
         Update: {
+          about?: string | null
           created_at?: string
           days_per_week?: number
           duration_days?: number
@@ -1987,6 +1990,10 @@ export type Database = {
         Returns: boolean
       }
       leave_crew: { Args: { _group_id: string }; Returns: undefined }
+      manage_redesign_crew: {
+        Args: { _action: string; _group_id: string; _member_id: string }
+        Returns: undefined
+      }
       merge_solo_into_partner: {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined
