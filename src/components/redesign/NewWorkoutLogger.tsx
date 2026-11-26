@@ -234,7 +234,7 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
                 className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px]"
                 style={s.done ? { background: GREEN, color: "#FFFFFF" } : { background: "#FFFFFF", border: "2px solid #D6D3D1", color: "#A8A29E" }}
               >
-                <Check size={18} strokeWidth={3} />
+                {s.done && <Check size={18} strokeWidth={3} />}
               </button>
               {st.showPr && (
                 <span className="absolute -right-2 -top-1.5 rounded-full px-1.5 py-px text-[10px] font-extrabold leading-[14px]" style={{ background: "#F59E0B", color: "#FFFFFF" }}>PR</span>
