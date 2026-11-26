@@ -86,7 +86,9 @@
 .new-profile-name { font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
 .new-profile-bio { font-size: 14px; color: var(--new-profile-body); margin-top: 2px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .new-profile-progress-link { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 4px; font-size: 13px; color: var(--new-disabled-text); }
-.new-profile-progress-link a { color: var(--new-purple); font-weight: 700; margin-left: 3px; }
+.new-profile-progress-link a { color: var(--new-purple); font-weight: 700; }
+.new-crew-avatar { --new-avatar-ring: #FFFFFF; }
+.new-crew-avatar-ring { border: 2px solid var(--new-avatar-ring); }
 .new-profile-edit-button { width: 100%; height: 44px; border-radius: 22px; background: var(--new-soft); color: var(--new-purple); font-size: 15px; font-weight: 700; gap: 8px; }
 .new-profile-plan { height: auto; min-height: 60px; padding: 10px 12px; border-radius: 14px; gap: 12px; background: var(--new-profile-surface); color: var(--new-ink); text-align: left; white-space: normal; }
 .new-profile-plan img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; object-fit: cover; }

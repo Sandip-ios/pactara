@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Tiny new-version follow-up: shared crew avatar ring defines its own white token, covering Crews/switcher/Find/header even outside profile token scope; progress link left offset removed. Browser checked actual shared component with 12 photo/fallback avatars at 28/30/36/40px and aligned name/bio/link; 19 existing profile/crew tests pass, build OK; no data changes, screenshots or publishing; classic unchanged.
+
 - [x] Account deletion: both block endpoints cascade from auth.users like follows; reports untouched; two database regressions and actual Settings deletion for classic/new verify both blocks disappear, the complete report survives, audit is written and sign-out reaches /login; 638 tests pass, build OK; temporary accounts/reports/audits removed; no screenshots or publishing.
 
 - [x] New-version avatars share the filled full-disc silhouette across profiles/editor, crew rows/stacks/switcher, chat, requests, pact screens and version-gated shared feed/safety avatars; 47/53/57 and Crews saved as base64 in public/qa/p3-avatar.json; signed-in 20–96px avatars, editor, Block and chat checked at 390px; classic profile/chat retain their fallbacks; 636 tests pass, build OK; temporary accounts/crew removed, unpublished.

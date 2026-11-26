@@ -10,12 +10,11 @@ export type RedesignCrewAvatarMember = {
 export function CrewAvatar({ member, size, ring = false }: { member: RedesignCrewAvatarMember; size: number; ring?: boolean }) {
   return (
     <span
-      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full"
+      className={`new-crew-avatar flex shrink-0 items-center justify-center overflow-hidden rounded-full${ring ? " new-crew-avatar-ring" : ""}`}
       style={{
         width: size,
         height: size,
         background: member.avatarUrl ? member.avatarColor : "var(--new-profile-avatar-bg)",
-        border: ring ? "2px solid var(--new-white)" : undefined,
       }}
       aria-hidden
     >
