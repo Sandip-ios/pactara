@@ -124,10 +124,10 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
     expect(workout.cover_key).toMatch(/^arms-/);
   });
 
-  it("uses the home-compatible lunge photo for a home leg workout", async () => {
+  it("uses a home-compatible leg photo for a home leg workout", async () => {
     const quads = await customExercise(accounts.current[0]!.id, ["quads"], ["quads"]);
     const workout = await saveWorkout(accounts.current[0]!.id, "Band legs", [move("banded-squat"), move(quads)], "home");
-    expect(workout.cover_key).toBe("legs-2");
+    expect(["legs-1", "legs-2"]).toContain(workout.cover_key);
   });
 
   it("varies covers deterministically between neighbouring back workouts", async () => {

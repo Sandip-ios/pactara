@@ -2237,6 +2237,7 @@ export type Database = {
         Args: { _owner: string; _viewer: string }
         Returns: boolean
       }
+      discover_owner_eligible: { Args: { _owner: string }; Returns: boolean }
       discover_workout_feed: {
         Args: never
         Returns: {
