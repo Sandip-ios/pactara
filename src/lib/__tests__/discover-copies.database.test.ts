@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { afterAll, describe, expect, it } from "vitest";
+import { ensureLibraryFixtures } from "./db-fixtures";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const base = "http://127.0.0.1:8001";
 const key = () => {
@@ -37,11 +38,14 @@ const copies = async (workoutId: string) =>
 
 // Uses only this draft's local data; every account is temporary.
 describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KEY"])("Discover copy owner rule", () => {
+  let removeFixtures: () => Promise<void> = async () => {};
+  beforeAll(async () => { removeFixtures = await ensureLibraryFixtures(admin); });
   afterAll(async () => {
     for (const id of users) {
       await admin(`/rest/v1/workouts?user_id=eq.${id}`, "DELETE");
       await admin(`/auth/v1/admin/users/${id}`, "DELETE");
     }
+    await removeFixtures();
   });
 
   it("keeps a copy for a new-version, public, adult owner", async () => {

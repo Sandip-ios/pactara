@@ -1,5 +1,5 @@
 import { toast, type ExternalToast } from "sonner";
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 
 type NewToastOpts = Pick<ExternalToast, "id"> & {
   /** Green check circle in front of the message. */
@@ -31,7 +31,11 @@ export function newToast(message: string, opts: NewToastOpts = {}) {
         className="flex w-full cursor-pointer items-center gap-2.5 rounded-[14px] px-4 py-[14px]"
         style={{ background: "#1C1917", boxShadow: "0 8px 24px rgba(20,18,24,0.25)", fontFamily: "Inter, system-ui, sans-serif" }}
       >
-        {opts.success && <CheckCircle2 size={20} strokeWidth={2.5} aria-hidden className="shrink-0" style={{ color: "#22C55E" }} />}
+        {opts.success && (
+          <span aria-hidden className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full" style={{ background: "#22C55E" }}>
+            <Check size={13} strokeWidth={3.5} color="#FFFFFF" />
+          </span>
+        )}
         <span className="min-w-0 flex-1 text-[15px] font-semibold leading-[1.3] text-white">{message}</span>
         {undo && (
           <button

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ensureLibraryFixtures } from "./db-fixtures";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 const base = "http://127.0.0.1:8001";
@@ -54,7 +55,9 @@ async function customExercise(userId: string, primary: string[], detail: string[
 // Uses only this draft's local Data API. Every account, workout and custom
 // exercise is temporary and removed even when a check fails.
 describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KEY"])("Workout cover database rules", () => {
+  let removeFixtures: () => Promise<void> = async () => {};
   beforeAll(async () => {
+    removeFixtures = await ensureLibraryFixtures(admin);
     for (const version of ["new", "classic"] as const) {
       const user = await admin<Account>("/auth/v1/admin/users", "POST", { email: `${randomUUID()}@example.com`, password: randomUUID(), email_confirm: true });
       accounts.current.push(user);
@@ -71,6 +74,7 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
       await admin(`/rest/v1/workouts?user_id=eq.${account.id}`, "DELETE");
       await admin(`/auth/v1/admin/users/${account.id}`, "DELETE");
     }
+    await removeFixtures();
   });
 
   it("ships three credited, self-hosted photos for each of the eight focuses", async () => {
