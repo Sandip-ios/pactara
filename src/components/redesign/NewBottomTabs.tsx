@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
-import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils, ChevronRight } from "lucide-react";
+import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils, ChevronRight, UserRound } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
@@ -20,7 +20,6 @@ export function NewBottomTabs() {
   const { data: status } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
   const navRef = useRef<HTMLElement>(null);
   useToastAbove(navRef);
-  const initial = (status?.firstName || "U").slice(0, 1).toUpperCase();
   const isProfile = pathname === "/profile";
   const onHome = pathname === "/home" || pathname.startsWith("/home/");
   const onGroups = pathname.startsWith("/groups") || pathname.startsWith("/plans") || pathname.startsWith("/find-plan");
@@ -55,8 +54,8 @@ export function NewBottomTabs() {
         </button>
         <Tab icon={<Users size={22} />} label="Crews" active={onCrews} onPointerDown={preload("/crews")} onClick={() => navigate({ to: "/crews" })} />
         <button onPointerDown={preload("/profile")} onClick={() => navigate({ to: "/profile" })} aria-label="Profile" aria-current={isProfile ? "page" : undefined} className="flex flex-col items-center" style={{ gap: 4 }}>
-          <span className="flex items-center justify-center overflow-hidden rounded-full text-[11px] font-bold" style={{ width: 24, height: 24, background: PURPLE, color: "#FFFFFF", boxShadow: isProfile ? `0 0 0 2px ${ACTIVE}` : undefined }}>
-            {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}
+          <span className="flex items-center justify-center overflow-hidden rounded-full" style={{ width: 24, height: 24, background: "#E4DAFB", color: "#F8F5FF", boxShadow: isProfile ? `0 0 0 2px ${ACTIVE}` : undefined }}>
+            {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : <UserRound size={13} strokeWidth={2.4} />}
           </span>
           <span className="text-[11px]" style={{ color: isProfile ? ACTIVE : INACTIVE, fontWeight: isProfile ? 700 : 500 }}>Profile</span>
         </button>

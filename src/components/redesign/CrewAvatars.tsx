@@ -1,5 +1,9 @@
 import { UserRound } from "lucide-react";
 
+/** Shared no-photo fallback for the redesign: light purple disc, near-white silhouette. */
+const FALLBACK_BG = "#E4DAFB";
+const FALLBACK_FG = "#F8F5FF";
+
 export type RedesignCrewAvatarMember = {
   id: string;
   name: string;
@@ -14,9 +18,9 @@ export function CrewAvatar({ member, size, ring = false }: { member: RedesignCre
       style={{
         width: size,
         height: size,
-        background: member.avatarUrl ? member.avatarColor : "#E4DAFB",
+        background: member.avatarUrl ? member.avatarColor : FALLBACK_BG,
         border: ring ? "2px solid #FFFFFF" : undefined,
-        color: "#7C3AED",
+        color: FALLBACK_FG,
       }}
       aria-hidden
     >

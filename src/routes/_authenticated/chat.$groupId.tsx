@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
+import { CrewAvatar } from "@/components/redesign/CrewAvatars";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -431,6 +432,12 @@ export function GroupChatView({ groupId, embedded = false, crewName }: { groupId
                   {!mine && embedded && !lastOfRun && <span className="w-8 shrink-0" aria-hidden />}
                   {!mine && (!embedded || lastOfRun) && (
                     <MemberProfileLink userId={m.userId} className="shrink-0 self-end">
+                      {embedded ? (
+                        <CrewAvatar
+                          member={{ id: m.userId, name: m.authorName, avatarUrl: m.authorAvatarUrl, avatarColor: m.authorColor }}
+                          size={32}
+                        />
+                      ) : (
                       <div
                         className="h-8 w-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold overflow-hidden"
                         style={{ background: m.authorColor }}
@@ -445,6 +452,7 @@ export function GroupChatView({ groupId, embedded = false, crewName }: { groupId
                           initial
                         )}
                       </div>
+                      )}
                     </MemberProfileLink>
                   )}
 
