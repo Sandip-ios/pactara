@@ -292,9 +292,9 @@ function Circle({ label, onClick, children }: { label: string; onClick: () => vo
 
 function Stat({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex h-[54px] flex-col items-center justify-center rounded-[12px]" style={{ background: CIRCLE }}>
+    <div className="flex min-h-[56px] flex-col items-center justify-center gap-[2px] rounded-[12px] py-[10px]" style={{ background: CIRCLE }}>
       <span className="text-[20px] font-extrabold leading-none">{value}</span>
-      <span className="mt-1 text-[13px]" style={{ color: MUTED }}>{label}</span>
+      <span className="text-[13px]" style={{ color: MUTED }}>{label}</span>
     </div>
   );
 }
