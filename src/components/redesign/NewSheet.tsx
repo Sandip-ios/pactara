@@ -58,6 +58,12 @@ export function NewSheetCheckbox({ checked }: { checked: boolean }) {
     {checked && <Check size={18} className="!size-[18px]" />}
   </span>;
 }
+/** Single-choice marker: 22px ring, purple ring + purple dot when selected. */
+export function NewSheetRadio({ checked }: { checked: boolean }) {
+  return <span aria-hidden className={cn("flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-2", checked ? "border-[var(--new-purple)]" : "border-[var(--new-muted)]")}>
+    {checked && <span className="h-[10px] w-[10px] rounded-full bg-[var(--new-purple)]" />}
+  </span>;
+}
 export function NewSheetButton({ secondary = false, className, ...props }: SheetButtonProps & { secondary?: boolean }) {
   return <Button variant="ghost" {...props} className={cn("h-[52px] w-full rounded-[26px] text-[17px] font-bold disabled:opacity-60", secondary ? "mt-[10px] bg-[var(--new-soft)] text-[var(--new-purple-text)] hover:bg-[var(--new-soft)] hover:text-[var(--new-purple-text)]" : "mt-4 bg-[var(--new-purple)] text-[var(--new-white)] hover:bg-[var(--new-purple)] hover:text-[var(--new-white)]", className)} />;
 }

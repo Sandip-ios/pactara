@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useInfiniteQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Bookmark, ChevronDown } from "lucide-react";
-import { NewSheet, NewSheetCheckbox, NewSheetRow } from "./NewSheet";
+import { NewSheet, NewSheetRadio, NewSheetRow } from "./NewSheet";
 import { NewConfirm } from "./NewConfirm";
 import { newToast as toast } from "./new-toast";
 import { coverThumb } from "@/lib/plan-filters";
@@ -98,7 +98,7 @@ export function FilterPills({ value, onChange }: { value: Filters; onChange: (f:
           {sheet?.options.map((o) => {
             const on = sheet.current === o.key;
             return (
-              <NewSheetRow key={o.label} simple role="radio" aria-checked={on} title={o.label} trailing={<NewSheetCheckbox checked={on} />} onClick={() => { sheet.set(o.key); setOpen(null); }} />
+              <NewSheetRow key={o.label} simple role="radio" aria-checked={on} title={o.label} trailing={<NewSheetRadio checked={on} />} onClick={() => { sheet.set(o.key); setOpen(null); }} />
             );
           })}
         </div>
