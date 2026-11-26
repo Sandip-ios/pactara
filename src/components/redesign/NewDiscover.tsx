@@ -7,7 +7,8 @@ import { searchPlans, type Plan } from "@/lib/workout-plans";
 import { matchPlans } from "@/lib/plan-quiz";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
-import { quizSearchFor, showQuizMatchCard, type SavedQuiz } from "@/lib/plan-quiz-saved";
+import { quizSearchFor, type SavedQuiz } from "@/lib/plan-quiz-saved";
+import { answerChips, droppedNote, fitCountLine, type DroppableKey } from "@/lib/new-quiz";
 import { getPlanCrewmate } from "@/lib/new-discover.functions";
 import {
   NEW_GOAL_CHIPS,
@@ -31,11 +32,16 @@ export function NewDiscover({
   onTab,
   filters,
   onFiltersChange,
+  quiz = null,
+  onClearQuiz,
 }: {
   tab: DiscoverTab;
   onTab: (t: DiscoverTab) => void;
   filters: PlanFilters;
   onFiltersChange: (f: PlanFilters) => void;
+  /** Filtered by the quiz answers ("Browse all plans with my answers"). */
+  quiz?: { dropped: DroppableKey[] } | null;
+  onClearQuiz?: () => void;
 }) {
   const [query, setQuery] = useState("");
   return (
@@ -81,14 +87,14 @@ export function NewDiscover({
             Workouts are coming in this update.
           </p>
         ) : (
-          <PlansTab query={query} filters={filters} onFiltersChange={onFiltersChange} />
+          <PlansTab query={query} filters={filters} onFiltersChange={onFiltersChange} quiz={quiz} onClearQuiz={onClearQuiz} />
         )}
       </div>
     </div>
   );
 }
 
-function PlansTab({ query, filters, onFiltersChange }: { query: string; filters: PlanFilters; onFiltersChange: (f: PlanFilters) => void }) {
+function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { query: string; filters: PlanFilters; onFiltersChange: (f: PlanFilters) => void; quiz: { dropped: DroppableKey[] } | null; onClearQuiz?: (() => void) | undefined }) {
   const navigate = useNavigate();
   const { data: plans, isLoading } = usePlans();
   const { data: mine } = useMyPlans();
@@ -102,7 +108,39 @@ function PlansTab({ query, filters, onFiltersChange }: { query: string; filters:
   );
   const chipOn = selectedChipKey(filters);
   const openPlan = (slug: string) => navigate({ to: "/plans/$slug", params: { slug } });
-  const showMatch = !!mine && !quizPending && !!savedQuiz && showQuizMatchCard(savedQuiz, !!active);
+  // New version: the saved match shows whenever there are saved answers, under the Your plan card.
+  const showMatch = !!mine && !quizPending && !!savedQuiz;
+
+  if (quiz) {
+    const chips = answerChips(filters);
+    const note = droppedNote(quiz.dropped, savedQuiz?.answers ?? null);
+    return (
+      <>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Your answers">
+          {chips.map((c) => (
+            <button key={c.id} type="button" onClick={() => onFiltersChange(c.remove(filters))} aria-label={`Remove ${c.label}`} className="flex h-9 items-center gap-1.5 rounded-full pl-3.5 pr-3 text-[14px] font-bold" style={{ background: PURPLE, color: "#FFFFFF" }}>
+              {c.label}
+              <X size={14} strokeWidth={3} aria-hidden />
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-[14px]" style={{ color: "#57534E" }}>{fitCountLine(list.length)}</span>
+          <button type="button" onClick={onClearQuiz} className="-my-2 min-h-10 px-1 text-[14px] font-bold" style={{ color: PURPLE }}>Clear</button>
+        </div>
+        {note && <p className="-mt-2 text-[13px] leading-[1.35]" style={{ color: "#78716C" }}>{note}</p>}
+        <div className="flex flex-col gap-[10px]">
+          {isLoading && [0, 1].map((i) => <div key={i} className="h-[108px] animate-pulse rounded-[18px] bg-white/70" />)}
+          {list.map((p) => (
+            <button key={p.id} type="button" onClick={() => openPlan(p.slug)} className="flex w-full items-center gap-3 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
+              <Cover plan={p} />
+              <PlanText plan={p} />
+            </button>
+          ))}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -237,29 +275,32 @@ function MatchCard({ saved, plans }: { saved: SavedQuiz; plans: Plan[] }) {
   const match = useMemo(() => (plans.length ? matchPlans(plans, saved.answers, crewDays) : null), [plans, saved, crewDays]);
   if (!match) return null;
   const bp = match.best.plan;
+  const open = () => navigate({ to: "/plans/$slug", params: { slug: bp.slug } });
   return (
-    <section className="flex flex-col gap-2 rounded-[18px] p-[14px]" style={{ background: GRADIENT }} aria-label="Your best match">
+    <section className="flex flex-col gap-3 rounded-[18px] p-[14px]" style={{ background: "#EDE9FE" }} aria-label="Your best match">
       <span className="flex items-center justify-between">
-        <span className="text-[11px] font-bold uppercase tracking-[0.6px]" style={{ color: "rgba(255,255,255,.8)" }}>Your best match</span>
-        <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 1) })} className="-my-1 min-h-8 px-1 text-[13px] font-bold" style={{ color: "#FFFFFF" }}>
+        <span className="text-[12px] font-extrabold uppercase tracking-[0.6px]" style={{ color: PURPLE }}>Your best match</span>
+        <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 1) })} className="-my-2 min-h-10 px-1 text-[13px] font-bold" style={{ color: PURPLE }}>
           Retake quiz
         </button>
       </span>
-      <button type="button" onClick={() => navigate({ to: "/plans/$slug", params: { slug: bp.slug } })} className="flex w-full items-center gap-3 text-left">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "rgba(255,255,255,.18)" }}>
-          <Sparkle size={22} color="#FFFFFF" aria-hidden />
+      <button type="button" onClick={open} className="flex w-full items-center gap-3 text-left">
+        <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-[12px]" style={{ background: "#ECE8E1" }}>
+          {coverThumb(bp.coverUrl, 192) && <img src={coverThumb(bp.coverUrl, 192)!} alt="" className="h-full w-full object-cover" />}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="text-[16px] font-bold" style={{ color: "#FFFFFF" }}>{bp.name}</span>
-          <span className="text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>
-            {bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min
-          </span>
+          <span className="text-[16px] font-extrabold leading-tight">{bp.name}</span>
+          <span className="text-[13px]" style={{ color: "#44403C" }}>{bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min</span>
+          {match.best.why.length > 0 && <span className="text-[12px] font-bold" style={{ color: "#6D28D9" }}>{match.best.why.join(" · ")}</span>}
         </span>
-        <ChevronRight size={20} color="#FFFFFF" className="shrink-0" aria-hidden />
+        <ChevronRight size={20} className="shrink-0" style={{ color: "#6D28D9" }} aria-hidden />
       </button>
-      <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 5) })} className="self-start min-h-8 text-[13px] font-bold underline" style={{ color: "#FFFFFF" }}>
-        See all {1 + match.also.length} matches
-      </button>
+      <span className="grid grid-cols-2 gap-2">
+        <button type="button" onClick={open} className="h-11 rounded-full text-[15px] font-bold" style={{ background: PURPLE, color: "#FFFFFF" }}>See plan</button>
+        <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 5) })} className="h-11 rounded-full bg-white text-[15px] font-bold" style={{ color: PURPLE }}>
+          See all {1 + match.also.length} matches
+        </button>
+      </span>
     </section>
   );
 }

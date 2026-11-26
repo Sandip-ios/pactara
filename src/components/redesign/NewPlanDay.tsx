@@ -18,6 +18,7 @@ const AMBER = "#F59E0B";
 const INK = "#1C1917";
 const MUTED = "#78716C";
 const HAIR = "#F0EDE9";
+const FONT = "Inter, system-ui, sans-serif";
 
 /**
  * New-version plan day. Only your active plan's next day carries the plan tag
@@ -68,20 +69,21 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
   };
 
   return (
-    <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: "#F5F2EC", color: INK }}>
-      <div className="flex flex-col px-4 pt-new-top" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}>
+    <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: "#F5F2EC", color: INK, fontFamily: FONT }}>
+      <div className="bg-white px-4 pb-3 pt-new-top">
         <header className="relative flex h-11 items-center">
           <button type="button" onClick={back} aria-label="Back" className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F0EDE8", color: INK }}>
             <ChevronLeft size={24} />
           </button>
           <h1 className="pointer-events-none absolute inset-x-14 text-center text-[17px] font-bold">Week {pos.week} · Day {pos.day}</h1>
         </header>
-
+      </div>
+      <div className="flex flex-col px-4" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}>
         {!day ? (
           <p className="mt-6 text-[15px]" style={{ color: MUTED }}>This day isn't part of the plan.</p>
         ) : (
           <>
-            <div className="mt-5 text-[12px] font-extrabold tracking-[0.6px]" style={{ color: PURPLE }}>{newPlanDayLabel(plan.name, isNext)}</div>
+            <div className="mt-4 text-[12px] font-extrabold tracking-[0.6px]" style={{ color: PURPLE }}>{newPlanDayLabel(plan.name, isNext)}</div>
             <h2 className="mt-1 text-[26px] font-extrabold leading-tight tracking-[-0.4px]">{day.title}</h2>
             <p className="mt-1 line-clamp-2 text-[14px] leading-[1.4]" style={{ color: MUTED }}>{newPlanDayMeta(moves.length, dayMinutes(day, plan), note?.note)}</p>
 
@@ -97,7 +99,7 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 px-4 pt-3" style={{ background: "linear-gradient(to bottom, rgba(245,242,236,0), #F5F2EC 18px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
+      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 px-4 pt-3" style={{ fontFamily: FONT, background: "linear-gradient(to bottom, rgba(245,242,236,0), #F5F2EC 18px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
         <button type="button" onClick={() => void onStart()} disabled={busy || !day} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
           {busy ? "One moment…" : onThisPlan ? "Start workout" : "Start this workout"}
         </button>
@@ -125,8 +127,8 @@ function WhatItWorks({ muscles }: { muscles: MuscleMap }) {
 
 function LegendRow({ color, text }: { color: string; text: string }) {
   return (
-    <div className="flex items-start gap-2 text-[14px] font-semibold leading-[1.35]" style={{ color: "#44403C" }}>
-      <span className="mt-[4px] h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ background: color }} aria-hidden />
+    <div className="flex items-start gap-2 text-[13px] font-medium leading-[1.35]" style={{ color: "#44403C" }}>
+      <span className="mt-[3px] h-2.5 w-2.5 shrink-0 rounded-[3px]" style={{ background: color }} aria-hidden />
       <span>{text}</span>
     </div>
   );

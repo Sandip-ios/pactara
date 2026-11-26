@@ -6,6 +6,7 @@ import { PlansDiscover } from "@/components/plans/PlansDiscover";
 import { useAppVersion } from "@/hooks/use-app-version";
 import { NewDiscover } from "@/components/redesign/NewDiscover";
 import { parseDiscoverTab } from "@/lib/new-discover";
+import { parseDropped } from "@/lib/new-quiz";
 import { FILTER_KEYS, cleanFilter, readFilterParam, toFilterParam, type FilterKey, type PlanFilters } from "@/lib/plan-filters";
 
 type DiscoverSearch = {
@@ -14,6 +15,9 @@ type DiscoverSearch = {
   complete?: string;
   /** "1": open scrolled to All plans (from the quiz's "Browse all plans with my answers"). */
   list?: string | number;
+  /** New version: "1" = Discover › Plans filtered by the quiz answers; `dropped` = filters left off. */
+  quiz?: number;
+  dropped?: string;
   /** Comma lists; a single number stays a number so the URL reads ?days=3, not ?days=%223%22. */
 } & Partial<Record<FilterKey, string | number>>;
 
@@ -29,6 +33,8 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     tab: s.tab === "crews" || s.tab === "plans" || s.tab === "workouts" ? s.tab : undefined,
     complete: typeof s.complete === "string" && s.complete ? s.complete : undefined,
     list: readFilterParam(s.list),
+    quiz: s.quiz === 1 || s.quiz === "1" ? 1 : undefined,
+    dropped: typeof s.dropped === "string" && s.dropped ? s.dropped : undefined,
     days: readFilterParam(s.days),
     minutes: readFilterParam(s.minutes),
     equipment: readFilterParam(s.equipment),
@@ -75,6 +81,19 @@ function NewDiscoverPage() {
       tab={parseDiscoverTab(search.tab)}
       onTab={(t) => navigate({ to: "/groups", search: (prev) => ({ ...prev, tab: t }), replace: true, resetScroll: false })}
       filters={filters}
+      quiz={search.quiz ? { dropped: parseDropped(search.dropped) } : null}
+      onClearQuiz={() =>
+        navigate({
+          to: "/groups",
+          search: (prev) => {
+            const next = { ...prev, quiz: undefined, dropped: undefined };
+            for (const k of FILTER_KEYS) next[k] = undefined;
+            return next;
+          },
+          replace: true,
+          resetScroll: false,
+        })
+      }
       onFiltersChange={(f) =>
         navigate({
           to: "/groups",

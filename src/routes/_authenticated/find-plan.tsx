@@ -26,6 +26,8 @@ import type { EquipmentKey, Plan, PlanGoal } from "@/lib/workout-plans";
 import { GOAL_TILE, P, usePlans } from "@/components/plans/PlanBits";
 import { MemberAvatar } from "@/components/groups/AccountabilityBits";
 import { useSaveQuizResult } from "@/components/plans/QuizMatchCard";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewFindPlan } from "@/components/redesign/NewFindPlan";
 
 type QuizSearch = { step?: number; goal?: string; exp?: string; gear?: string; days?: number };
 
@@ -51,8 +53,13 @@ export const Route = createFileRoute("/_authenticated/find-plan")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: FindPlanPage,
+  component: FindPlanRoute,
 });
+
+function FindPlanRoute() {
+  const search = Route.useSearch();
+  return useAppVersion() === "new" ? <NewFindPlan search={search} /> : <FindPlanPage />;
+}
 
 const PURPLE = "#7C3AED";
 const ORANGE = "#C2410C";
