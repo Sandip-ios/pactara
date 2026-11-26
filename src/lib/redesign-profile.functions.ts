@@ -1,4 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
+import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import { newProfileEditSchema, saveNewProfileFields, usernameSchema } from './redesign-profile';
 
@@ -41,4 +42,51 @@ export const saveRedesignProfile = createServerFn({ method: 'POST' }).middleware
   .inputValidator(input => newProfileEditSchema.parse(input)).handler(async ({ data, context }) => {
     await saveNewProfileFields(context.supabase, context.userId, data);
     return { ok: true };
+  });
+/** Someone else's profile for the new version: get_profile plus shared crews, follows-me and "Followed by". */
+export const getRedesignMemberProfile = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth])
+  .inputValidator(input => z.object({ target: z.string().trim().min(1).max(50) }).parse(input)).handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: raw, error } = await supabase.rpc('get_profile', { target: data.target });
+    if (error) throw new Error('Could not load profile');
+    if (!raw) return null;
+    const base = raw as unknown as import('./follows.server').FollowProfile;
+    if (base.id === userId) return { isSelf: true as const, id: userId };
+    if (base.relationship === 'blocked') return { isSelf: false as const, blocked: true as const, id: base.id, username: base.username, name: base.name };
+    const { completeFollowProfile } = await import('./follows.server');
+    const profile = await completeFollowProfile(base, userId);
+    const [mine, followsMe, myFollowing] = await Promise.all([
+      supabase.from('group_members').select('group_id, groups!inner(id, name, ended_at)').eq('user_id', userId).is('groups.ended_at', null),
+      supabase.from('follows').select('follower_id').eq('follower_id', base.id).eq('following_id', userId).eq('status', 'accepted').maybeSingle(),
+      supabase.from('follows').select('following_id').eq('follower_id', userId).eq('status', 'accepted'),
+    ]);
+    if (mine.error || followsMe.error || myFollowing.error) throw new Error('Could not load profile');
+    const myCrews = (mine.data ?? []).map(row => ({ id: row.group_id, name: row.groups.name }));
+    let sharedCrews: { id: string; name: string }[] = [];
+    if (myCrews.length) {
+      const { data: theirs, error: theirError } = await supabase.from('group_members').select('group_id').eq('user_id', base.id).in('group_id', myCrews.map(c => c.id));
+      if (theirError) throw new Error('Could not load profile');
+      const ids = new Set((theirs ?? []).map(r => r.group_id));
+      sharedCrews = myCrews.filter(c => ids.has(c.id));
+    }
+    const visible = !profile.is_private || profile.relationship === 'following' || sharedCrews.length > 0;
+    let followedBy: { firstName: string; total: number } | null = null;
+    const followingIds = (myFollowing.data ?? []).map(r => r.following_id).filter(id => id !== base.id);
+    if (visible && followingIds.length) {
+      // Follower lists of others are not readable under RLS; only a first name and a count leave the server.
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+      const { data: mutual, count } = await supabaseAdmin.from('follows').select('follower_id, created_at', { count: 'exact' }).eq('following_id', base.id).eq('status', 'accepted').in('follower_id', followingIds).order('created_at', { ascending: false }).limit(1);
+      const first = mutual?.[0]?.follower_id;
+      if (first && count) {
+        const { data: person } = await supabaseAdmin.from('profiles').select('name, username').eq('id', first).maybeSingle();
+        followedBy = { firstName: (person?.name ?? '').trim().split(/\s+/)[0] || person?.username || 'Member', total: count };
+      }
+    }
+    return {
+      isSelf: false as const, blocked: false as const, id: base.id, name: profile.name ?? '', username: profile.username, bio: profile.bio,
+      avatarUrl: profile.avatar, followers: profile.follower_count, following: profile.following_count,
+      isPrivate: profile.is_private, canFollow: profile.can_follow, relationship: profile.relationship,
+      followsMe: Boolean(followsMe.data), streak: 'current_streak' in profile ? profile.current_streak ?? null : null,
+      sharedCrews, followedBy,
+    };
   });

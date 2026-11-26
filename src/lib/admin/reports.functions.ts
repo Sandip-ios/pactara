@@ -27,7 +27,7 @@ export const getContentReports = createServerFn({ method: 'POST' })
     const page = reports?.slice(0, 50) ?? [];
     const ids = [...new Set(page.flatMap(r => [r.reporter_id, r.reported_user_id]))];
     const { data: people } = ids.length ? await supabaseAdmin.from('profiles').select('id, name').in('id', ids) : { data: [] };
-    const { data: groups } = page.length ? await supabaseAdmin.from('groups').select('id, name').in('id', [...new Set(page.map(r => r.group_id))]) : { data: [] };
+    const { data: groups } = page.length ? await supabaseAdmin.from('groups').select('id, name').in('id', [...new Set(page.flatMap(r => r.group_id ? [r.group_id] : []))]) : { data: [] };
     const previews = await Promise.all(page.map(async report => {
       if (!report.target_id || report.target_type === 'user') return null;
       if (report.target_type === 'comment') {
@@ -47,7 +47,7 @@ export const getContentReports = createServerFn({ method: 'POST' })
       reports: page.map((r, i) => {
         const preview = previews[i];
         const path = preview?.path;
-        return { ...r, reporter: people?.find(p => p.id === r.reporter_id)?.name ?? 'Deleted member', reportedMember: people?.find(p => p.id === r.reported_user_id)?.name ?? 'Deleted member', crewName: groups?.find(g => g.id === r.group_id)?.name ?? 'Crew', preview: preview ? { text: preview.text, image: path ? isVideoPath(path) ? posters.get(path) ?? null : path.startsWith('http') ? path : images.get(path) ?? null : null } : null };
+        return { ...r, reporter: people?.find(p => p.id === r.reporter_id)?.name ?? 'Deleted member', reportedMember: people?.find(p => p.id === r.reported_user_id)?.name ?? 'Deleted member', crewName: r.group_id ? groups?.find(g => g.id === r.group_id)?.name ?? 'Crew' : 'No shared crew', preview: preview ? { text: preview.text, image: path ? isVideoPath(path) ? posters.get(path) ?? null : path.startsWith('http') ? path : images.get(path) ?? null : null } : null };
       }),
       nextBefore: (reports?.length ?? 0) > 50 ? page.at(-1)?.created_at ?? null : null,
     };
@@ -59,6 +59,10 @@ export const reviewContentReport = createServerFn({ method: 'POST' })
     const expected = process.env['FOUNDER_DASHBOARD_KEY'];
     if (!expected || data.key !== expected) throw new Error('Unauthorized');
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+    if (data.action === 'remove_member') {
+      const { data: report } = await supabaseAdmin.from('content_reports').select('group_id').eq('id', data.reportId).maybeSingle();
+      if (report && !report.group_id) throw new Error('This report has no shared crew.');
+    }
     const { error } = await supabaseAdmin.rpc('review_content_report', { _id: data.reportId, _action: data.action });
     if (error) throw new Error('Could not review report. Please try again.');
     return { ok: true };

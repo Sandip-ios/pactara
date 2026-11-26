@@ -12,11 +12,13 @@ export const reportSchema = z.object({
   reportedUserId: z.string().uuid(),
   targetType: z.enum(['user', 'post', 'comment']),
   targetId: z.string().uuid().nullable(),
-  groupId: z.string().uuid(),
+  /** Null only for new-version profile reports between members who share no crew. */
+  groupId: z.string().uuid().nullable(),
   reason: z.enum(['inappropriate_media', 'harassment', 'hate_or_threats', 'spam_or_fake', 'other']),
   details: z.string().max(500),
   alsoBlock: z.boolean(),
-}).refine(v => v.targetType === 'user' ? v.targetId === null : v.targetId !== null, { message: 'Invalid report target' });
+}).refine(v => v.targetType === 'user' ? v.targetId === null : v.targetId !== null, { message: 'Invalid report target' })
+  .refine(v => v.groupId !== null || v.targetType === 'user', { message: 'Invalid report crew' });
 export type SafetyReport = z.infer<typeof reportSchema>;
 
 export function visibleTo<T>(rows: readonly T[], blocked: ReadonlySet<string>, author: (row: T) => string): T[] {

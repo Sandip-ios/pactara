@@ -164,7 +164,7 @@ export type Database = {
         Row: {
           created_at: string
           details: string | null
-          group_id: string
+          group_id: string | null
           id: string
           reason: string
           reported_user_id: string
@@ -177,7 +177,7 @@ export type Database = {
         Insert: {
           created_at?: string
           details?: string | null
-          group_id: string
+          group_id?: string | null
           id?: string
           reason: string
           reported_user_id: string
@@ -190,7 +190,7 @@ export type Database = {
         Update: {
           created_at?: string
           details?: string | null
-          group_id?: string
+          group_id?: string | null
           id?: string
           reason?: string
           reported_user_id?: string
@@ -2023,6 +2023,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      caller_on_new_version: { Args: never; Returns: boolean }
       can_read_follow_notification: {
         Args: { actor: string; recipient: string }
         Returns: boolean

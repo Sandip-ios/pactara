@@ -18,6 +18,7 @@ import { MediaLightbox } from "@/components/MediaLightbox";
 import { useCheers } from "@/components/TimelineCard";
 import { GroupChatView } from "@/routes/_authenticated/chat.$groupId";
 import { CrewAvatar, CrewAvatarOverlap } from "./CrewAvatars";
+import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode } from "@/lib/feed-days";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
@@ -337,9 +338,12 @@ function MemberRow({ member, home, groupId, items, divider, onOpenMedia }: {
 
   return (
     <div className="flex items-center gap-3 px-4 py-3" style={{ borderTop: divider ? "1px solid #F0EDE9" : undefined }}>
-      <CrewAvatar member={avatarMember(member)} size={44} />
+      <MemberProfileLink userId={member.userId} isYou={member.isYou} className="shrink-0">
+        <span className="sr-only">{member.isYou ? "Your profile" : `${member.name}'s profile`}</span>
+        <CrewAvatar member={avatarMember(member)} size={44} />
+      </MemberProfileLink>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[16px] font-extrabold">{member.isYou ? "You" : member.name}</div>
+        <MemberProfileLink userId={member.userId} isYou={member.isYou} className="block truncate text-[16px] font-extrabold">{member.isYou ? "You" : member.name}</MemberProfileLink>
         <div className="mt-0.5 text-[14px] font-bold" style={{ color: done || workingOut ? GREEN : resting ? "#7C5CD6" : member.isYou ? MUTED : "#C2410C" }}>
           {done ? `Checked in${checkIn ? ` at ${clock(checkIn.at)}` : ""}` : resting ? "Resting today" : workingOut ? "Working out now" : "Not in yet"}
         </div>

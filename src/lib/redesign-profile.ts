@@ -37,3 +37,38 @@ export function progressSummary(streak: number, badges: number): string {
   if (badges > 0) parts.push(`${badges} ${badges === 1 ? 'badge' : 'badges'}`);
   return parts.join(' · ');
 }
+
+export type MemberRelationship = 'none' | 'requested' | 'following' | 'follows_you' | 'blocked';
+export type MemberFollowButton = 'follow' | 'follow_back' | 'requested' | 'following' | null;
+
+/** Which follow button someone else's profile shows (null: no follow button). */
+export function memberFollowButton(relationship: MemberRelationship, followsMe: boolean, canFollow: boolean): MemberFollowButton {
+  if (relationship === 'blocked') return null;
+  if (relationship === 'following') return 'following';
+  if (relationship === 'requested') return 'requested';
+  if (!canFollow) return null;
+  return followsMe || relationship === 'follows_you' ? 'follow_back' : 'follow';
+}
+
+/** What sits under the white section: crew week card, the private card, or nothing. */
+export function memberProfileBody(input: { relationship: MemberRelationship; isPrivate: boolean; sharedCrews: number }): 'blocked' | 'week' | 'private' | 'none' {
+  if (input.relationship === 'blocked') return 'blocked';
+  if (input.sharedCrews > 0) return 'week';
+  if (input.isPrivate && input.relationship !== 'following') return 'private';
+  return 'none';
+}
+
+export function followedByLine(firstName: string | null, total: number): string | null {
+  if (!firstName || total < 1) return null;
+  const others = total - 1;
+  return others === 0 ? `Followed by ${firstName}` : `Followed by ${firstName} and ${others} ${others === 1 ? 'other' : 'others'}`;
+}
+
+export function blockConfirmBody(firstName: string, sharedCrewName: string | null): string {
+  const base = `${firstName} won't see your profile or be able to message or follow you, and you won't see theirs. They aren't told.`;
+  return sharedCrewName ? `${base} You'll both stay in ${sharedCrewName}.` : base;
+}
+
+export function memberFirstName(name: string, username: string | null): string {
+  return name.trim().split(/\s+/)[0] || username || 'Member';
+}

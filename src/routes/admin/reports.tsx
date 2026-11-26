@@ -40,7 +40,7 @@ function ReportsPage() {
         {r.preview && <div className="mt-4 flex items-start gap-3 border-l-2 border-border pl-3">{r.preview.image && <img src={r.preview.image} alt="Reported content" className="size-20 rounded-lg object-cover" />}<p className="whitespace-pre-wrap break-words text-sm">{r.preview.text || 'Photo or video'}</p></div>}
         {r.status === 'open' && <div className="mt-4 flex flex-wrap gap-2">
           {r.target_type !== 'user' && <Button variant="destructive" disabled={action.isPending} onClick={() => action.mutate({ reportId: r.id, action: 'remove_content' })}>Remove content</Button>}
-          <Button variant="outline" disabled={action.isPending} onClick={() => action.mutate({ reportId: r.id, action: 'remove_member' })}>Remove member from crew</Button>
+          {r.group_id && <Button variant="outline" disabled={action.isPending} onClick={() => action.mutate({ reportId: r.id, action: 'remove_member' })}>Remove member from crew</Button>}
           <Button variant="ghost" disabled={action.isPending} onClick={() => action.mutate({ reportId: r.id, action: 'dismiss' })}>Dismiss</Button>
         </div>}
       </li>;
