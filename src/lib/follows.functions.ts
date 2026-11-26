@@ -83,9 +83,9 @@ export const getFollowNotifications = createServerFn({ method: 'GET' }).middlewa
     const items = await Promise.all((rows ?? []).map(async row => {
       const { data: profile, error: profileError } = await context.supabase.rpc('get_profile', { target: row.actor_id });
       if (profileError) throw new Error(profileError.message);
-      const person = profile as { name?: string; avatar?: string | null; relationship?: string } | null;
+      const person = profile as { name?: string; avatar?: string | null; relationship?: string; can_follow?: boolean } | null;
       if (!person || person.relationship === 'blocked') return null;
-      return { key: `follow:${row.id}`, kind: row.kind, actorId: row.actor_id, actorName: person.name ?? 'Someone', text: followNotificationText(person.name ?? '', row.kind as FollowNotificationKind), createdAt: row.created_at, avatar: person.avatar ?? null };
+      return { key: `follow:${row.id}`, kind: row.kind, actorId: row.actor_id, actorName: person.name ?? 'Someone', text: followNotificationText(person.name ?? '', row.kind as FollowNotificationKind), createdAt: row.created_at, avatar: person.avatar ?? null, relationship: person.relationship ?? 'none', canFollow: person.can_follow ?? false };
     }));
     const { data: reads, error: readError } = await context.supabase.from('notification_reads').select('item_key').eq('user_id', context.userId);
     if (readError) throw new Error(readError.message);

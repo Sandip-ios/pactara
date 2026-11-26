@@ -86,3 +86,13 @@ export async function signVideoPosters(
   });
   return out;
 }
+
+/** Activity thumbnails never download full videos; legacy videos can use a play placeholder. */
+export async function signActivityThumbs(supabase: SupabaseClient, paths: (string | null | undefined)[]) {
+  const unique = [...new Set(paths.filter((path): path is string => Boolean(path) && !path?.startsWith('http')))];
+  const [images, posters] = await Promise.all([
+    signImages(supabase, 'chat-photos', unique.filter(path => !isVideoPath(path)), 132, 132),
+    signVideoPosters(supabase, unique),
+  ]);
+  return new Map([...images, ...posters]);
+}

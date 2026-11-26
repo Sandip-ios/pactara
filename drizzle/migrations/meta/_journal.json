@@ -561,6 +561,13 @@
       "when": 1795675770348,
       "tag": "0079_user_blocks_account_delete_cascade",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1795676664083,
+      "tag": "0080_redesign_social_lists_activity",
+      "breakpoints": true
     }
   ]
 }

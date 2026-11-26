@@ -19,7 +19,7 @@ vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({ data: { groups }, isLoading: false }),
 }));
 vi.mock("@/lib/group-today.functions", () => ({ getGroupsToday: vi.fn() }));
-vi.mock("@/lib/notifications.functions", () => ({ getUnreadNotificationCount: vi.fn() }));
+vi.mock("@/components/redesign/social-query", () => ({ newActivityUnreadOptions: { queryKey: ['new-activity-unread'] } }));
 vi.mock("@/components/plans/PlanBits", () => ({ useMyPlans: () => ({ isSuccess: false }) }));
 vi.mock("@/lib/redesign-checkin", () => ({ beginNewCheckIn: vi.fn() }));
 vi.mock("@/lib/use-open-at-top", () => ({ useOpenAtTop: () => ({ current: null }) }));

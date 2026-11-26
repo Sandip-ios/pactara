@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate, useRouter } from '@tanstack/react-router';
+import { Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserX } from 'lucide-react';
@@ -68,6 +68,7 @@ export function NewMemberProfile({ target }: { target: string }) {
   const followed = followedByLine(profile.followedBy?.firstName ?? null, profile.followedBy?.total ?? 0);
   const streak = profile.streak ?? null;
   const following = profile.relationship === 'following';
+  const canSeeLists = !profile.isPrivate || following;
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ['new-member-profile'] }), qc.invalidateQueries({ queryKey: ['new-own-profile'] })]);
   const run = async (action: () => Promise<unknown>, done?: string) => {
     if (busy) return;
@@ -105,7 +106,7 @@ export function NewMemberProfile({ target }: { target: string }) {
       <Button variant="ghost" className="new-profile-menu-button" aria-label={`Options for ${first}`} onClick={() => setSheet('menu')}><MoreHorizontal size={22} /></Button>
     </div></header>
     <section className="new-profile-identity">
-      <div className="new-profile-avatar-row"><MemberAvatar url={profile.avatarUrl} size={84} /><div className="new-profile-counts"><div><strong>{profile.followers}</strong><span>followers</span></div><div><strong>{profile.following}</strong><span>following</span></div></div></div>
+      <div className="new-profile-avatar-row"><MemberAvatar url={profile.avatarUrl} size={84} /><div className="new-profile-counts">{(['followers', 'following'] as const).map(tab => canSeeLists ? <Button key={tab} variant="ghost" asChild className="new-profile-stat"><Link to="/u/$userId/follows" params={{ userId: profile.id }} search={{ socialTab: tab }}><strong>{profile[tab]}</strong><span>{tab}</span></Link></Button> : <div key={tab}><strong>{profile[tab]}</strong><span>{tab}</span></div>)}</div></div>
       <div>
         <h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>
         {profile.bio && <p className="new-profile-bio">{profile.bio}</p>}

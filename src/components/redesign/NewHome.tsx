@@ -5,7 +5,7 @@ import { Bell, Check, Search, Sparkles, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getGroupsToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
-import { getUnreadNotificationCount } from "@/lib/notifications.functions";
+import { newActivityUnreadOptions } from './social-query';
 import { useMyPlans } from "@/components/plans/PlanBits";
 import { beginNewCheckIn } from "@/lib/redesign-checkin";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
@@ -22,7 +22,7 @@ export function NewHome() {
   useOpenSharedPlan();
   const { user } = useRouteContext({ from: "/_authenticated" });
   const { data, isLoading } = useQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 30_000 });
-  const { data: notifications } = useQuery({ queryKey: ["unread-notification-count"], queryFn: () => getUnreadNotificationCount(), refetchInterval: 60_000 });
+  const { data: notifications } = useQuery(newActivityUnreadOptions);
   const plans = useMyPlans();
   const [hidePlan, setHidePlan] = useState(true);
   const userId = user.id;
@@ -40,7 +40,7 @@ export function NewHome() {
         <h1 className="text-[24px] font-extrabold tracking-[-0.5px]"><span className="text-[var(--new-purple-text)]">P</span>actara</h1>
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Search" onClick={() => navigate({ to: "/groups" })}><Search className="!size-5" /></Button>
-          <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Notifications" onClick={() => navigate({ to: "/notifications" })}><Bell className="!size-5" />{(notifications?.total ?? 0) > 0 && <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[var(--new-red)]" />}</Button>
+          <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Activity" onClick={() => navigate({ to: "/activity" })}><Bell className="!size-5" />{(notifications?.total ?? 0) > 0 && <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[var(--new-red)]" />}</Button>
         </div>
       </header>
       {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}

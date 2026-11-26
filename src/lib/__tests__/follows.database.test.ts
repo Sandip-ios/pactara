@@ -289,4 +289,53 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     expect((await rpc(pub, 'get_profile', { target: username }))['follower_count']).toBe(1);
     expect((await rpc(pub, 'get_profile', { target: pub.id }))['following_count']).toBe(1);
   });
+  it('keeps the new searched lists private until approval, and returns full safe identity fields', async () => {
+    const { pub, priv } = accounts();
+    await patchProfile(pub.id, { name: 'Search Person', username: 'search.person' });
+    await rpc(priv, 'follow_user', { target: pub.id });
+    await expect(rpc(pub, 'get_social_list', { target: priv.id, direction: 'following' })).rejects.toThrow('This list is private');
+    await rpc(pub, 'follow_user', { target: priv.id });
+    await rpc(priv, 'respond_follow_request', { follower: pub.id, accept: true });
+    const list = await rpc<{ people: Record<string, unknown>[] }>(pub, 'get_social_list', { target: priv.id, direction: 'following', query_text: 'SEARCH.PERSON' });
+    expect(list.people).toHaveLength(1);
+    expect(list.people[0]?.['name']).toBe('Search Person');
+    expect(list.people[0]?.['isSelf']).toBe(true);
+    expect(list.people[0]?.['canFollow']).toBe(false);
+    expect(list.people[0]?.['email']).toBeUndefined();
+    expect(list.people[0]?.['birthday']).toBeUndefined();
+  });
+  it('only lets the recipient read pending requests and filters blocked requests', async () => {
+    const { pub, priv } = accounts();
+    await rpc(pub, 'follow_user', { target: priv.id });
+    const pending = await rpc<{ total: number; people: { id: string }[] }>(priv, 'get_social_list', { target: priv.id, direction: 'requests' });
+    expect(pending.total).toBe(1); expect(pending.people[0]?.id).toBe(pub.id);
+    await expect(rpc(pub, 'get_social_list', { target: priv.id, direction: 'requests' })).rejects.toThrow();
+    await request('/rest/v1/user_blocks', priv.token, 'POST', { blocker_id: priv.id, blocked_id: pub.id });
+    expect((await rpc<{ total: number }>(priv, 'get_social_list', { target: priv.id, direction: 'requests' })).total).toBe(0);
+  });
+  it('keeps new Activity extras unavailable to classic and anonymous callers', async () => {
+    const { pub } = accounts();
+    await patchProfile(pub.id, { app_version: 'classic' });
+    expect(await rpc(pub, 'get_redesign_activity_extras', {})).toEqual([]);
+    const anon = process.env['SUPABASE_PUBLISHABLE_KEY'];
+    if (!anon) throw new Error('Draft publishable key unavailable');
+    await expect(request('/rest/v1/rpc/get_redesign_activity_extras', anon, 'POST', {})).rejects.toThrow();
+    await expect(request('/rest/v1/rpc/get_social_list', anon, 'POST', { target: pub.id, direction: 'followers' })).rejects.toThrow();
+  });
+  it('returns 30-person pages with one look-ahead row, and searches beyond the first page', async () => {
+    const { pub } = accounts();
+    const ids: string[] = [];
+    for (let index = 0; index < 33; index++) {
+      const person = await admin<{ id: string }>('/auth/v1/admin/users', 'POST', { email: `${randomUUID()}@example.com`, email_confirm: true });
+      createdIds.push(person.id); ids.push(person.id);
+      await patchProfile(person.id, { name: `Member ${index}`, username: `page.member.${index}`, app_version: 'new', new_version_enabled: true });
+      await admin('/rest/v1/follows', 'POST', { follower_id: person.id, following_id: pub.id, status: 'accepted', accepted_at: new Date().toISOString(), created_at: new Date(Date.now() - index * 60_000).toISOString() });
+    }
+    const first = await rpc<{ people: { id: string }[]; total: number }>(pub, 'get_social_list', { target: pub.id, direction: 'followers', page_offset: 0 });
+    const next = await rpc<{ people: { id: string }[] }>(pub, 'get_social_list', { target: pub.id, direction: 'followers', page_offset: 30 });
+    expect(first.total).toBe(33); expect(first.people).toHaveLength(31); expect(next.people).toHaveLength(3);
+    expect([...first.people.slice(0, 30), ...next.people].map(p => p.id)).toEqual(ids);
+    const search = await rpc<{ people: { id: string }[] }>(pub, 'get_social_list', { target: pub.id, direction: 'followers', query_text: 'PAGE.MEMBER.32' });
+    expect(search.people.map(p => p.id)).toEqual([ids[32]]);
+  });
 });

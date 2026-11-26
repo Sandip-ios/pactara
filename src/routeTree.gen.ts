@@ -23,8 +23,10 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
+import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAppleHealthRouteImport } from './routes/_authenticated/apple-health'
 import { Route as AuthenticatedFindPlanRouteImport } from './routes/_authenticated/find-plan'
+import { Route as AuthenticatedFollowRequestsRouteImport } from './routes/_authenticated/follow-requests'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
@@ -80,6 +82,7 @@ import { Route as AuthenticatedCrewsGroupIdRequestsRouteImport } from './routes/
 import { Route as AuthenticatedCrewsGroupIdSettingsRouteImport } from './routes/_authenticated/crews.$groupId_.settings'
 import { Route as AuthenticatedExercisesExerciseIdHowToRouteImport } from './routes/_authenticated/exercises.$exerciseId_.how-to'
 import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
+import { Route as AuthenticatedUUserIdFollowsRouteImport } from './routes/_authenticated/u.$userId_.follows'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
 import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
@@ -162,6 +165,11 @@ const DotwellKnownAppleAppSiteAssociationRoute =
     path: '/.well-known/apple-app-site-association',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAppleHealthRoute =
   AuthenticatedAppleHealthRouteImport.update({
     id: '/apple-health',
@@ -173,6 +181,12 @@ const AuthenticatedFindPlanRoute = AuthenticatedFindPlanRouteImport.update({
   path: '/find-plan',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFollowRequestsRoute =
+  AuthenticatedFollowRequestsRouteImport.update({
+    id: '/follow-requests',
+    path: '/follow-requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -478,6 +492,12 @@ const AuthenticatedPlansSlugDayRoute =
     path: '/plans/$slug/day',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedUUserIdFollowsRoute =
+  AuthenticatedUUserIdFollowsRouteImport.update({
+    id: '/u/$userId_/follows',
+    path: '/u/$userId/follows',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
   id: '/api/public/hooks/auto-miss',
   path: '/api/public/hooks/auto-miss',
@@ -555,8 +575,10 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
+  '/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -612,6 +634,7 @@ export interface FileRoutesByFullPath {
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
+  '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -637,8 +660,10 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/activity': typeof AuthenticatedActivityRoute
   '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
+  '/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -694,6 +719,7 @@ export interface FileRoutesByTo {
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
+  '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -722,8 +748,10 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
+  '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/apple-health': typeof AuthenticatedAppleHealthRoute
   '/_authenticated/find-plan': typeof AuthenticatedFindPlanRoute
+  '/_authenticated/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -779,6 +807,7 @@ export interface FileRoutesById {
   '/_authenticated/crews/$groupId_/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/_authenticated/exercises/$exerciseId_/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
+  '/_authenticated/u/$userId_/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -807,8 +836,10 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/activity'
     | '/apple-health'
     | '/find-plan'
+    | '/follow-requests'
     | '/home'
     | '/new-pactara'
     | '/notifications'
@@ -864,6 +895,7 @@ export interface FileRouteTypes {
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
+    | '/u/$userId/follows'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -889,8 +921,10 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/activity'
     | '/apple-health'
     | '/find-plan'
+    | '/follow-requests'
     | '/home'
     | '/new-pactara'
     | '/notifications'
@@ -946,6 +980,7 @@ export interface FileRouteTypes {
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
+    | '/u/$userId/follows'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -973,8 +1008,10 @@ export interface FileRouteTypes {
     | '/support'
     | '/terms'
     | '/.well-known/apple-app-site-association'
+    | '/_authenticated/activity'
     | '/_authenticated/apple-health'
     | '/_authenticated/find-plan'
+    | '/_authenticated/follow-requests'
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
     | '/_authenticated/notifications'
@@ -1030,6 +1067,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crews/$groupId_/settings'
     | '/_authenticated/exercises/$exerciseId_/how-to'
     | '/_authenticated/plans/$slug_/day'
+    | '/_authenticated/u/$userId_/follows'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -1175,6 +1213,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotwellKnownAppleAppSiteAssociationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/apple-health': {
       id: '/_authenticated/apple-health'
       path: '/apple-health'
@@ -1187,6 +1232,13 @@ declare module '@tanstack/react-router' {
       path: '/find-plan'
       fullPath: '/find-plan'
       preLoaderRoute: typeof AuthenticatedFindPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/follow-requests': {
+      id: '/_authenticated/follow-requests'
+      path: '/follow-requests'
+      fullPath: '/follow-requests'
+      preLoaderRoute: typeof AuthenticatedFollowRequestsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/home': {
@@ -1574,6 +1626,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlansSlugDayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/u/$userId_/follows': {
+      id: '/_authenticated/u/$userId_/follows'
+      path: '/u/$userId/follows'
+      fullPath: '/u/$userId/follows'
+      preLoaderRoute: typeof AuthenticatedUUserIdFollowsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/hooks/auto-miss': {
       id: '/api/public/hooks/auto-miss'
       path: '/api/public/hooks/auto-miss'
@@ -1655,8 +1714,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAppleHealthRoute: typeof AuthenticatedAppleHealthRoute
   AuthenticatedFindPlanRoute: typeof AuthenticatedFindPlanRoute
+  AuthenticatedFollowRequestsRoute: typeof AuthenticatedFollowRequestsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1698,11 +1759,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrewsGroupIdSettingsRoute: typeof AuthenticatedCrewsGroupIdSettingsRoute
   AuthenticatedExercisesExerciseIdHowToRoute: typeof AuthenticatedExercisesExerciseIdHowToRoute
   AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
+  AuthenticatedUUserIdFollowsRoute: typeof AuthenticatedUUserIdFollowsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAppleHealthRoute: AuthenticatedAppleHealthRoute,
   AuthenticatedFindPlanRoute: AuthenticatedFindPlanRoute,
+  AuthenticatedFollowRequestsRoute: AuthenticatedFollowRequestsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -1754,6 +1818,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExercisesExerciseIdHowToRoute:
     AuthenticatedExercisesExerciseIdHowToRoute,
   AuthenticatedPlansSlugDayRoute: AuthenticatedPlansSlugDayRoute,
+  AuthenticatedUUserIdFollowsRoute: AuthenticatedUUserIdFollowsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

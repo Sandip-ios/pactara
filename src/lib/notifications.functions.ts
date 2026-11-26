@@ -400,9 +400,9 @@ async function readKeys(supabase: SupabaseClient, userId: string): Promise<Set<s
 
 export const getNotifications = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { groupId: string }) => {
+  .inputValidator((input: { groupId: string; previewMedia?: boolean }) => {
     if (!input || typeof input.groupId !== "string") throw new Error("groupId required");
-    return { groupId: input.groupId };
+    return { groupId: input.groupId, previewMedia: input.previewMedia === true };
   })
   .handler(async ({ data, context }): Promise<{ items: NotificationItem[] }> => {
     const { supabase, userId } = context;
@@ -451,13 +451,15 @@ export const getNotifications = createServerFn({ method: "GET" })
       avatar_url: string | null;
     }>;
 
+    const { signActivityThumbs, signAvatarThumbs } = await import('./media-urls');
     const [avatarUrls, mediaUrls, read] = await Promise.all([
+      data.previewMedia ? signAvatarThumbs(supabase, profRows.map(p => p.avatar_url)).then(map => Object.fromEntries(map)) :
       signMany(
         supabase,
         "avatars",
         profRows.map((p) => p.avatar_url ?? "").filter(Boolean),
       ),
-      signMany(
+      data.previewMedia ? signActivityThumbs(supabase, raw.map(r => r.mediaPath)).then(map => Object.fromEntries(map)) : signMany(
         supabase,
         "chat-photos",
         raw.map((r) => r.mediaPath ?? "").filter((p) => p && !p.startsWith("http")),
@@ -479,8 +481,8 @@ export const getNotifications = createServerFn({ method: "GET" })
         text: r.text,
         createdAt: r.createdAt,
         read: read.has(r.key),
-        mediaUrl: r.mediaPath ? (r.mediaPath.startsWith("http") ? r.mediaPath : (mediaUrls[r.mediaPath] ?? null)) : null,
-        mediaKind: r.mediaPath ? (isVideo(r.mediaPath) ? "video" : "image") : null,
+        mediaUrl: r.mediaPath ? (r.mediaPath.startsWith("http") ? (data.previewMedia && isVideo(r.mediaPath) ? null : r.mediaPath) : (mediaUrls[r.mediaPath] ?? null)) : null,
+        mediaKind: r.mediaPath ? (data.previewMedia && mediaUrls[r.mediaPath] ? 'image' : isVideo(r.mediaPath) ? "video" : "image") : null,
         groupId: r.groupId,
         groupName: nameById.get(r.groupId) ?? "",
         postId: r.postId,
@@ -546,7 +548,6 @@ async function computeUnreadTotal(supabase: SupabaseClient, userId: string): Pro
     .select("group_id")
     .eq("user_id", userId);
   const groupIds = ((memberships ?? []) as Array<{ group_id: string }>).map((m) => m.group_id);
-  if (groupIds.length === 0) return 0;
 
   const { data: groups } = await supabase.from("groups").select("id, name").is("ended_at", null).in("id", groupIds);
   const nameById = new Map(
@@ -557,12 +558,18 @@ async function computeUnreadTotal(supabase: SupabaseClient, userId: string): Pro
   const lists = await Promise.all(
     (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name)),
   );
-  let total = 0;
-  for (const list of lists) {
-    for (const item of list) if (!read.has(item.key)) total += 1;
-  }
-  return total;
+  const { data: prefs, error: prefsError } = await supabase.rpc('get_my_app_prefs');
+  if (prefsError) throw new Error('Could not count notifications');
+  const isNew = prefs?.[0]?.new_version_enabled && prefs?.[0]?.app_version === 'new';
+  const visible = isNew ? lists.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 200) : lists.flat();
+  const total = visible.filter(item => !read.has(item.key)).length;
+  const { additionalActivityUnread } = await import('./profile-social.server');
+  return total + await additionalActivityUnread(supabase, read);
 }
+
+/** New Activity's bell and native badge count the same visible notification window. */
+export const getActivityUnreadCount = createServerFn({ method: 'GET' })
+  .middleware([requireSupabaseAuth]).handler(async ({ context }) => ({ total: await computeUnreadTotal(context.supabase, context.userId) }));
 
 async function writeBadge(userId: string, count: number) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

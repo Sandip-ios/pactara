@@ -1,5 +1,12 @@
 # Roadmap
 
+## Phase 3 step 4
+- [x] New-only followers/following pages, permission-gated profile stat taps, 30-row server pagination/search, follow/remove/unfollow actions; own and approved-other lists verified.
+- [x] New-only Activity with existing crew/follow notifications, retained nudges/join requests/streak milestones/pact restarts/evening reminders, pending-follow row, shared read keys, matching bell/native badge window, poster-only media previews. Classic notification page unchanged.
+- [x] Follow requests with confirm/delete/follow-back, private-account menu access, disappearance when already followed and empty state verified.
+- [x] Six 390×844 base64 captures in public/qa/p3-step4.json; 655 tests across 67 files pass, build OK; all 39 QA accounts, crew and related rows removed; existing example data untouched; unpublished.
+- [ ] Push-only reminder history cannot be displayed: 5 PM/personal reminders outside the recorded evening slot and ephemeral partner reminders have no saved event records. Push delivery unchanged; no fabricated history.
+
 - [x] Tiny new-version follow-up: shared crew avatar ring defines its own white token, covering Crews/switcher/Find/header even outside profile token scope; progress link left offset removed. Browser checked actual shared component with 12 photo/fallback avatars at 28/30/36/40px and aligned name/bio/link; 19 existing profile/crew tests pass, build OK; no data changes, screenshots or publishing; classic unchanged.
 
 - [x] Account deletion: both block endpoints cascade from auth.users like follows; reports untouched; two database regressions and actual Settings deletion for classic/new verify both blocks disappear, the complete report survives, audit is written and sign-out reaches /login; 638 tests pass, build OK; temporary accounts/reports/audits removed; no screenshots or publishing.

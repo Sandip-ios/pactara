@@ -2134,6 +2134,16 @@ export type Database = {
         }[]
       }
       get_profile: { Args: { target: string }; Returns: Json }
+      get_redesign_activity_extras: { Args: never; Returns: Json }
+      get_social_list: {
+        Args: {
+          direction: string
+          page_offset?: number
+          query_text?: string
+          target: string
+        }
+        Returns: Json
+      }
       get_usernames: {
         Args: { _ids: string[] }
         Returns: {
