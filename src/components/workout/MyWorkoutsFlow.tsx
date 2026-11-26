@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useAppVersion } from "@/hooks/use-app-version";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { endWorkoutWithoutCompleting } from "@/lib/workouts.functions";
 import { deleteSavedWorkout, saveBuiltWorkout, type SavedWorkout } from "@/lib/lifts.functions";
 import { shareSavedWorkout } from "@/lib/workout-share.functions";
@@ -41,6 +41,8 @@ type Draft = {
  * timer except an explicit Start (`run`).
  */
 export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
+  const version = useAppVersion();
+  const toast = useVersionToast();
   const { map: lib } = useExerciseMap();
   const start = useStartWorkout();
   const qc = useQueryClient();
@@ -179,7 +181,8 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
     if (!wk) return;
     setDraft(null);
     onSaved?.();
-    toast(`${wk.name} saved`);
+    if (version === "new") toast.success(`${wk.name} saved`);
+    else toast(`${wk.name} saved`);
   };
 
   const saveAndStart = async () => {
@@ -198,11 +201,11 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
       const { url, name } = await shareFn({ data: { workoutId: id } });
       const outcome = await shareLink({ title: shareTitle(name), text: shareText(name), url });
       // The Share panel covers the bottom of the screen: these show at the top.
-      if (outcome === "copied") showTopMessage("Link copied");
-      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.");
+      if (outcome === "copied") showTopMessage("Link copied", version, { success: true });
+      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.", version);
     } catch (e) {
       console.error("[workout] share failed", e);
-      showTopMessage("Couldn't share. Try again.");
+      showTopMessage("Couldn't share. Try again.", version);
     } finally {
       setSharing(false);
     }
@@ -218,7 +221,8 @@ export function useMyWorkoutsFlow({ onSaved }: { onSaved?: () => void } = {}) {
       qc.setQueryData<SavedWorkout[]>(MY_WORKOUTS_KEY, (old) => (old ?? []).filter((x) => x.id !== d.workoutId));
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
       setDraft(null);
-      toast(`${d.savedName} deleted`);
+      if (version === "new") toast.success(`${d.savedName} deleted`);
+      else toast(`${d.savedName} deleted`);
     } catch (e) {
       console.error("[workout] delete failed", e);
       setSaveErr("Couldn't delete the workout. Check your connection and try again.");

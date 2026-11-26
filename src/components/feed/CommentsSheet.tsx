@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { Heart, ImagePlus, Loader2, Send } from "lucide-react";
 import { stabilizeSignedUrls } from "@/lib/stable-urls";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,6 +43,7 @@ function timeAgo(iso: string) {
 
 /** Posts a ready-made comment ("Let's go", "🔥"…) and refreshes the feed. */
 export function usePostQuickComment(postId: string) {
+  const toast = useVersionToast();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: string) => addPostComment({ data: { postId, body } }),
@@ -122,6 +123,7 @@ export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commen
 }
 
 function CommentLikeButton({ comment, postId }: { comment: { id: string; likeCount: number; likedByMe: boolean }; postId: string }) {
+  const toast = useVersionToast();
   const queryClient = useQueryClient();
   const [optimistic, setOptimistic] = useState<{ liked: boolean; count: number } | null>(null);
   const liked = optimistic ? optimistic.liked : comment.likedByMe;

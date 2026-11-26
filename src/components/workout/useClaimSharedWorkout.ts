@@ -6,6 +6,7 @@ import { saveSharedWorkout } from "@/lib/workout-share.functions";
 import { clearPendingSharedWorkout, getPendingSharedWorkout } from "@/lib/pending-shared-workout";
 import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
 import { showSavedToast } from "./savedToast";
+import { useAppVersion } from "@/hooks/use-app-version";
 
 let claiming = false;
 
@@ -15,6 +16,7 @@ let claiming = false;
  * save it and open it in Edit workout.
  */
 export function useClaimSharedWorkout() {
+  const version = useAppVersion();
   const saveFn = useServerFn(saveSharedWorkout);
   const navigate = useNavigate();
   const qc = useQueryClient();
@@ -28,7 +30,7 @@ export function useClaimSharedWorkout() {
         clearPendingSharedWorkout();
         if (res.status === "missing") return;
         void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
-        if (res.status === "saved") showSavedToast(res.name);
+        if (res.status === "saved") showSavedToast(res.name, version);
         void navigate({ href: res.workoutId ? `/workouts?edit=${res.workoutId}` : "/workouts" });
       } catch (e) {
         // Offline or a hiccup: keep the code and try again next time Home opens.
@@ -37,5 +39,5 @@ export function useClaimSharedWorkout() {
         claiming = false;
       }
     })();
-  }, [saveFn, navigate, qc]);
+  }, [saveFn, navigate, qc, version]);
 }

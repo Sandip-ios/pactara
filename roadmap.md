@@ -1,5 +1,10 @@
 # Roadmap
 
+## Icons, toasts, plan stat boxes
+- [x] Use the v2 web and native iOS icons; there is no web manifest or Android icon set in this repo. Native icons require a new App Store build.
+- [x] Route every toast reachable in the new version through newToast/newToastApi while preserving classic toasts and existing Undo support; success messages use the green check.
+- [x] Reuse the new workout stat box on the new plan page; all three measured 56px at 390px with the requested type, spacing, fill and colors. Saved icons-1.png, toast-home.png, toast-planday.png and plan-stats.png. Classic plan checked without shared boxes; 832 tests and typecheck pass; temporary QA plan/account/subscription removed; unpublished.
+
 - [x] Activity grouping review: diagonal 28px avatars aligned in a 40px slot, latest-post thumbnails retained, grouped check-in crew moved to time line, same-day join/pact grouping opens the crew; dl3-grouped.png refreshed at 390px; 678 tests and typecheck pass; temporary accounts/activity removed; classic notifications/server reads unchanged; unpublished.
 
 - [x] New-version Activity grouping within Today/This week/Earlier: grouped reactions/comments/cheers/check-ins/follows, per-person multi-post groups, unread union, safe actions and grouped followers navigation; dl3-grouped.png added to public/qa/deeplinks.json; 677 tests and typecheck pass; temporary accounts/crew/activity removed; unpublished.

@@ -9,7 +9,7 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { WorkoutSummaryRow } from "@/components/workout/FeedWorkout";
 import { Flame, ListChecks, MessageCircle, MoreHorizontal } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -353,6 +353,7 @@ function CommentsPreview({ item, unread, onOpen }: { item: FeedItem; unread: num
 /* ----------------------------- Own menu ----------------------------- */
 
 export function OwnPostMenu({ checkIn, compact = false }: { checkIn: CheckInNode; compact?: boolean }) {
+  const toast = useVersionToast();
   const queryClient = useQueryClient();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sharing, setSharing] = useState(false);

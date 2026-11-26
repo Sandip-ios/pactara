@@ -3,6 +3,7 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { newToastApi as toast } from "./new-toast";
+import { NewStatBox } from "./NewStatBox";
 import {
   CalendarDays, Check, ChevronLeft, ChevronRight, CircleX, Minus, Moon, MoreHorizontal, Pause, Play, Share, Users, Zap,
 } from "lucide-react";
@@ -112,9 +113,9 @@ function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActive
         <span className="text-[12px] font-extrabold uppercase tracking-[0.5px]" style={{ color: PURPLE }}>Pactara plan · {plan.level}</span>
         <h1 className="-mt-2 text-[24px] font-extrabold leading-tight tracking-[-0.4px]">{plan.name}</h1>
         <div className="grid grid-cols-3 gap-2">
-          <StatTile value={String(plan.weeks)} label="weeks" />
-          <StatTile value={String(plan.daysPerWeek)} label="days a week" />
-          <StatTile value={minutesTile(plan.minutes)} label="min a day" />
+          <NewStatBox value={String(plan.weeks)} label="weeks" />
+          <NewStatBox value={String(plan.daysPerWeek)} label="days a week" />
+          <NewStatBox value={minutesTile(plan.minutes)} label="min a day" />
         </div>
         <p className="text-[15px] leading-[1.45]" style={{ color: "#292524" }}>{plan.summary}</p>
         <div className="flex flex-wrap gap-1.5">
@@ -169,15 +170,6 @@ function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActive
         onConfirm={() => { setConfirmSwitch(false); setSheetOpen(true); }}
       />
       <StartSheet open={sheetOpen} onOpenChange={setSheetOpen} plan={plan} crew={info?.crew ?? null} />
-    </div>
-  );
-}
-
-function StatTile({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex h-[54px] flex-col items-center justify-center rounded-[12px]" style={{ background: "#F0EDE8" }}>
-      <span className="text-[18px] font-extrabold leading-none">{value}</span>
-      <span className="mt-1 text-[12px]" style={{ color: G600 }}>{label}</span>
     </div>
   );
 }
@@ -379,7 +371,7 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
       await qc.invalidateQueries({ queryKey: ["my-plans"] });
       void qc.invalidateQueries({ queryKey: ["crew-plans"] });
       setEndOpen(false);
-      toast(`You ended ${plan.name}`);
+      toast.success(`You ended ${plan.name}`);
     } catch {
       toast.error("Couldn't end the plan. Check your connection and try again.");
     } finally {

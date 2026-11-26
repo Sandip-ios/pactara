@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute, Navigate, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 import { ACTIVITY_UNAVAILABLE, type ActivityDeepLinkKind } from "@/lib/activity-deeplink";
 import { resolveActivityDeepLink } from "@/lib/activity-deeplink.functions";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/activity/open")({
 
 function ActivityOpenRoute() {
   const version = useAppVersion();
+  const toast = useVersionToast();
   const prefs = useAppPrefs();
   const search = Route.useSearch();
   const searchStr = useRouterState({ select: state => state.location.searchStr });

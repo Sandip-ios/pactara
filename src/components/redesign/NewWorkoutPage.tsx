@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Bookmark, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Play, Share, Trash2 } from "lucide-react";
 import { newToast as toast } from "./new-toast";
+import { NewStatBox } from "./NewStatBox";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 import { NewConfirm } from "./NewConfirm";
 import { PactaraAuthorIcon } from "./PactaraAuthorIcon";
@@ -140,10 +141,10 @@ export function NewWorkoutPage({ id }: { id: string }) {
     try {
       const { url, name } = await shareFn({ data: { workoutId: page.workoutId } });
       const outcome = await shareLink({ title: shareTitle(name), text: shareText(name), url });
-      if (outcome === "copied") showTopMessage("Link copied");
-      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.");
+      if (outcome === "copied") showTopMessage("Link copied", "new", { success: true });
+      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.", "new");
     } catch {
-      showTopMessage("Couldn't share. Try again.");
+      showTopMessage("Couldn't share. Try again.", "new");
     } finally {
       setLinkBusy(false);
     }
@@ -157,7 +158,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
     }
     if (!page.shareCode) return;
     const outcome = await shareLink({ title: shareTitle(page.name), text: shareText(page.name), url: shareUrl(page.shareCode) });
-    if (outcome === "copied") toast("Link copied");
+    if (outcome === "copied") toast("Link copied", { success: true });
     else if (outcome === "failed") toast("Couldn't share. Try again.");
   };
 
@@ -170,7 +171,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
       qc.setQueryData<SavedWorkout[]>(MY_WORKOUTS_KEY, (old) => (old ?? []).filter((x) => x.id !== page.workoutId));
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
       setDeleteOpen(false);
-      toast(`${page.name} deleted`);
+      toast(`${page.name} deleted`, { success: true });
       back();
     } catch (e) {
       console.error("[workout-page] delete failed", e);
@@ -193,9 +194,9 @@ export function NewWorkoutPage({ id }: { id: string }) {
           <span>by <b className="font-bold" style={{ color: INK }}>{page.author.name}</b></span>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2">
-          <Stat value={`${stats.minutes} min`} label="time" />
-          <Stat value={String(stats.exercises)} label="exercises" />
-          <Stat value={String(stats.sets)} label="sets" />
+          <NewStatBox value={`${stats.minutes} min`} label="time" />
+          <NewStatBox value={String(stats.exercises)} label="exercises" />
+          <NewStatBox value={String(stats.sets)} label="sets" />
         </div>
         {chips.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
@@ -287,15 +288,6 @@ function Circle({ label, onClick, children }: { label: string; onClick: () => vo
     <button type="button" aria-label={label} onClick={onClick} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: CIRCLE, color: INK }}>
       {children}
     </button>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="flex min-h-[56px] flex-col items-center justify-center gap-[2px] rounded-[12px] py-[10px]" style={{ background: CIRCLE }}>
-      <span className="text-[20px] font-extrabold leading-[20px]">{value}</span>
-      <span className="text-[13px] leading-[14px]" style={{ color: MUTED }}>{label}</span>
-    </div>
   );
 }
 

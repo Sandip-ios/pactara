@@ -1,5 +1,7 @@
 import { toast, type ExternalToast } from "sonner";
 import { Check } from "lucide-react";
+import { useAppVersion } from "@/hooks/use-app-version";
+import type { AppVersion } from "@/lib/app-version";
 
 type NewToastOpts = Pick<ExternalToast, "id"> & {
   /** Green check circle in front of the message. */
@@ -63,4 +65,14 @@ export const newToastApi = Object.assign((message: string, opts?: NewToastOpts) 
   success: (message: string, opts?: NewToastOpts) => newToast(message, { ...opts, success: true }),
   error: (message: string, opts?: NewToastOpts) => newToast(message, opts),
   info: (message: string, opts?: NewToastOpts) => newToast(message, opts),
+  dismiss: (id?: string | number) => toast.dismiss(id),
 });
+
+/** Shared screens use the new toast only in the new version; classic keeps sonner exactly as before. */
+export function toastForVersion(version: AppVersion) {
+  return version === "new" ? newToastApi : toast;
+}
+
+export function useVersionToast() {
+  return toastForVersion(useAppVersion());
+}

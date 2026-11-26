@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Flame, Check, Clock, Hourglass, Hand, Moon } from "lucide-react";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { nudgeMember, type MemberToday, type MemberTodayStatus } from "@/lib/group-today.functions";
 import { useSafetyState } from '@/components/safety/SafetyActions';
 
@@ -170,6 +170,7 @@ export function NudgeButton({
   /** Tighter padding/text so the pill fits a narrow crew column. */
   compact?: boolean;
 }) {
+  const toast = useVersionToast();
   const [sent, setSent] = useState(initialSent);
   const [covered, setCovered] = useState(false);
   const [sending, setSending] = useState(false);

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { Moon } from "lucide-react";
 import type { FeedItem, FeedMember } from "@/lib/daily-posts.functions";
 import { nudgeMember } from "@/lib/group-today.functions";
@@ -74,6 +74,7 @@ export function NotYetRow({
   nudgedAt: string | null;
   groupId: string;
 }) {
+  const toast = useVersionToast();
   const queryClient = useQueryClient();
   const [sentAt, setSentAt] = useState<string | null>(nudgedAt);
   const [covered, setCovered] = useState(false);

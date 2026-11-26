@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Download, Loader2, MoreHorizontal, SlidersHorizontal, X } from "lucide-react";
 import { toast } from "sonner";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { newToast } from "@/components/redesign/new-toast";
 import { Switch } from "@/components/ui/switch";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useToastAbove } from "@/lib/toast-offset";
@@ -52,12 +54,14 @@ type Action = "instagram" | "facebook" | "save" | "more";
 export type ShareMedia = { blob: Blob; kind: ShareMediaKind };
 
 const shownToasts = new Set<string | number>();
-function darkToast(message: string, ok = true) {
-  const id = toast(message, {
-    position: "bottom-center",
-    ...(ok ? { icon: <CheckCircle2 size={18} style={{ color: "#4ADE80" }} aria-hidden /> } : {}),
-    style: DARK_TOAST,
-  });
+function darkToast(message: string, ok = true, version: "classic" | "new" = "classic") {
+  const id = version === "new"
+    ? newToast(message, { success: ok })
+    : toast(message, {
+        position: "bottom-center",
+        ...(ok ? { icon: <CheckCircle2 size={18} style={{ color: "#4ADE80" }} aria-hidden /> } : {}),
+        style: DARK_TOAST,
+      });
   shownToasts.add(id);
 }
 
@@ -75,6 +79,7 @@ export function ShareWinScreen({
   input: ShareCardInput | null;
   onClose: () => void;
 }) {
+  const version = useAppVersion();
   useHideBottomTabs(true, false);
   const [format, setFormat] = useState<ShareFormat>("story");
   const [prefs, setPrefs] = useState<ShareCardPrefs>(() => loadCardPrefs());
@@ -239,16 +244,16 @@ export function ShareWinScreen({
         const { blob, name } = await fileFor("full", action);
         if (hasNativeShare()) {
           await saveToPhotos(blob, name);
-          darkToast("Saved to Photos");
+          darkToast("Saved to Photos", true, version);
         } else {
           // Current App Store build / web: the share sheet's "Save Video" / "Save Image".
           const r = await shareMediaFile(blob, name);
-          if (r === "downloaded") darkToast(downloadedCopy);
+          if (r === "downloaded") darkToast(downloadedCopy, true, version);
         }
       } else if (action === "more") {
         const { blob, name } = await fileFor("full", action);
         const r = await shareMediaFile(blob, name);
-        if (r === "downloaded") darkToast(downloadedCopy);
+        if (r === "downloaded") darkToast(downloadedCopy, true, version);
       } else {
         const app: StoriesApp = action;
         if (canRender !== false && (await storiesReady(app))) {
@@ -259,19 +264,19 @@ export function ShareWinScreen({
         } else if (hasNativeShare()) {
           const { blob, name } = await fileFor("full", action);
           await saveToPhotos(blob, name);
-          darkToast("Saved to Photos. Pick it in your story.");
+          darkToast("Saved to Photos. Pick it in your story.", true, version);
           openStoriesApp(app);
         } else {
           // No native plugin yet: the share sheet lists Instagram / Facebook.
           const { blob, name } = await fileFor("full", action);
           const r = await shareMediaFile(blob, name);
-          if (r === "downloaded") darkToast(downloadedCopy);
+          if (r === "downloaded") darkToast(downloadedCopy, true, version);
         }
       }
     } catch (e) {
       if ((e as DOMException)?.name !== "AbortError") {
         console.error("[share] failed", e);
-        darkToast(errorCopy, false);
+        darkToast(errorCopy, false, version);
       }
     } finally {
       setBusy(null);

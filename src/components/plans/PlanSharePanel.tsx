@@ -11,6 +11,7 @@ import { getPlanSharePanel, sendPlanToCrew } from "@/lib/plan-share.functions";
 import { planCoverAt, planMetaLine, planShareText, planShareTitle } from "@/lib/plan-share";
 import { shareLink } from "@/lib/share-link";
 import { usePartnerState } from "@/hooks/use-partner-state";
+import { useAppVersion } from "@/hooks/use-app-version";
 import { relationForGroup } from "@/lib/group-display";
 
 const panelKey = (slug: string) => ["plan-share-panel", slug] as const;
@@ -22,6 +23,7 @@ type PanelPlan = { slug: string; name: string; weeks: number; daysPerWeek: numbe
  * a link anywhere else. Same panel as workouts; works on or off the plan.
  */
 export function PlanSharePanel({ open, plan, onClose, variant = "classic" }: { open: boolean; plan: PanelPlan; onClose: () => void; variant?: "classic" | "new" }) {
+  const version = useAppVersion();
   const qc = useQueryClient();
   const panelFn = useServerFn(getPlanSharePanel);
   const sendFn = useServerFn(sendPlanToCrew);
@@ -49,7 +51,7 @@ export function PlanSharePanel({ open, plan, onClose, variant = "classic" }: { o
       void qc.invalidateQueries({ queryKey: ["group-chat", groupId] });
     } catch (e) {
       console.error("[plan-share] send to crew failed", e);
-      showTopError("Couldn't send. Try again.");
+      showTopError("Couldn't send. Try again.", version);
     } finally {
       setSending((s) => {
         const n = new Set(s);
@@ -65,8 +67,8 @@ export function PlanSharePanel({ open, plan, onClose, variant = "classic" }: { o
     try {
       const outcome = await shareLink({ title: planShareTitle(plan.name), text: planShareText(plan.name), url: data.url });
       // The panel covers the bottom of the screen: these show at the top.
-      if (outcome === "copied") showTopMessage("Link copied");
-      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.");
+      if (outcome === "copied") showTopMessage("Link copied", version, { success: true });
+      else if (outcome === "failed") showTopMessage("Couldn't share. Try again.", version);
     } finally {
       setLinkBusy(false);
     }

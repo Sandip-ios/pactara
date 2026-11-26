@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+import { useVersionToast } from "@/components/redesign/new-toast";
 import { getCheckInShareData, type CheckInShareData } from "@/lib/daily-posts.functions";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
@@ -31,6 +31,7 @@ export function useShareInput(data: CheckInShareData | null): ShareCardInput | n
  * behind a spinner. Only the member's own check-ins (the server refuses others).
  */
 export function ShareCheckInScreen({ checkInId, onClose }: { checkInId: string; onClose: () => void }) {
+  const toast = useVersionToast();
   const fetchShare = useServerFn(getCheckInShareData);
   const [data, setData] = useState<CheckInShareData | null>(null);
   const [media, setMedia] = useState<ShareMedia | null>(null);

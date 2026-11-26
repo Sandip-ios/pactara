@@ -7,6 +7,7 @@ import { NewSheet, NewSheetButton } from "@/components/redesign/NewSheet";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { getWorkoutSharePanel, sendWorkoutToCrew, type ShareCrew } from "@/lib/workout-share.functions";
 import { usePartnerState } from "@/hooks/use-partner-state";
+import { useAppVersion } from "@/hooks/use-app-version";
 import { relationForGroup } from "@/lib/group-display";
 import { plural } from "@/lib/lift-rules";
 import { showTopError } from "./savedToast";
@@ -36,6 +37,7 @@ export function WorkoutSharePanel({
   /** "new": the new version's NewSheet look; same crews, sends and link. */
   variant?: "classic" | "new";
 }) {
+  const version = useAppVersion();
   const qc = useQueryClient();
   const panelFn = useServerFn(getWorkoutSharePanel);
   const sendFn = useServerFn(sendWorkoutToCrew);
@@ -61,7 +63,7 @@ export function WorkoutSharePanel({
       void qc.invalidateQueries({ queryKey: ["group-chat", groupId] });
     } catch (e) {
       console.error("[share] send to crew failed", e);
-      showTopError("Couldn't send. Try again.");
+      showTopError("Couldn't send. Try again.", version);
     } finally {
       setSending((s) => {
         const n = new Set(s);
