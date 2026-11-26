@@ -12,6 +12,8 @@ import { discoveryAvatars } from "./NewCrewDiscovery";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
+import { useCrewLimit } from "@/lib/use-crew-limit";
+import { crewLimitButton } from "@/lib/crew-limit";
 
 export function NewCrewPreview({ groupId }: { groupId: string }) {
   useHideBottomTabs(true, false);
@@ -31,6 +33,7 @@ export function NewCrewPreview({ groupId }: { groupId: string }) {
   const cancel = useServerFn(cancelCrewJoinRequest);
   const crew = data?.crew ?? null;
   const full = crew ? crew.memberCount >= crew.limit : false;
+  const atLimit = useCrewLimit();
   const link = typeof window === "undefined" ? "" : `${window.location.origin}/crews/${groupId}/preview`;
 
   const refresh = async () => {
@@ -125,13 +128,15 @@ export function NewCrewPreview({ groupId }: { groupId: string }) {
                   <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-disabled-bg)] text-[17px] font-bold text-[var(--new-disabled-text)] disabled:opacity-100">Requested</Button>
                   <Button variant="ghost" disabled={busy} onClick={() => void drop()} className="mt-2 h-11 w-full bg-transparent text-[15px] font-bold text-[var(--new-purple-text)] hover:bg-transparent hover:text-[var(--new-purple-text)]">Cancel request</Button>
                 </>
+              ) : atLimit ? (
+                <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-disabled-bg)] text-[17px] font-bold text-[var(--new-disabled-text)] disabled:opacity-100">{crewLimitButton()}</Button>
               ) : full ? (
                 <Button variant="ghost" disabled className="h-[52px] w-full rounded-[26px] bg-[var(--new-disabled-bg)] text-[17px] font-bold text-[var(--new-disabled-text)] disabled:opacity-100">Crew is full</Button>
               ) : (
                 <Button variant="ghost" disabled={busy} onClick={() => void join()} className="h-[52px] w-full rounded-[26px] bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)] hover:text-[var(--new-white)] disabled:opacity-60">{busy ? "Asking…" : "Ask to join"}</Button>
               )}
               <p className="mt-2 px-2 text-center text-[13px] leading-[1.45] text-[var(--new-muted)]">
-                {full && !crew.requested ? `${crew.ownerFirstName} runs this crew. When a spot opens, it shows up here again.` : `${crew.ownerFirstName} runs this crew and approves requests. You'll get a notification.`}
+                {atLimit && !crew.requested ? "Leave a crew to join this one." : full && !crew.requested ? `${crew.ownerFirstName} runs this crew. When a spot opens, it shows up here again.` : `${crew.ownerFirstName} runs this crew and approves requests. You'll get a notification.`}
               </p>
             </div>
           </main>
