@@ -322,8 +322,8 @@ function CheckTip({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div role="status" className="absolute right-0 top-[calc(100%+12px)] z-20 w-[232px] rounded-[14px] px-[14px] py-3 text-left" style={{ background: "#1C1917", boxShadow: "0 8px 24px rgba(20,18,24,0.22)" }}>
       <span aria-hidden className="absolute -top-[6px] right-[11px] h-3 w-3 rotate-45" style={{ background: "#1C1917" }} />
-      <div className="text-[15px] font-extrabold text-white">Tap when complete</div>
-      <p className="mt-1 text-[13px] leading-[1.4]" style={{ color: "rgba(255,255,255,0.78)" }}>Check off each set as you finish it. Your rest timer starts on its own.</p>
+      <div className="text-[15px] font-extrabold text-white">Finished a set? Tap here.</div>
+      <p className="mt-1 text-[13px] leading-[1.4]" style={{ color: "rgba(255,255,255,0.78)" }}>It turns green and your rest timer starts.</p>
       <div className="mt-1 flex justify-end">
         <button type="button" onClick={onDismiss} className="-mr-2 h-9 px-2 text-[14px] font-extrabold" style={{ color: "#C4B5FD" }}>Got it</button>
       </div>
