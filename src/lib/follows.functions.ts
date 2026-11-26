@@ -95,3 +95,15 @@ export const getFollowNotifications = createServerFn({ method: 'GET' }).middlewa
     const visible = items.filter(item => item !== null).map(item => ({ ...item, read: read.has(item.key), avatar: item.avatar?.startsWith('https://') ? item.avatar : avatars.get(item.avatar ?? '') ?? null }));
     return { items: visible, unread: visible.filter(item => !item.read).length };
   });
+/** Account privacy screen: current setting, under-18 lock and pending request count. */
+export const getPrivacySettings = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [prefs, requests] = await Promise.all([
+      context.supabase.rpc('get_my_app_prefs'),
+      context.supabase.rpc('get_social_list', { target: context.userId, direction: 'requests' }),
+    ]);
+    if (prefs.error || requests.error) throw new Error('Could not load privacy settings');
+    const { isUnder18 } = await import('./redesign-profile');
+    const p = prefs.data?.[0];
+    return { isPrivate: p?.is_private ?? true, isTeen: isUnder18(p?.birthday ?? null), pending: (requests.data as unknown as { total?: number })?.total ?? 0 };
+  });

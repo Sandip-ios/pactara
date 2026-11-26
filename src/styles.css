@@ -10,6 +10,7 @@
   --new-white: #FFFFFF;
   --new-ink: #1C1917;
   --new-muted: #57534E;
+  --new-switch-off: #D6D3D1;
   --new-control: #F4F2EF;
   --new-disabled-bg: #E7E3DE;
   --new-disabled-text: #78716C;
@@ -191,6 +192,30 @@
 .new-profile-bio-hint { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 6px; font-size: 12px; color: var(--new-muted); }
 .new-profile-bio-hint > span:last-child { flex-shrink: 0; }
 .new-profile-edit-note { margin: 14px 20px; font-size: 13px; line-height: 1.45; color: var(--new-muted); }
+.new-privacy-page { background: var(--new-control); color: var(--new-ink); }
+.new-privacy-card { margin: 16px 16px 0; padding: 14px 16px; display: flex; gap: 12px; align-items: center; border-radius: 20px; background: var(--new-white); }
+.new-privacy-copy { flex: 1; min-width: 0; }
+.new-privacy-copy strong { display: block; font-size: 16px; font-weight: 700; }
+.new-privacy-copy small { display: block; margin-top: 2px; font-size: 13px; color: var(--new-muted); }
+.new-privacy-switch { width: 52px; height: 32px; flex: 0 0 52px; padding: 3px; border-radius: 16px; background: var(--new-switch-off); justify-content: flex-start; }
+.new-privacy-switch:hover { background: var(--new-switch-off); }
+.new-privacy-switch.on, .new-privacy-switch.on:hover { background: var(--new-purple); justify-content: flex-end; }
+.new-privacy-switch > span { width: 26px; height: 26px; border-radius: 50%; background: var(--new-white); }
+.new-privacy-lock { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--new-control); font-size: 13px; font-weight: 700; color: var(--new-muted); }
+.new-privacy-info { margin: 16px; padding: 16px; border-radius: 20px; background: var(--new-white); }
+.new-privacy-info h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }
+.new-privacy-info p { display: flex; gap: 12px; align-items: flex-start; font-size: 14px; line-height: 1.45; color: var(--new-ink); }
+.new-privacy-info p + p { margin-top: 12px; }
+.new-privacy-info svg { flex: 0 0 18px; margin-top: 1px; color: var(--new-purple); }
+.new-privacy-info svg.flame { color: var(--new-orange); }
+.new-privacy-footer { padding: 0 24px; font-size: 13px; line-height: 1.45; color: var(--new-muted); }
+.new-blocked-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--new-white); }
+.new-blocked-copy { flex: 1; min-width: 0; }
+.new-blocked-copy strong { display: block; font-size: 16px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.new-blocked-copy small { display: block; margin-top: 2px; font-size: 13px; color: var(--new-muted); }
+.new-blocked-unblock, .new-blocked-unblock:hover { height: 34px; padding: 0 14px; border-radius: 10px; background: var(--new-control); font-size: 14px; font-weight: 700; color: var(--new-ink); }
+.new-blocked-empty { padding: 40px 24px 0; text-align: center; font-size: 15px; color: var(--new-muted); }
+.new-blocked-footer { padding: 16px 24px; text-align: center; font-size: 13px; line-height: 1.45; color: var(--new-disabled-text); }
 .new-profile-privacy-row { margin: 14px 16px; padding: 16px; display: flex; gap: 12px; align-items: center; border-radius: 20px; background: var(--new-white); }
 .new-profile-privacy-row > span { flex: 1; }
 .new-profile-privacy-row strong { display: block; font-size: 16px; }

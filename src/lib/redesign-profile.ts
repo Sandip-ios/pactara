@@ -79,3 +79,25 @@ export function blockConfirmBody(firstName: string, sharedCrewName: string | nul
 export function memberFirstName(name: string, username: string | null): string {
   return name.trim().split(/\s+/)[0] || username || 'Member';
 }
+
+/** Under 18 by birthday (local calendar date). Matches the database's teen-privacy rule. */
+export function isUnder18(birthday: string | null | undefined, today: Date = new Date()): boolean {
+  if (!birthday) return false;
+  const [y, m, d] = birthday.split('-').map(Number);
+  if (!y || !m || !d) return false;
+  const eighteenth = new Date(y + 18, m - 1, d);
+  const t = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return t < eighteenth;
+}
+
+export function switchPublicBody(pending: number): string {
+  const base = 'Anyone can see your profile and follow you.';
+  return pending > 0 ? `${base} People with pending requests (${pending}) will follow you automatically.` : base;
+}
+
+export function blockedOnLabel(createdAt: string): string {
+  return `Blocked ${new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+}
+
+/** What blocking does today (profile, check-ins, crew chat, follows, nudges are all enforced). */
+export const BLOCKING_EXPLAINER = "They can't see your profile, check-ins or crew messages, and they can't follow or nudge you. They aren't told.";

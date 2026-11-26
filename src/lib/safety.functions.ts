@@ -27,12 +27,12 @@ export const getBlockedPeople = createServerFn({ method: 'GET' })
     // Profiles may no longer be visible after leaving a shared crew. The server
     // reads only names/photos for IDs verified against this member's own list.
     const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
-    const { data: people, error: peopleError } = await supabaseAdmin.from('profiles').select('id, name, avatar_color, avatar_url').in('id', blocks.map(r => r.blocked_id));
+    const { data: people, error: peopleError } = await supabaseAdmin.from('profiles').select('id, name, username, avatar_color, avatar_url').in('id', blocks.map(r => r.blocked_id));
     if (peopleError) throw new Error('Could not load blocked people');
     const urls = await signAvatarThumbs(supabaseAdmin, (people ?? []).map(p => p.avatar_url));
     return blocks.map(block => {
       const p = people?.find(person => person.id === block.blocked_id);
-      return { id: block.blocked_id, name: p?.name || 'Member', avatarColor: p?.avatar_color || '', avatarUrl: p?.avatar_url ? urls.get(p.avatar_url) ?? null : null };
+      return { id: block.blocked_id, blockedAt: block.created_at, username: p?.username ?? null, name: p?.name || 'Member', avatarColor: p?.avatar_color || '', avatarUrl: p?.avatar_url ? urls.get(p.avatar_url) ?? null : null };
     });
   });
 

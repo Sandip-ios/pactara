@@ -6,6 +6,7 @@ import { FeedAvatar } from '@/components/feed/FeedMedia';
 import { UnblockButton } from '@/components/safety/SafetyActions';
 import { getBlockedPeople } from '@/lib/safety.functions';
 import { useAppVersion } from '@/hooks/use-app-version';
+import { NewBlockedPeople } from '@/components/redesign/NewBlockedPeople';
 
 const blockedPeopleQuery = queryOptions({ queryKey: ['safety', 'people'], queryFn: () => getBlockedPeople() });
 
@@ -23,6 +24,7 @@ function BlockedPeople() {
   const { data: people } = useSuspenseQuery(blockedPeopleQuery);
   const qc = useQueryClient();
   const version = useAppVersion();
+  if (version === 'new') return <NewBlockedPeople queryKey={blockedPeopleQuery.queryKey} />;
   return <div className={`fixed inset-0 overflow-y-auto overscroll-none bg-health-surface ${version === 'new' ? 'pb-[max(24px,env(safe-area-inset-bottom))]' : 'pb-28'}`}>
     <header className={`flex items-center gap-2 bg-card px-4 ${version === 'new' ? 'pt-new-top' : 'pt-safe-5'} pb-4`}>
       <Button variant="ghost" size="icon" asChild className="rounded-full"><Link to="/account-settings" aria-label="Back"><ChevronLeft size={22} /></Link></Button>
