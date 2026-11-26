@@ -48,8 +48,8 @@ export function NewPactDone({ groupId }: { groupId: string }) {
   };
 
   return (
-    <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: "linear-gradient(180deg, #F3EEFF 0px, #F4F2EF 360px)", color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
-      <main className="px-4 pb-[calc(32px+env(safe-area-inset-bottom))] pt-new-top">
+    <div className="fixed inset-0 flex flex-col" style={{ background: "linear-gradient(180deg, #F3EEFF 0px, #F4F2EF 360px)", color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <main ref={scrollRef} data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-none px-4 pb-6 pt-new-top">
         <div className="mx-auto mt-6 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-white">
           <Trophy size={32} style={{ color: "#C2410C" }} aria-hidden />
         </div>
@@ -68,16 +68,16 @@ export function NewPactDone({ groupId }: { groupId: string }) {
             );
           })}
         </section>
-        <div className="mt-6">
+      </main>
+      <div className="shrink-0 px-6" style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 16px) + 24px)" }}>
           <button type="button" onClick={() => status.isOwner ? navigate({ to: "/crews/$groupId/next-pact", params: { groupId } }) : navigate({ to: "/crews/$groupId", params: { groupId } })} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white" style={{ background: "#7C3AED" }}>
             {status.isOwner ? "Start the next pact" : "Back to crew"}
           </button>
-          <button type="button" onClick={() => void share()} className="mt-[10px] h-[52px] w-full rounded-[26px] text-[17px] font-bold" style={{ background: "#EDE4FF", color: "#6D28D9" }}>Share your result</button>
+          <button type="button" onClick={() => void share()} className="mt-3 h-[52px] w-full rounded-[26px] text-[17px] font-bold" style={{ background: "#EDE4FF", color: "#6D28D9" }}>Share your result</button>
           <p className="mt-3 px-2 text-center text-[13px] leading-[1.45]" style={{ color: MUTED }}>
             {status.isOwner ? `You run ${group.name}. To end the crew instead, go to Crew settings.` : `${ownerName} runs ${group.name} and decides what's next.`}
           </p>
-        </div>
-      </main>
+      </div>
     </div>
   );
 }

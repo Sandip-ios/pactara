@@ -64,12 +64,12 @@ export function NewNextPact({ groupId }: { groupId: string }) {
   };
 
   return (
-    <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: "#F4F2EF", color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
-      <header className="flex items-center gap-3 bg-white px-4 pb-3 pt-new-top">
+    <div className="fixed inset-0 flex flex-col" style={{ background: "#F4F2EF", color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+      <header className="relative flex shrink-0 items-center bg-white px-4 pb-3 pt-new-top">
         <button type="button" aria-label="Back" onClick={() => window.history.length > 1 ? window.history.back() : back()} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}><ChevronLeft size={22} /></button>
-        <h1 className="text-[17px] font-extrabold">Next pact</h1>
+        <h1 className="pointer-events-none absolute inset-x-0 bottom-3 flex h-11 items-center justify-center text-[17px] font-bold">Next pact</h1>
       </header>
-      <main className="px-4 pb-[calc(32px+env(safe-area-inset-bottom))]">
+      <main ref={scrollRef} data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-none px-4 pb-6">
         <h2 className="mt-5 text-[28px] font-extrabold leading-tight">Keep {group.name} going</h2>
         <p className="mt-2 text-[15px] leading-[1.45]" style={{ color: MUTED }}>Streaks, members and goals carry over. Everyone can set a new goal.</p>
         <Label>How long</Label>
@@ -86,21 +86,23 @@ export function NewNextPact({ groupId }: { groupId: string }) {
         </div>
         <Label>Workouts a week</Label>
         <div className="mt-2 flex h-[52px] items-center justify-between rounded-[16px] bg-white px-4">
-          <span className="text-[15px] font-bold">{perWeek === status.daysPerWeek ? "Same as now" : `Changed from ${status.daysPerWeek}`}</span>
-          <div className="flex items-center gap-3">
-            <button type="button" aria-label="Fewer workouts" disabled={perWeek <= 1} onClick={() => setPerWeek((n) => Math.max(1, n - 1))} className="flex h-9 w-9 items-center justify-center rounded-full disabled:opacity-40" style={{ background: "#F4F2EF" }}><Minus size={18} /></button>
+          <span className="text-[16px] font-normal" style={{ color: INK }}>{perWeek === status.daysPerWeek ? "Same as now" : `Changed from ${status.daysPerWeek}`}</span>
+          <div className="-mr-3 flex items-center gap-4">
+            <button type="button" aria-label="Fewer workouts" disabled={perWeek <= 1} onClick={() => setPerWeek((n) => Math.max(1, n - 1))} className="-mr-3 flex h-11 w-11 items-center justify-center" style={{ color: perWeek <= 1 ? "#D6D3D1" : INK }}><Minus size={20} /></button>
             <span className="w-6 text-center text-[20px] font-extrabold">{perWeek}</span>
-            <button type="button" aria-label="More workouts" disabled={perWeek >= 7} onClick={() => setPerWeek((n) => Math.min(7, n + 1))} className="flex h-9 w-9 items-center justify-center rounded-full disabled:opacity-40" style={{ background: "#F4F2EF" }}><Plus size={18} /></button>
+            <button type="button" aria-label="More workouts" disabled={perWeek >= 7} onClick={() => setPerWeek((n) => Math.min(7, n + 1))} className="-ml-3 flex h-11 w-11 items-center justify-center" style={{ color: perWeek >= 7 ? "#D6D3D1" : INK }}><Plus size={20} /></button>
           </div>
         </div>
         <div className="mt-5 flex items-start gap-2.5 px-1 text-[14px] leading-[1.45]" style={{ color: MUTED }}>
           <Bell size={18} className="mt-0.5 shrink-0" aria-hidden />
           <span>{notifyNamesLine(others)}</span>
         </div>
-        <button type="button" disabled={busy} onClick={() => void go()} className="mt-6 h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white disabled:opacity-60" style={{ background: "#7C3AED" }}>
+      </main>
+      <div className="shrink-0 px-6 pt-3" style={{ paddingBottom: "calc(max(env(safe-area-inset-bottom), 16px) + 24px)" }}>
+        <button type="button" disabled={busy} onClick={() => void go()} className="h-[52px] w-full rounded-[26px] text-[17px] font-bold text-white disabled:opacity-60" style={{ background: "#7C3AED" }}>
           {busy ? "Starting…" : `Start ${nextPactStartLabel(startDay)}`}
         </button>
-      </main>
+      </div>
     </div>
   );
 }
