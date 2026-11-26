@@ -48,6 +48,14 @@ export function WorkoutBar({ tabsVisible }: { tabsVisible: boolean }) {
   const hidden = !w || fromLogger || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera");
   const barRef = useRef<HTMLButtonElement>(null);
   useToastAbove(barRef, !hidden);
+  // Full-screen pages (no tabs) pad their bottom by this so nothing hides behind the bar.
+  const padOn = !hidden && !tabsVisible;
+  useEffect(() => {
+    const root = document.documentElement.style;
+    if (padOn) root.setProperty("--workout-bar-pad", "calc(48px + env(safe-area-inset-bottom))");
+    else root.removeProperty("--workout-bar-pad");
+    return () => { root.removeProperty("--workout-bar-pad"); };
+  }, [padOn]);
   if (hidden) return null;
   return (
     <button

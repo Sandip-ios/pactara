@@ -210,7 +210,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
         </div>
       </div>
 
-      <div className="px-4 pt-4" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
+      <div className="px-4 pt-4" style={{ paddingBottom: "calc(max(32px, env(safe-area-inset-bottom)) + var(--workout-bar-pad, 0px))" }}>
         <div className="overflow-hidden rounded-[18px] bg-white">
           {rows.map((r, i) => {
             const tip = tipText(r.tip);

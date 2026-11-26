@@ -139,13 +139,13 @@ function PlanOverview({ plan, otherActive }: { plan: Plan; otherActive: MyActive
         )}
       </section>
 
-      <section className="flex flex-col gap-2.5 px-4 pb-[130px] pt-5">
+      <section className="flex flex-col gap-2.5 px-4 pt-5" style={{ paddingBottom: "calc(130px + var(--workout-bar-pad, 0px))" }}>
         <span className="mx-1 text-[12px] font-extrabold uppercase tracking-[0.5px]" style={{ color: MUTED }}>Week 1</span>
         <DayList plan={plan} week={1} days={week1} onOpen={(d) => navigate({ to: "/plans/$slug/day", params: { slug: plan.slug }, search: { week: 1, day: d } })} />
         {note && <p className="mx-3 text-center text-[13px] leading-snug" style={{ color: MUTED }}>{note}</p>}
       </section>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 bg-white px-4 pt-3" style={{ borderTop: "1px solid #ECE8E1", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
+      <div className="fixed inset-x-0 bottom-0 z-20 bg-white px-4 pt-3" style={{ borderTop: "1px solid #ECE8E1", bottom: "var(--workout-bar-pad, 0px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
         <button
           type="button"
           onClick={() => (otherActive ? setConfirmSwitch(true) : setSheetOpen(true))}
@@ -404,7 +404,7 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
           <span className="block h-full rounded-full" style={{ background: PURPLE, width: `${Math.min(100, (active.workoutsDone / Math.max(1, total)) * 100)}%` }} />
         </span>
       </div>
-      <div className="flex flex-col gap-3 px-4 pt-[6px]" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-col gap-3 px-4 pt-[6px]" style={{ paddingBottom: "calc(max(32px, env(safe-area-inset-bottom)) + var(--workout-bar-pad, 0px))" }}>
 
         <Label>Today</Label>
         <div className="flex flex-col gap-3 rounded-[18px] bg-white p-3.5" data-today-card>

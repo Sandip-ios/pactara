@@ -78,7 +78,7 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
           <h1 className="pointer-events-none absolute inset-x-14 text-center text-[17px] font-bold">Week {pos.week} · Day {pos.day}</h1>
         </header>
       </div>
-      <div className="flex flex-col px-4" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-col px-4" style={{ paddingBottom: "calc(150px + env(safe-area-inset-bottom) + var(--workout-bar-pad, 0px))" }}>
         {!day ? (
           <p className="mt-6 text-[15px]" style={{ color: MUTED }}>This day isn't part of the plan.</p>
         ) : (
@@ -99,7 +99,7 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 px-4 pt-3" style={{ fontFamily: FONT, background: "linear-gradient(to bottom, rgba(245,242,236,0), #F5F2EC 18px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
+      <div className="fixed inset-x-0 bottom-0 z-20 flex flex-col gap-2 px-4 pt-3" style={{ fontFamily: FONT, background: "linear-gradient(to bottom, rgba(245,242,236,0), #F5F2EC 18px)", bottom: "var(--workout-bar-pad, 0px)", paddingBottom: "max(16px, env(safe-area-inset-bottom))" }}>
         <button type="button" onClick={() => void onStart()} disabled={busy || !day} className="h-[52px] w-full rounded-full text-[17px] font-bold text-white disabled:opacity-60" style={{ background: PURPLE }}>
           {busy ? "One moment…" : onThisPlan ? "Start workout" : "Start this workout"}
         </button>

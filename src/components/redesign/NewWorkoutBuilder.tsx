@@ -175,7 +175,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
         </header>
       </div>
 
-      <div className="px-4 pt-4" style={{ paddingBottom: "max(40px, calc(env(safe-area-inset-bottom) + 24px))" }}>
+      <div className="px-4 pt-4" style={{ paddingBottom: "calc(max(40px, calc(env(safe-area-inset-bottom) + 24px)) + var(--workout-bar-pad, 0px))" }}>
         <div className="rounded-[18px] bg-white p-4">
           <label htmlFor="wk-name" className="text-[14px] font-bold">Name</label>
           <input

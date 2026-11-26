@@ -1,7 +1,8 @@
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ChevronLeft, X } from "lucide-react";
+import { ChevronLeft, Pause, Play, X } from "lucide-react";
+import { useDemoCycle } from "@/lib/use-demo-cycle";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 import { exerciseKicker } from "@/components/workout/WorkoutBits";
 import { usePlans } from "@/components/plans/PlanBits";
@@ -50,11 +51,7 @@ export function NewExercisePage({ exerciseId, tab, workout }: { exerciseId: stri
 
   return (
     <div ref={scrollRef} data-scroll-root className="fixed inset-0 overflow-y-auto overscroll-none" style={{ background: WARM, color: INK, fontFamily: FONT }}>
-      <div className="relative grid h-[300px] grid-cols-2 gap-px bg-white">
-        <Drawing src={ex.imageStart} bg={ex.imageBg} label="START" alt={`${ex.name}, start position`} />
-        <Drawing src={ex.imagePeak ?? ex.imageStart} bg={ex.imageBg} label="FINISH" alt={`${ex.name}, finish position`} />
-        <BackButton onClick={back} />
-      </div>
+      <Demo ex={ex} onBack={back} />
 
       <div className="bg-white px-4 pb-0 pt-4">
         <div className="text-[12px] font-extrabold uppercase tracking-[0.6px]" style={{ color: PURPLE }}>{exerciseKicker(ex)}</div>
@@ -79,7 +76,7 @@ export function NewExercisePage({ exerciseId, tab, workout }: { exerciseId: stri
           })}
       </div>
 
-      <div className="px-4 pb-[calc(40px+env(safe-area-inset-bottom))] pt-4">
+      <div className="px-4 pt-4" style={{ paddingBottom: "calc(40px + env(safe-area-inset-bottom) + var(--workout-bar-pad, 0px))" }}>
         {tab === "howto" ? <HowToTab ex={ex} library={library ?? []} workout={workout} /> : <ProgressTab ex={ex} />}
       </div>
     </div>
@@ -100,11 +97,32 @@ function BackButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-function Drawing({ src, bg, label, alt }: { src: string | null; bg: string | null; label: string; alt: string }) {
+function Demo({ ex, onBack }: { ex: LibraryExercise; onBack: () => void }) {
+  const d = useDemoCycle(ex.imageStart, ex.imagePeak, ex.imageBg ?? "#D8F1FD");
   return (
-    <div className="relative h-full overflow-hidden" style={{ background: bg ?? "#D8F1FD" }}>
-      {src && <img src={src} alt={alt} className="h-full w-full object-cover object-center" />}
-      <span className="absolute bottom-3 left-3 rounded-full bg-white px-2 py-[3px] text-[11px] font-extrabold tracking-[0.4px]" style={{ color: INK }}>{label}</span>
+    <div className="relative h-[300px] overflow-hidden" style={{ background: ex.imageStart ? d.bg : "#D8F1FD" }}>
+      {ex.imageStart && <img ref={d.startRef} src={ex.imageStart} alt={`${ex.name}, start position`} onLoad={d.sample} className="absolute inset-0 h-full w-full object-cover object-center" />}
+      {d.hasTwo && (
+        <img src={ex.imagePeak!} alt={`${ex.name}, finish position`} className="absolute inset-0 h-full w-full object-cover object-center" style={{ opacity: d.showTop ? 1 : 0, transition: d.fade }} />
+      )}
+      <BackButton onClick={onBack} />
+      {d.hasTwo && (
+        <div className="absolute bottom-[14px] left-4 right-4 flex items-center justify-between">
+          <div className="flex gap-1 rounded-full p-1" style={{ background: "rgba(255,255,255,.85)" }} aria-hidden>
+            {(["Start", "Finish"] as const).map((l) => {
+              const on = (l === "Finish") === d.showTop;
+              return (
+                <span key={l} className="flex h-8 items-center rounded-[16px] px-[14px] text-[13px] font-bold" style={{ background: on ? INK : "transparent", color: on ? "#FFFFFF" : "#57534E", transition: d.reduced ? "none" : "background 200ms, color 200ms" }}>
+                  {l}
+                </span>
+              );
+            })}
+          </div>
+          <button type="button" onClick={() => d.setPaused((p) => !p)} aria-label={d.playing ? "Pause demo" : "Play demo"} className="flex h-11 w-11 items-center justify-center rounded-full bg-white" style={{ color: INK, boxShadow: "0 1px 3px rgba(20,18,24,.12)" }}>
+            {d.playing ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
