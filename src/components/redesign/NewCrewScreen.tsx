@@ -25,6 +25,7 @@ import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+import { beginNewCheckIn } from "@/lib/redesign-checkin";
 
 const BG = "#F5F2EE";
 const INK = "#1C1917";
@@ -48,7 +49,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const navigate = useNavigate();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
-  const [tab, setTab] = useState<Tab>("today");
+  const [tab, setTab] = useState<Tab>(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("crewTab") === "chat" ? "chat" : "today");
   // The design hides the bottom bar in Chat so the composer sits at the bottom.
   useHideBottomTabs(tab === "chat", false);
   const [streakOpen, setStreakOpen] = useState(false);
@@ -83,7 +84,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const feedMe = groupFeed.feed?.meta?.members.find((member) => member.isMe) ?? null;
 
   const checkIn = () => {
-    localStorage.setItem("active-group-id", groupId);
+    beginNewCheckIn(groupId, groupId);
     navigate({ to: "/check-in" });
   };
 

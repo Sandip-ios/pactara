@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Redesign phase 2 step 3: new-version Home, camera/crew picker and done screen on existing check-in flow; QA screenshots 16–19 and combined base64 JSON; real five-second recording/upload/post and focused chat verified, temporary video/post/badge removed, optional QA Crew 2 retained; classic unchanged, 560 tests passed, unpublished
+
 - [x] Profile Phase 3: approved Badges/Stats tabs, crew-scoped charts and insights, privacy; 390px/500px browser-only layout checks, typecheck and 544 tests passed; no database test rows or publishing
 - [ ] Profile Phase 3 live data / crew switching / lifts navigation verification: existing-account sign-in unavailable; no test accounts or database rows created
 

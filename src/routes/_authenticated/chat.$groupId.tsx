@@ -26,6 +26,14 @@ const QUICK_EMOJIS = ["❤️", "😂", "😮", "😢", "😡", "👍"];
 
 export const Route = createFileRoute("/_authenticated/chat/$groupId")({
   component: GroupChatPage,
+  head: () => ({ meta: [
+    { title: "Crew chat · Pactara" },
+    { name: "description", content: "Messages, photos and workouts shared with your Pactara crew." },
+    { property: "og:title", content: "Crew chat · Pactara" },
+    { property: "og:description", content: "Messages, photos and workouts shared with your Pactara crew." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 function GroupChatPage() {
@@ -55,6 +63,12 @@ export function GroupChatView({ groupId, embedded = false, crewName }: { groupId
   // header and messages stay on screen instead of being pushed out of view.
   const [viewportHeight, setViewportHeight] = useState<number | null>(null);
   const [viewportTop, setViewportTop] = useState(0);
+
+  useEffect(() => {
+    if (!embedded || new URLSearchParams(window.location.search).get("compose") !== "true") return;
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 300);
+    return () => window.clearTimeout(timer);
+  }, [embedded]);
 
   useEffect(() => {
     const vv = window.visualViewport;

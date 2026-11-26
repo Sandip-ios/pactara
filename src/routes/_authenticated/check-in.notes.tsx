@@ -1,6 +1,6 @@
 import { makeVideoPoster } from "@/lib/video-poster";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,6 +24,11 @@ import { pendingHealthWorkout, attachHealthWorkout, clearHealthWorkout, isAppleH
 import { healthWorkoutSchema, healthWorkoutName, type HealthWorkout } from '@/lib/health-workouts';
 import { HealthPostedStats } from '@/components/health/HealthUI';
 import { HealthPrompt } from '@/components/health/HealthPrompt';
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewCheckInDone } from "@/components/redesign/NewCheckInDone";
+import { clearNewCheckIn, readNewCheckIn } from "@/lib/redesign-checkin";
+import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
+import { Button } from "@/components/ui/button";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -43,6 +48,14 @@ const ACTIVITIES = [
 ];
 
 export const Route = createFileRoute("/_authenticated/check-in/notes")({
+  head: () => ({ meta: [
+    { title: "Save your check-in · Pactara" },
+    { name: "description", content: "Save your video and celebrate showing up with your Pactara crew." },
+    { property: "og:title", content: "Save your check-in · Pactara" },
+    { property: "og:description", content: "Save your video and celebrate showing up with your Pactara crew." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   component: NotesPage,
 });
 
@@ -129,6 +142,11 @@ async function uploadCheckInPhoto(blob: Blob): Promise<string> {
 function NotesPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const version = useAppVersion();
+  const autoSubmitted = useRef(false);
+  const noteAfterDone = useRef(false);
+  const [newDoneOpen, setNewDoneOpen] = useState(true);
+  const [doneGroups, setDoneGroups] = useState<GroupToday[]>([]);
   const [note, setNote] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [activity, setActivity] = useState<string | null>(null);
@@ -251,17 +269,29 @@ function NotesPage() {
   });
 
   const finalizeAndExit = (plan: PlanDayResult | null = planResult) => {
+    const newSession = version === "new" ? readNewCheckIn() : null;
+    if (version === "new") clearNewCheckIn();
     sessionStorage.setItem("checkin-celebrate", "1");
     clearCheckInPhoto();
     queryClient.invalidateQueries({ queryKey: ["pending-checkins"] });
     queryClient.invalidateQueries({ queryKey: ["group-feed"] });
     queryClient.invalidateQueries({ queryKey: ["home-crew"] });
+    if (version === "new") {
+      queryClient.invalidateQueries({ queryKey: ["groups-today"] });
+      const noteCrew = newSession?.groupIds[0] ?? getActiveGroupId();
+      if (noteAfterDone.current && noteCrew) {
+        navigate({ to: "/crews/$groupId", params: { groupId: noteCrew }, search: { crewTab: "chat", compose: true } });
+        return;
+      }
+    }
     // Finishing the last day of a plan lands on the "Plan complete" celebration.
     if (plan?.completed) {
       navigate({ to: "/groups", search: { tab: "plans", complete: plan.slug } });
       return;
     }
-    navigate({ to: "/home" });
+    const returnCrewId = newSession?.returnCrewId;
+    if (returnCrewId) navigate({ to: "/crews/$groupId", params: { groupId: returnCrewId } });
+    else navigate({ to: "/home" });
   };
 
   const recordCheckInFn = useServerFn(recordCheckIn);
@@ -284,7 +314,8 @@ function NotesPage() {
     setSubmitError(null);
     setSubmitting(true);
     try {
-      const activeGroupId = getActiveGroupId();
+      const newSelection = version === "new" ? readNewCheckIn()?.groupIds : null;
+      const activeGroupId = newSelection?.[0] ?? getActiveGroupId();
       let photoUrl: string | undefined;
       const photo = getCheckInPhoto();
       if (healthWorkout && !photo?.blob.type.startsWith('video/')) {
@@ -312,7 +343,7 @@ function NotesPage() {
           activity: activity || undefined,
           photoUrl,
           groupId: activeGroupId,
-          groupIds: allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
+          groupIds: version === "new" && newSelection?.length ? newSelection : allGroups && myGroups.length > 1 ? myGroups.map((g) => g.id as string) : null,
           planDay: planDay ? { userPlanId: planDay.userPlanId, week: planDay.week, day: planDay.day } : null,
           workoutSessionId: workout?.sessionId ?? null,
           healthWorkout,
@@ -340,6 +371,12 @@ function NotesPage() {
       queryClient.invalidateQueries({ queryKey: ["rest-day-info"] });
       queryClient.invalidateQueries({ queryKey: ["home-crew"] });
       queryClient.invalidateQueries({ queryKey: ["my-badges"] });
+      if (version === "new") {
+        await queryClient.invalidateQueries({ queryKey: ["groups-today"] });
+        const fresh = await queryClient.fetchQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 0 }).catch(() => null);
+        const ids = newSelection?.length ? newSelection : activeGroupId ? [activeGroupId] : [];
+        if (fresh) setDoneGroups(ids.flatMap((id) => fresh.groups.filter((g) => g.id === id)));
+      }
 
       // Stash any new badges so /home can also announce them — safety net in case
       // the user dismisses fast or the local modal never mounts.
@@ -351,7 +388,7 @@ function NotesPage() {
       void clearCheckInDraft();
 
       const hide = typeof localStorage !== "undefined" && localStorage.getItem(SHARE_HIDE_KEY) === "1";
-      if (hide && newBadges.length === 0 && !(result.firstCheckIn && isAppleHealthPlatform())) {
+      if (version === "classic" && hide && newBadges.length === 0 && !(result.firstCheckIn && isAppleHealthPlatform())) {
         finalizeAndExit(plan);
         return;
       }
@@ -384,6 +421,14 @@ function NotesPage() {
       setSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    if (version !== "new" || !photoPreview || !groupsData || draftRestored || autoSubmitted.current) return;
+    autoSubmitted.current = true;
+    void submit();
+    // Capture state is restored before this runs; never auto-retry a failed post.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version, photoPreview, groupsData, draftRestored]);
 
   const saveDraft = async () => {
     if (savingDraft) return;
@@ -448,11 +493,26 @@ function NotesPage() {
 
   const isBusy = submitting || mutation.isPending;
 
+  const finishNewDone = (addNote = false) => {
+    noteAfterDone.current = addNote;
+    if (addNote) { handleShareClose(); return; }
+    let hide = false;
+    try { hide = localStorage.getItem(SHARE_HIDE_KEY) === "1"; } catch { /* private mode */ }
+    if (hide && !shareData?.newBadges.length && !(firstCheckIn && isAppleHealthPlatform())) handleShareClose();
+    else setNewDoneOpen(false);
+  };
+
   return (
     <div
       className="min-h-[100dvh] w-full bg-white flex flex-col"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      {version === "new" ? <div className="redesign-step3 fixed inset-0 bg-[var(--new-bg)] px-4 pt-[72px] text-center text-[var(--new-ink)]">
+        {!shareData && <><h1 className="text-[24px] font-extrabold">{isBusy ? "Saving your check-in" : submitError ? "Your video is still here" : "Your check-in"}</h1>
+          {submitError && <p role="alert" className="mt-3 text-[15px] text-[var(--new-muted)]">{submitError.replaceAll("—", ",")}</p>}
+          {!isBusy && <><Button variant="ghost" disabled={!photoPreview} onClick={() => void submit()} className="mt-5 h-[52px] w-full rounded-full bg-[var(--new-purple)] text-[var(--new-white)]">{submitError ? "Try again" : "Save check-in"}</Button><Button variant="ghost" onClick={() => void saveDraft()} disabled={savingDraft} className="mt-3 h-[52px] w-full rounded-full bg-[var(--new-soft)] text-[var(--new-purple-text)]">Save as draft</Button></>}
+        </>}
+      </div> : <>
       {/* Header */}
       <div className="relative h-14 flex items-center justify-center border-b border-neutral-200 px-4 shrink-0">
         <button
@@ -597,7 +657,10 @@ function NotesPage() {
         )}
       </div>
 
-      {shareData && (
+      </>}
+
+      {version === "new" && shareData && newDoneOpen && <NewCheckInDone groups={doneGroups} streak={shareData.streak} onDone={() => finishNewDone()} onNote={() => finishNewDone(true)} />}
+      {shareData && (version === "classic" || !newDoneOpen) && (
         <CheckInCelebrationModal
           open
           userPhoto={shareData.photoUrl}
@@ -617,7 +680,7 @@ function NotesPage() {
           onClose={() => setShareScreenOpen(false)}
         />
       )}
-      {shareData && firstCheckIn && <HealthPrompt firstCheckIn />}
+      {shareData && firstCheckIn && (version === "classic" || !newDoneOpen) && <HealthPrompt firstCheckIn />}
     </div>
   );
 }

@@ -39,6 +39,8 @@ import { useQuery as usePartnerQuery } from "@tanstack/react-query";
 import { useClaimSharedWorkout } from "@/components/workout/useClaimSharedWorkout";
 import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
 import { WhatsNewSheet, useWhatsNewOnHome } from "@/components/whats-new/WhatsNewSheet";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewHome } from "@/components/redesign/NewHome";
 
 async function uploadThoughtPhoto(file: File): Promise<string | null> {
   try {
@@ -88,6 +90,11 @@ export const Route = createFileRoute("/_authenticated/home")({
 });
 
 function HomePage() {
+  const version = useAppVersion();
+  return version === "new" ? <NewHome /> : <ClassicHomePage />;
+}
+
+function ClassicHomePage() {
   useStatusBarScrollToTop();
   useClaimSharedWorkout();
   useOpenSharedPlan();

@@ -5,6 +5,9 @@ import { setCheckInPhoto } from "@/lib/checkin-photo-store";
 import { takeCheckInStream } from "@/lib/checkin-stream-store";
 import HowToRecordSheet from "@/components/HowToRecordSheet";
 import { cameraOpenedDirect, markCameraDirect } from "@/lib/active-workout";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { NewCheckInCameraControls } from "@/components/redesign/NewCheckInCameraControls";
+import { clearNewCheckIn, readNewCheckIn } from "@/lib/redesign-checkin";
 
 const JAKARTA = "'Plus Jakarta Sans', Inter, system-ui, sans-serif";
 const PURPLE = "#7C3AED";
@@ -29,6 +32,14 @@ const LOOKS: Look[] = [
 
 export const Route = createFileRoute("/_authenticated/check-in/camera")({
   component: CameraRoute,
+  head: () => ({ meta: [
+    { title: "Check-in camera · Pactara" },
+    { name: "description", content: "Record your check-in video for your Pactara crew." },
+    { property: "og:title", content: "Check-in camera · Pactara" },
+    { property: "og:description", content: "Record your check-in video for your Pactara crew." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
 });
 
 function CameraRoute() {
@@ -52,6 +63,8 @@ function pickMimeType(): string {
 
 function VideoRecordScreen() {
   const navigate = useNavigate();
+  const version = useAppVersion();
+  const maxSeconds = version === "new" ? MIN_SECS : MAX_SECS;
   // ⚡ came straight here (video-only habit), so offer "Start a workout instead".
   const [openedDirect] = useState(() => {
     const direct = cameraOpenedDirect();
@@ -514,7 +527,7 @@ function VideoRecordScreen() {
   const tick = () => {
     const secs = (Date.now() - startedAtRef.current) / 1000;
     setElapsed(secs);
-    if (secs < MAX_SECS) {
+    if (secs < maxSeconds) {
       rafRef.current = requestAnimationFrame(tick);
     }
   };
@@ -655,7 +668,7 @@ function VideoRecordScreen() {
     rafRef.current = requestAnimationFrame(tick);
     autoStopRef.current = window.setTimeout(() => {
       stopRecording();
-    }, MAX_SECS * 1000);
+    }, maxSeconds * 1000);
   };
 
   const stopRecording = () => {
@@ -738,7 +751,10 @@ function VideoRecordScreen() {
     stopStream();
     // Back to home — /check-in now relaunches the camera, so returning there
     // would bounce straight back into the recorder.
-    navigate({ to });
+    const returnCrewId = version === "new" && to === "/home" ? readNewCheckIn()?.returnCrewId : null;
+    if (version === "new") clearNewCheckIn();
+    if (returnCrewId) navigate({ to: "/crews/$groupId", params: { groupId: returnCrewId } });
+    else navigate({ to });
   };
 
   const progress = Math.min(1, elapsed / MAX_SECS);
@@ -755,10 +771,9 @@ function VideoRecordScreen() {
 
   return (
     <div
-      className="fixed inset-0 text-white overflow-hidden"
+      className={version === "new" ? "redesign-step3 fixed inset-0 overflow-hidden bg-[var(--new-camera)] text-[var(--new-white)]" : "fixed inset-0 text-white overflow-hidden"}
       style={{
-        fontFamily: JAKARTA,
-        background: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%)",
+        ...(version === "classic" ? { fontFamily: JAKARTA, background: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 100%)" } : {}),
       }}
     >
       <video
@@ -811,6 +826,10 @@ function VideoRecordScreen() {
         </div>
       )}
 
+      {version === "new" ? <NewCheckInCameraControls
+        recording={recording} starting={starting} elapsed={elapsed} switching={switching}
+        onCancel={() => cancel()} onFlip={switchCamera} onRecord={() => void startRecording()}
+      /> : <>
       {/* Top controls */}
       <div className="absolute top-0 inset-x-0 pt-safe-6 px-4 flex items-center justify-between">
         <button
@@ -1047,6 +1066,7 @@ function VideoRecordScreen() {
           setHelpOpen(false);
         }}
       />
+      </>}
     </div>
   );
 }

@@ -4,6 +4,34 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Scoped redesign colors: classic surfaces do not inherit these tokens. */
+.redesign-step3 {
+  --new-bg: #F5F2EE;
+  --new-white: #FFFFFF;
+  --new-ink: #1C1917;
+  --new-muted: #57534E;
+  --new-control: #F4F2EF;
+  --new-divider: #F0EDE9;
+  --new-soft: #EDE4FF;
+  --new-purple: #7C3AED;
+  --new-purple-text: #6D28D9;
+  --new-deep: #5B21B6;
+  --new-green-soft: #DCFCE7;
+  --new-green: #15803D;
+  --new-orange-soft: #FFEDE0;
+  --new-orange: #C2410C;
+  --new-orange-strong: #9A3412;
+  --new-lavender: #F3EEFF;
+  --new-blue-soft: #E0F2FE;
+  --new-blue: #0284C7;
+  --new-red: #EF4444;
+  --new-camera: #090909;
+  --new-camera-control: rgba(0,0,0,.45);
+  --new-camera-plan: rgba(0,0,0,.55);
+  font-family: Inter, system-ui, sans-serif;
+}
+.redesign-step3 .new-plan-tile { background: linear-gradient(135deg, var(--new-purple), var(--new-deep)); }
+
 /*
  * Design system definition.
  *
