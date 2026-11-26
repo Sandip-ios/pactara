@@ -65,7 +65,7 @@ export function NewBottomTabs() {
         <div>
           <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
           <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
-          <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" soon />
+          <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
           <CreateRow icon={<CalendarDays size={20} />} title="Build a plan" subtitle="A few weeks of your workouts, day by day" soon />
           <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon tone="meal" />
         </div>

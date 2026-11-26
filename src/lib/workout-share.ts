@@ -40,6 +40,8 @@ export type PublicSharedWorkout = {
     name: string;
     imageStart: string | null;
     primary: string[];
+    /** Detailed muscle tags when the exercise has them. */
+    detail?: string[];
     equipment: string;
     logType: LogType;
   })[];

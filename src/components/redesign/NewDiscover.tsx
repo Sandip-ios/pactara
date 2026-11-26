@@ -46,9 +46,9 @@ export function NewDiscover({
   const [query, setQuery] = useState("");
   return (
     <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
-      <div className="flex flex-col gap-4 bg-white px-4 pb-[14px] pt-new-top">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.5px]">Discover</h1>
-        <label className="flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#F4F2EF" }}>
+      <div className="flex flex-col bg-white px-4 pb-[14px] pt-new-top">
+        <h1 className="text-[26px] font-extrabold leading-[26px] tracking-[-0.5px]">Discover</h1>
+        <label className="mt-[13px] mb-3 flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#F4F2EF" }}>
           <Search size={18} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
           <input
             value={query}

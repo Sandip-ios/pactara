@@ -8,6 +8,8 @@ export type LibraryExercise = {
   id: string;
   name: string;
   primary: string[];
+  /** Detailed muscle tags (new version chips), primary first; empty when untagged. */
+  detail: string[];
   secondary: string[];
   equipment: Equipment;
   category: string;
@@ -26,7 +28,7 @@ export type LibraryExercise = {
 export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
   const { data, error } = await supabase
     .from("exercises")
-    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, image_bg, owner_id, difficulty, variation_group")
+    .select("id, name, primary_muscles, secondary_muscles, equipment, category, log_type, image_start, image_peak, image_bg, owner_id, difficulty, variation_group, muscles_detail")
     .order("name")
     .range(0, 2999);
   if (error) throw new Error(error.message);
@@ -34,6 +36,7 @@ export async function fetchExerciseLibrary(): Promise<LibraryExercise[]> {
     id: e.id,
     name: e.name,
     primary: e.primary_muscles ?? [],
+    detail: e.muscles_detail ?? [],
     secondary: e.secondary_muscles ?? [],
     equipment: e.equipment as Equipment,
     category: e.category,

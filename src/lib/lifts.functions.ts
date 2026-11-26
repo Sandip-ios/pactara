@@ -161,7 +161,13 @@ export const getMyWorkouts = createServerFn({ method: "GET" })
  */
 export const saveBuiltWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { workoutId?: string | null; name: string; exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number }[] }) => {
+  .inputValidator((input: {
+    workoutId?: string | null;
+    name: string;
+    exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number; reps?: string; tip?: string }[];
+    /** New-version builder only; classic never sends it, so it stays as it was. */
+    equipment?: "gym" | "dumbbells" | "home" | null;
+  }) => {
     const name = String(input?.name ?? "").trim().slice(0, 60);
     if (!name) throw new Error("Give your workout a name");
     const exercises = (Array.isArray(input?.exercises) ? input.exercises : []).slice(0, 40).map((e) => {
@@ -171,10 +177,16 @@ export const saveBuiltWorkout = createServerFn({ method: "POST" })
       };
       if (e.restSeconds != null) out.restSeconds = Math.max(15, Math.min(600, Math.round(Number(e.restSeconds) || 90)));
       if (e.seconds != null && Number(e.seconds) > 0) out.seconds = Math.min(86400, Math.round(Number(e.seconds)));
+      const reps = typeof e.reps === "string" ? e.reps.trim().slice(0, 20) : "";
+      if (reps) out.reps = reps;
+      const tip = typeof e.tip === "string" ? e.tip.trim().slice(0, 120) : "";
+      if (tip) out.tip = tip;
       return out;
     });
     if (!exercises.length) throw new Error("Add at least one exercise");
-    return { workoutId: input?.workoutId ?? null, name, exercises };
+    const eq = input?.equipment;
+    const equipment = eq === "gym" || eq === "dumbbells" || eq === "home" ? eq : eq === null ? null : undefined;
+    return { workoutId: input?.workoutId ?? null, name, exercises, ...(equipment !== undefined ? { equipment } : {}) };
   })
   .handler(async ({ context, data }): Promise<{ workout: SavedWorkout }> => {
     const { supabase, userId } = context;
@@ -182,12 +194,12 @@ export const saveBuiltWorkout = createServerFn({ method: "POST" })
     const res = data.workoutId
       ? await supabase
           .from("workouts")
-          .update({ name: data.name, exercises: data.exercises as never, updated_at: new Date().toISOString() })
+          .update({ name: data.name, exercises: data.exercises as never, ...("equipment" in data ? { equipment: data.equipment } : {}), updated_at: new Date().toISOString() })
           .eq("id", data.workoutId)
           .eq("user_id", userId)
           .select(cols)
           .maybeSingle()
-      : await supabase.from("workouts").insert({ user_id: userId, name: data.name, exercises: data.exercises as never }).select(cols).single();
+      : await supabase.from("workouts").insert({ user_id: userId, name: data.name, exercises: data.exercises as never, ...("equipment" in data ? { equipment: data.equipment } : {}) }).select(cols).single();
     if (res.error) throw new Error(res.error.message);
     if (!res.data) throw new Error("That workout is gone. Go back and build it again.");
     const w = res.data;

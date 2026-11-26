@@ -6,6 +6,7 @@ const lib = (id: string, over: Partial<LibraryExercise> = {}): LibraryExercise =
   id,
   name: id,
   primary: ["chest"],
+  detail: [],
   secondary: ["triceps"],
   equipment: "dumbbell",
   category: "strength",

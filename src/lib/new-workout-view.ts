@@ -6,7 +6,7 @@ import { estimateMinutes } from "@/lib/workout-builder";
 
 export const TIP_MAX = 120;
 
-export type WorkoutPageItem = { exerciseId: string; sets: number; reps?: string | null; seconds?: number | null; primary: string[] };
+export type WorkoutPageItem = { exerciseId: string; sets: number; reps?: string | null; seconds?: number | null; primary: string[]; detail?: string[] | null };
 
 /** "45 min / time", "6 / exercises", "20 / sets": time from the builder's estimate. */
 export function workoutStats(items: readonly Pick<WorkoutPageItem, "sets">[]): { minutes: number; exercises: number; sets: number } {
@@ -23,23 +23,36 @@ export function muscleWord(key: string): string {
   return w.charAt(0).toUpperCase() + w.slice(1);
 }
 
+/** Detailed tag as a chip label: "upper back" -> "Upper back", "traps" -> "Traps". */
+export function detailWord(tag: string): string {
+  const w = tag.trim().toLowerCase().replace(/[_-]+/g, " ");
+  return w.charAt(0).toUpperCase() + w.slice(1);
+}
+
+/** An exercise's chip muscles: the detailed tags when present, else its primary muscles. */
+export function chipMusclesOf(item: Pick<WorkoutPageItem, "primary" | "detail">): { tags: string[]; detailed: boolean } {
+  const detail = (item.detail ?? []).filter((t) => t.trim());
+  return detail.length ? { tags: detail, detailed: true } : { tags: item.primary, detailed: false };
+}
+
 /**
- * Top 3 primary muscles across the exercises, by how many exercises list
+ * Top 3 muscles (detailed tags when the exercise has them, else primary) across the exercises, by how many exercises list
  * them (ties: first seen). Each exercise counts a muscle once.
  */
-export function topMuscleChips(items: readonly Pick<WorkoutPageItem, "primary">[], limit = 3): string[] {
+export function topMuscleChips(items: readonly Pick<WorkoutPageItem, "primary" | "detail">[], limit = 3): string[] {
   const count = new Map<string, { n: number; first: number }>();
   let order = 0;
   for (const it of items) {
-    for (const m of new Set(it.primary.map((p) => p.trim().toLowerCase()).filter(Boolean))) {
-      const c = count.get(m);
+    const { tags, detailed } = chipMusclesOf(it);
+    for (const raw of new Set(tags.map((p) => p.trim().toLowerCase()).filter(Boolean))) {
+      const label = detailed ? detailWord(raw) : muscleWord(raw);
+      const c = count.get(label);
       if (c) c.n += 1;
-      else count.set(m, { n: 1, first: order++ });
+      else count.set(label, { n: 1, first: order++ });
     }
   }
   const labels: string[] = [];
-  for (const [m] of [...count.entries()].sort((a, b) => b[1].n - a[1].n || a[1].first - b[1].first)) {
-    const label = muscleWord(m);
+  for (const [label] of [...count.entries()].sort((a, b) => b[1].n - a[1].n || a[1].first - b[1].first)) {
     if (!labels.includes(label)) labels.push(label);
     if (labels.length === limit) break;
   }
@@ -80,4 +93,16 @@ export function socialLine(saves: number | null | undefined, did: number | null 
   if ((saves ?? 0) > 0) parts.push(`Saved by ${saves!.toLocaleString("en-US")}`);
   if ((did ?? 0) > 0) parts.push(`${did!.toLocaleString("en-US")} did it`);
   return parts.length ? parts.join(" · ") : null;
+}
+
+/**
+ * A workout author's name in the new version: the full display name when the
+ * account is public (and not a teen's) or the viewer follows them (accepted);
+ * otherwise the first name only.
+ */
+export function authorDisplayName(a: { fullName: string | null | undefined; isPrivate: boolean; iFollow: boolean }): string {
+  const full = (a.fullName ?? "").trim().replace(/\s+/g, " ");
+  if (!full) return "a member";
+  if (!a.isPrivate || a.iFollow) return full;
+  return full.split(" ")[0]!;
 }

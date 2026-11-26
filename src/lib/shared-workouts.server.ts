@@ -9,7 +9,14 @@ import { firstNameOf, isShareCode, uniqueWorkoutName, type PublicSharedWorkout, 
  */
 export async function loadSharedWorkout(
   code: string,
-): Promise<{ ownerId: string; workoutId: string | null; workout: PublicSharedWorkout } | null> {
+  viewerId?: string,
+): Promise<{
+  ownerId: string;
+  workoutId: string | null;
+  workout: PublicSharedWorkout;
+  /** Signed-in viewers only (server use): full name, privacy and whether the viewer follows the owner. */
+  owner?: { fullName: string | null; isPrivate: boolean; iFollow: boolean };
+} | null> {
   if (!isShareCode(code)) return null;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: row } = await supabaseAdmin
@@ -22,9 +29,9 @@ export async function loadSharedWorkout(
   const ids = [...new Set(items.map((i) => i.exerciseId))];
   const [{ data: exRows }, { data: owner }] = await Promise.all([
     ids.length
-      ? supabaseAdmin.from("exercises").select("id, name, image_start, primary_muscles, equipment, log_type").in("id", ids)
+      ? supabaseAdmin.from("exercises").select("id, name, image_start, primary_muscles, muscles_detail, equipment, log_type").in("id", ids)
       : Promise.resolve({ data: [] as never[] }),
-    supabaseAdmin.from("profiles").select("name, avatar_url, avatar_color").eq("id", row.owner_id).maybeSingle(),
+    supabaseAdmin.from("profiles").select("name, avatar_url, avatar_color, is_private, birthday").eq("id", row.owner_id).maybeSingle(),
   ]);
   const byId = new Map((exRows ?? []).map((e) => [e.id as string, e]));
   let avatarUrl: string | null = null;
@@ -36,7 +43,21 @@ export async function loadSharedWorkout(
       avatarUrl = (await signAvatarThumbs(supabaseAdmin as unknown as SupabaseClient, [path], 144)).get(path) ?? null;
     }
   }
+  let ownerInfo: { fullName: string | null; isPrivate: boolean; iFollow: boolean } | undefined;
+  if (viewerId) {
+    const { data: f } = await supabaseAdmin
+      .from("follows")
+      .select("follower_id")
+      .eq("follower_id", viewerId)
+      .eq("following_id", row.owner_id)
+      .eq("status", "accepted")
+      .maybeSingle();
+    const bday = (owner?.birthday as string | null | undefined) ?? null;
+    const teen = !!bday && new Date(bday).getTime() > Date.now() - 18 * 365.25 * 86_400_000;
+    ownerInfo = { fullName: (owner?.name as string | null | undefined) ?? null, isPrivate: owner?.is_private !== false || teen, iFollow: !!f };
+  }
   return {
+    ...(ownerInfo ? { owner: ownerInfo } : {}),
     ownerId: row.owner_id as string,
     workoutId: (row.workout_id as string | null) ?? null,
     workout: {
@@ -59,6 +80,7 @@ export async function loadSharedWorkout(
             name: e.name as string,
             imageStart: (e.image_start as string | null) ?? null,
             primary: (e.primary_muscles as string[] | null) ?? [],
+            ...((e.muscles_detail as string[] | null)?.length ? { detail: e.muscles_detail as string[] } : {}),
             equipment: e.equipment as string,
             logType: (e.log_type === "timed" ? "timed" : "reps") as LogType,
           };

@@ -44,3 +44,26 @@ describe("own vs others' buttons", () => {
     expect(socialLine(1204, 318)).toBe("Saved by 1,204 · 318 did it");
   });
 });
+
+import { authorDisplayName as _author, topMuscleChips as _chips } from "@/lib/new-workout-view";
+describe("detailed muscle chips", () => {
+  it("uses detailed tags when present, else primary", () => {
+    const back = [
+      { primary: ["back"], detail: ["upper back", "lats"] },
+      { primary: ["back"], detail: ["lats"] },
+      { primary: ["back"], detail: ["upper back", "lats"] },
+      { primary: ["back"], detail: ["upper back", "lats"] },
+      { primary: ["back"], detail: ["lats"] },
+      { primary: ["biceps"], detail: ["biceps"] },
+    ];
+    expect(_chips(back)).toEqual(["Lats", "Upper back", "Biceps"]);
+    expect(_chips([{ primary: ["chest"] }, { primary: ["chest"], detail: [] }])).toEqual(["Chest"]);
+  });
+});
+describe("author name", () => {
+  it("full name when public or followed, first name when private and not followed", () => {
+    expect(_author({ fullName: "Maya Lindqvist", isPrivate: false, iFollow: false })).toBe("Maya Lindqvist");
+    expect(_author({ fullName: "Maya Lindqvist", isPrivate: true, iFollow: true })).toBe("Maya Lindqvist");
+    expect(_author({ fullName: "Maya Lindqvist", isPrivate: true, iFollow: false })).toBe("Maya");
+  });
+});

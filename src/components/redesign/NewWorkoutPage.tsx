@@ -6,7 +6,7 @@ import { Bookmark, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Play, Shar
 import { toast } from "sonner";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 import { NewConfirm } from "./NewConfirm";
-import { NewSheet, NewSheetMenuIcon, NewSheetRow } from "./NewSheet";
+import { NewSheet, NewSheetRow } from "./NewSheet";
 import { useMyWorkoutsFlow } from "@/components/workout/MyWorkoutsFlow";
 import { WorkoutSharePanel } from "@/components/workout/WorkoutSharePanel";
 import { showTopMessage } from "@/components/workout/savedToast";
@@ -28,6 +28,7 @@ const MUTED = "#78716C";
 const HAIR = "#F0EDE9";
 const CIRCLE = "#F0EDE8";
 const FONT = "Inter, system-ui, sans-serif";
+/** Same as the plan menu: 56px rows, 22px icons, 16px/600 labels, one hairline above Delete. */
 const MENU_ROW = "!h-14 border-b-0 py-0";
 
 export const workoutPageKey = (id: string) => ["new-workout-page", id] as const;
@@ -67,7 +68,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
 
   const rows = page.exercises.map((e) => {
     const ex = map.get(e.exerciseId) ?? null;
-    return { ...e, ex, name: ex?.name ?? e.name ?? "Exercise", primary: ex?.primary ?? e.primary };
+    return { ...e, ex, name: ex?.name ?? e.name ?? "Exercise", primary: ex?.primary ?? e.primary, detail: ex?.detail?.length ? ex.detail : e.detail };
   });
   const stats = workoutStats(rows);
   const chips = topMuscleChips(rows);
@@ -100,7 +101,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
 
   const edit = () => {
     setMenuOpen(false);
-    flow.editWorkout(asSaved());
+    if (page.workoutId) navigate({ to: "/workouts/$workoutId/edit", params: { workoutId: page.workoutId } });
   };
 
   const save = async () => {
@@ -218,7 +219,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
                   {(r.ex?.imageStart ?? r.imageStart) && <img src={(r.ex?.imageStart ?? r.imageStart)!} alt="" loading="lazy" className="h-full w-full object-contain" />}
                 </span>
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                  <span className="truncate text-[16px] font-bold">{r.name}</span>
+                  <span className="text-[16px] font-bold leading-[1.25] [overflow-wrap:anywhere]">{r.name}</span>
                   {tip && <span className="line-clamp-2 text-[13px] leading-[1.35]" style={{ color: MUTED }}>{tip}</span>}
                 </span>
                 <span className="shrink-0 whitespace-nowrap text-[15px] font-extrabold" style={{ color: PURPLE }}>{doseText(r)}</span>
@@ -239,12 +240,12 @@ export function NewWorkoutPage({ id }: { id: string }) {
       </div>
 
       <NewSheet open={menuOpen} onOpenChange={setMenuOpen} title={page.name} hideTitle>
-        {buttons.menu.includes("edit") && <NewSheetRow simple className={MENU_ROW} leading={<NewSheetMenuIcon><Pencil /></NewSheetMenuIcon>} title="Edit workout" onClick={edit} />}
-        <NewSheetRow simple className={MENU_ROW} leading={<NewSheetMenuIcon><Share /></NewSheetMenuIcon>} title="Share workout" onClick={() => void share()} />
+        {buttons.menu.includes("edit") && <NewSheetRow simple className={MENU_ROW} leading={<Pencil />} title="Edit workout" onClick={edit} />}
+        <NewSheetRow simple className={MENU_ROW} leading={<Share />} title="Share workout" onClick={() => void share()} />
         {buttons.menu.includes("delete") && (
           <>
-            <div className="my-1 h-px" style={{ background: HAIR }} aria-hidden />
-            <NewSheetRow simple destructive className={MENU_ROW} leading={<NewSheetMenuIcon><Trash2 className="text-[var(--new-destructive)]" /></NewSheetMenuIcon>} title="Delete workout" onClick={() => { setMenuOpen(false); setDeleteOpen(true); }} />
+            <div className="h-px" style={{ background: HAIR }} aria-hidden />
+            <NewSheetRow simple destructive className={MENU_ROW} leading={<Trash2 className="text-[var(--new-destructive)]" />} title="Delete workout" onClick={() => { setMenuOpen(false); setDeleteOpen(true); }} />
           </>
         )}
       </NewSheet>

@@ -153,3 +153,10 @@
 - [ ] Step 7: Logger
 - [ ] Step 8: Exercise page
 - [ ] Step 9: Discover Workouts with Pactara + public workouts, saves and did-it counts
+
+## Phase 4 step 6
+- [x] Detailed muscle tags on all 707 tagged library exercises (Corpse Pose untagged); chips use them in the new version only.
+- [x] Author full name when public or followed; first name otherwise; logged-out share pages unchanged.
+- [x] Workout list names wrap; workout menu matches plan menu; Discover top spacing 13/12px.
+- [x] New-version builder (new/edit), Build a workout in + Create, captures in public/qa/p4-6.json; test data removed.
+- [ ] Exercise picker still has its existing look (not restyled yet).

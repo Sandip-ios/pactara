@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isShareCode } from "@/lib/workout-share";
+import { authorDisplayName } from "@/lib/new-workout-view";
 
 export type WorkoutPageExercise = {
   exerciseId: string;
@@ -14,6 +15,7 @@ export type WorkoutPageExercise = {
   name: string | null;
   imageStart: string | null;
   primary: string[];
+  detail: string[];
 };
 
 export type WorkoutPage = {
@@ -26,6 +28,8 @@ export type WorkoutPage = {
   author: { kind: "you" | "member" | "pactara"; name: string; avatarUrl: string | null; avatarColor: string };
   /** Someone else's: the copy already in my workouts. */
   savedWorkoutId: string | null;
+  /** Own workouts: gym / dumbbells / home, when set. */
+  equipment: "gym" | "dumbbells" | "home" | null;
   exercises: WorkoutPageExercise[];
 };
 
@@ -43,7 +47,7 @@ export const getWorkoutPage = createServerFn({ method: "GET" })
     const { supabase, userId } = context;
     if (isShareCode(data.id)) {
       const { loadSharedWorkout } = await import("@/lib/shared-workouts.server");
-      const found = await loadSharedWorkout(data.id);
+      const found = await loadSharedWorkout(data.id, userId);
       if (!found) return null;
       const isMine = found.ownerId === userId;
       if (isMine && found.workoutId) {
@@ -58,8 +62,9 @@ export const getWorkoutPage = createServerFn({ method: "GET" })
         shareCode: data.id,
         name: w.name,
         isMine,
-        author: { kind: isMine ? "you" : "member", name: isMine ? "you" : w.ownerFirstName, avatarUrl: w.ownerAvatarUrl, avatarColor: w.ownerAvatarColor },
+        author: { kind: isMine ? "you" : "member", name: isMine ? "you" : found.owner ? authorDisplayName(found.owner) : w.ownerFirstName, avatarUrl: w.ownerAvatarUrl, avatarColor: w.ownerAvatarColor },
         savedWorkoutId: (saved?.id as string | undefined) ?? null,
+        equipment: null,
         exercises: w.exercises.map((e) => ({
           exerciseId: e.exerciseId,
           sets: e.sets,
@@ -70,6 +75,7 @@ export const getWorkoutPage = createServerFn({ method: "GET" })
           name: e.name,
           imageStart: e.imageStart,
           primary: e.primary,
+          detail: e.detail ?? [],
         })),
       };
     }
@@ -79,7 +85,7 @@ export const getWorkoutPage = createServerFn({ method: "GET" })
 
 async function ownPage(supabase: SupabaseClient, userId: string, id: string): Promise<WorkoutPage | null> {
   const [{ data: wk }, { data: me }] = await Promise.all([
-    supabase.from("workouts").select("id, name, exercises").eq("id", id).eq("user_id", userId).maybeSingle(),
+    supabase.from("workouts").select("id, name, exercises, equipment").eq("id", id).eq("user_id", userId).maybeSingle(),
     supabase.from("profiles").select("avatar_url, avatar_color").eq("id", userId).maybeSingle(),
   ]);
   if (!wk) return null;
@@ -101,6 +107,7 @@ async function ownPage(supabase: SupabaseClient, userId: string, id: string): Pr
     isMine: true,
     author: { kind: "you", name: "you", avatarUrl, avatarColor: (me?.avatar_color as string | undefined) ?? "#7C3AED" },
     savedWorkoutId: null,
+    equipment: wk.equipment === "gym" || wk.equipment === "dumbbells" || wk.equipment === "home" ? wk.equipment : null,
     exercises: items.map((i) => ({
       exerciseId: i.exerciseId,
       sets: i.sets,
@@ -111,6 +118,7 @@ async function ownPage(supabase: SupabaseClient, userId: string, id: string): Pr
       name: null,
       imageStart: null,
       primary: [],
+      detail: [],
     })),
   };
 }

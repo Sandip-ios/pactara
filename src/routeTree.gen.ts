@@ -77,6 +77,7 @@ import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
 import { Route as AuthenticatedWorkoutLogRouteImport } from './routes/_authenticated/workout.log'
 import { Route as AuthenticatedWorkoutsWorkoutIdRouteImport } from './routes/_authenticated/workouts_.$workoutId'
+import { Route as AuthenticatedWorkoutsNewRouteImport } from './routes/_authenticated/workouts_.new'
 import { Route as AuthenticatedCrewsGroupIdNextPactRouteImport } from './routes/_authenticated/crews.$groupId_.next-pact'
 import { Route as AuthenticatedCrewsGroupIdPactDoneRouteImport } from './routes/_authenticated/crews.$groupId_.pact-done'
 import { Route as AuthenticatedCrewsGroupIdPreviewRouteImport } from './routes/_authenticated/crews.$groupId_.preview'
@@ -85,6 +86,7 @@ import { Route as AuthenticatedCrewsGroupIdSettingsRouteImport } from './routes/
 import { Route as AuthenticatedExercisesExerciseIdHowToRouteImport } from './routes/_authenticated/exercises.$exerciseId_.how-to'
 import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
 import { Route as AuthenticatedUUserIdFollowsRouteImport } from './routes/_authenticated/u.$userId_.follows'
+import { Route as AuthenticatedWorkoutsWorkoutIdEditRouteImport } from './routes/_authenticated/workouts_.$workoutId_.edit'
 import { Route as ApiPublicHooksAutoMissRouteImport } from './routes/api/public/hooks/auto-miss'
 import { Route as ApiPublicHooksDailyReminderRouteImport } from './routes/api/public/hooks/daily-reminder'
 import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/public/hooks/evening-reminder'
@@ -464,6 +466,12 @@ const AuthenticatedWorkoutsWorkoutIdRoute =
     path: '/workouts/$workoutId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedWorkoutsNewRoute =
+  AuthenticatedWorkoutsNewRouteImport.update({
+    id: '/workouts_/new',
+    path: '/workouts/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrewsGroupIdNextPactRoute =
   AuthenticatedCrewsGroupIdNextPactRouteImport.update({
     id: '/crews/$groupId_/next-pact',
@@ -510,6 +518,12 @@ const AuthenticatedUUserIdFollowsRoute =
   AuthenticatedUUserIdFollowsRouteImport.update({
     id: '/u/$userId_/follows',
     path: '/u/$userId/follows',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedWorkoutsWorkoutIdEditRoute =
+  AuthenticatedWorkoutsWorkoutIdEditRouteImport.update({
+    id: '/workouts_/$workoutId_/edit',
+    path: '/workouts/$workoutId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiPublicHooksAutoMissRoute = ApiPublicHooksAutoMissRouteImport.update({
@@ -637,6 +651,7 @@ export interface FileRoutesByFullPath {
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/workouts/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
+  '/workouts/new': typeof AuthenticatedWorkoutsNewRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -651,6 +666,7 @@ export interface FileRoutesByFullPath {
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
+  '/workouts/$workoutId/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -724,6 +740,7 @@ export interface FileRoutesByTo {
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/workouts/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
+  '/workouts/new': typeof AuthenticatedWorkoutsNewRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
@@ -738,6 +755,7 @@ export interface FileRoutesByTo {
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
+  '/workouts/$workoutId/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -814,6 +832,7 @@ export interface FileRoutesById {
   '/_authenticated/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/_authenticated/workout/log': typeof AuthenticatedWorkoutLogRoute
   '/_authenticated/workouts_/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
+  '/_authenticated/workouts_/new': typeof AuthenticatedWorkoutsNewRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -828,6 +847,7 @@ export interface FileRoutesById {
   '/_authenticated/exercises/$exerciseId_/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
   '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
   '/_authenticated/u/$userId_/follows': typeof AuthenticatedUUserIdFollowsRoute
+  '/_authenticated/workouts_/$workoutId_/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
   '/api/public/hooks/auto-miss': typeof ApiPublicHooksAutoMissRoute
   '/api/public/hooks/daily-reminder': typeof ApiPublicHooksDailyReminderRoute
   '/api/public/hooks/evening-reminder': typeof ApiPublicHooksEveningReminderRoute
@@ -904,6 +924,7 @@ export interface FileRouteTypes {
     | '/workout/done'
     | '/workout/log'
     | '/workouts/$workoutId'
+    | '/workouts/new'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
@@ -918,6 +939,7 @@ export interface FileRouteTypes {
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
     | '/u/$userId/follows'
+    | '/workouts/$workoutId/edit'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -991,6 +1013,7 @@ export interface FileRouteTypes {
     | '/workout/done'
     | '/workout/log'
     | '/workouts/$workoutId'
+    | '/workouts/new'
     | '/account-settings'
     | '/chat'
     | '/check-in'
@@ -1005,6 +1028,7 @@ export interface FileRouteTypes {
     | '/exercises/$exerciseId/how-to'
     | '/plans/$slug/day'
     | '/u/$userId/follows'
+    | '/workouts/$workoutId/edit'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -1080,6 +1104,7 @@ export interface FileRouteTypes {
     | '/_authenticated/workout/done'
     | '/_authenticated/workout/log'
     | '/_authenticated/workouts_/$workoutId'
+    | '/_authenticated/workouts_/new'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
@@ -1094,6 +1119,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exercises/$exerciseId_/how-to'
     | '/_authenticated/plans/$slug_/day'
     | '/_authenticated/u/$userId_/follows'
+    | '/_authenticated/workouts_/$workoutId_/edit'
     | '/api/public/hooks/auto-miss'
     | '/api/public/hooks/daily-reminder'
     | '/api/public/hooks/evening-reminder'
@@ -1617,6 +1643,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutsWorkoutIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workouts_/new': {
+      id: '/_authenticated/workouts_/new'
+      path: '/workouts/new'
+      fullPath: '/workouts/new'
+      preLoaderRoute: typeof AuthenticatedWorkoutsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crews/$groupId_/next-pact': {
       id: '/_authenticated/crews/$groupId_/next-pact'
       path: '/crews/$groupId/next-pact'
@@ -1671,6 +1704,13 @@ declare module '@tanstack/react-router' {
       path: '/u/$userId/follows'
       fullPath: '/u/$userId/follows'
       preLoaderRoute: typeof AuthenticatedUUserIdFollowsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/workouts_/$workoutId_/edit': {
+      id: '/_authenticated/workouts_/$workoutId_/edit'
+      path: '/workouts/$workoutId/edit'
+      fullPath: '/workouts/$workoutId/edit'
+      preLoaderRoute: typeof AuthenticatedWorkoutsWorkoutIdEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/hooks/auto-miss': {
@@ -1800,6 +1840,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedWorkoutDoneRoute: typeof AuthenticatedWorkoutDoneRoute
   AuthenticatedWorkoutLogRoute: typeof AuthenticatedWorkoutLogRoute
   AuthenticatedWorkoutsWorkoutIdRoute: typeof AuthenticatedWorkoutsWorkoutIdRoute
+  AuthenticatedWorkoutsNewRoute: typeof AuthenticatedWorkoutsNewRoute
   AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
@@ -1814,6 +1855,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExercisesExerciseIdHowToRoute: typeof AuthenticatedExercisesExerciseIdHowToRoute
   AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
   AuthenticatedUUserIdFollowsRoute: typeof AuthenticatedUUserIdFollowsRoute
+  AuthenticatedWorkoutsWorkoutIdEditRoute: typeof AuthenticatedWorkoutsWorkoutIdEditRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1854,6 +1896,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedWorkoutDoneRoute: AuthenticatedWorkoutDoneRoute,
   AuthenticatedWorkoutLogRoute: AuthenticatedWorkoutLogRoute,
   AuthenticatedWorkoutsWorkoutIdRoute: AuthenticatedWorkoutsWorkoutIdRoute,
+  AuthenticatedWorkoutsNewRoute: AuthenticatedWorkoutsNewRoute,
   AuthenticatedAccountSettingsIndexRoute:
     AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,
@@ -1874,6 +1917,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedExercisesExerciseIdHowToRoute,
   AuthenticatedPlansSlugDayRoute: AuthenticatedPlansSlugDayRoute,
   AuthenticatedUUserIdFollowsRoute: AuthenticatedUUserIdFollowsRoute,
+  AuthenticatedWorkoutsWorkoutIdEditRoute:
+    AuthenticatedWorkoutsWorkoutIdEditRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

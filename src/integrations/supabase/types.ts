@@ -438,6 +438,7 @@ export type Database = {
           image_start: string | null
           instructions: string[]
           log_type: string
+          muscles_detail: string[] | null
           name: string
           owner_id: string | null
           primary_muscles: string[]
@@ -458,6 +459,7 @@ export type Database = {
           image_start?: string | null
           instructions?: string[]
           log_type?: string
+          muscles_detail?: string[] | null
           name: string
           owner_id?: string | null
           primary_muscles?: string[]
@@ -478,6 +480,7 @@ export type Database = {
           image_start?: string | null
           instructions?: string[]
           log_type?: string
+          muscles_detail?: string[] | null
           name?: string
           owner_id?: string | null
           primary_muscles?: string[]
@@ -2172,6 +2175,10 @@ export type Database = {
         Returns: Json
       }
       end_crew: { Args: { _group_id: string }; Returns: undefined }
+      exercise_muscles_detail: {
+        Args: { _name: string; _primary: string[] }
+        Returns: string[]
+      }
       follow_user: { Args: { target: string }; Returns: Json }
       get_follow_profile_stats: { Args: { target: string }; Returns: Json }
       get_my_app_prefs: {
