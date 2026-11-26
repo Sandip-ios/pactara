@@ -120,7 +120,9 @@ function AuthLayout() {
     tabsHiddenByModal ||
     (appVersion === "new" && (
       pathname === "/account-settings" ||
-      pathname.startsWith("/account-settings/")
+      pathname.startsWith("/account-settings/") ||
+      // Phase 4 full-screen pages (workout page, builder): only Discover keeps the nav.
+      pathname.startsWith("/workouts/")
     )) ||
     pathname.startsWith("/check-in/") ||
     pathname.startsWith("/pact/") ||
