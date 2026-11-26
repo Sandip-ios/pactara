@@ -6,6 +6,7 @@ type Account = { id: string; token: string };
 let publicUser: Account | undefined;
 let privateUser: Account | undefined;
 const createdIds: string[] = [];
+const creationPrivacy = new Map<string, unknown>();
 const service = () => {
   const key = process.env['SUPABASE_SERVICE_ROLE_KEY'];
   if (!key) throw new Error('Draft auth credentials unavailable');
@@ -43,13 +44,13 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
       const password = randomUUID();
       const user = await admin<{ id: string }>('/auth/v1/admin/users', 'POST', { email, password, email_confirm: true });
       createdIds.push(user.id);
+      const profile = await rows('profiles', `id=eq.${user.id}&select=is_private`);
+      creationPrivacy.set(user.id, profile[0]?.['is_private']);
       const session = await request<{ access_token: string }>('/auth/v1/token?grant_type=password', service(), 'POST', { email, password });
       return { id: user.id, token: session.access_token };
     };
     publicUser = await make();
     privateUser = await make();
-    const profile = await rows('profiles', `id=eq.${publicUser.id}&select=is_private`);
-    expect(profile[0]?.['is_private']).toBe(false);
   });
   beforeEach(async () => {
     const { pub, priv } = accounts();
@@ -75,6 +76,46 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
       } catch (error) { errors.push(error instanceof Error ? error.message : 'Cleanup failed'); }
     }
     if (errors.length) throw new Error(errors.join('; '));
+  });
+  it('keeps both new accounts private by default until they choose otherwise', async () => {
+    for (const id of createdIds) {
+      // Creation defaults were captured before beforeEach makes an explicit choice.
+      expect(creationPrivacy.get(id)).toBe(true);
+    }
+  });
+  it('refuses classic targets with the exact message and creates no follow or event', async () => {
+    const { pub, priv } = accounts();
+    await patchProfile(pub.id, { app_version: 'classic' });
+    await expect(rpc(priv, 'follow_user', { target: pub.id })).rejects.toThrow("This person can't be followed yet");
+    expect(await followRows()).toEqual([]);
+    expect(await events()).toEqual([]);
+    expect((await rpc(priv, 'get_profile', { target: pub.id }))['can_follow']).toBe(false);
+    await patchProfile(pub.id, { app_version: 'new', new_version_enabled: false });
+    await expect(rpc(priv, 'follow_user', { target: pub.id })).rejects.toThrow("This person can't be followed yet");
+    expect((await rpc(priv, 'get_profile', { target: pub.id }))['can_follow']).toBe(false);
+  });
+  it('returns can_follow for new targets, but not yourself or either blocked direction', async () => {
+    const { pub, priv } = accounts();
+    expect((await rpc(pub, 'get_profile', { target: priv.id }))['can_follow']).toBe(true);
+    expect((await rpc(priv, 'get_profile', { target: pub.id }))['can_follow']).toBe(true);
+    expect((await rpc(pub, 'get_profile', { target: pub.id }))['can_follow']).toBe(false);
+    await request('/rest/v1/user_blocks', priv.token, 'POST', { blocker_id: priv.id, blocked_id: pub.id });
+    expect((await rpc(pub, 'get_profile', { target: priv.id }))['can_follow']).toBe(false);
+    expect((await rpc(priv, 'get_profile', { target: pub.id }))['can_follow']).toBe(false);
+  });
+  it('preserves accepted and requested follows when the target switches to classic', async () => {
+    const { pub, priv } = accounts();
+    await rpc(priv, 'follow_user', { target: pub.id });
+    await rpc(pub, 'follow_user', { target: priv.id });
+    const before = await followRows();
+    await patchProfile(pub.id, { app_version: 'classic' });
+    await patchProfile(priv.id, { app_version: 'classic' });
+    expect(await followRows()).toEqual(before);
+    await expect(rpc(priv, 'follow_user', { target: pub.id })).rejects.toThrow("This person can't be followed yet");
+    expect(await followRows()).toEqual(before);
+    const profile = await rpc(priv, 'get_profile', { target: pub.id });
+    expect(profile['relationship']).toBe('following');
+    expect(profile['can_follow']).toBe(false);
   });
   it('accepts public follows idempotently and sets accepted_at', async () => {
     const { pub, priv } = accounts();

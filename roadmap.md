@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Step 1 review: migration 0074 restores all-account private default, refuses classic follow targets, exposes can_follow and preserves follows on version switch; 620 tests pass including 19 database cases, both transient accounts and their data removed; no UI or publishing.
+
 - [x] Redesign profiles/follows step 1: migrations 0071–0073, locked follow/privacy RPCs, safe profile/list reads using existing streak rules, new-only notification source sharing read keys and opted-in push dispatch; 616 tests pass, two transient draft accounts followed/requested/accepted/blocked and removed with their data; no UI or publishing. Physical push delivery remains untested; next UI must call the server mutation wrappers for push dispatch.
 
 - [x] Join requests design review: new-only white preview header/chips/member card/inline join states, request strips and edge-to-edge list, plain pending rows, single-line goal field/text Skip; six 390×844 captures in join-requests-2.json; asked/cancelled/full state, pending link, input/counter/Skip verified; QA Open Crew 2 and seven fillers removed; 578 tests pass, build OK; classic/business logic unchanged, unpublished.

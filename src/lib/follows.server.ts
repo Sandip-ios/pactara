@@ -4,7 +4,7 @@ import { signAvatarThumbs } from './media-urls';
 export type FollowProfile = {
   id: string; name: string; username: string | null; bio: string | null;
   avatar: string | null; follower_count: number; following_count: number;
-  is_private: boolean; relationship: 'none' | 'requested' | 'following' | 'follows_you' | 'blocked';
+  is_private: boolean; can_follow: boolean; relationship: 'none' | 'requested' | 'following' | 'follows_you' | 'blocked';
   shares_crew?: boolean; current_streak?: number; badge_count?: number;
 };
 

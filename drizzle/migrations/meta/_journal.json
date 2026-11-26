@@ -519,6 +519,13 @@
       "when": 1795671275206,
       "tag": "0073_redesign_follow_privileges",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1795672120904,
+      "tag": "0074_redesign_follow_classic_guard_private_default",
+      "breakpoints": true
     }
   ]
 }
