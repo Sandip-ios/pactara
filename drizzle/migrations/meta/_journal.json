@@ -624,6 +624,13 @@
       "when": 1795713859619,
       "tag": "0088_workout_cover_library",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1795715283752,
+      "tag": "0089_refresh_workout_cover_photos",
+      "breakpoints": true
     }
   ]
 }

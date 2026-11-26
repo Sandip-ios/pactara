@@ -81,9 +81,10 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
     }
     for (const cover of covers) {
       expect(cover.url).toMatch(/^\/__l5e\/assets-v1\//);
-      expect(cover.source).toBe("Unsplash");
+      expect(["Unsplash", "Pexels"]).toContain(cover.source);
       expect(cover.credit.length).toBeGreaterThan(0);
-      expect(cover.source_url).toMatch(/^https:\/\/images\.unsplash\.com\//);
+      if (cover.source === "Unsplash") expect(cover.source_url).toMatch(/^https:\/\/images\.unsplash\.com\//);
+      else expect(cover.source_url).toMatch(/^https:\/\/www\.pexels\.com\/photo\//);
     }
     for (const equipment of ["gym", "dumbbells", "home", "kettlebell", "bands"]) {
       expect(covers.some((c) => c.equipment.includes(equipment))).toBe(true);
@@ -123,7 +124,7 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
     expect(workout.cover_key).toMatch(/^arms-/);
   });
 
-  it("prefers the band photo for a band-only leg workout", async () => {
+  it("uses the home-compatible lunge photo for a home leg workout", async () => {
     const quads = await customExercise(accounts.current[0]!.id, ["quads"], ["quads"]);
     const workout = await saveWorkout(accounts.current[0]!.id, "Band legs", [move("banded-squat"), move(quads)], "home");
     expect(workout.cover_key).toBe("legs-2");
