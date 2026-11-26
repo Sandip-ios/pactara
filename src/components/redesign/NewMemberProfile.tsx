@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserRound, UserX } from 'lucide-react';
+import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { getRedesignMemberProfile } from '@/lib/redesign-profile.functions';
@@ -17,6 +17,7 @@ import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetChevron, NewSheetMenuIcon, NewSheetRow } from './NewSheet';
 import { NewConfirm } from './NewConfirm';
 import { NewProfileWeekCard } from './NewOwnProfile';
+import { NewAvatarFallback } from './NewAvatarFallback';
 
 export const memberProfileOptions = (target: string) => queryOptions({
   queryKey: ['new-member-profile', target],
@@ -29,7 +30,7 @@ type Sheet = null | 'menu' | 'requested' | 'following' | 'report' | 'message' | 
 function MemberAvatar({ url, size }: { url: string | null; size: 56 | 84 }) {
   const [failed, setFailed] = useState<string | null>(null);
   return <span className="new-profile-avatar" style={{ width: size, height: size }} aria-hidden>
-    {url && url !== failed ? <img src={url} alt="" onError={() => setFailed(url)} /> : <UserRound size={Math.round(size * .54)} strokeWidth={2.2} />}
+    {url && url !== failed ? <img src={url} alt="" onError={() => setFailed(url)} /> : <NewAvatarFallback />}
   </span>;
 }
 

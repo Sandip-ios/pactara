@@ -2,7 +2,7 @@ import { progressSummary } from '@/lib/redesign-profile';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake, UserRound } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getHomeCrew } from '@/lib/home-crew.functions';
 import { newProfileWeek, profileWeekChips } from '@/lib/redesign-profile';
@@ -12,11 +12,12 @@ import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { ownNewProfileOptions } from './profile-query';
 import { NewSheet, NewSheetCheckbox, NewSheetChevron, NewSheetRow } from './NewSheet';
+import { NewAvatarFallback } from './NewAvatarFallback';
 
 export function NewProfileAvatar({ url, size }: { url: string | null; size: 84 | 96 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   return <span className={`new-profile-avatar avatar-${size}`} aria-label="Your photo">
-    {url && url !== failedUrl ? <img src={url} alt="Your profile" onError={() => setFailedUrl(url)} /> : <UserRound size={Math.round(size * .54)} strokeWidth={2.2} aria-hidden />}
+    {url && url !== failedUrl ? <img src={url} alt="Your profile" onError={() => setFailedUrl(url)} /> : <NewAvatarFallback />}
   </span>;
 }
 

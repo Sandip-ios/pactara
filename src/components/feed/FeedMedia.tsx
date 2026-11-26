@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Play, Volume2, VolumeX } from "lucide-react";
 import { attachVideoDurationFix, effectiveDuration } from "@/lib/video-playback";
 import { MemberPhoto } from "@/components/MemberPhoto";
+import { usePassiveAppVersion } from '@/hooks/use-app-version';
+import { NewAvatarFallback } from '@/components/redesign/NewAvatarFallback';
 
 const VIDEO_RE = /\.(mp4|mov|webm|m4v|ogg)(\?|$)/i;
 export const isVideoUrl = (url: string) => VIDEO_RE.test(url);
@@ -19,13 +21,14 @@ export function FeedAvatar({
   size: number;
   className?: string;
 }) {
+  const version = usePassiveAppVersion();
   return (
     <span
       className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full font-bold text-white ${className}`}
       style={{ width: size, height: size, background: color, fontSize: Math.round(size * 0.4) }}
       aria-hidden
     >
-      <MemberPhoto src={url} name={name || "U"} />
+      {!url && version === 'new' ? <NewAvatarFallback /> : <MemberPhoto src={url} name={name || "U"} />}
     </span>
   );
 }

@@ -1,8 +1,4 @@
-import { UserRound } from "lucide-react";
-
-/** Shared no-photo fallback for the redesign: light purple disc, near-white silhouette. */
-const FALLBACK_BG = "#E4DAFB";
-const FALLBACK_FG = "#F8F5FF";
+import { NewAvatarFallback } from "./NewAvatarFallback";
 
 export type RedesignCrewAvatarMember = {
   id: string;
@@ -18,16 +14,15 @@ export function CrewAvatar({ member, size, ring = false }: { member: RedesignCre
       style={{
         width: size,
         height: size,
-        background: member.avatarUrl ? member.avatarColor : FALLBACK_BG,
-        border: ring ? "2px solid #FFFFFF" : undefined,
-        color: FALLBACK_FG,
+        background: member.avatarUrl ? member.avatarColor : "var(--new-profile-avatar-bg)",
+        border: ring ? "2px solid var(--new-white)" : undefined,
       }}
       aria-hidden
     >
       {member.avatarUrl ? (
         <img src={member.avatarUrl} alt="" className="h-full w-full object-cover" />
       ) : (
-        <UserRound size={Math.round(size * 0.54)} strokeWidth={2.2} />
+        <NewAvatarFallback />
       )}
     </span>
   );

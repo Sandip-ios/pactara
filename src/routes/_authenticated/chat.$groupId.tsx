@@ -17,6 +17,8 @@ import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { CrewAvatar } from "@/components/redesign/CrewAvatars";
+import { useAppVersion } from '@/hooks/use-app-version';
+import { NewAvatarFallback } from '@/components/redesign/NewAvatarFallback';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -43,6 +45,7 @@ function GroupChatPage() {
 
 /** Existing crew chat, optionally embedded in the redesign's Chat tab. */
 export function GroupChatView({ groupId, embedded = false, crewName }: { groupId: string; embedded?: boolean; crewName?: string }) {
+  const version = useAppVersion();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -392,7 +395,7 @@ export function GroupChatView({ groupId, embedded = false, crewName }: { groupId
                 {m.avatarUrl ? (
                   <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
                 ) : (
-                  (m.name?.[0] ?? "?").toUpperCase()
+                  version === 'new' ? <NewAvatarFallback /> : (m.name?.[0] ?? "?").toUpperCase()
                 )}
               </span>
             ))}
@@ -463,7 +466,7 @@ export function GroupChatView({ groupId, embedded = false, crewName }: { groupId
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          initial
+                          version === 'new' ? <NewAvatarFallback /> : initial
                         )}
                       </div>
                       )}

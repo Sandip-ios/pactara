@@ -6,6 +6,8 @@ import { PullToRefresh } from "@/components/PullToRefresh";
 import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { ChevronLeft } from "lucide-react";
+import { useAppVersion } from '@/hooks/use-app-version';
+import { NewAvatarFallback } from '@/components/redesign/NewAvatarFallback';
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -25,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/chat/")({
 });
 
 function ChatPage() {
+  const version = useAppVersion();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -106,7 +109,7 @@ function ChatPage() {
                         {m.avatarUrl ? (
                           <img src={m.avatarUrl} alt={m.name} className="h-full w-full object-cover" />
                         ) : (
-                          (m.name || "?").charAt(0).toUpperCase()
+                          version === 'new' ? <NewAvatarFallback /> : (m.name || "?").charAt(0).toUpperCase()
                         )}
                       </span>
                     ))}
