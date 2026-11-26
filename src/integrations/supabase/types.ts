@@ -672,6 +672,8 @@ export type Database = {
           name: string
           owner_id: string
           pact_promise: string | null
+          previous_duration_days: number | null
+          previous_start_date: string | null
           solo_nudge_count: number
           solo_nudged_at: string | null
           start_date: string
@@ -692,6 +694,8 @@ export type Database = {
           name: string
           owner_id: string
           pact_promise?: string | null
+          previous_duration_days?: number | null
+          previous_start_date?: string | null
           solo_nudge_count?: number
           solo_nudged_at?: string | null
           start_date?: string
@@ -712,6 +716,8 @@ export type Database = {
           name?: string
           owner_id?: string
           pact_promise?: string | null
+          previous_duration_days?: number | null
+          previous_start_date?: string | null
           solo_nudge_count?: number
           solo_nudged_at?: string | null
           start_date?: string
@@ -910,6 +916,38 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      pact_member_seen: {
+        Row: {
+          created_at: string
+          group_id: string
+          kind: string
+          pact_start: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          kind: string
+          pact_start: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          kind?: string
+          pact_start?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pact_member_seen_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_queue: {
         Row: {
@@ -2092,6 +2130,15 @@ export type Database = {
         Returns: boolean
       }
       shares_group_with: { Args: { _a: string; _b: string }; Returns: boolean }
+      start_next_pact: {
+        Args: {
+          _days_per_week: number
+          _duration_days: number
+          _group_id: string
+          _start: string
+        }
+        Returns: string
+      }
       submit_content_report: {
         Args: {
           _block: boolean

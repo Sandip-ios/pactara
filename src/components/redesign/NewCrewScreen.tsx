@@ -28,6 +28,8 @@ import { NewCrewControls } from "./NewCrewControls";
 import { beginNewCheckIn } from "@/lib/redesign-checkin";
 import { useServerFn } from "@tanstack/react-start";
 import { completeCrewJoinGoal, getCrewJoinGoal } from "@/lib/crew-join.functions";
+import { NewPactBanner } from "./NewPactBanner";
+import { pactStatusOptions } from "./pact-query";
 import { JOIN_GOAL_MAX } from "@/lib/crew-join";
 import { Button } from "@/components/ui/button";
 
@@ -90,6 +92,11 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
     setGoalAnswered(true);
   };
   const groupFeed = useGroupFeed(groupId, { staleTime: 30_000 });
+  const { data: pact } = useQuery(pactStatusOptions(groupId));
+  // First visit after the last day: the Pact done screen, once per member per pact.
+  useEffect(() => {
+    if (pact?.done && !pact.doneSeen) navigate({ to: "/crews/$groupId/pact-done", params: { groupId }, replace: true });
+  }, [pact?.done, pact?.doneSeen, groupId, navigate]);
 
   useEffect(() => {
     localStorage.setItem("active-group-id", groupId);
@@ -140,7 +147,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
             <div className="min-w-0">
               <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} header />
               <p className="mt-[2px] flex items-center gap-1.5 text-[13px] leading-[15px]" style={{ color: MUTED }}>
-                <Lock size={13} aria-hidden /> Private crew · day {group.dayNumber} of {group.durationDays}
+                <Lock size={13} aria-hidden /> Private crew · {pact?.done ? "pact done" : `day ${group.dayNumber} of ${group.durationDays}`}
               </p>
             </div>
           </div>
@@ -164,6 +171,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
 
         {tab === "today" && (
           <main>
+            {pact && <NewPactBanner groupId={groupId} crewName={displayName} ownerName={(group.members.find((m) => m.userId === pact.ownerId)?.name ?? "The owner").trim().split(/\s+/)[0] ?? "The owner"} status={pact} />}
             <section className="m-4 rounded-[20px] bg-white p-4">
               <h2 className="text-[28px] font-extrabold leading-tight">{counts.done} of {counts.due} showed up</h2>
               <p className="mt-2 text-[15px] leading-[1.45]" style={{ color: MUTED }}>{crewShowedUpLine(counts.done, counts.due, viewerDone)}</p>

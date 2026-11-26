@@ -15,3 +15,4 @@
   - Overlay rgba(20,18,24,.45); white centered card, width 310px, max calc(100% - 48px), radius 24px, padding 24px 20px 12px, centered text.
   - Title 18px/800 #1C1917; body 14px #57534E, line-height 1.45, 8px below title.
   - Destructive primary: full width, height 48px, radius 24px, #B91C1C, white 16px/700, 20px below body. Cancel: text button beneath, height 48px, 16px/700 #1C1917, no background.
+- End of pact: rules are pure in `src/lib/pact-cycle.ts`; status/seen/start go through `pact-cycle.functions.ts` and the owner-only `start_next_pact` RPC, which moves `groups.start_date`/`duration_days` (keeping the old ones in `previous_*`) and never touches members, goals or check-ins; per-member "seen" state lives in `pact_member_seen`. Why: classic simply sees the day count restart, and the done screen/banner show once per member per pact.

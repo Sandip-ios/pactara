@@ -477,6 +477,13 @@
       "when": 1795662598268,
       "tag": "0067_finish_end_crew_performance_review",
       "breakpoints": true
+    },
+    {
+      "idx": 68,
+      "version": "7",
+      "when": 1795664480991,
+      "tag": "0068_next_pact",
+      "breakpoints": true
     }
   ]
 }

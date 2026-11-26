@@ -108,10 +108,10 @@
 - [x] Workouts tab (no plan, no quiz answers): the "Not sure? Find your plan" card from Discover, shared component, with a centered "or browse all 18 plans" link under it (unpublished)
 - [x] Redesign phase 2 step 1: new-version Crews tab and crew Today/Posts/Chat, QA Two and media-free check-in, screenshots 10–13 with base64 copies; classic unchanged, 554 tests pass (unpublished)
 
-## Phase 2 step 6: End of pact (waiting on goal-reset choice 1/2/3)
-- [ ] Pact done screen (member helper: "<Owner> runs <crew> and decides what's next.")
-- [ ] Next pact screen
-- [ ] New pact banner: bg #F5F0FF, radius 18, pad 14/16, margin 12px 16px 0; title 15/800 #4C1D95; body 14 #5B21B6 4px below; buttons 10px below, 8px gap, h36 r18 13/700 px12; primary #7C3AED/white, Later #EDE4FF/#7C3AED
-- [ ] Between pacts: same purple card; subline "Private crew · pact done"; owner/member copy per spec; Today card unchanged
-- [ ] Captures 38–43 into public/qa/pact.json (42 owner gap, 43 member gap)
+## Phase 2 step 6: End of pact (goals kept, option 1)
+- [x] Pact done screen (member helper: "<Owner> runs <crew> and decides what's next.")
+- [x] Next pact screen
+- [x] New pact banner: bg #F5F0FF, radius 18, pad 14/16, margin 12px 16px 0; title 15/800 #4C1D95; body 14 #5B21B6 4px below; buttons 10px below, 8px gap, h36 r18 13/700 px12; primary #7C3AED/white, Later #EDE4FF/#7C3AED
+- [x] Between pacts: same purple card; subline "Private crew · pact done"; owner/member copy per spec; Today card unchanged
+- [x] Captures 38–43 into public/qa/pact.json (42 owner gap, 43 member gap)
 - [x] Crews tab: note removed, "N new" chat badge (new version; no crew limit)

@@ -70,6 +70,8 @@ import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
 import { Route as AuthenticatedWorkoutLogRouteImport } from './routes/_authenticated/workout.log'
+import { Route as AuthenticatedCrewsGroupIdNextPactRouteImport } from './routes/_authenticated/crews.$groupId_.next-pact'
+import { Route as AuthenticatedCrewsGroupIdPactDoneRouteImport } from './routes/_authenticated/crews.$groupId_.pact-done'
 import { Route as AuthenticatedCrewsGroupIdPreviewRouteImport } from './routes/_authenticated/crews.$groupId_.preview'
 import { Route as AuthenticatedCrewsGroupIdRequestsRouteImport } from './routes/_authenticated/crews.$groupId_.requests'
 import { Route as AuthenticatedCrewsGroupIdSettingsRouteImport } from './routes/_authenticated/crews.$groupId_.settings'
@@ -413,6 +415,18 @@ const AuthenticatedWorkoutLogRoute = AuthenticatedWorkoutLogRouteImport.update({
   path: '/workout/log',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCrewsGroupIdNextPactRoute =
+  AuthenticatedCrewsGroupIdNextPactRouteImport.update({
+    id: '/crews/$groupId_/next-pact',
+    path: '/crews/$groupId/next-pact',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCrewsGroupIdPactDoneRoute =
+  AuthenticatedCrewsGroupIdPactDoneRouteImport.update({
+    id: '/crews/$groupId_/pact-done',
+    path: '/crews/$groupId/pact-done',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrewsGroupIdPreviewRoute =
   AuthenticatedCrewsGroupIdPreviewRouteImport.update({
     id: '/crews/$groupId_/preview',
@@ -567,6 +581,8 @@ export interface FileRoutesByFullPath {
   '/crews/': typeof AuthenticatedCrewsIndexRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/workout/': typeof AuthenticatedWorkoutIndexRoute
+  '/crews/$groupId/next-pact': typeof AuthenticatedCrewsGroupIdNextPactRoute
+  '/crews/$groupId/pact-done': typeof AuthenticatedCrewsGroupIdPactDoneRoute
   '/crews/$groupId/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
   '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
@@ -644,6 +660,8 @@ export interface FileRoutesByTo {
   '/crews': typeof AuthenticatedCrewsIndexRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
   '/workout': typeof AuthenticatedWorkoutIndexRoute
+  '/crews/$groupId/next-pact': typeof AuthenticatedCrewsGroupIdNextPactRoute
+  '/crews/$groupId/pact-done': typeof AuthenticatedCrewsGroupIdPactDoneRoute
   '/crews/$groupId/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
   '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
@@ -724,6 +742,8 @@ export interface FileRoutesById {
   '/_authenticated/crews/': typeof AuthenticatedCrewsIndexRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/workout/': typeof AuthenticatedWorkoutIndexRoute
+  '/_authenticated/crews/$groupId_/next-pact': typeof AuthenticatedCrewsGroupIdNextPactRoute
+  '/_authenticated/crews/$groupId_/pact-done': typeof AuthenticatedCrewsGroupIdPactDoneRoute
   '/_authenticated/crews/$groupId_/preview': typeof AuthenticatedCrewsGroupIdPreviewRoute
   '/_authenticated/crews/$groupId_/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/_authenticated/crews/$groupId_/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
@@ -804,6 +824,8 @@ export interface FileRouteTypes {
     | '/crews/'
     | '/groups/'
     | '/workout/'
+    | '/crews/$groupId/next-pact'
+    | '/crews/$groupId/pact-done'
     | '/crews/$groupId/preview'
     | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
@@ -881,6 +903,8 @@ export interface FileRouteTypes {
     | '/crews'
     | '/groups'
     | '/workout'
+    | '/crews/$groupId/next-pact'
+    | '/crews/$groupId/pact-done'
     | '/crews/$groupId/preview'
     | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
@@ -960,6 +984,8 @@ export interface FileRouteTypes {
     | '/_authenticated/crews/'
     | '/_authenticated/groups/'
     | '/_authenticated/workout/'
+    | '/_authenticated/crews/$groupId_/next-pact'
+    | '/_authenticated/crews/$groupId_/pact-done'
     | '/_authenticated/crews/$groupId_/preview'
     | '/_authenticated/crews/$groupId_/requests'
     | '/_authenticated/crews/$groupId_/settings'
@@ -1439,6 +1465,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/crews/$groupId_/next-pact': {
+      id: '/_authenticated/crews/$groupId_/next-pact'
+      path: '/crews/$groupId/next-pact'
+      fullPath: '/crews/$groupId/next-pact'
+      preLoaderRoute: typeof AuthenticatedCrewsGroupIdNextPactRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/crews/$groupId_/pact-done': {
+      id: '/_authenticated/crews/$groupId_/pact-done'
+      path: '/crews/$groupId/pact-done'
+      fullPath: '/crews/$groupId/pact-done'
+      preLoaderRoute: typeof AuthenticatedCrewsGroupIdPactDoneRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crews/$groupId_/preview': {
       id: '/_authenticated/crews/$groupId_/preview'
       path: '/crews/$groupId/preview'
@@ -1588,6 +1628,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrewsIndexRoute: typeof AuthenticatedCrewsIndexRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
   AuthenticatedWorkoutIndexRoute: typeof AuthenticatedWorkoutIndexRoute
+  AuthenticatedCrewsGroupIdNextPactRoute: typeof AuthenticatedCrewsGroupIdNextPactRoute
+  AuthenticatedCrewsGroupIdPactDoneRoute: typeof AuthenticatedCrewsGroupIdPactDoneRoute
   AuthenticatedCrewsGroupIdPreviewRoute: typeof AuthenticatedCrewsGroupIdPreviewRoute
   AuthenticatedCrewsGroupIdRequestsRoute: typeof AuthenticatedCrewsGroupIdRequestsRoute
   AuthenticatedCrewsGroupIdSettingsRoute: typeof AuthenticatedCrewsGroupIdSettingsRoute
@@ -1634,6 +1676,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrewsIndexRoute: AuthenticatedCrewsIndexRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
   AuthenticatedWorkoutIndexRoute: AuthenticatedWorkoutIndexRoute,
+  AuthenticatedCrewsGroupIdNextPactRoute:
+    AuthenticatedCrewsGroupIdNextPactRoute,
+  AuthenticatedCrewsGroupIdPactDoneRoute:
+    AuthenticatedCrewsGroupIdPactDoneRoute,
   AuthenticatedCrewsGroupIdPreviewRoute: AuthenticatedCrewsGroupIdPreviewRoute,
   AuthenticatedCrewsGroupIdRequestsRoute:
     AuthenticatedCrewsGroupIdRequestsRoute,
