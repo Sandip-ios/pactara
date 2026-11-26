@@ -389,7 +389,7 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
 
   return (
     <div className="fixed inset-0 overflow-y-auto overscroll-none" data-scroll-root style={{ background: PAGE, fontFamily: FONT, color: INK }}>
-      <div className="flex flex-col gap-3 bg-white px-4 pb-4 pt-new-top">
+      <div className="flex flex-col gap-3 bg-white px-4 pb-5 pt-new-top">
         <header className="grid grid-cols-[44px_1fr_44px] items-center">
           <CircleButton label="Back" onClick={back} tone="#F0EDE8"><ChevronLeft size={24} /></CircleButton>
           <h1 className="truncate px-2 text-center text-[17px] font-bold">{plan.name}</h1>
@@ -404,7 +404,7 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
           <span className="block h-full rounded-full" style={{ background: PURPLE, width: `${Math.min(100, (active.workoutsDone / Math.max(1, total)) * 100)}%` }} />
         </span>
       </div>
-      <div className="flex flex-col gap-3 px-4" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-col gap-3 px-4 pt-[10px]" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
 
         <Label>Today</Label>
         <div className="flex flex-col gap-3 rounded-[18px] bg-white p-3.5" data-today-card>
