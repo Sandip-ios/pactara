@@ -28,6 +28,7 @@ import { Route as AuthenticatedFindPlanRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedNewPactaraRouteImport } from './routes/_authenticated/new-pactara'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedNotificationsOffRouteImport } from './routes/_authenticated/notifications-off'
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -184,6 +185,12 @@ const AuthenticatedNotificationsRoute =
   AuthenticatedNotificationsRouteImport.update({
     id: '/notifications',
     path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotificationsOffRoute =
+  AuthenticatedNotificationsOffRouteImport.update({
+    id: '/notifications-off',
+    path: '/notifications-off',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPartnerRoute = AuthenticatedPartnerRouteImport.update({
@@ -539,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/notifications-off': typeof AuthenticatedNotificationsOffRoute
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -618,6 +626,7 @@ export interface FileRoutesByTo {
   '/home': typeof AuthenticatedHomeRoute
   '/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
+  '/notifications-off': typeof AuthenticatedNotificationsOffRoute
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
@@ -700,6 +709,7 @@ export interface FileRoutesById {
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/new-pactara': typeof AuthenticatedNewPactaraRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/notifications-off': typeof AuthenticatedNotificationsOffRoute
   '/_authenticated/partner': typeof AuthenticatedPartnerRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
@@ -782,6 +792,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/new-pactara'
     | '/notifications'
+    | '/notifications-off'
     | '/partner'
     | '/plan'
     | '/profile'
@@ -861,6 +872,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/new-pactara'
     | '/notifications'
+    | '/notifications-off'
     | '/partner'
     | '/plan'
     | '/profile'
@@ -942,6 +954,7 @@ export interface FileRouteTypes {
     | '/_authenticated/home'
     | '/_authenticated/new-pactara'
     | '/_authenticated/notifications'
+    | '/_authenticated/notifications-off'
     | '/_authenticated/partner'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
@@ -1169,6 +1182,13 @@ declare module '@tanstack/react-router' {
       path: '/notifications'
       fullPath: '/notifications'
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications-off': {
+      id: '/_authenticated/notifications-off'
+      path: '/notifications-off'
+      fullPath: '/notifications-off'
+      preLoaderRoute: typeof AuthenticatedNotificationsOffRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/partner': {
@@ -1600,6 +1620,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNewPactaraRoute: typeof AuthenticatedNewPactaraRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedNotificationsOffRoute: typeof AuthenticatedNotificationsOffRoute
   AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
@@ -1643,6 +1664,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNewPactaraRoute: AuthenticatedNewPactaraRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedNotificationsOffRoute: AuthenticatedNotificationsOffRoute,
   AuthenticatedPartnerRoute: AuthenticatedPartnerRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,

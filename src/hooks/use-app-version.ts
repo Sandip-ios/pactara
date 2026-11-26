@@ -58,3 +58,11 @@ export function useSetAppVersion() {
     await qc.invalidateQueries({ queryKey: APP_PREFS_KEY });
   };
 }
+
+/** Same answer as useAppVersion, but only reads prefs another screen already loaded (never fetches). */
+export function usePassiveAppVersion(): AppVersion {
+  const { data } = useQuery<Awaited<ReturnType<NonNullable<ReturnType<typeof useAppPrefs>["refetch"]>>>["data"]>({ queryKey: APP_PREFS_KEY, enabled: false });
+  const [override, setOverride] = useState<AppVersion | null>(null);
+  useEffect(() => { setOverride(readOverride()); }, []);
+  return resolveAppVersion(data?.new_version_enabled, data?.app_version, override);
+}

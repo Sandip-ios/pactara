@@ -14,6 +14,7 @@ import { claimReferralInstall, linkReferralInstall } from "@/lib/referral";
 import { trackInvite } from "@/lib/invite-analytics";
 import { openAppLink, setAppLinkNavigator } from "@/lib/launch-links";
 import { launchScreenUp } from "@/lib/launch-screen";
+import { usePassiveAppVersion } from "@/hooks/use-app-version";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,6 +35,8 @@ import {
 export function NativeBootstrap() {
   const navigate = useNavigate();
   const [showNotificationSettingsPrompt, setShowNotificationSettingsPrompt] = useState(false);
+  // The new version shows its own Home banner and Settings screen instead.
+  const isNewVersion = usePassiveAppVersion() === "new";
 
   useEffect(() => {
     if (!isNative()) return;
@@ -287,7 +290,7 @@ export function NativeBootstrap() {
 
   return (
     <AlertDialog
-      open={showNotificationSettingsPrompt}
+      open={showNotificationSettingsPrompt && !isNewVersion}
       onOpenChange={setShowNotificationSettingsPrompt}
     >
       <AlertDialogContent className="w-[calc(100%-2rem)] max-w-sm rounded-lg">

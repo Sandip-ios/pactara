@@ -12,6 +12,7 @@ import { OnboardingSheet } from "@/components/OnboardingSheet";
 import { useAppleHealth } from "@/lib/use-apple-health";
 import { SwitchToClassicSheet } from "./SwitchToClassicSheet";
 import { WhatsNewScreen } from "./WhatsNewScreen";
+import { usePushPermission } from "@/lib/use-push-permission";
 
 const PURPLE = "#7C3AED";
 const PURPLE_SOFT = "#EDE4FF";
@@ -22,6 +23,8 @@ export function NewSettings() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const health = useAppleHealth();
+  const push = usePushPermission();
+  const notifOff = push.native && push.permission === "denied";
   const [showGuide, setShowGuide] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [showSwitch, setShowSwitch] = useState(false);
@@ -73,7 +76,8 @@ export function NewSettings() {
       </Section>
 
       <Section label="PREFERENCES">
-        <Row icon={p(Bell)} title="Notifications" subtitle="Likes, follows, comments, reminders" onClick={() => navigate({ to: "/account-settings/notifications" })} />
+        <Row icon={p(Bell)} title="Notifications" subtitle="Likes, follows, comments, reminders" onClick={() => navigate({ to: notifOff ? "/notifications-off" : "/account-settings/notifications" })}
+          trailing={notifOff ? <span className="text-[13px] font-bold" style={{ color: MUTED }}>Off</span> : undefined} />
         {health.available && (
           <Row icon={tile(<Heart size={18} style={{ color: "#DC2626" }} />, "#FEE2E2")} title="Apple Health" subtitle="Workouts from your iPhone and Watch" onClick={() => navigate({ to: "/apple-health" })}
             trailing={health.connected ? <span className="text-[13px] font-bold" style={{ color: "#15803D" }}>Connected</span> : undefined} />

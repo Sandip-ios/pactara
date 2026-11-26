@@ -115,3 +115,4 @@
 - [x] Between pacts: same purple card; subline "Private crew · pact done"; owner/member copy per spec; Today card unchanged
 - [x] Captures 38–43 into public/qa/pact.json (42 owner gap, 43 member gap)
 - [x] Crews tab: note removed, "N new" chat badge (new version; no crew limit)
+- [x] Phase 2 step 7: Notifications off banner, Settings screen, Settings row Off (new version)

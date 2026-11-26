@@ -12,6 +12,7 @@ import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { useClaimSharedWorkout } from "@/components/workout/useClaimSharedWorkout";
 import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
+import { NewNotifBanner } from "./NewNotifBanner";
 
 export function NewHome() {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ export function NewHome() {
           <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Notifications" onClick={() => navigate({ to: "/notifications" })}><Bell className="!size-5" />{(notifications?.total ?? 0) > 0 && <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[var(--new-red)]" />}</Button>
         </div>
       </header>
+      {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}
       <div className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-4 py-1">
         {isLoading ? <div className="h-24 animate-pulse" aria-label="Loading crews" /> : data?.groups.length ? data.groups.slice(0, 3).map((group) => {
           const counts = crewPageCounts(group.members);
