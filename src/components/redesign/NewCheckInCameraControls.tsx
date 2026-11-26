@@ -70,7 +70,7 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
           const counts = crewPageCounts(group.members);
           const checked = selected.includes(group.id);
           return <Button key={group.id} variant="ghost" disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} className="h-auto w-full justify-start gap-3 whitespace-normal border-b border-[var(--new-divider)] px-0 py-4 text-left disabled:opacity-50">
-            <CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={36} />
+            <span className="w-[76px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={32} limit={3} /></span>
             <span className="min-w-0 flex-1"><span className="block text-[17px] font-bold">{group.name}</span><span className="mt-1 block text-[13px] font-normal text-[var(--new-muted)]">{done ? "You're in" : `${counts.done} of ${counts.due} in today`}</span></span>
             <span className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg border ${checked ? "border-[var(--new-purple)] bg-[var(--new-purple)] text-[var(--new-white)]" : "border-[var(--new-muted)]"}`}>{checked && <Check className="!size-[18px]" />}</span>
           </Button>;
