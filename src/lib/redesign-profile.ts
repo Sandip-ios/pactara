@@ -30,3 +30,10 @@ export async function saveNewProfileFields(db: { from: (table: 'profiles') => an
     throw new Error('Could not save profile');
   }
 }
+/** Own-profile streak line: only parts above 0, joined with " · "; empty when both are 0. */
+export function progressSummary(streak: number, badges: number): string {
+  const parts: string[] = [];
+  if (streak > 0) parts.push(`${streak}-day streak`);
+  if (badges > 0) parts.push(`${badges} ${badges === 1 ? 'badge' : 'badges'}`);
+  return parts.join(' · ');
+}

@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { CrewAvatarOverlap, type RedesignCrewAvatarMember } from "./CrewAvatars";
 
 /** All redesign sheets share this surface; classic DrawerContent stays untouched. */
-export function NewSheet({ open, onOpenChange, title, subtitle, description, children }: {
-  open: boolean; onOpenChange: (open: boolean) => void; title: string;
+export function NewSheet({ open, onOpenChange, title, subtitle, description, hideTitle = false, children }: {
+  open: boolean; onOpenChange: (open: boolean) => void; title: string; hideTitle?: boolean;
   subtitle?: string; description?: string; children: ReactNode;
 }) {
   return <Drawer open={open} onOpenChange={onOpenChange}>
@@ -16,9 +16,9 @@ export function NewSheet({ open, onOpenChange, title, subtitle, description, chi
       <DrawerOverlay className="new-sheet bg-[var(--new-sheet-overlay)]" />
       <DrawerPrimitive.Content className="new-sheet fixed inset-x-0 bottom-0 z-[70] flex max-h-[calc(100dvh-60px)] flex-col overflow-y-auto rounded-t-[24px] border-0 bg-[var(--new-white)] px-5 pt-[10px] pb-[calc(40px+env(safe-area-inset-bottom))] text-[var(--new-ink)] outline-none">
         <div className="mx-auto mb-[14px] h-[5px] w-9 shrink-0 rounded-[3px] bg-[var(--new-handle)]" aria-hidden />
-        <DrawerTitle className="m-0 text-[20px] font-extrabold text-[var(--new-ink)] tracking-normal">{title}</DrawerTitle>
+        <DrawerTitle className={hideTitle ? "sr-only" : "m-0 text-[20px] font-extrabold text-[var(--new-ink)] tracking-normal"}>{title}</DrawerTitle>
         <DrawerDescription className={subtitle ? "mt-1 text-[14px] text-[var(--new-muted)]" : "sr-only"}>{subtitle ?? description ?? title}</DrawerDescription>
-        <div className="mt-[10px]">{children}</div>
+        <div className={hideTitle ? undefined : "mt-[10px]"}>{children}</div>
       </DrawerPrimitive.Content>
     </DrawerPortal>
   </Drawer>;

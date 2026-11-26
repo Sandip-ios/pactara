@@ -44,3 +44,12 @@ describe('New profile editing rules', () => {
     await expect(saveNewProfileFields(db, 'caller', { name: 'Maya', username: 'maya', bio: '' })).rejects.toThrow('That username is taken');
   });
 });
+import { progressSummary } from '../redesign-profile';
+describe('progressSummary', () => {
+  it('hides zero parts', () => {
+    expect(progressSummary(0, 0)).toBe('');
+    expect(progressSummary(5, 0)).toBe('5-day streak');
+    expect(progressSummary(0, 3)).toBe('3 badges');
+    expect(progressSummary(12, 2)).toBe('12-day streak · 2 badges');
+  });
+});

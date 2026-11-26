@@ -1,3 +1,4 @@
+import { progressSummary } from '@/lib/redesign-profile';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
@@ -32,10 +33,10 @@ export function NewOwnProfile() {
   const { data: crew } = useQuery({ queryKey: ['home-crew', groupId], queryFn: () => getHomeCrew({ data: { groupId } }), enabled: Boolean(groupId), staleTime: 30_000 });
   const me = crew?.members.find(member => member.isYou);
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-profile-page fixed inset-0 overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]">
-    <header className="new-profile-header pt-new-top"><div className="new-profile-header-row"><span className="new-profile-header-spacer" /><h1>{profile.username || profile.name.trim().split(/\s+/)[0] || 'You'}</h1><Button variant="ghost" className="new-profile-menu-button" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button></div></header>
+    <header className="new-profile-header pt-new-top"><div className="new-profile-header-row"><span className="new-profile-header-spacer" /><h1>{profile.username || profile.name.trim().split(/\s+/)[0]}</h1><Button variant="ghost" className="new-profile-menu-button" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button></div></header>
     <section className="new-profile-identity">
       <div className="new-profile-avatar-row"><NewProfileAvatar url={profile.avatarUrl} size={84} /><div className="new-profile-counts"><div><strong>{profile.followers}</strong><span>followers</span></div><div><strong>{profile.following}</strong><span>following</span></div></div></div>
-      <div><h2 className="new-profile-name">{profile.name || 'You'}</h2>{profile.bio && <p className="new-profile-bio">{profile.bio}</p>}<div className="new-profile-progress-link"><Flame size={14} aria-hidden /><span>{profile.streak}-day streak · {profile.badges} badges</span><Link to="/profile/progress" search={groupId ? { group: groupId } : {}}>See progress ›</Link></div></div>
+      <div><h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>{profile.bio && <p className="new-profile-bio">{profile.bio}</p>}<div className="new-profile-progress-link">{profile.streak > 0 && <Flame size={14} aria-hidden />}{progressSummary(profile.streak, profile.badges) && <span>{progressSummary(profile.streak, profile.badges)}</span>}<Link to="/profile/progress" search={groupId ? { group: groupId } : {}}>See progress ›</Link></div></div>
       <Button variant="ghost" asChild className="new-profile-edit-button"><Link to="/profile/edit"><Pencil size={17} />Edit profile</Link></Button>
       {profile.plan && <Button variant="ghost" asChild className="new-profile-plan"><Link to="/plans/$slug" params={{ slug: profile.plan.slug }}><span className="new-profile-plan-cover">{profile.plan.coverUrl && <img src={profile.plan.coverUrl} alt="" />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks}</small></span><ChevronRight size={20} /></Link></Button>}
     </section>
@@ -46,7 +47,7 @@ export function NewOwnProfile() {
       <div className="new-profile-week-chips"><span className="new-profile-streak-chip"><Flame size={17} /><span>{me?.streak ?? 0}-day streak</span></span><span className="new-profile-freeze-chip"><Snowflake size={17} /><span>{profile.freezes} freezes</span></span></div>
     </section>}
     <div className="new-profile-note"><Lock size={18} aria-hidden /><p>Your crews always see your check-ins. Only you choose what goes on your public profile.</p></div>
-    <NewSheet open={menu} onOpenChange={setMenu} title="Profile" description="Your profile menu">
+    <NewSheet open={menu} onOpenChange={setMenu} title="Profile" hideTitle description="Your profile menu">
       <NewSheetRow simple className="border-b-0" title="Account privacy" leading={<Lock />} trailing={<><span className="text-[14px] font-normal text-[var(--new-muted)]">{profile.isPrivate ? 'Private' : 'Public'}</span><NewSheetChevron /></>} onClick={() => { setMenu(false); void navigate({ to: '/profile/privacy' }); }} />
       <NewSheetRow simple className="border-b-0" title="Blocked people" leading={<ShieldBan />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/account-settings/blocked' }); }} />
       <div className="new-profile-menu-divider" />

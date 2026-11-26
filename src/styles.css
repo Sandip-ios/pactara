@@ -124,10 +124,11 @@
 .new-profile-fields > div > input, .new-profile-username-input { margin-top: 8px; height: 56px; }
 .new-profile-fields > div > input { padding: 0 16px; font-size: 18px; }
 .new-profile-fields input:focus, .new-profile-fields textarea:focus { border: 1.5px solid var(--new-purple); }
-.new-profile-username-input { position: relative; }
-.new-profile-username-input > span { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--new-chevron); font-size: 18px; }
-.new-profile-username-input input { height: 56px; padding: 0 16px 0 38px; font-size: 18px; }
-.new-profile-fields textarea { display: block; min-height: 96px; margin-top: 8px; padding: 12px 16px; font-size: 16px; line-height: 1.4; resize: vertical; }
+.new-profile-username-input { display: flex; align-items: center; padding: 0 16px; border: 1px solid var(--new-profile-input-border); border-radius: 16px; background: var(--new-white); }
+.new-profile-username-input:focus-within { border: 1.5px solid var(--new-purple); }
+.new-profile-username-input > span { color: var(--new-chevron); font-size: 18px; line-height: 1; }
+.new-profile-fields .new-profile-username-input input, .new-profile-fields .new-profile-username-input input:focus { flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; border-radius: 0; font-size: 18px; }
+.new-profile-fields textarea { display: block; min-height: 96px; margin-top: 8px; padding: 12px 16px; font-size: 16px; line-height: 1.4; resize: none; overflow: hidden; field-sizing: content; }
 .new-profile-field-error { margin-top: 6px; font-size: 13px; color: var(--new-confirm-destructive); }
 .new-profile-bio-hint { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 6px; font-size: 12px; color: var(--new-muted); }
 .new-profile-bio-hint > span:last-child { flex-shrink: 0; }
