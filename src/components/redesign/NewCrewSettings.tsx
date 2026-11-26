@@ -84,6 +84,6 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
       </div>
       {error && <p role="alert" className="mt-2 text-[13px] text-[var(--new-destructive)]">{error}</p>}
     </NewSheet>
-    <NewConfirm open={!!member && remove} onOpenChange={(o) => { if (!o) setRemove(false); }} title={`Remove ${member?.name ?? "member"} from ${data.name}?`} subtitle="They won't see the crew's check-ins, posts or chat anymore. Their own streak and workouts stay with them. We won't tell them who removed them." action="Remove" busy={busy} error={error} onConfirm={() => void memberAction("remove")} />
+    <NewConfirm open={!!member && remove} onOpenChange={(o) => { if (!o) setRemove(false); }} title={`Remove ${member?.name.split(" ")[0] ?? "member"} from ${data.name}?`} subtitle="They won't see the crew's check-ins, posts or chat anymore. Their own streak and workouts stay with them. We won't tell them who removed them." action="Remove" busy={busy} error={error} onConfirm={() => void memberAction("remove")} />
   </div>;
 }
