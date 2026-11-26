@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -517,6 +512,57 @@ export type Database = {
           platform?: string
           token?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      follow_notifications: {
+        Row: {
+          actor_id: string
+          created_at: string
+          id: string
+          kind: string
+          push_claimed_at: string | null
+          recipient_id: string
+        }
+        Insert: {
+          actor_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          push_claimed_at?: string | null
+          recipient_id: string
+        }
+        Update: {
+          actor_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          push_claimed_at?: string | null
+          recipient_id?: string
+        }
+        Relationships: []
+      }
+      follows: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          follower_id: string
+          following_id: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          follower_id: string
+          following_id: string
+          status: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+          status?: string
         }
         Relationships: []
       }
@@ -1977,6 +2023,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_read_follow_notification: {
+        Args: { actor: string; recipient: string }
+        Returns: boolean
+      }
+      can_read_follow_notifications: { Args: never; Returns: boolean }
       cancel_crew_join_request: {
         Args: { _request_id: string }
         Returns: string
@@ -1984,6 +2035,23 @@ export type Database = {
       claim_evening_push: {
         Args: { _hour: number; _local_date: string; _user_id: string }
         Returns: boolean
+      }
+      claim_follow_pushes: {
+        Args: { actor: string }
+        Returns: {
+          actor_id: string
+          created_at: string
+          id: string
+          kind: string
+          push_claimed_at: string | null
+          recipient_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "follow_notifications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       complete_crew_join_goal: {
         Args: { _goal?: string; _group_id: string }
@@ -2049,6 +2117,8 @@ export type Database = {
         Returns: Json
       }
       end_crew: { Args: { _group_id: string }; Returns: undefined }
+      follow_user: { Args: { target: string }; Returns: Json }
+      get_follow_profile_stats: { Args: { target: string }; Returns: Json }
       get_my_app_prefs: {
         Args: never
         Returns: {
@@ -2062,12 +2132,17 @@ export type Database = {
           username: string
         }[]
       }
+      get_profile: { Args: { target: string }; Returns: Json }
       get_usernames: {
         Args: { _ids: string[] }
         Returns: {
           id: string
           username: string
         }[]
+      }
+      get_visible_follow_profile_stats: {
+        Args: { target: string; viewer: string }
+        Returns: Json
       }
       increment_badge_counts: {
         Args: { _user_ids: string[] }
@@ -2082,6 +2157,21 @@ export type Database = {
       }
       is_new_version_user: { Args: { _user_id: string }; Returns: boolean }
       leave_crew: { Args: { _group_id: string }; Returns: undefined }
+      list_profile_follows: {
+        Args: {
+          direction: string
+          page_offset?: number
+          page_size?: number
+          target: string
+        }
+        Returns: {
+          avatar: string
+          first_name: string
+          id: string
+          username: string
+        }[]
+      }
+      lock_follow_pair: { Args: { _a: string; _b: string }; Returns: undefined }
       manage_redesign_crew: {
         Args: { _action: string; _group_id: string; _member_id: string }
         Returns: undefined
@@ -2115,7 +2205,12 @@ export type Database = {
           crew_id: string
         }[]
       }
+      remove_follower: { Args: { follower: string }; Returns: undefined }
       request_crew_join: { Args: { _group_id: string }; Returns: Json }
+      respond_follow_request: {
+        Args: { accept: boolean; follower: string }
+        Returns: Json
+      }
       review_content_report: {
         Args: { _action: string; _id: string }
         Returns: undefined
@@ -2131,6 +2226,7 @@ export type Database = {
         Returns: boolean
       }
       safety_visible: { Args: { _author: string }; Returns: boolean }
+      set_profile_privacy: { Args: { private: boolean }; Returns: undefined }
       shares_active_crew_with: {
         Args: { _a: string; _b: string }
         Returns: boolean
@@ -2157,6 +2253,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      unfollow_user: { Args: { target: string }; Returns: undefined }
       workout_detail_for_check_in: {
         Args: { _check_in_id: string }
         Returns: Json
@@ -2302,3 +2399,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

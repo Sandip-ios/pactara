@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Redesign profiles/follows step 1: migrations 0071–0073, locked follow/privacy RPCs, safe profile/list reads using existing streak rules, new-only notification source sharing read keys and opted-in push dispatch; 616 tests pass, two transient draft accounts followed/requested/accepted/blocked and removed with their data; no UI or publishing. Physical push delivery remains untested; next UI must call the server mutation wrappers for push dispatch.
+
 - [x] Join requests design review: new-only white preview header/chips/member card/inline join states, request strips and edge-to-edge list, plain pending rows, single-line goal field/text Skip; six 390×844 captures in join-requests-2.json; asked/cancelled/full state, pending link, input/counter/Skip verified; QA Open Crew 2 and seven fillers removed; 578 tests pass, build OK; classic/business logic unchanged, unpublished.
 
 - [x] End crew pre-ship review: deletion cascades/service cleanup verified, retained report/request blockers fixed without rewriting history; storage restriction removed; exact authenticated EXPLAIN with 8 members/2,000 examples removes 6 slow SELECT policies, keeps check_ins/daily_posts; classic video/photo-chat/comments/reactions/nudge/freeze checked; examples/accounts/media/functions removed; 578 tests pass, build OK, results/files/limits in public/qa/end-crew-pre-ship-review.md; unpublished.
