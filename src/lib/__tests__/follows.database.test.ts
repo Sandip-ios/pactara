@@ -258,6 +258,19 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     await request('/rest/v1/user_blocks', priv.token, 'POST', { blocker_id: priv.id, blocked_id: pub.id });
     expect(await admin('/rest/v1/rpc/get_visible_follow_profile_stats', 'POST', { target: priv.id, viewer: pub.id })).toBeNull();
   });
+  it('checks global username uniqueness without exposing identity, permits your own name and rejects anonymous checks', async () => {
+    const { pub, priv } = accounts();
+    const username = `qa.${randomUUID().replaceAll('-', '').slice(0, 15)}`;
+    await patchProfile(pub.id, { username });
+    expect(await rpc(pub, 'is_profile_username_available', { candidate: username })).toBe(true);
+    expect(await rpc(priv, 'is_profile_username_available', { candidate: username })).toBe(false);
+    expect(await rpc(priv, 'is_profile_username_available', { candidate: `${username}_free` })).toBe(true);
+    expect(await rpc(priv, 'is_profile_username_available', { candidate: 'ab' })).toBe(false);
+    await expect(request(`/rest/v1/profiles?id=eq.${priv.id}`, priv.token, 'PATCH', { username })).rejects.toThrow();
+    const anon = process.env['SUPABASE_PUBLISHABLE_KEY'];
+    if (!anon) throw new Error('Draft publishable key unavailable');
+    await expect(request('/rest/v1/rpc/is_profile_username_available', anon, 'POST', { candidate: username })).rejects.toThrow();
+  });
   it('counts accepted rows only and resolves username as well as id', async () => {
     const { pub, priv } = accounts();
     const username = `qa.${randomUUID().replaceAll('-', '').slice(0, 15)}`;

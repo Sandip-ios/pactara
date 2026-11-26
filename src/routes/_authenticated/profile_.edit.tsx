@@ -13,14 +13,17 @@ import { useAvatarPicker } from '@/components/profile/use-avatar-picker';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import '@/components/profile/profile.css';
+import { useAppVersion } from '@/hooks/use-app-version';
+import { NewEditProfile } from '@/components/redesign/NewEditProfile';
+import { isNewProfileVisit, ownNewProfileOptions } from '@/components/redesign/profile-query';
 
 const profileQuery = (groupId: string | null) => queryOptions({ queryKey: ['member-profile', null, groupId], queryFn: () => getMemberProfile({ data: { groupId } }) });
 export const Route = createFileRoute('/_authenticated/profile_/edit')({
   validateSearch: (input: Record<string, unknown>): { group?: string } => typeof input['group'] === 'string' ? { group: input['group'] } : {},
   loaderDeps: ({ search }) => ({ group: search.group ?? null }),
-  loader: ({ context, deps }) => context.queryClient.ensureQueryData(profileQuery(deps.group)),
+  loader: async ({ context, deps }) => (await isNewProfileVisit(context.queryClient)) ? context.queryClient.ensureQueryData(ownNewProfileOptions) : context.queryClient.ensureQueryData(profileQuery(deps.group)),
   head: () => ({ meta: [{ title: 'Edit profile · Pactara' }, { name: 'description', content: 'Update your Pactara name, photo and crew goal.' }, { property: 'og:title', content: 'Edit profile · Pactara' }, { property: 'og:description', content: 'Update your Pactara name, photo and crew goal.' }, { property: 'og:type', content: 'website' }, { name: 'twitter:card', content: 'summary' }] }),
-  component: EditProfile,
+  component: () => useAppVersion() === 'new' ? <NewEditProfile /> : <EditProfile />,
 });
 function EditProfile() {
   const scroll = useOpenAtTop();

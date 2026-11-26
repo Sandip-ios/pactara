@@ -526,6 +526,13 @@
       "when": 1795672120904,
       "tag": "0074_redesign_follow_classic_guard_private_default",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1795672252977,
+      "tag": "0075_redesign_profile_username_check",
+      "breakpoints": true
     }
   ]
 }

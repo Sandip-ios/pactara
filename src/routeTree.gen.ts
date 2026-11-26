@@ -67,6 +67,8 @@ import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authen
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
 import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile_.edit'
+import { Route as AuthenticatedProfilePrivacyRouteImport } from './routes/_authenticated/profile_.privacy'
+import { Route as AuthenticatedProfileProgressRouteImport } from './routes/_authenticated/profile_.progress'
 import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticated/u.$userId'
 import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
@@ -400,6 +402,18 @@ const AuthenticatedProfileEditRoute =
     path: '/profile/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProfilePrivacyRoute =
+  AuthenticatedProfilePrivacyRouteImport.update({
+    id: '/profile_/privacy',
+    path: '/profile/privacy',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProfileProgressRoute =
+  AuthenticatedProfileProgressRouteImport.update({
+    id: '/profile_/progress',
+    path: '/profile/progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedUUserIdRoute = AuthenticatedUUserIdRouteImport.update({
   id: '/u/$userId',
   path: '/u/$userId',
@@ -580,6 +594,8 @@ export interface FileRoutesByFullPath {
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/privacy': typeof AuthenticatedProfilePrivacyRoute
+  '/profile/progress': typeof AuthenticatedProfileProgressRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -660,6 +676,8 @@ export interface FileRoutesByTo {
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
+  '/profile/privacy': typeof AuthenticatedProfilePrivacyRoute
+  '/profile/progress': typeof AuthenticatedProfileProgressRoute
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -743,6 +761,8 @@ export interface FileRoutesById {
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/_authenticated/profile_/edit': typeof AuthenticatedProfileEditRoute
+  '/_authenticated/profile_/privacy': typeof AuthenticatedProfilePrivacyRoute
+  '/_authenticated/profile_/progress': typeof AuthenticatedProfileProgressRoute
   '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
   '/_authenticated/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/_authenticated/workout/log': typeof AuthenticatedWorkoutLogRoute
@@ -826,6 +846,8 @@ export interface FileRouteTypes {
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/profile/edit'
+    | '/profile/privacy'
+    | '/profile/progress'
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
@@ -906,6 +928,8 @@ export interface FileRouteTypes {
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/profile/edit'
+    | '/profile/privacy'
+    | '/profile/progress'
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
@@ -988,6 +1012,8 @@ export interface FileRouteTypes {
     | '/_authenticated/pact/$groupId'
     | '/_authenticated/plans/$slug'
     | '/_authenticated/profile_/edit'
+    | '/_authenticated/profile_/privacy'
+    | '/_authenticated/profile_/progress'
     | '/_authenticated/u/$userId'
     | '/_authenticated/workout/done'
     | '/_authenticated/workout/log'
@@ -1457,6 +1483,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProfileEditRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profile_/privacy': {
+      id: '/_authenticated/profile_/privacy'
+      path: '/profile/privacy'
+      fullPath: '/profile/privacy'
+      preLoaderRoute: typeof AuthenticatedProfilePrivacyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/profile_/progress': {
+      id: '/_authenticated/profile_/progress'
+      path: '/profile/progress'
+      fullPath: '/profile/progress'
+      preLoaderRoute: typeof AuthenticatedProfileProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/u/$userId': {
       id: '/_authenticated/u/$userId'
       path: '/u/$userId'
@@ -1640,6 +1680,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
   AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
   AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
+  AuthenticatedProfilePrivacyRoute: typeof AuthenticatedProfilePrivacyRoute
+  AuthenticatedProfileProgressRoute: typeof AuthenticatedProfileProgressRoute
   AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
   AuthenticatedWorkoutDoneRoute: typeof AuthenticatedWorkoutDoneRoute
   AuthenticatedWorkoutLogRoute: typeof AuthenticatedWorkoutLogRoute
@@ -1688,6 +1730,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
   AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
   AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
+  AuthenticatedProfilePrivacyRoute: AuthenticatedProfilePrivacyRoute,
+  AuthenticatedProfileProgressRoute: AuthenticatedProfileProgressRoute,
   AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
   AuthenticatedWorkoutDoneRoute: AuthenticatedWorkoutDoneRoute,
   AuthenticatedWorkoutLogRoute: AuthenticatedWorkoutLogRoute,

@@ -2156,6 +2156,10 @@ export type Database = {
         Returns: boolean
       }
       is_new_version_user: { Args: { _user_id: string }; Returns: boolean }
+      is_profile_username_available: {
+        Args: { candidate: string }
+        Returns: boolean
+      }
       leave_crew: { Args: { _group_id: string }; Returns: undefined }
       list_profile_follows: {
         Args: {
