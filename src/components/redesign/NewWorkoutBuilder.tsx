@@ -104,7 +104,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
     setItems((items) => items.filter((i) => i.key !== it.key));
     const name = map.get(it.exerciseId)?.name ?? "exercise";
     toast(`Removed ${name}`, {
-      action: { label: "Undo", onClick: () => setItems((items) => (items.some((i) => i.key === it.key) ? items : [...items.slice(0, at), it, ...items.slice(at)])) },
+      undo: () => setItems((items) => (items.some((i) => i.key === it.key) ? items : [...items.slice(0, at), it, ...items.slice(at)])),
     });
   };
 
@@ -122,7 +122,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
       qc.removeQueries({ queryKey: workoutPageKey(workout.id) });
       qc.removeQueries({ queryKey: ["workout-share-panel", workout.id] });
-      toast(`${workout.name} saved`);
+      toast(`${workout.name} saved`, { success: true });
       navigate({ to: "/workouts/$workoutId", params: { workoutId: workout.id }, replace: true });
     } catch (e) {
       console.error("[builder] save failed", e);

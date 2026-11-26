@@ -33,7 +33,7 @@ import { NewPactBanner } from "./NewPactBanner";
 import { pactStatusOptions } from "./pact-query";
 import { JOIN_GOAL_MAX } from "@/lib/crew-join";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import { ACTIVITY_UNAVAILABLE } from "@/lib/activity-deeplink";
 
 const BG = "#F5F2EE";

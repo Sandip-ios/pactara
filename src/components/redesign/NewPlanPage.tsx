@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import {
   CalendarDays, Check, ChevronLeft, ChevronRight, CircleX, Minus, Moon, MoreHorizontal, Pause, Play, Share, Users, Zap,
 } from "lucide-react";

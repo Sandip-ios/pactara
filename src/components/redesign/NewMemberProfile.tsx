@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserX } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { getRedesignMemberProfile } from '@/lib/redesign-profile.functions';
 import { followUser, removeFollower, unfollowUser } from '@/lib/follows.functions';

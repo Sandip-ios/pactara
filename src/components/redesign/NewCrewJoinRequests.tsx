@@ -3,7 +3,7 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft } from "lucide-react";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import { decideCrewJoinRequest, getCrewJoinRequests } from "@/lib/crew-join.functions";
 import { requestAge } from "@/lib/crew-join";
 import { Button } from "@/components/ui/button";

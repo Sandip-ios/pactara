@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Bell, ChevronLeft, Minus, Plus } from "lucide-react";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import { getGroupsToday } from "@/lib/group-today.functions";
 import { startNextPact } from "@/lib/pact-cycle.functions";
 import { PACT_LENGTHS, nextPactStartLabel, notifyNamesLine } from "@/lib/pact-cycle";

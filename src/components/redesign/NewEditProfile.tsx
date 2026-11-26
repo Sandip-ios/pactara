@@ -3,7 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Camera } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { useAvatarPicker } from '@/components/profile/use-avatar-picker';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';

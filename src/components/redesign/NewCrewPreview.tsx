@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, Copy, Flag, Lock, MoreHorizontal } from "lucide-react";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import { cancelCrewJoinRequest, getCrewPreview, requestCrewJoin } from "@/lib/crew-join.functions";
 import { Button } from "@/components/ui/button";
 import { CrewAvatarOverlap } from "./CrewAvatars";

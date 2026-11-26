@@ -5,7 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, Crown, MoreHorizontal, User, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { newToastApi as toast } from "./new-toast";
 import { endCrew, getCrewManagement, manageCrewMember, saveCrewSettings } from "@/lib/crew-management.functions";
 import { joinedCrewDate } from "@/lib/crew-management";
 import type { GroupToday } from "@/lib/group-today.functions";

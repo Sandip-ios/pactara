@@ -3,7 +3,7 @@ import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useNavigate, useRouteContext, useRouter, useRouterState } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { ChevronRight, Flame, Image as ImageIcon, Play } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { markNotificationsRead } from '@/lib/notifications.functions';
 import { followUser } from '@/lib/follows.functions';

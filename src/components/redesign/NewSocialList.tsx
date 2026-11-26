@@ -3,7 +3,7 @@ import { useInfiniteQuery, useQueryClient, useSuspenseQuery } from '@tanstack/re
 import { useNavigate, useRouteContext } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { Search } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { followUser, removeFollower, unfollowUser } from '@/lib/follows.functions';
 import { getSocialList } from '@/lib/profile-social.functions';

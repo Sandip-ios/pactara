@@ -156,7 +156,8 @@ function useBookmark() {
       if (res.status === "saved") {
         patch(c.code, { myCopyId: res.workoutId, myCopyEdited: false, saves: c.saves + (res.already ? 0 : 1), savesWeek: c.savesWeek + (res.already ? 0 : 1) });
         void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
-        toast(`${c.name} saved to your workouts`);
+        const saved = { ...c, myCopyId: res.workoutId, myCopyEdited: false, saves: c.saves + (res.already ? 0 : 1), savesWeek: c.savesWeek + (res.already ? 0 : 1) };
+        toast(`${c.name} saved to your workouts`, { success: true, undo: () => void remove(saved) });
       } else toast("That workout isn't available anymore.");
     } catch (e) {
       console.error("[discover] save failed", e);
@@ -172,7 +173,7 @@ function useBookmark() {
       await deleteFn({ data: { workoutId: c.myCopyId } });
       patch(c.code, { myCopyId: null, myCopyEdited: false, saves: Math.max(0, c.saves - 1), savesWeek: Math.max(0, c.savesWeek - 1) });
       void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
-      toast(`${c.name} removed from your workouts`);
+      toast(`${c.name} removed from your workouts`, { success: true });
       setConfirm(null);
     } catch (e) {
       console.error("[discover] unsave failed", e);

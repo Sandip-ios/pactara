@@ -113,7 +113,18 @@ export function NewWorkoutPage({ id }: { id: string }) {
       if (res.status === "saved") {
         qc.setQueryData<WorkoutPage | null>(workoutPageKey(id), (old) => (old ? { ...old, savedWorkoutId: res.workoutId } : old));
         void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
-        toast(`${page.name} saved to your workouts`);
+        const copyId = res.workoutId;
+        toast(`${page.name} saved to your workouts`, {
+          success: true,
+          undo: () => {
+            void deleteFn({ data: { workoutId: copyId } })
+              .then(() => {
+                qc.setQueryData<WorkoutPage | null>(workoutPageKey(id), (old) => (old ? { ...old, savedWorkoutId: null } : old));
+                void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
+              })
+              .catch(() => toast("Couldn't undo. Try again."));
+          },
+        });
       } else if (res.status === "missing") toast("This workout isn't available anymore");
     } catch (e) {
       console.error("[workout-page] save failed", e);

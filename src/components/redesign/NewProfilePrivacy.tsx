@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Bell, ChevronLeft, Flame, Lock, Users } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { getPrivacySettings, setProfilePrivacy } from '@/lib/follows.functions';
 import { switchPublicBody } from '@/lib/redesign-profile';

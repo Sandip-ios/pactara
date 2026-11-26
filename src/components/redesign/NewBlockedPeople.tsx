@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { useQueryClient, useSuspenseQuery, type QueryKey } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { ChevronLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { getBlockedPeople, setUserBlock } from '@/lib/safety.functions';
 import { BLOCKING_EXPLAINER, blockedOnLabel } from '@/lib/redesign-profile';
