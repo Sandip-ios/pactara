@@ -652,6 +652,13 @@
       "when": 1795718812878,
       "tag": "0092_get_my_logger_check_tip",
       "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1795724562417,
+      "tag": "0093_pactara_discover_workout_names",
+      "breakpoints": true
     }
   ]
 }

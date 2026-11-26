@@ -1,5 +1,9 @@
 # Roadmap
 
+## Discover Pactara workout names
+- [x] Applied the no-op-safe row update for 28 approved key-to-name mappings; this draft had no matching Pactara rows. Plan days and members' saved copies were untouched.
+- [x] Replaced the plan-title overwrite in refresh_pactara_workouts with the approved mapping; verified all keys against the database, unique names and no A/B/C suffixes. 836 tests and typecheck pass.
+
 ## Icons, toasts, plan stat boxes
 - [x] Use the v2 web and native iOS icons; there is no web manifest or Android icon set in this repo. Native icons require a new App Store build.
 - [x] Route every toast reachable in the new version through newToast/newToastApi while preserving classic toasts and existing Undo support; success messages use the green check.
