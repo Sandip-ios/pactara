@@ -48,7 +48,7 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
     onRecord();
   };
   return <>
-    <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 px-3 pt-[calc(env(safe-area-inset-top)+12px)]">
+    <div className="absolute inset-x-0 top-0 flex items-center justify-between gap-2 px-3 pt-[calc(max(env(safe-area-inset-top),54px)+4px)]">
       <Button variant="ghost" size="icon" onClick={onCancel} aria-label="Cancel" className="h-11 w-11 shrink-0 rounded-full bg-[var(--new-camera-control)] text-[var(--new-white)] hover:bg-[var(--new-camera-control)]"><X className="!size-5" /></Button>
       <Button variant="ghost" onClick={() => setPicker(true)} disabled={groups.length < 2 || recording || starting} className="h-9 min-w-0 gap-1 rounded-full bg-[var(--new-camera-control)] px-3.5 text-[15px] font-bold text-[var(--new-white)] disabled:opacity-100 hover:bg-[var(--new-camera-control)]"><span className="truncate">Checking in to {label}</span>{groups.length > 1 && <ChevronDown className="!size-4" />}</Button>
       <Button variant="ghost" size="icon" onClick={onFlip} disabled={recording || switching || starting} aria-label="Switch camera" className="h-11 w-11 shrink-0 rounded-full bg-[var(--new-camera-control)] text-[var(--new-white)] hover:bg-[var(--new-camera-control)]"><SwitchCamera className="!size-5" /></Button>
