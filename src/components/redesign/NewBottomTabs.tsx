@@ -24,6 +24,7 @@ export function NewBottomTabs() {
   const isProfile = pathname === "/profile";
   const onHome = pathname === "/home" || pathname.startsWith("/home/");
   const onGroups = pathname.startsWith("/groups") || pathname.startsWith("/plans") || pathname.startsWith("/find-plan");
+  const onCrews = pathname === "/crews" || pathname.startsWith("/crews/");
   const preload = (to: string) => () => { router.preloadRoute({ to }).catch(() => {}); };
 
   const checkIn = () => {
@@ -46,13 +47,13 @@ export function NewBottomTabs() {
       >
         <Tab icon={<Home size={22} />} label="Home" active={onHome} onPointerDown={preload("/home")} onClick={() => navigate({ to: "/home" })} />
         {/* Discover gets its own screen in phase 4. */}
-        <Tab icon={<Compass size={22} />} label="Discover" active={false} onPointerDown={preload("/groups")} onClick={() => navigate({ to: "/groups" })} />
+        <Tab icon={<Compass size={22} />} label="Discover" active={onGroups} onPointerDown={preload("/groups")} onClick={() => navigate({ to: "/groups" })} />
         <button aria-label="Create" onClick={() => setCreateOpen(true)} className="flex items-center justify-center self-center">
           <span className="flex items-center justify-center" style={{ width: 52, height: 40, borderRadius: 14, background: PURPLE }}>
             <Plus size={22} color="#FFFFFF" />
           </span>
         </button>
-        <Tab icon={<Users size={22} />} label="Crews" active={onGroups} onPointerDown={preload("/groups")} onClick={() => navigate({ to: "/groups" })} />
+        <Tab icon={<Users size={22} />} label="Crews" active={onCrews} onPointerDown={preload("/crews")} onClick={() => navigate({ to: "/crews" })} />
         <button onPointerDown={preload("/profile")} onClick={() => navigate({ to: "/profile" })} aria-label="Profile" aria-current={isProfile ? "page" : undefined} className="flex flex-col items-center" style={{ gap: 4 }}>
           <span className="flex items-center justify-center overflow-hidden rounded-full text-[11px] font-bold" style={{ width: 24, height: 24, background: PURPLE, color: "#FFFFFF", boxShadow: isProfile ? `0 0 0 2px ${ACTIVE}` : undefined }}>
             {status?.avatarUrl ? <img src={status.avatarUrl} alt="" className="h-full w-full object-cover" /> : initial}

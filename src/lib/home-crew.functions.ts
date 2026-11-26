@@ -41,6 +41,9 @@ export type HomeCrewMember = {
   target: number;
   restDays: number;
   days: { date: string; state: CrewDayState }[];
+  /** Read-only detail for the redesign's week grid; classic uses days above. */
+  today: string;
+  coverKinds: { date: string; kind: "rest" | "freeze" }[];
   weekLabel: string;
   streak: number;
   nudgedToday: boolean;
@@ -133,7 +136,7 @@ export const getHomeCrew = createServerFn({ method: "GET" })
         .limit(20000),
       supabase
         .from("streak_freezes_used")
-        .select("user_id, freeze_date")
+        .select("user_id, freeze_date, kind")
         .eq("group_id", groupId)
         .gte("freeze_date", windowStart)
         .lte("freeze_date", windowEnd)
@@ -188,7 +191,13 @@ export const getHomeCrew = createServerFn({ method: "GET" })
       setFor(checkIns, r.user_id as string).add(r.checkin_date as string);
       activityByDay.set(`${r.user_id}:${r.checkin_date}`, (r.activity as string | null) ?? null);
     }
-    for (const r of freezesRes.data ?? []) setFor(covered, r.user_id as string).add(r.freeze_date as string);
+    const coverKinds = new Map<string, { date: string; kind: "rest" | "freeze" }[]>();
+    for (const r of freezesRes.data ?? []) {
+      setFor(covered, r.user_id as string).add(r.freeze_date as string);
+      const list = coverKinds.get(r.user_id as string) ?? [];
+      list.push({ date: r.freeze_date as string, kind: r.kind === "freeze" ? "freeze" : "rest" });
+      coverKinds.set(r.user_id as string, list);
+    }
     for (const r of postsRes.data ?? []) setFor(missed, r.user_id as string).add(r.local_date as string);
     const working = new Set((workoutsRes.data ?? []).map((w) => w.user_id as string));
     const nudged = new Set((nudgesRes.data ?? []).map((n) => n.target_id as string));
@@ -229,6 +238,8 @@ export const getHomeCrew = createServerFn({ method: "GET" })
         target: week.target,
         restDays: week.restDays,
         days: week.days,
+        today: memberToday,
+        coverKinds: coverKinds.get(uid) ?? [],
         weekLabel: weekDotsLabel(week.workouts, week.restDays, week.missedDays),
         streak: currentStreak(kept, memberToday),
         nudgedToday: nudged.has(uid),

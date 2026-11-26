@@ -164,7 +164,7 @@ export function NudgeButton({
 }: {
   groupId: string;
   member: Pick<MemberToday, "userId" | "firstName">;
-  variant?: "solid" | "ghost" | "pill";
+  variant?: "solid" | "ghost" | "pill" | "redesign";
   /** Already nudged today (e.g. before a reload). */
   initialSent?: boolean;
   /** Tighter padding/text so the pill fits a narrow crew column. */
@@ -197,6 +197,20 @@ export function NudgeButton({
 
   const base = "rounded-full font-semibold flex items-center justify-center gap-1.5 disabled:opacity-60";
   if (safety?.blocked.includes(member.userId)) return null;
+  if (variant === "redesign") {
+    return (
+      <button
+        type="button"
+        onClick={send}
+        disabled={sent || sending}
+        aria-label={covered ? `${member.firstName} is covered today` : sent ? `Nudged ${member.firstName}` : `Nudge ${member.firstName}`}
+        className="flex h-9 shrink-0 items-center justify-center rounded-full px-4 text-[14px] font-bold disabled:cursor-default disabled:opacity-70"
+        style={sent ? { background: "#F4F2EF", color: "#57534E" } : { background: "#EDE4FF", color: "#6D28D9" }}
+      >
+        {covered ? "Covered" : sent ? "Nudged" : "Nudge"}
+      </button>
+    );
+  }
   if (variant === "pill") {
     // 32px tall pill; the invisible ::after extends the touch target to 44px.
     return (

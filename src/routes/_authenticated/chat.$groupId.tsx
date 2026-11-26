@@ -29,6 +29,11 @@ export const Route = createFileRoute("/_authenticated/chat/$groupId")({
 
 function GroupChatPage() {
   const { groupId } = useParams({ from: "/_authenticated/chat/$groupId" });
+  return <GroupChatView groupId={groupId} />;
+}
+
+/** Existing crew chat, optionally embedded in the redesign's Chat tab. */
+export function GroupChatView({ groupId, embedded = false }: { groupId: string; embedded?: boolean }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -337,10 +342,12 @@ function GroupChatPage() {
 
   return (
     <div
-      className="fixed inset-x-0 top-0 flex flex-col bg-white"
+      className={embedded ? "flex flex-col bg-white" : "fixed inset-x-0 top-0 flex flex-col bg-white"}
       style={{
         fontFamily: "Inter, system-ui, sans-serif",
-        height: viewportHeight ? `${viewportHeight}px` : "100dvh",
+        height: viewportHeight
+          ? `${embedded ? Math.max(320, viewportHeight - 228) : viewportHeight}px`
+          : embedded ? "calc(100dvh - 228px)" : "100dvh",
         transform: `translateY(${viewportTop}px)`,
         // Ease the resize so the chat glides with the keyboard instead of
         // snapping frame-by-frame.
@@ -349,7 +356,7 @@ function GroupChatPage() {
       }}
     >
 
-      <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
+      {!embedded && <div className="px-4 pt-safe-5 pb-3 border-b border-neutral-100 flex items-center gap-3 shrink-0">
         <button
           // Chat opens from the Home header (no Chat tab): go back where you came from.
           onClick={() => (window.history.length > 1 ? window.history.back() : navigate({ to: "/home" }))}
@@ -390,7 +397,7 @@ function GroupChatPage() {
             {members.length} {members.length === 1 ? "member" : "members"}
           </div>
         </div>
-      </div>
+      </div>}
 
 
       <div
@@ -606,7 +613,7 @@ function GroupChatPage() {
       <form
         onSubmit={handleSubmit}
         className="shrink-0 bg-white border-t border-neutral-100 px-3 py-3"
-        style={{ paddingBottom: "20px" }}
+        style={{ paddingBottom: embedded ? "max(16px, env(safe-area-inset-bottom))" : "20px" }}
       >
         {pendingPreview && (
           <div className="mb-2 relative inline-block">

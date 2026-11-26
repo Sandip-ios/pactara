@@ -105,7 +105,11 @@ function AuthLayout() {
   const appPrefs = useAppPrefs();
   const hideTabs =
     tabsHiddenByModal ||
-    (appVersion === "new" && (pathname === "/account-settings" || pathname.startsWith("/account-settings/"))) ||
+    (appVersion === "new" && (
+      pathname === "/account-settings" ||
+      pathname.startsWith("/account-settings/") ||
+      pathname.startsWith("/crews/")
+    )) ||
     pathname.startsWith("/check-in/") ||
     pathname.startsWith("/pact/") ||
     pathname.startsWith("/goal/") ||

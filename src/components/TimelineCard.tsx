@@ -277,7 +277,7 @@ function ActionRow({
 }
 
 /** One person, one cheer: optimistic emoji plus the server's list of who cheered. */
-function useCheers(item: FeedItem) {
+export function useCheers(item: FeedItem) {
   const queryClient = useQueryClient();
   const { me } = useFeedContext();
   const [override, setOverride] = useState<{ emoji: string | null } | null>(null);

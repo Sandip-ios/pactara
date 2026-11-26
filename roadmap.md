@@ -91,3 +91,4 @@
 - [x] Move crews out of Discover: Discover plans only, Home "Your crews" sheet + ••• crew sheet, Leave crew keeps history, crew wording, real crew rule labels (unpublished)
 
 - [x] Workouts tab (no plan, no quiz answers): the "Not sure? Find your plan" card from Discover, shared component, with a centered "or browse all 18 plans" link under it (unpublished)
+- [x] Redesign phase 2 step 1: new-version Crews tab and crew Today/Posts/Chat, QA Two and media-free check-in, screenshots 10–13 with base64 copies; classic unchanged, 554 tests pass (unpublished)

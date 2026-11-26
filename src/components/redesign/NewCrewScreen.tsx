@@ -1,0 +1,348 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Camera, Check, ChevronLeft, ChevronRight, CircleCheck, Flame, Lock, Moon, Snowflake } from "lucide-react";
+import { getGroupsToday, type GroupToday, type MemberToday } from "@/lib/group-today.functions";
+import { getHomeCrew, type HomeCrewMember } from "@/lib/home-crew.functions";
+import { getNotificationPrefs } from "@/lib/profile.functions";
+import { crewPageCanNudge, crewPageCounts, crewPageStatus } from "@/lib/group-today-view";
+import { checkedInSubline, crewShowedUpLine, redesignWeekCell, reminderClock } from "@/lib/redesign-crew-view";
+import { usePartnerState } from "@/hooks/use-partner-state";
+import { relationForGroup } from "@/lib/group-display";
+import { GroupOverflowMenu } from "@/components/groups/GroupOverflowMenu";
+import { elapsedLabel, NudgeButton } from "@/components/groups/AccountabilityBits";
+import { FeedList } from "@/components/feed/FeedList";
+import { useGroupFeed } from "@/components/feed/use-group-feed";
+import { FeedContext } from "@/components/feed/feed-context";
+import { isVideoUrl } from "@/components/feed/FeedMedia";
+import { MediaLightbox } from "@/components/MediaLightbox";
+import { useCheers } from "@/components/TimelineCard";
+import { GroupChatView } from "@/routes/_authenticated/chat.$groupId";
+import { CrewAvatar, CrewAvatarOverlap } from "./CrewAvatars";
+import type { FeedItem } from "@/lib/daily-posts.functions";
+import type { CheckInNode } from "@/lib/feed-days";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
+
+const BG = "#F5F2EE";
+const INK = "#1C1917";
+const MUTED = "#57534E";
+const PURPLE = "#7C3AED";
+const GREEN = "#15803D";
+const WEEK_LETTERS = ["M", "T", "W", "T", "F", "S", "S"];
+
+type Tab = "today" | "posts" | "chat";
+type MediaState = { src: string; kind: "image" | "video" } | null;
+
+function clock(iso: string): string {
+  return new Date(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }).toLowerCase();
+}
+
+function avatarMember(member: MemberToday | HomeCrewMember) {
+  return { id: member.userId, name: member.name, avatarUrl: member.avatarUrl, avatarColor: member.avatarColor };
+}
+
+export function NewCrewScreen({ groupId }: { groupId: string }) {
+  const navigate = useNavigate();
+  const scrollRef = useOpenAtTop<HTMLDivElement>();
+  useStatusBarScrollToTop();
+  const [tab, setTab] = useState<Tab>("today");
+  const [streakOpen, setStreakOpen] = useState(false);
+  const [media, setMedia] = useState<MediaState>(null);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["groups-today"],
+    queryFn: () => getGroupsToday(),
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
+  const { data: homeCrew } = useQuery({
+    queryKey: ["home-crew", groupId],
+    queryFn: () => getHomeCrew({ data: { groupId } }),
+    staleTime: 30_000,
+  });
+  const { data: prefs } = useQuery({ queryKey: ["notification-prefs"], queryFn: () => getNotificationPrefs() });
+  const { data: partnerState } = usePartnerState();
+  const groupFeed = useGroupFeed(groupId, { staleTime: 30_000 });
+
+  useEffect(() => {
+    localStorage.setItem("active-group-id", groupId);
+  }, [groupId]);
+
+  const group = data?.groups.find((item) => item.id === groupId);
+  const relation = relationForGroup(groupId, partnerState);
+  const displayName = relation?.name ?? group?.name ?? "Crew";
+  const displayEmoji = relation?.emoji ?? group?.emoji ?? "🔥";
+  const me = group?.members.find((member) => member.isYou);
+  const viewerDone = !!me && crewPageStatus(me) === "done";
+  const counts = group ? crewPageCounts(group.members) : { done: 0, due: 0 };
+  const feedMe = groupFeed.feed?.meta?.members.find((member) => member.isMe) ?? null;
+
+  const checkIn = () => {
+    localStorage.setItem("active-group-id", groupId);
+    navigate({ to: "/check-in" });
+  };
+
+  if (isLoading || !data) {
+    return <div className="fixed inset-0" style={{ background: BG }} aria-label="Loading crew" />;
+  }
+
+  if (!group) {
+    return (
+      <div className="fixed inset-0 overflow-y-auto" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}>
+        <header className="bg-white px-4 pb-4 pt-safe-5">
+          <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}><ChevronLeft size={22} /></button>
+        </header>
+        <div className="m-4 rounded-[20px] bg-white p-6 text-center text-[16px] font-bold">This crew is no longer available</div>
+      </div>
+    );
+  }
+
+  const reminder = prefs?.daily_reminder_enabled ? reminderClock(prefs.daily_reminder_time) : null;
+
+  return (
+    <FeedContext.Provider value={{ me: feedMe, weeklyTarget: homeCrew?.weeklyTarget ?? 5 }}>
+      <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-[max(24px,env(safe-area-inset-bottom))]" style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
+        <header className="bg-white pt-safe-5">
+          <div className="flex items-center justify-between px-4">
+            <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
+              <ChevronLeft size={22} />
+            </button>
+            <GroupOverflowMenu
+              tone="onLight"
+              crew={{
+                id: group.id,
+                name: displayName,
+                emoji: displayEmoji,
+                isAdmin: group.isAdmin,
+                duration: group.durationDays,
+                frequency: group.frequency,
+                daysPerWeek: group.daysPerWeek,
+                memberCount: group.memberCount,
+                others: group.members.filter((member) => !member.isYou).map(avatarMember),
+              }}
+              onDeleted={() => navigate({ to: "/crews" })}
+            />
+          </div>
+          <div className="mt-3 flex items-center gap-3 px-4 pb-4">
+            <CrewAvatarOverlap members={group.members.map(avatarMember)} size={40} />
+            <div className="min-w-0">
+              <h1 className="truncate text-[24px] font-extrabold leading-tight">{displayName}</h1>
+              <p className="mt-1 flex items-center gap-1.5 text-[13px]" style={{ color: MUTED }}>
+                <Lock size={13} aria-hidden /> Private crew · day {group.dayNumber} of {group.durationDays}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 border-b" style={{ borderColor: "#E7E3DE" }} role="tablist" aria-label="Crew sections">
+            {(["today", "posts", "chat"] as const).map((item) => (
+              <button
+                key={item}
+                type="button"
+                role="tab"
+                aria-selected={tab === item}
+                onClick={() => setTab(item)}
+                className="relative h-12 text-[15px] capitalize"
+                style={{ color: tab === item ? "#6D28D9" : MUTED, fontWeight: tab === item ? 700 : 600 }}
+              >
+                {item}
+                {tab === item && <span className="absolute inset-x-0 bottom-[-1px] h-[3px]" style={{ background: PURPLE }} aria-hidden />}
+              </button>
+            ))}
+          </div>
+        </header>
+
+        {tab === "today" && (
+          <main>
+            <section className="m-4 rounded-[20px] bg-white p-4">
+              <h2 className="text-[28px] font-extrabold leading-tight">{counts.done} of {counts.due} showed up</h2>
+              <p className="mt-2 text-[15px] leading-[1.45]" style={{ color: MUTED }}>{crewShowedUpLine(counts.done, counts.due, viewerDone)}</p>
+              <button type="button" onClick={() => setStreakOpen(true)} className="mt-4 flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-extrabold" style={{ background: "#FFEDE0", color: "#9A3412" }}>
+                <Flame size={16} style={{ color: "#EA580C" }} fill="#EA580C" aria-hidden />
+                {group.groupStreak}-day crew streak
+                <ChevronRight size={16} aria-hidden />
+              </button>
+              {viewerDone ? (
+                <div className="mt-5 flex h-[52px] items-center justify-center gap-2 text-[16px] font-bold" style={{ color: GREEN }}>
+                  <CircleCheck size={22} aria-hidden /> You're in today
+                </div>
+              ) : (
+                <>
+                  <button type="button" onClick={checkIn} className="mt-5 flex h-[52px] w-full items-center justify-center gap-2 rounded-[26px] text-[17px] font-bold text-white" style={{ background: PURPLE }}>
+                    <Camera size={21} aria-hidden /> Check in
+                  </button>
+                  {reminder && <p className="mt-2.5 text-center text-[13px]" style={{ color: MUTED }}>You said you'd be in by {reminder}</p>}
+                </>
+              )}
+            </section>
+
+            <SectionLabel>THIS WEEK</SectionLabel>
+            {homeCrew ? <WeekCard crew={homeCrew.members} /> : <div className="mx-4 h-40 animate-pulse rounded-[20px] bg-white" aria-label="Loading this week" />}
+
+            <SectionLabel>WHERE EVERYONE STANDS</SectionLabel>
+            <section className="mx-4 overflow-hidden rounded-[20px] bg-white">
+              {group.members.map((member, index) => (
+                <MemberRow
+                  key={member.userId}
+                  member={member}
+                  home={homeCrew?.members.find((item) => item.userId === member.userId)}
+                  groupId={group.id}
+                  items={groupFeed.feed?.items ?? []}
+                  divider={index > 0}
+                  onOpenMedia={setMedia}
+                />
+              ))}
+            </section>
+          </main>
+        )}
+
+        {tab === "posts" && (
+          <main className="pb-2">
+            <FeedList
+              items={groupFeed.feed?.items}
+              meta={groupFeed.feed?.meta}
+              loading={groupFeed.isPending}
+              refreshFailed={groupFeed.refreshFailed}
+              onRetry={() => void groupFeed.refetch()}
+              groupId={group.id}
+              solo={relation?.kind === "solo" || group.memberCount <= 1}
+              hasMore={groupFeed.hasMore}
+              loadingMore={groupFeed.loadingMore}
+              loadMoreFailed={groupFeed.loadMoreFailed}
+              onLoadMore={groupFeed.loadMore}
+            />
+          </main>
+        )}
+
+        {tab === "chat" && <main><GroupChatView groupId={group.id} embedded /></main>}
+      </div>
+
+      <Drawer open={streakOpen} onOpenChange={setStreakOpen}>
+        <DrawerContent className="border-0 bg-white px-5 pb-[max(20px,env(safe-area-inset-bottom))]" style={{ borderTopLeftRadius: 24, borderTopRightRadius: 24, fontFamily: "Inter, system-ui, sans-serif" }}>
+          <DrawerTitle className="pt-3 text-center text-[20px] font-extrabold">Crew streak</DrawerTitle>
+          <DrawerDescription className="sr-only">Today's crew streak details</DrawerDescription>
+          <div className="flex flex-col items-center py-5 text-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: "#FFEDE0" }}><Flame size={30} style={{ color: "#EA580C" }} fill="#EA580C" /></span>
+            <div className="mt-3 text-[28px] font-extrabold">{group.groupStreak} {group.groupStreak === 1 ? "day" : "days"}</div>
+            <p className="mt-2 text-[15px] leading-[1.5]" style={{ color: MUTED }}>{counts.done} of {counts.due} members are in today. Everyone needs to be in to keep the crew streak.</p>
+          </div>
+          <button type="button" onClick={() => setStreakOpen(false)} className="h-12 w-full rounded-full text-[16px] font-bold text-white" style={{ background: PURPLE }}>Done</button>
+        </DrawerContent>
+      </Drawer>
+      {media && <MediaLightbox src={media.src} kind={media.kind} onClose={() => setMedia(null)} />}
+    </FeedContext.Provider>
+  );
+}
+
+function SectionLabel({ children }: { children: string }) {
+  return <div className="text-[13px] font-extrabold" style={{ color: MUTED, letterSpacing: "0.6px", padding: "18px 16px 8px" }}>{children}</div>;
+}
+
+function WeekCard({ crew }: { crew: HomeCrewMember[] }) {
+  const viewerToday = crew.find((member) => member.isYou)?.today ?? crew[0]?.today ?? "";
+  const todayIndex = viewerToday ? (new Date(`${viewerToday}T12:00:00Z`).getUTCDay() + 6) % 7 : -1;
+  return (
+    <section className="mx-4 rounded-[20px] bg-white p-3.5">
+      <div className="grid items-center gap-1" style={{ gridTemplateColumns: "minmax(64px, 1fr) repeat(7, 32px)" }}>
+        <span />
+        {WEEK_LETTERS.map((letter, index) => <span key={`${letter}-${index}`} className="text-center text-[12px] font-bold" style={{ color: index === todayIndex ? "#6D28D9" : MUTED }}>{letter}</span>)}
+        {crew.map((member) => {
+          const covers = new Map(member.coverKinds.map((cover) => [cover.date, cover.kind]));
+          return (
+            <div key={member.userId} className="col-span-8 grid grid-cols-subgrid items-center gap-1 py-1.5">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <CrewAvatar member={avatarMember(member)} size={20} />
+                <span className="truncate text-[14px] font-bold">{member.isYou ? "You" : member.firstName}</span>
+              </div>
+              {member.days.map((day) => {
+                const state = redesignWeekCell({ date: day.date, state: day.state, today: member.today, coverKind: covers.get(day.date) });
+                return <WeekCell key={day.date} state={state} date={day.date} />;
+              })}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px]" style={{ color: MUTED }}>
+        <span>Checked in</span><span aria-hidden>·</span><span>Rest day</span><span aria-hidden>·</span><span>Freeze used</span>
+      </div>
+    </section>
+  );
+}
+
+function WeekCell({ state, date }: { state: ReturnType<typeof redesignWeekCell>; date: string }) {
+  const label = `${date}: ${state === "checked" ? "checked in" : state === "rest" ? "rest day" : state === "freeze" ? "freeze used" : state === "today" ? "not in yet" : "empty"}`;
+  const style = state === "checked" ? { background: "#DCFCE7" }
+    : state === "rest" ? { background: "#F3EEFF" }
+      : state === "freeze" ? { background: "#E0F2FE" }
+        : state === "today" ? { border: "2px dashed #A8A29E" }
+          : { background: "#F0EDE9" };
+  return (
+    <span role="img" aria-label={label} className="flex h-8 w-8 items-center justify-center rounded-full" style={style}>
+      {state === "checked" && <Check size={17} strokeWidth={3} style={{ color: GREEN }} />}
+      {state === "rest" && <Moon size={15} style={{ color: "#A78BFA" }} />}
+      {state === "freeze" && <Snowflake size={15} style={{ color: "#0284C7" }} />}
+    </span>
+  );
+}
+
+function MemberRow({ member, home, groupId, items, divider, onOpenMedia }: {
+  member: MemberToday;
+  home: HomeCrewMember | undefined;
+  groupId: string;
+  items: FeedItem[];
+  divider: boolean;
+  onOpenMedia: (media: MediaState) => void;
+}) {
+  const status = crewPageStatus(member);
+  const todayItem = home ? items.find((item) => item.userId === member.userId && item.localDate === home.today) : undefined;
+  const checkIn = todayItem?.nodes
+    .filter((node): node is CheckInNode => node.kind === "check_in")
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))[0];
+  const done = status === "done";
+  const resting = status === "rest";
+  const workingOut = status === "working_out";
+  const canNudge = crewPageCanNudge(status, member.isYou) && home?.nudgeAllowed !== false;
+  const video = checkIn?.photoUrl ? isVideoUrl(checkIn.photoUrl) : false;
+
+  return (
+    <div className="flex items-center gap-3 px-4 py-3" style={{ borderTop: divider ? "1px solid #F0EDE9" : undefined }}>
+      <CrewAvatar member={avatarMember(member)} size={44} />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-[16px] font-extrabold">{member.isYou ? "You" : member.name}</div>
+        <div className="mt-0.5 text-[14px] font-bold" style={{ color: done || workingOut ? GREEN : resting ? "#7C5CD6" : member.isYou ? MUTED : "#C2410C" }}>
+          {done ? `Checked in${checkIn ? ` at ${clock(checkIn.at)}` : ""}` : resting ? "Resting today" : workingOut ? "Working out now" : "Not in yet"}
+        </div>
+        {done && <div className="mt-0.5 truncate text-[13px]" style={{ color: MUTED }}>{checkedInSubline(checkIn?.workout?.title, member.streak)}</div>}
+        {workingOut && <div className="mt-0.5 text-[13px]" style={{ color: MUTED }}>{elapsedLabel(member.workoutStartedAt) ?? "Started just now"}</div>}
+      </div>
+      {done && !member.isYou && todayItem && checkIn && <CrewCheerButton item={todayItem} />}
+      {canNudge && <NudgeButton groupId={groupId} member={member} variant="redesign" initialSent={home?.nudgedToday ?? false} />}
+      {done && checkIn?.photoUrl && (
+        <button
+          type="button"
+          aria-label={`Open ${member.isYou ? "your" : `${member.firstName}'s`} check-in ${video ? "video" : "photo"}`}
+          onClick={() => onOpenMedia({ src: checkIn.photoUrl!, kind: video ? "video" : "image" })}
+          className="h-11 w-11 shrink-0 overflow-hidden rounded-[12px] bg-neutral-100"
+        >
+          {video && !checkIn.posterUrl ? <video src={checkIn.photoUrl} className="h-full w-full object-cover" muted playsInline preload="metadata" /> : <img src={checkIn.posterUrl ?? checkIn.photoUrl} alt="" className="h-full w-full object-cover" />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function CrewCheerButton({ item }: { item: FeedItem }) {
+  const cheers = useCheers(item);
+  return (
+    <button
+      type="button"
+      onClick={cheers.toggle}
+      aria-pressed={!!cheers.myEmoji}
+      aria-label={cheers.myEmoji ? "Remove your cheer" : "Cheer this check-in"}
+      className="flex h-9 shrink-0 items-center rounded-full px-3 text-[14px] font-bold"
+      style={{ background: "#DCFCE7", color: GREEN }}
+    >
+      {cheers.myEmoji ? `${cheers.myEmoji} Cheered` : "Cheer"}
+    </button>
+  );
+}
