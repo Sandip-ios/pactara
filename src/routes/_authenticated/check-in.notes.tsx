@@ -1,5 +1,5 @@
 import { makeVideoPoster } from "@/lib/video-poster";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useBlocker, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -28,7 +28,8 @@ import { useAppVersion } from "@/hooks/use-app-version";
 import { NewCheckInDone } from "@/components/redesign/NewCheckInDone";
 import { clearNewCheckIn, readNewCheckIn, writeNewCheckIn } from "@/lib/redesign-checkin";
 import { NewCheckInCompose, type ComposeCrewChip } from "@/components/redesign/NewCheckInCompose";
-import { restoreCrewSelection } from "@/lib/new-checkin-form";
+import { restoreCrewSelection, shouldConfirmClipDiscard } from "@/lib/new-checkin-form";
+import { NewSheet, NewSheetButton, NewSheetRow } from "@/components/redesign/NewSheet";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
 import { Button } from "@/components/ui/button";
 
@@ -519,6 +520,25 @@ function NotesPage() {
   })();
 
   const isBusy = submitting || mutation.isPending;
+  const discarding = useRef(false);
+  const blocker = useBlocker({
+    disabled: version !== "new",
+    shouldBlockFn: ({ current, next }) => current.pathname !== next.pathname && !discarding.current && shouldConfirmClipDiscard(version, !!photoPreview, !!shareData, savingDraft),
+    withResolver: true,
+    enableBeforeUnload: false,
+  });
+  const discardClip = async () => {
+    if (discarding.current) return;
+    discarding.current = true;
+    await clearCheckInDraft();
+    clearCheckInPhoto();
+    clearNewCheckIn();
+    clearWorkoutCheckIn();
+    clearPlanCheckIn();
+    clearHealthWorkout();
+    blocker.reset?.();
+    await navigate({ to: "/check-in/camera", replace: true });
+  };
 
   const finishNewDone = (addNote = false) => {
     noteAfterDone.current = addNote;
@@ -690,6 +710,11 @@ function NotesPage() {
       </div>
 
       </>}
+
+      {version === "new" && <NewSheet open={blocker.status === "blocked"} onOpenChange={(open) => { if (!open) blocker.reset?.(); }} title="Discard this clip?" subtitle="You'll need to record again.">
+        <NewSheetRow title="Discard" destructive simple disabled={isBusy} onClick={() => void discardClip()} />
+        <NewSheetButton secondary onClick={() => blocker.reset?.()}>Keep editing</NewSheetButton>
+      </NewSheet>}
 
       {version === "new" && shareData && newDoneOpen && <NewCheckInDone groups={doneGroups} streak={shareData.streak} onDone={() => finishNewDone()} onNote={() => finishNewDone(true)} />}
       {shareData && (version === "classic" || !newDoneOpen) && (

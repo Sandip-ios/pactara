@@ -12,6 +12,7 @@
   --new-muted: #57534E;
   --new-switch-off: #D6D3D1;
   --new-control: #F4F2EF;
+  --new-checkin-back: #F0EDE8;
   --new-disabled-bg: #E7E3DE;
   --new-disabled-text: #78716C;
   --new-divider: #F0EDE9;
@@ -212,6 +213,8 @@
 .new-privacy-switch:hover { background: var(--new-switch-off); }
 .new-privacy-switch.on, .new-privacy-switch.on:hover { background: var(--new-purple); justify-content: flex-end; }
 .new-privacy-switch > span { width: 26px; height: 26px; border-radius: 50%; background: var(--new-white); }
+.new-checkin-followers:not(.on), .new-checkin-followers:not(.on):hover { background: var(--new-handle); }
+.new-checkin-secondary, .new-checkin-secondary:hover { background: var(--new-soft); color: var(--new-purple-text); }
 .new-privacy-lock { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 12px; border-radius: 15px; background: var(--new-control); font-size: 13px; font-weight: 700; color: var(--new-muted); }
 .new-privacy-info { margin: 16px; padding: 16px; border-radius: 20px; background: var(--new-white); }
 .new-privacy-info h2 { font-size: 15px; font-weight: 700; margin-bottom: 12px; }

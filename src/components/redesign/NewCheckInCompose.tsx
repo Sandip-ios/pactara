@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
 import { canPost, clipLength, postButtonLabel, showAlreadyInNote, showTagCard, type ComposeCrew } from "@/lib/new-checkin-form";
 
 export type ComposeTag = { id: string; emoji: string; label: string };
@@ -67,9 +66,9 @@ export function NewCheckInCompose(p: {
   const toggle = (id: string) => p.onSelected(p.selected.includes(id) ? p.selected.filter((x) => x !== id) : [...p.selected, id]);
   const allowed = canPost(p.selected, p.posting);
   return <div className="redesign-step3 fixed inset-0 z-40 flex flex-col bg-[var(--new-bg)] text-left text-[var(--new-ink)]">
-    <div data-scroll-root className="flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+150px)]">
-      <header className="relative flex items-center justify-center px-4 pb-3 pt-new-top">
-        <Button variant="ghost" size="icon" aria-label="Back" onClick={p.onBack} className="absolute left-4 h-11 w-11 rounded-full bg-[var(--new-white)] hover:bg-[var(--new-white)]"><ChevronLeft className="!size-6" /></Button>
+    <div data-scroll-root className="min-h-0 flex-1 overflow-y-auto pb-4">
+      <header className="relative flex items-center justify-center bg-[var(--new-white)] px-4 pb-3 pt-new-top">
+        <Button variant="ghost" size="icon" aria-label="Back" onClick={p.onBack} className="absolute left-4 h-11 w-11 rounded-full bg-[var(--new-checkin-back)] hover:bg-[var(--new-checkin-back)]"><ChevronLeft className="!size-6" /></Button>
         <h1 className="flex h-11 items-center text-[17px] font-bold">New check-in</h1>
       </header>
       <section className="flex gap-3 bg-[var(--new-white)] px-4 py-[14px]">
@@ -101,18 +100,18 @@ export function NewCheckInCompose(p: {
         <label className="flex items-center gap-3">
           <span className="flex-1"><span className="block text-[16px] font-bold">Also post to my followers</span>
             <span className="mt-0.5 block text-[13px] text-[var(--new-muted)]">{p.followers ? "On: your crews and your followers see it." : "Off: only your crews see it."}</span></span>
-          <Switch checked={p.followers} onCheckedChange={p.onFollowers} aria-label="Also post to my followers" />
+          <Button variant="ghost" role="switch" aria-checked={p.followers} onClick={() => p.onFollowers(!p.followers)} aria-label="Also post to my followers" className={`new-privacy-switch new-checkin-followers ${p.followers ? "on" : ""}`}><span aria-hidden /></Button>
         </label>
       </section>
     </div>
-    <div className="fixed inset-x-0 bottom-0 z-50 bg-[var(--new-bg)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
+    <div className="z-50 shrink-0 bg-[var(--new-bg)] px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-3">
       {p.draftRestored && !p.error && <p className="mb-2 text-center text-[13px] text-[var(--new-purple-text)]">Draft restored. Tap the button when you're back online.</p>}
       {p.error && <p role="alert" className="mb-2 text-center text-[14px] text-[var(--new-red)]">{p.error}</p>}
       {!p.selected.length && <p className="mb-2 text-center text-[14px] text-[var(--new-muted)]">Pick at least one crew.</p>}
       {showAlreadyInNote(p.selected, p.crews) && <p className="mb-2 text-center text-[14px] text-[var(--new-muted)]">You're already in today, so this one won't add to your streak.</p>}
       <Button variant="ghost" disabled={!allowed || !p.src} onClick={p.onPost} className="h-[52px] w-full rounded-full bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)] hover:text-[var(--new-white)] disabled:opacity-50">
         {p.error && !p.posting ? "Try again" : postButtonLabel(p.selected, p.crews, p.posting)}</Button>
-      {p.error && !p.posting && <Button variant="ghost" onClick={p.onDraft} disabled={p.savingDraft} className="mt-2.5 h-[52px] w-full rounded-full bg-[var(--new-soft)] text-[17px] font-bold text-[var(--new-purple-text)] hover:bg-[var(--new-soft)]">{p.savingDraft ? "Saving..." : "Save as draft"}</Button>}
+      {p.error && !p.posting && <Button variant="ghost" onClick={p.onDraft} disabled={p.savingDraft} className="new-checkin-secondary mt-2.5 h-[52px] w-full rounded-full text-[17px] font-bold">{p.savingDraft ? "Saving..." : "Save as draft"}</Button>}
     </div>
   </div>;
 }

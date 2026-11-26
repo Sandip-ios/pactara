@@ -178,6 +178,7 @@
 - [x] Workout cover library: 24 credited Unsplash photos in Pactara asset storage, three per focus with equipment variants; stable new-only cover keys from detailed primary muscles/equipment, Pactara plan covers and single-exercise drawings preserved; three 390px captures in public/qa/p4-9c.json; temporary QA accounts/workouts removed; unpublished.
 
 ## Phase 5 step 1a: New check-in page (new version only)
+- [x] Review fixes: switch/header/secondary colors, camera note at top, discard confirmation for button/history back, unobscured scrolling; four public/qa/p5-1a-fix-*.png captures at 390x844 with simulated 47/34px safe areas; temporary member/subscription/crews/check-ins removed, 863 tests passed and typecheck clean. Physical iOS swipe not device-tested.
 - [x] Camera records only ("5-second check-in" label, record always enabled, already-in note)
 - [x] New check-in page: clip, description, Tag it, workout card, crews, followers switch, pinned button, already-in note, draft keeps crews and followers
 - [x] Followers choice saved per check-in (default off, off for under-18); nothing reads it yet

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canPost, clipLength, defaultCrewSelection, defaultTag, followersChoice, postButtonLabel, restoreCrewSelection, showAlreadyInNote, showCameraAlreadyIn, showTagCard } from "../new-checkin-form";
+import { canPost, clipLength, defaultCrewSelection, defaultTag, followersChoice, postButtonLabel, restoreCrewSelection, showAlreadyInNote, showCameraAlreadyIn, showTagCard, shouldConfirmClipDiscard } from "../new-checkin-form";
 
 const crews = [
   { id: "a", name: "FitFam", inToday: false },
@@ -8,6 +8,13 @@ const crews = [
 ];
 
 describe("new check-in form", () => {
+  it("confirms leaving an unposted new-version clip", () => expect(shouldConfirmClipDiscard("new", true, false, false)).toBe(true));
+  it("never changes classic back navigation", () => expect(shouldConfirmClipDiscard("classic", true, false, false)).toBe(false));
+  it("does not block leaving after posting or saving a draft", () => {
+    expect(shouldConfirmClipDiscard("new", true, true, false)).toBe(false);
+    expect(shouldConfirmClipDiscard("new", true, false, true)).toBe(false);
+  });
+  it("does not prompt without a clip", () => expect(shouldConfirmClipDiscard("new", false, false, false)).toBe(false));
   it("preselects crews not in yet", () => expect(defaultCrewSelection(crews)).toEqual(["a", "c"]));
   it("restores saved crews that still exist", () => expect(restoreCrewSelection(["b", "x"], crews)).toEqual(["b"]));
   it("labels one crew by name", () => expect(postButtonLabel(["a"], crews, false)).toBe("Check in to FitFam"));

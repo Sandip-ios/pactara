@@ -24,6 +24,11 @@ export function canPost(selected: string[], posting: boolean): boolean {
   return selected.length > 0 && !posting;
 }
 
+/** Only unposted new-version clips need confirmation before leaving the editor. */
+export function shouldConfirmClipDiscard(version: "new" | "classic", hasClip: boolean, completed: boolean, savingDraft: boolean): boolean {
+  return version === "new" && hasClip && !completed && !savingDraft;
+}
+
 /** Note above the button: every selected crew is already in today. */
 export function showAlreadyInNote(selected: string[], crews: ComposeCrew[]): boolean {
   if (!selected.length) return false;
