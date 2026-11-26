@@ -1,0 +1,1 @@
+ALTER FUNCTION public.normalize_crew_discovery() SECURITY DEFINER;
