@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Redesign phase 2 step 4 visual follow-up: shared centered destructive alerts, round crew menu button, current crew first, about placeholder; captures 23, 25, 27, 28 verified at 390×844 and saved in phase2-step4b.json; Cancel checked, no destructive actions or new data; classic unchanged, unpublished.
+
 - [x] Redesign phase 2 step 4: NewSheet crew switcher/menu, owner settings/about, locked owner-only transfer/removal and departure; existing invite/goal/pact/leave logic reused; captures 23–28; Save/reload/restore and rejected non-owner writes verified with existing QA accounts, no new rows or destructive actions; classic unchanged, unpublished. Notifications/mute/check-in unread controls omitted because they do not exist.
 - [ ] Redesign End crew: blocked because today's delete-group action deletes crew history, contrary to the requested promise that personal streaks remain; requires the owner's decision before adding preservation logic.
 

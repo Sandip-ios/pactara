@@ -12,7 +12,7 @@ import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { CrewAvatar } from "./CrewAvatars";
 import { NewSheet, NewSheetChevron, NewSheetRow } from "./NewSheet";
-import { NewCrewConfirm } from "./NewCrewConfirm";
+import { NewConfirm } from "./NewConfirm";
 
 export const crewManagementOptions = (groupId: string) => queryOptions({ queryKey: ["crew-management", groupId], queryFn: async () => stabilizeSignedUrls(await getCrewManagement({ data: { groupId } })) });
 
@@ -54,7 +54,7 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
           <label htmlFor="crew-name" className="block text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">NAME</label>
           <input id="crew-name" value={name} maxLength={80} onChange={(e) => setName(e.target.value)} className="mt-2 h-14 w-full rounded-[14px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 text-[17px] outline-none focus:border-[var(--new-purple)]" />
           <label htmlFor="crew-about" className="mt-4 block text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">WHAT IT'S ABOUT</label>
-          <textarea id="crew-about" value={about} maxLength={120} onChange={(e) => setAbout(e.target.value)} rows={3} className="mt-2 min-h-14 w-full resize-none rounded-[14px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 py-3 text-[17px] outline-none focus:border-[var(--new-purple)]" />
+          <textarea id="crew-about" placeholder="What's this crew about?" value={about} maxLength={120} onChange={(e) => setAbout(e.target.value)} rows={3} className="mt-2 min-h-14 w-full resize-none rounded-[14px] border border-[var(--new-handle)] bg-[var(--new-white)] px-3 py-3 text-[17px] outline-none placeholder:text-[var(--new-chevron)] focus:border-[var(--new-purple)]" />
         </section>
         <h2 className="px-4 pb-2 pt-2 text-[12px] font-extrabold tracking-[.6px] text-[var(--new-muted)]">MEMBERS · {data.members.length} OF {data.memberLimit}</h2>
         <section className="mx-4 overflow-hidden rounded-[20px] bg-[var(--new-white)] px-4">
@@ -84,6 +84,6 @@ export function NewCrewSettings({ groupId }: { groupId: string }) {
       </div>
       {error && <p role="alert" className="mt-2 text-[13px] text-[var(--new-destructive)]">{error}</p>}
     </NewSheet>
-    <NewCrewConfirm open={!!member && remove} onOpenChange={(o) => { if (!o) setRemove(false); }} title={`Remove ${member?.name ?? "member"} from ${data.name}?`} subtitle="They won't see the crew's check-ins, posts or chat anymore. Their own streak and workouts stay with them. We won't tell them who removed them." action="Remove" busy={busy} error={error} onConfirm={() => void memberAction("remove")} />
+    <NewConfirm open={!!member && remove} onOpenChange={(o) => { if (!o) setRemove(false); }} title={`Remove ${member?.name ?? "member"} from ${data.name}?`} subtitle="They won't see the crew's check-ins, posts or chat anymore. Their own streak and workouts stay with them. We won't tell them who removed them." action="Remove" busy={busy} error={error} onConfirm={() => void memberAction("remove")} />
   </div>;
 }

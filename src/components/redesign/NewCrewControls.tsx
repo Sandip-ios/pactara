@@ -12,7 +12,7 @@ import { getCrewManagement, leaveOwnedCrew } from "@/lib/crew-management.functio
 import { inviteLinkFor, CREW_INVITE_TEXT } from "@/components/groups/GroupOverflowMenu";
 import { getMemberGoal, setMemberGoal, GOAL_MAX } from "@/lib/member-goal.functions";
 import { NewSheet, NewSheetAvatars, NewSheetButton, NewSheetChevron, NewSheetRow } from "./NewSheet";
-import { NewCrewConfirm } from "./NewCrewConfirm";
+import { NewConfirm } from "./NewConfirm";
 
 export function NewCrewControls({ group, groups, tab, name, header = false }: {
   group: GroupToday; groups: GroupToday[]; tab: "today" | "posts" | "chat"; name: string; header?: boolean;
@@ -53,10 +53,10 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
       <h1 className="truncate text-[24px] font-extrabold leading-tight">{name}</h1>
       <ChevronDown size={18} className="!size-[18px] shrink-0 text-[var(--new-muted)]" />
       {hasOtherUnread && <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--new-purple)]" aria-label="Unread activity in another crew" />}
-    </Button> : <Button variant="ghost" size="icon" aria-label="Crew options" onClick={() => open("menu")} className="h-11 w-11 rounded-full text-[var(--new-ink)]"><MoreHorizontal size={22} className="!size-[22px]" /></Button>}
+    </Button> : <Button variant="ghost" size="icon" aria-label="Crew options" onClick={() => open("menu")} className="h-11 w-11 rounded-full bg-[var(--new-control)] text-[var(--new-ink)] hover:bg-[var(--new-control)]"><MoreHorizontal size={22} className="!size-[22px]" /></Button>}
 
     <NewSheet open={sheet === "switch"} onOpenChange={(o) => { if (!o) setSheet(null); }} title="Your crews">
-      <div>{groups.map((crew) => {
+      <div>{[...groups.filter((crew) => crew.id === group.id), ...groups.filter((crew) => crew.id !== group.id)].map((crew) => {
         const counts = crewPageCounts(crew.members), current = crew.id === group.id, count = unread?.counts[crew.id] ?? 0;
         return <NewSheetRow key={crew.id} title={crew.name} subtitle={`${counts.done} of ${counts.due} in · ${crew.groupStreak ? `${crew.groupStreak}-day streak` : "Crew streak starts today"}`}
           leading={<NewSheetAvatars members={crew.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} />}
@@ -93,7 +93,7 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
       {error && <p role="alert" className="text-[13px] text-[var(--new-destructive)]">{error}</p>}
       <NewSheetButton disabled={busy || !goal.trim()} onClick={async () => { setBusy(true); try { await saveGoal({ data: { groupId: group.id, goal: goal.trim() } }); await refresh(); setSheet(null); } catch { setError("Couldn't save your goal. Try again."); } finally { setBusy(false); } }}>Save</NewSheetButton>
     </NewSheet>
-    <NewCrewConfirm open={sheet === "leave"} onOpenChange={(o) => { if (!o) setSheet(null); }} title={`Leave ${name}?`}
+    <NewConfirm open={sheet === "leave"} onOpenChange={(o) => { if (!o) setSheet(null); }} title={`Leave ${name}?`}
       subtitle={`You'll lose access to the crew's check-ins, posts and chat. Your own streak stays.${group.isAdmin && next ? ` You run ${name}, so ${next.name} will take over.` : ""}`}
       action="Leave crew" busy={busy || (group.isAdmin && !management) || (group.isAdmin && !next)} error={group.isAdmin && management && !next ? "Invite someone before leaving this crew." : error}
       onConfirm={async () => { setBusy(true); try { if (group.isAdmin) await leaveOwner({ data: { groupId: group.id } }); else await leave({ data: { groupId: group.id } }); await refresh(); go(() => navigate({ to: "/crews" })); } catch (e) { setError(e instanceof Error ? e.message : "Couldn't leave. Try again."); } finally { setBusy(false); } }} />

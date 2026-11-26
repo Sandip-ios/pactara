@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Scoped redesign colors: classic surfaces do not inherit these tokens. */
-.redesign-step3, .new-sheet {
+.redesign-step3, .new-sheet, .new-confirm {
   --new-bg: #F5F2EE;
   --new-white: #FFFFFF;
   --new-ink: #1C1917;
@@ -16,6 +16,7 @@
   --new-sheet-overlay: rgba(20,18,24,.45);
   --new-chevron: #A8A29E;
   --new-destructive: #DC2626;
+  --new-confirm-destructive: #B91C1C;
   --new-orange-icon: #EA580C;
   --new-soft: #EDE4FF;
   --new-purple: #7C3AED;
