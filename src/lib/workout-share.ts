@@ -14,7 +14,7 @@ const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789
 const NAME_MAX = 60;
 
 /** One exercise of a saved workout (what `workouts.exercises` holds). */
-export type TemplateItem = { exerciseId: string; sets: number; restSeconds?: number; seconds?: number };
+export type TemplateItem = { exerciseId: string; sets: number; restSeconds?: number; seconds?: number; reps?: string; tip?: string };
 
 /** One exercise of a share-link snapshot. */
 export type SnapshotItem = {
@@ -24,6 +24,9 @@ export type SnapshotItem = {
   repsTarget: string | null;
   /** Timed moves: seconds per set, when known. */
   secondsTarget: number | null;
+  /** The author's own reps ("8", "10 each") and tip, when they set them (new version). */
+  reps?: string;
+  tip?: string;
 };
 
 /** A share link as anyone may see it: no weights, history or crew info. */
@@ -103,13 +106,15 @@ export function snapshotOf(items: readonly TemplateItem[], logTypeOf: (exerciseI
       sets: clampSets(it.sets),
       repsTarget: timed ? null : `${DEFAULT_REPS_LO}-${DEFAULT_REPS_HI}`,
       secondsTarget: timed && it.seconds ? it.seconds : null,
+      ...(it.reps ? { reps: it.reps } : {}),
+      ...(it.tip ? { tip: it.tip } : {}),
     };
   });
 }
 
 /** Same name and same exercises → the same link is reused. */
 export function snapshotKey(name: string, items: readonly SnapshotItem[]): string {
-  return JSON.stringify([name.trim(), items.map((i) => [i.exerciseId, i.sets, i.repsTarget, i.secondsTarget])]);
+  return JSON.stringify([name.trim(), items.map((i) => (i.reps || i.tip ? [i.exerciseId, i.sets, i.repsTarget, i.secondsTarget, i.reps ?? null, i.tip ?? null] : [i.exerciseId, i.sets, i.repsTarget, i.secondsTarget]))]);
 }
 
 /** A snapshot saved into someone's My workouts. */
@@ -117,6 +122,8 @@ export function itemsFromSnapshot(items: readonly SnapshotItem[]): TemplateItem[
   return items.map((i) => {
     const out: TemplateItem = { exerciseId: i.exerciseId, sets: clampSets(i.sets) };
     if (i.secondsTarget) out.seconds = i.secondsTarget;
+    if (i.reps) out.reps = i.reps;
+    if (i.tip) out.tip = i.tip;
     return out;
   });
 }

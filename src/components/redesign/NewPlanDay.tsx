@@ -83,7 +83,7 @@ export function NewPlanDay({ slug, search }: { slug: string; search: { week?: nu
           <p className="mt-6 text-[15px]" style={{ color: MUTED }}>This day isn't part of the plan.</p>
         ) : (
           <>
-            <div className="mt-[22px] text-[12px] font-extrabold tracking-[0.6px]" style={{ color: PURPLE }}>{newPlanDayLabel(plan.name, isNext)}</div>
+            <div className="mt-[18px] text-[12px] font-extrabold tracking-[0.6px]" style={{ color: PURPLE }}>{newPlanDayLabel(plan.name, isNext)}</div>
             <h2 className="mt-1 text-[26px] font-extrabold leading-tight tracking-[-0.4px]">{day.title}</h2>
             <p className="mt-1 line-clamp-2 text-[14px] leading-[1.4]" style={{ color: MUTED }}>{newPlanDayMeta(moves.length, dayMinutes(day, plan), note?.note)}</p>
 

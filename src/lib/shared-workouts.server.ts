@@ -54,6 +54,8 @@ export async function loadSharedWorkout(
             sets: i.sets,
             repsTarget: i.repsTarget ?? null,
             secondsTarget: i.secondsTarget ?? null,
+            ...(i.reps ? { reps: i.reps } : {}),
+            ...(i.tip ? { tip: i.tip } : {}),
             name: e.name as string,
             imageStart: (e.image_start as string | null) ?? null,
             primary: (e.primary_muscles as string[] | null) ?? [],

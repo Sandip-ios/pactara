@@ -116,6 +116,9 @@ function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { quer
     const note = droppedNote(quiz.dropped, savedQuiz?.answers ?? null);
     return (
       <>
+      <p className="text-[13px] leading-[1.35]" style={{ color: "#57534E" }}>
+        A plan is a few weeks of workouts. It tells you what to do each day.
+      </p>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Your answers">
           {chips.map((c) => (
             <button key={c.id} type="button" onClick={() => onFiltersChange(c.remove(filters))} aria-label={`Remove ${c.label}`} className="flex h-9 items-center gap-1.5 rounded-full pl-3.5 pr-3 text-[14px] font-bold" style={{ background: PURPLE, color: "#FFFFFF" }}>

@@ -76,6 +76,7 @@ import { Route as AuthenticatedUUserIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedWorkoutIndexRouteImport } from './routes/_authenticated/workout.index'
 import { Route as AuthenticatedWorkoutDoneRouteImport } from './routes/_authenticated/workout.done'
 import { Route as AuthenticatedWorkoutLogRouteImport } from './routes/_authenticated/workout.log'
+import { Route as AuthenticatedWorkoutsWorkoutIdRouteImport } from './routes/_authenticated/workouts_.$workoutId'
 import { Route as AuthenticatedCrewsGroupIdNextPactRouteImport } from './routes/_authenticated/crews.$groupId_.next-pact'
 import { Route as AuthenticatedCrewsGroupIdPactDoneRouteImport } from './routes/_authenticated/crews.$groupId_.pact-done'
 import { Route as AuthenticatedCrewsGroupIdPreviewRouteImport } from './routes/_authenticated/crews.$groupId_.preview'
@@ -457,6 +458,12 @@ const AuthenticatedWorkoutLogRoute = AuthenticatedWorkoutLogRouteImport.update({
   path: '/workout/log',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedWorkoutsWorkoutIdRoute =
+  AuthenticatedWorkoutsWorkoutIdRouteImport.update({
+    id: '/workouts_/$workoutId',
+    path: '/workouts/$workoutId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCrewsGroupIdNextPactRoute =
   AuthenticatedCrewsGroupIdNextPactRouteImport.update({
     id: '/crews/$groupId_/next-pact',
@@ -629,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
+  '/workouts/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
   '/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
   '/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -715,6 +723,7 @@ export interface FileRoutesByTo {
   '/u/$userId': typeof AuthenticatedUUserIdRoute
   '/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/workout/log': typeof AuthenticatedWorkoutLogRoute
+  '/workouts/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
   '/account-settings': typeof AuthenticatedAccountSettingsIndexRoute
   '/chat': typeof AuthenticatedChatIndexRoute
   '/check-in': typeof AuthenticatedCheckInIndexRoute
@@ -804,6 +813,7 @@ export interface FileRoutesById {
   '/_authenticated/u/$userId': typeof AuthenticatedUUserIdRoute
   '/_authenticated/workout/done': typeof AuthenticatedWorkoutDoneRoute
   '/_authenticated/workout/log': typeof AuthenticatedWorkoutLogRoute
+  '/_authenticated/workouts_/$workoutId': typeof AuthenticatedWorkoutsWorkoutIdRoute
   '/_authenticated/account-settings/': typeof AuthenticatedAccountSettingsIndexRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
   '/_authenticated/check-in/': typeof AuthenticatedCheckInIndexRoute
@@ -893,6 +903,7 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
+    | '/workouts/$workoutId'
     | '/account-settings/'
     | '/chat/'
     | '/check-in/'
@@ -979,6 +990,7 @@ export interface FileRouteTypes {
     | '/u/$userId'
     | '/workout/done'
     | '/workout/log'
+    | '/workouts/$workoutId'
     | '/account-settings'
     | '/chat'
     | '/check-in'
@@ -1067,6 +1079,7 @@ export interface FileRouteTypes {
     | '/_authenticated/u/$userId'
     | '/_authenticated/workout/done'
     | '/_authenticated/workout/log'
+    | '/_authenticated/workouts_/$workoutId'
     | '/_authenticated/account-settings/'
     | '/_authenticated/chat/'
     | '/_authenticated/check-in/'
@@ -1597,6 +1610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedWorkoutLogRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/workouts_/$workoutId': {
+      id: '/_authenticated/workouts_/$workoutId'
+      path: '/workouts/$workoutId'
+      fullPath: '/workouts/$workoutId'
+      preLoaderRoute: typeof AuthenticatedWorkoutsWorkoutIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crews/$groupId_/next-pact': {
       id: '/_authenticated/crews/$groupId_/next-pact'
       path: '/crews/$groupId/next-pact'
@@ -1779,6 +1799,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedUUserIdRoute: typeof AuthenticatedUUserIdRoute
   AuthenticatedWorkoutDoneRoute: typeof AuthenticatedWorkoutDoneRoute
   AuthenticatedWorkoutLogRoute: typeof AuthenticatedWorkoutLogRoute
+  AuthenticatedWorkoutsWorkoutIdRoute: typeof AuthenticatedWorkoutsWorkoutIdRoute
   AuthenticatedAccountSettingsIndexRoute: typeof AuthenticatedAccountSettingsIndexRoute
   AuthenticatedChatIndexRoute: typeof AuthenticatedChatIndexRoute
   AuthenticatedCheckInIndexRoute: typeof AuthenticatedCheckInIndexRoute
@@ -1832,6 +1853,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedUUserIdRoute: AuthenticatedUUserIdRoute,
   AuthenticatedWorkoutDoneRoute: AuthenticatedWorkoutDoneRoute,
   AuthenticatedWorkoutLogRoute: AuthenticatedWorkoutLogRoute,
+  AuthenticatedWorkoutsWorkoutIdRoute: AuthenticatedWorkoutsWorkoutIdRoute,
   AuthenticatedAccountSettingsIndexRoute:
     AuthenticatedAccountSettingsIndexRoute,
   AuthenticatedChatIndexRoute: AuthenticatedChatIndexRoute,

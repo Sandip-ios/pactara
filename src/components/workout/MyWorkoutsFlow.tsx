@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useAppVersion } from "@/hooks/use-app-version";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -351,13 +353,17 @@ export function SavedRow({
   const primaries = workout.exercises.flatMap((e) => lib.get(e.exerciseId)?.primary.slice(0, 1) ?? []);
   const t = tintFor(primaries.length ? [mostCommon(primaries)] : []);
   const lastDone = workout.lastDoneAt ? shortDay(localDateIn(timezone, new Date(workout.lastDoneAt)), today) : null;
+  // New version: the name opens the workout page; classic keeps Edit workout.
+  const version = useAppVersion();
+  const navigate = useNavigate();
+  const open = version === "new" ? () => navigate({ to: "/workouts/$workoutId", params: { workoutId: workout.id } }) : onEdit;
   return (
     <div className="flex min-h-[72px] w-full items-center gap-1 pr-3" style={{ borderTop: first ? undefined : `1px solid ${W.divider}` }}>
       <button
         type="button"
-        aria-label={`Edit ${workout.name}`}
+        aria-label={version === "new" ? `Open ${workout.name}` : `Edit ${workout.name}`}
         disabled={lib.size === 0}
-        onClick={onEdit}
+        onClick={open}
         className="flex min-h-[72px] min-w-0 flex-1 items-center gap-3 py-3.5 pl-4 text-left"
       >
         <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-[13px] font-extrabold" style={{ background: t.tint, color: t.ink }} aria-hidden>

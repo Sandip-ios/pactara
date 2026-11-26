@@ -128,7 +128,7 @@ export type SavedWorkout = {
   id: string;
   name: string;
   /** `seconds`: timed moves copied from a crewmate keep their time as the target. */
-  exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number }[];
+  exercises: { exerciseId: string; sets: number; restSeconds?: number; seconds?: number; reps?: string; tip?: string }[];
   lastDoneAt: string | null;
   createdAt: string;
 };

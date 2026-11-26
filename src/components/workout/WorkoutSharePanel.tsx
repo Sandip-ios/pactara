@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, ChevronRight, Loader2, Share } from "lucide-react";
+import { NewSheet, NewSheetButton } from "@/components/redesign/NewSheet";
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { getWorkoutSharePanel, sendWorkoutToCrew, type ShareCrew } from "@/lib/workout-share.functions";
 import { usePartnerState } from "@/hooks/use-partner-state";
@@ -24,6 +25,7 @@ export function WorkoutSharePanel({
   onClose,
   onShareLink,
   linkBusy,
+  variant = "classic",
 }: {
   open: boolean;
   workoutId: string | null;
@@ -31,6 +33,8 @@ export function WorkoutSharePanel({
   onClose: () => void;
   onShareLink: () => void;
   linkBusy: boolean;
+  /** "new": the new version's NewSheet look; same crews, sends and link. */
+  variant?: "classic" | "new";
 }) {
   const qc = useQueryClient();
   const panelFn = useServerFn(getWorkoutSharePanel);
@@ -67,20 +71,8 @@ export function WorkoutSharePanel({
     }
   };
 
-  return (
-    <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground={false}>
-      <DrawerContent
-        className="max-h-[88dvh] rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
-        style={{ fontFamily: FONT, color: W.ink }}
-      >
-        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 pt-4">
-          <div className="flex flex-col gap-1">
-            <DrawerTitle className="text-[20px] font-extrabold leading-tight">Share “{name}”</DrawerTitle>
-            <DrawerDescription className="text-[13px]" style={{ color: W.muted }}>
-              Exercises and sets only. Your weights stay private.
-            </DrawerDescription>
-          </div>
-
+  const body = (
+    <>
           {isLoading && (
             <div className="flex h-[60px] items-center justify-center" aria-label="Loading crews">
               <Loader2 size={20} className="animate-spin" style={{ color: W.muted }} />
@@ -112,6 +104,34 @@ export function WorkoutSharePanel({
               <ShareLinkRow onClick={onShareLink} busy={linkBusy} />
             </section>
           )}
+
+    </>
+  );
+
+  if (variant === "new") {
+    return (
+      <NewSheet open={open} onOpenChange={(o) => !o && onClose()} title={`Share “${name}”`} subtitle="Exercises and sets only. Your weights stay private.">
+        <div className="flex flex-col gap-4" style={{ fontFamily: FONT, color: W.ink }}>{body}</div>
+        <NewSheetButton secondary onClick={onClose}>Done</NewSheetButton>
+      </NewSheet>
+    );
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={(o) => !o && onClose()} shouldScaleBackground={false}>
+      <DrawerContent
+        className="max-h-[88dvh] rounded-t-[24px] border-0 bg-white p-0 pb-[max(env(safe-area-inset-bottom),16px)]"
+        style={{ fontFamily: FONT, color: W.ink }}
+      >
+        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto px-4 pt-4">
+          <div className="flex flex-col gap-1">
+            <DrawerTitle className="text-[20px] font-extrabold leading-tight">Share “{name}”</DrawerTitle>
+            <DrawerDescription className="text-[13px]" style={{ color: W.muted }}>
+              Exercises and sets only. Your weights stay private.
+            </DrawerDescription>
+          </div>
+
+          {body}
 
           <button
             type="button"

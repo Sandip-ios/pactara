@@ -404,7 +404,7 @@ function PlanProgress({ plan, active }: { plan: Plan; active: MyActivePlan }) {
           <span className="block h-full rounded-full" style={{ background: PURPLE, width: `${Math.min(100, (active.workoutsDone / Math.max(1, total)) * 100)}%` }} />
         </span>
       </div>
-      <div className="flex flex-col gap-3 px-4 pt-[10px]" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
+      <div className="flex flex-col gap-3 px-4 pt-[6px]" style={{ paddingBottom: "max(32px, env(safe-area-inset-bottom))" }}>
 
         <Label>Today</Label>
         <div className="flex flex-col gap-3 rounded-[18px] bg-white p-3.5" data-today-card>

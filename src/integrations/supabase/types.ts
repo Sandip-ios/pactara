@@ -2033,6 +2033,7 @@ export type Database = {
       workouts: {
         Row: {
           created_at: string
+          equipment: string | null
           exercises: Json
           id: string
           last_done_at: string | null
@@ -2045,6 +2046,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          equipment?: string | null
           exercises?: Json
           id?: string
           last_done_at?: string | null
@@ -2057,6 +2059,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          equipment?: string | null
           exercises?: Json
           id?: string
           last_done_at?: string | null
