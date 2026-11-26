@@ -11,16 +11,14 @@ import {
 
 export const APP_PREFS_KEY = ["app-prefs"] as const;
 
+async function fetchAppPrefs() {
+  const { data, error } = await supabase.rpc("get_my_app_prefs");
+  if (error) throw error;
+  return (Array.isArray(data) ? data[0] : data) ?? null;
+}
+
 export function useAppPrefs() {
-  return useQuery({
-    queryKey: APP_PREFS_KEY,
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_my_app_prefs");
-      if (error) throw error;
-      return (Array.isArray(data) ? data[0] : data) ?? null;
-    },
-    staleTime: 5 * 60_000,
-  });
+  return useQuery({ queryKey: APP_PREFS_KEY, queryFn: fetchAppPrefs, staleTime: 5 * 60_000 });
 }
 
 function readOverride(): AppVersion | null {
@@ -61,7 +59,7 @@ export function useSetAppVersion() {
 
 /** Same answer as useAppVersion, but only reads prefs another screen already loaded (never fetches). */
 export function usePassiveAppVersion(): AppVersion {
-  const { data } = useQuery<Awaited<ReturnType<NonNullable<ReturnType<typeof useAppPrefs>["refetch"]>>>["data"]>({ queryKey: APP_PREFS_KEY, enabled: false });
+  const { data } = useQuery({ queryKey: APP_PREFS_KEY, queryFn: fetchAppPrefs, staleTime: 5 * 60_000, enabled: false });
   const [override, setOverride] = useState<AppVersion | null>(null);
   useEffect(() => { setOverride(readOverride()); }, []);
   return resolveAppVersion(data?.new_version_enabled, data?.app_version, override);
