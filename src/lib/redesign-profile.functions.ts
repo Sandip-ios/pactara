@@ -90,3 +90,36 @@ export const getRedesignMemberProfile = createServerFn({ method: 'GET' }).middle
       sharedCrews, followedBy,
     };
   });
+
+/** Own data for the new-version Your progress page. */
+export const getRedesignProgress = createServerFn({ method: 'GET' }).middleware([requireSupabaseAuth]).handler(async ({ context }) => {
+  const { supabase, userId } = context;
+  const { localDateIn } = await import('./streak-rules');
+  const { progressStreak, uniqueCheckIns, prsInMonth } = await import('./progress-view');
+  const profile = await supabase.from('profiles').select('timezone, streak_freezes_available').eq('id', userId).single();
+  if (profile.error) throw new Error('Could not load progress');
+  const today = localDateIn(profile.data.timezone || 'UTC');
+  const month = today.slice(0, 7);
+  const [crews, checkIns, covered, badges, prs] = await Promise.all([
+    supabase.from('group_members').select('group_id').eq('user_id', userId),
+    supabase.from('check_ins').select('group_id, checkin_date, photo_url, created_at').eq('user_id', userId),
+    supabase.from('streak_freezes_used').select('group_id, freeze_date').eq('user_id', userId),
+    supabase.from('earned_badges').select('streak_days, earned_at').eq('user_id', userId),
+    supabase.from('workout_set_logs').select('session_id, exercise_id, local_date, is_pr').eq('user_id', userId).eq('is_pr', true).gte('local_date', `${month}-01`),
+  ]);
+  for (const r of [crews, checkIns, covered, badges, prs]) if (r.error) throw new Error('Could not load progress');
+  const ci = checkIns.data ?? [], cov = covered.data ?? [];
+  const streak = progressStreak((crews.data ?? []).map(c => ({
+    dates: ci.filter(r => r.group_id === c.group_id).map(r => r.checkin_date),
+    covered: cov.filter(r => r.group_id === c.group_id).map(r => r.freeze_date),
+  })), today);
+  return {
+    today, streak,
+    workouts: uniqueCheckIns(ci),
+    prsThisMonth: prsInMonth(prs.data ?? [], month),
+    workoutDays: [...new Set(ci.map(r => r.checkin_date))],
+    restDays: [...new Set(cov.map(r => r.freeze_date))],
+    badges: (badges.data ?? []).map(b => ({ days: b.streak_days, earnedAt: b.earned_at })),
+    freezes: profile.data.streak_freezes_available ?? 0,
+  };
+});
