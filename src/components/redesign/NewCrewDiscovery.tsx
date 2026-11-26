@@ -110,12 +110,6 @@ export function NewCrewFindSection() {
                         {crew.daysPerWeek} days a week
                       </span>
                     </div>
-                    <div className="mt-2.5 flex items-center gap-2">
-                      <CrewAvatarOverlap members={discoveryAvatars(crew)} size={28} />
-                      <span className="min-w-0 text-[13px] leading-[1.35]" style={{ color: MUTED }}>
-                        {crew.memberCount} of {crew.limit} spots · Started by {crew.ownerFirstName}
-                      </span>
-                    </div>
                   </button>
                   {full ? null : crew.requested ? (
                     <span className="flex h-10 shrink-0 items-center rounded-full px-3.5 text-[15px] font-bold" style={{ background: SOFT, color: MUTED }}>
@@ -133,6 +127,19 @@ export function NewCrewFindSection() {
                     </button>
                   )}
                 </div>
+                <button
+                  type="button"
+                  className="mt-2.5 flex w-full min-w-0 items-center gap-2 text-left"
+                  onClick={() => navigate({ to: "/crews/$groupId/preview", params: { groupId: crew.id } })}
+                  tabIndex={-1}
+                  aria-hidden
+                >
+                  <span className="shrink-0"><CrewAvatarOverlap members={discoveryAvatars(crew)} size={28} /></span>
+                  <span className="flex min-w-0 flex-1 whitespace-nowrap text-[13px] leading-[1.35]" style={{ color: MUTED }}>
+                    <span className="shrink-0">{crew.memberCount} of {crew.limit} spots · Started by&nbsp;</span>
+                    <span className="min-w-0 truncate">{crew.ownerFirstName}</span>
+                  </span>
+                </button>
               </div>
             );
           })}
