@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ChevronLeft, Loader2 } from "lucide-react";
+import { useAppVersion } from "@/hooks/use-app-version";
 
 const PURPLE = "#7C3AED";
 const BG = "#F5F2EE";
@@ -38,9 +39,10 @@ export function SubPage({
   onBack: () => void;
   children: React.ReactNode;
 }) {
+  const version = useAppVersion();
   return (
     <div
-      className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28"
+      className={`fixed inset-0 w-full overflow-y-auto overscroll-none ${version === "new" ? "pb-[max(24px,env(safe-area-inset-bottom))]" : "pb-28"}`}
       style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif" }}
     >
       <header className="bg-white px-4 pt-safe-5 pb-4 flex items-center gap-2">
