@@ -59,11 +59,11 @@ export function topMuscleChips(items: readonly Pick<WorkoutPageItem, "primary" |
   return labels;
 }
 
-/** "4 × 8", "3 × 10 each", "3 × 30 sec", or just "3 sets" without reps. */
+/** "4 × 8", "3 × 10 each", "3 × 30s", or just "3 sets" without reps. */
 export function doseText(item: Pick<WorkoutPageItem, "sets" | "reps" | "seconds">): string {
   const reps = (item.reps ?? "").trim();
   if (reps) return `${item.sets} × ${reps}`;
-  if (item.seconds && item.seconds > 0) return `${item.sets} × ${item.seconds} sec`;
+  if (item.seconds && item.seconds > 0) return `${item.sets} × ${item.seconds}s`;
   return item.sets === 1 ? "1 set" : `${item.sets} sets`;
 }
 

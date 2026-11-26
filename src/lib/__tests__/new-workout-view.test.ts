@@ -23,7 +23,7 @@ describe("sets × reps", () => {
   it("formats reps, each-side reps, seconds and plain sets", () => {
     expect(doseText({ sets: 4, reps: "8" })).toBe("4 × 8");
     expect(doseText({ sets: 3, reps: "10 each" })).toBe("3 × 10 each");
-    expect(doseText({ sets: 3, seconds: 30 })).toBe("3 × 30 sec");
+    expect(doseText({ sets: 3, seconds: 30 })).toBe("3 × 30s");
     expect(doseText({ sets: 3 })).toBe("3 sets");
     expect(doseText({ sets: 3, reps: "  " })).toBe("3 sets");
   });
@@ -66,4 +66,10 @@ describe("author name", () => {
     expect(_author({ fullName: "Maya Lindqvist", isPrivate: true, iFollow: true })).toBe("Maya Lindqvist");
     expect(_author({ fullName: "Maya Lindqvist", isPrivate: true, iFollow: false })).toBe("Maya");
   });
+});
+
+import { shortDose as _shortDose } from "../new-plan-day-view";
+describe("timed dose wording", () => {
+  it("plan day 3x30 sec reads 3 × 30s", () => expect(_shortDose("3x30 sec · rest 60 sec")).toBe("3 × 30s"));
+  it("plan day reps unchanged", () => expect(_shortDose("3x8-12 · rest 90 sec")).toBe("3 × 8-12"));
 });

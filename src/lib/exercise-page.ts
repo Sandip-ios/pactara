@@ -25,13 +25,13 @@ export const parseExerciseTab = (v: unknown): ExerciseTab => (v === "progress" ?
 
 export type ProgressSession = { date: string; sets: (SetEntry & { isPr?: boolean })[] };
 
-/** "4 sets of 8", "3 sets of 10 each", "3 sets of 30 sec", "3 sets". */
+/** "4 sets of 8", "3 sets of 10 each", "3 sets of 30s", "3 sets". */
 export function setsPhrase(item: { sets: number; reps?: string | null; seconds?: number | null }): string {
   const n = Math.max(1, item.sets);
   const base = n === 1 ? "1 set" : `${n} sets`;
   const reps = (item.reps ?? "").trim();
   if (reps) return `${base} of ${reps}`;
-  if (item.seconds && item.seconds > 0) return `${base} of ${item.seconds} sec`;
+  if (item.seconds && item.seconds > 0) return `${base} of ${item.seconds}s`;
   return base;
 }
 

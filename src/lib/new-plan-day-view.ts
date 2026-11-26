@@ -21,7 +21,8 @@ export function muscleLegend(map: MuscleMap): { primary: string | null; secondar
 export function shortDose(dose: string): string {
   const raw = dose.split("·")[0]!.trim();
   const m = raw.replace(/×/g, "x").match(/^(\d+)\s*x\s*(.+)$/i);
-  return m ? `${m[1]} × ${m[2]!.trim()}` : raw;
+  // Timed doses read "3 × 30s" like the rest of the new version.
+  return m ? `${m[1]} × ${m[2]!.trim().replace(/^(\d+)\s*(?:sec|secs|seconds|s)\b\.?/i, "$1s")}` : raw;
 }
 
 /** "5 exercises · 35 min · same weights, one more rep where you can" */
