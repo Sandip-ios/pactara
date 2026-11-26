@@ -73,3 +73,11 @@ describe("equipment and reps", () => {
     expect(pillText({ sets: 3, reps: "" })).toBe("3 sets");
   });
 });
+
+import { newItemDose as _newItemDose, pillText as _pillText } from "../new-workout-builder";
+describe("new exercise defaults and pill", () => {
+  it("added rep exercise is 3 × 10", () => expect(_pillText(_newItemDose("reps"))).toBe("3 × 10"));
+  it("added timed exercise is 3 × 30s", () => expect(_pillText(_newItemDose("timed"))).toBe("3 × 30s"));
+  it("reps show sets × reps", () => expect(_pillText({ sets: 4, reps: "8" })).toBe("4 × 8"));
+  it("old saved item with no reps keeps N sets", () => expect(_pillText({ sets: 3, reps: "" })).toBe("3 sets"));
+});

@@ -64,9 +64,17 @@ export function toggleEach(v: string): string {
 }
 
 /** The pill on each row: "4 × 8", "3 × 10 each", or "3 sets". */
-export function pillText(item: Pick<BuilderItem, "sets" | "reps">): string {
+/** Always sets × reps ("4 × 8", "3 × 30s"); "N sets" only for old saved items with neither. */
+export function pillText(item: Pick<BuilderItem, "sets" | "reps"> & { seconds?: number }): string {
   const r = cleanReps(item.reps);
-  return r ? `${item.sets} × ${r}` : `${item.sets} sets`;
+  if (r) return `${item.sets} × ${r}`;
+  if (item.seconds && item.seconds > 0) return `${item.sets} × ${item.seconds}s`;
+  return `${item.sets} sets`;
+}
+
+/** A newly added exercise: 3 × 10 reps, or 3 × 30s for timed moves. */
+export function newItemDose(logType: "reps" | "timed" | string): { sets: number; reps: string; seconds?: number } {
+  return logType === "timed" ? { sets: 3, reps: "", seconds: 30 } : { sets: 3, reps: "10" };
 }
 
 export function cleanTip(v: string): string {

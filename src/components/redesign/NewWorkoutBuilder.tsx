@@ -14,10 +14,10 @@ import { MY_WORKOUTS_KEY, useExerciseMap, type LibraryExercise } from "@/lib/exe
 import { saveBuiltWorkout } from "@/lib/lifts.functions";
 import { getWorkoutPage } from "@/lib/new-workout.functions";
 import { TIP_MAX } from "@/lib/new-workout-view";
-import { clampSets, defaultSets, MAX_SETS, MIN_SETS } from "@/lib/workout-builder";
+import { clampSets, MAX_SETS, MIN_SETS } from "@/lib/workout-builder";
 import {
   builderDirty, builderMinutes, builderSignature, canSaveBuilder, cleanReps, cleanTip, EQUIPMENT_OPTIONS, equipmentFromExercises,
-  pillText, reorderItems, savePayload, stepReps, toggleEach, type BuilderItem, type BuilderState, type WorkoutEquipment,
+  newItemDose, pillText, reorderItems, savePayload, stepReps, toggleEach, type BuilderItem, type BuilderState, type WorkoutEquipment,
 } from "@/lib/new-workout-builder";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
@@ -110,7 +110,7 @@ function Builder({ initial, map }: { initial: BuilderState; map: Map<string, Lib
 
   const addPicked = (picked: LibraryExercise[]) => {
     setPicking(false);
-    setItems((items) => [...items, ...picked.map((e) => ({ key: uid(), exerciseId: e.id, sets: defaultSets(e.equipment), reps: "", tip: "" }))]);
+    setItems((items) => [...items, ...picked.map((e) => ({ key: uid(), exerciseId: e.id, tip: "", ...newItemDose(e.logType) }))]);
   };
 
   const save = async () => {
