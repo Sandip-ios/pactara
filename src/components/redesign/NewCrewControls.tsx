@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CalendarDays, Check, ChevronDown, CircleSlash, Copy, Mail, MessageCircle, MoreHorizontal, Plus, Search, Settings, Share2, Target, UserPlus, Users } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { GroupToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
@@ -14,7 +13,6 @@ import { inviteLinkFor, CREW_INVITE_TEXT } from "@/components/groups/GroupOverfl
 import { getMemberGoal, setMemberGoal, GOAL_MAX } from "@/lib/member-goal.functions";
 import { NewSheet, NewSheetAvatars, NewSheetButton, NewSheetChevron, NewSheetRow } from "./NewSheet";
 import { NewConfirm } from "./NewConfirm";
-import { atCrewLimit, crewLimitLine } from "@/lib/crew-limit";
 import { getCrewJoinOverview } from "@/lib/crew-join.functions";
 import { discoveryAvatars } from "./NewCrewDiscovery";
 
@@ -76,7 +74,7 @@ export function NewCrewControls({ group, groups, tab, name, header = false }: {
       </div>}
       <div className="mt-4 grid grid-cols-2 gap-[10px]">
         <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => navigate({ to: "/crews" }))}><Search size={18} />Find a crew</NewSheetButton>
-        <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => (atCrewLimit(groups.length) ? toast(crewLimitLine()) : navigate({ to: "/new-pactara" })))}><Plus size={18} />New crew</NewSheetButton>
+        <NewSheetButton secondary className="mt-0 h-12 rounded-[24px] text-[15px]" onClick={() => go(() => navigate({ to: "/new-pactara" }))}><Plus size={18} />New crew</NewSheetButton>
       </div>
     </NewSheet>
     <NewSheet open={sheet === "menu"} onOpenChange={(o) => { if (!o) setSheet(null); }} title={name} subtitle="Private. Only members see inside.">

@@ -8,7 +8,6 @@ import { getFindCrews, requestCrewJoin } from "@/lib/crew-join.functions";
 import { filterDiscovery, type CrewWeekFilter, type DiscoveryCrew } from "@/lib/crew-join";
 import { CrewAvatarOverlap, type RedesignCrewAvatarMember } from "./CrewAvatars";
 import { NewSheet, NewSheetRow } from "./NewSheet";
-import { useCrewLimit } from "@/lib/use-crew-limit";
 
 const INK = "#1C1917";
 const MUTED = "#57534E";
@@ -39,7 +38,6 @@ export function NewCrewFindSection() {
   const [busy, setBusy] = useState<string | null>(null);
   const { data, isLoading } = useQuery({ queryKey: ["find-crews"], queryFn: () => getFindCrews(), staleTime: 30_000 });
   const ask = useServerFn(requestCrewJoin);
-  const atLimit = useCrewLimit();
   const crews = filterDiscovery(data?.crews ?? [], week, open);
 
   const join = async (crew: DiscoveryCrew) => {
@@ -113,7 +111,7 @@ export function NewCrewFindSection() {
                       </span>
                     </div>
                   </button>
-                  {full || (atLimit && !crew.requested) ? null : crew.requested ? (
+                  {full ? null : crew.requested ? (
                     <span className="flex h-10 shrink-0 items-center rounded-full px-3.5 text-[15px] font-bold" style={{ background: SOFT, color: MUTED }}>
                       Requested
                     </span>

@@ -10,8 +10,7 @@ import { relationForGroup } from "@/lib/group-display";
 import { CrewAvatarOverlap } from "./CrewAvatars";
 import { NewCrewFindSection } from "./NewCrewDiscovery";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
-import { toast } from "sonner";
-import { atCrewLimit, crewLimitLine, unreadBadgeLabel } from "@/lib/crew-limit";
+import { unreadBadgeLabel } from "@/lib/crew-badge";
 
 const BG = "#F5F2EE";
 const INK = "#1C1917";
@@ -33,8 +32,7 @@ export function NewCrewsScreen() {
   });
   const { data: partnerState } = usePartnerState();
   const groups = data?.groups ?? [];
-  const atLimit = atCrewLimit(groups.length);
-  const startCrew = () => (atLimit ? toast(crewLimitLine()) : navigate({ to: "/new-pactara" }));
+  const startCrew = () => navigate({ to: "/new-pactara" });
 
   return (
     <div ref={scrollRef} data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none pb-28" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
@@ -102,7 +100,6 @@ export function NewCrewsScreen() {
         </div>
       )}
 
-      {atLimit && <p className="px-5 text-[13px] leading-[1.45]" style={{ color: MUTED }}>{crewLimitLine()}</p>}
 
       <NewCrewFindSection />
     </div>

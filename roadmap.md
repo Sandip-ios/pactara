@@ -114,4 +114,4 @@
 - [ ] New pact banner: bg #F5F0FF, radius 18, pad 14/16, margin 12px 16px 0; title 15/800 #4C1D95; body 14 #5B21B6 4px below; buttons 10px below, 8px gap, h36 r18 13/700 px12; primary #7C3AED/white, Later #EDE4FF/#7C3AED
 - [ ] Between pacts: same purple card; subline "Private crew · pact done"; owner/member copy per spec; Today card unchanged
 - [ ] Captures 38–43 into public/qa/pact.json (42 owner gap, 43 member gap)
-- [x] Crews tab: note removed, "N new" badge, 3-crew limit line/preview/New crew message (new version, UI only)
+- [x] Crews tab: note removed, "N new" chat badge (new version; no crew limit)
