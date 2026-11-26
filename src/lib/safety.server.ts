@@ -10,8 +10,14 @@ export async function blockedPairs(db: SupabaseClient, userId: string): Promise<
 }
 
 export async function requireInteraction(db: SupabaseClient, userId: string, table: 'daily_posts' | 'post_comments', id: string) {
-  const { data, error } = await db.from(table).select('user_id').eq('id', id).maybeSingle();
+  const { data, error } = table === 'post_comments'
+    ? await db.from('post_comments').select('user_id, post_id').eq('id', id).maybeSingle()
+    : await db.from('daily_posts').select('user_id').eq('id', id).maybeSingle();
   if (error || !data || !canInteract(userId, data.user_id as string, await blockedPairs(db, userId))) throw new Error('Interaction not allowed');
+  const { requireActivePost } = await import('./crew-lifecycle.server');
+  const postId = table === 'daily_posts' ? id : 'post_id' in data ? data.post_id : null;
+  if (typeof postId !== 'string') throw new Error('Interaction not allowed');
+  await requireActivePost(db, postId);
 }
 
 export async function submitReport(db: SupabaseClient, data: SafetyReport) {

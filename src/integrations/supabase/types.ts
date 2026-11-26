@@ -200,15 +200,7 @@ export type Database = {
           target_id?: string | null
           target_type?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "content_reports_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       crew_join_requests: {
         Row: {
@@ -241,15 +233,7 @@ export type Database = {
           requester_id?: string
           status?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "crew_join_requests_group_id_fkey"
-            columns: ["group_id"]
-            isOneToOne: false
-            referencedRelation: "groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       daily_posts: {
         Row: {

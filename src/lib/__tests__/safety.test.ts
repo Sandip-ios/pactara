@@ -11,7 +11,7 @@ const post = '44444444-4444-4444-8444-444444444444';
 const report: SafetyReport = { reportedUserId: reported, targetType: 'post', targetId: post, groupId: group, reason: 'inappropriate_media', details: '', alsoBlock: false };
 
 function database(author = reported, blocked: string[] = [reported]) {
-  const query = { select: vi.fn(() => query), eq: vi.fn(() => query), maybeSingle: vi.fn(async () => ({ data: { user_id: author }, error: null })) };
+  const query = { select: vi.fn(() => query), eq: vi.fn(() => query), is: vi.fn(() => query), maybeSingle: vi.fn(async () => ({ data: { user_id: author, post_id: post }, error: null })) };
   const rpc = vi.fn(async (name: string) => ({ data: name === 'safety_blocked_pairs' ? blocked.map(user_id => ({ user_id })) : null, error: null }));
   const from = vi.fn(() => query);
   return { db: { rpc, from } as unknown as SupabaseClient, rpc, from };

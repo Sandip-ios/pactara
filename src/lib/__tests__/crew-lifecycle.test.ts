@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { crewIsActive } from "../crew-lifecycle";
+import { requireActiveCrew, requireActivePost } from "../crew-lifecycle.server";
 import { requireCrewOwner } from "../crew-management";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { loadRiskInputs } from "../streak-risk-inputs.server";
 import { atRiskGroups, eveningReminderGroups, morningReminderGroups } from "../streak-risk-plan";
 
 describe("ended crew rules", () => {
+  for (const [label, guard] of [["crew", requireActiveCrew], ["post and comment media", requireActivePost]] as const) {
+    it(`rejects an ended ${label} before any media can be signed`, async () => {
+      const filters: string[] = [];
+      const query = {
+        select: () => query, eq: () => query,
+        is: (field: string, value: unknown) => { filters.push(field); expect(value).toBeNull(); return query; },
+        maybeSingle: async () => ({ data: null, error: null }),
+      };
+      await expect(guard({ from: () => query } as unknown as SupabaseClient, "ended-crew-post")).rejects.toThrow("This crew has ended");
+      expect(filters).toEqual([guard === requireActiveCrew ? "ended_at" : "groups.ended_at"]);
+    });
+    it(`keeps active ${label} available`, async () => {
+      const query = { select: () => query, eq: () => query, is: () => query, maybeSingle: async () => ({ data: { id: "active" }, error: null }) };
+      await expect(guard({ from: () => query } as unknown as SupabaseClient, "active")).resolves.toBeUndefined();
+    });
+  }
   it("keeps every existing crew with a null ending active", () => {
     expect(crewIsActive({ ended_at: null })).toBe(true);
   });

@@ -1,0 +1,3 @@
+CREATE POLICY "Ended crew check-ins preserve own history" ON public.check_ins AS RESTRICTIVE FOR SELECT TO authenticated USING (public.crew_is_active(group_id) OR user_id=auth.uid());
+CREATE POLICY "Ended crew posts preserve own history" ON public.daily_posts AS RESTRICTIVE FOR SELECT TO authenticated USING (public.crew_is_active(group_id) OR user_id=auth.uid());
+CREATE POLICY "Ended crew message reactions are closed" ON public.message_reactions AS RESTRICTIVE FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.group_messages m WHERE m.id=message_id AND public.crew_is_active(m.group_id)));

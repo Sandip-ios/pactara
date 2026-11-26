@@ -22,7 +22,8 @@ export const getUnreadCommentCounts = createServerFn({ method: "GET" })
         .like("item_key", "post-comments:%"),
       supabase
         .from("post_comments")
-        .select("post_id, user_id, created_at")
+        .select("post_id, user_id, created_at, daily_posts!inner(groups!inner(ended_at))")
+        .is("daily_posts.groups.ended_at", null)
         .gt("created_at", since)
         .order("created_at", { ascending: false })
         .limit(3000),
@@ -56,6 +57,8 @@ export const markPostCommentsRead = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { requireActivePost } = await import("./crew-lifecycle.server");
+    await requireActivePost(supabase, data.postId);
     const { error } = await supabase.from("notification_reads").upsert(
       { user_id: userId, item_key: key(data.postId), read_at: new Date().toISOString() },
       { onConflict: "user_id,item_key" },

@@ -1272,6 +1272,8 @@ export const getPostComments = createServerFn({ method: "GET" })
   .inputValidator((data: { postId: string }) => data)
   .handler(async ({ data, context }): Promise<{ comments: PostComment[] }> => {
     const { supabase, userId } = context;
+    const { requireActivePost } = await import("./crew-lifecycle.server");
+    await requireActivePost(supabase, data.postId);
     const { blockedPairs } = await import('./safety.server');
     const blocked = await blockedPairs(supabase, userId);
     const { data: rawRows, error } = await (supabase as any)

@@ -421,6 +421,62 @@
       "when": 1795660453461,
       "tag": "0059_crew_discovery_and_join_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1795661773220,
+      "tag": "0060_ended_crew_delete_cascade_and_storage_safety",
+      "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1795661897601,
+      "tag": "0061_temporary_end_crew_policy_benchmark",
+      "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1795661927323,
+      "tag": "0062_end_crew_policy_performance_comparison",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1795661993372,
+      "tag": "0063_end_crew_exact_query_benchmarks",
+      "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1795662020792,
+      "tag": "0064_end_crew_exact_policy_comparison",
+      "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1795662120083,
+      "tag": "0065_retain_fast_end_crew_read_policies",
+      "breakpoints": true
+    },
+    {
+      "idx": 66,
+      "version": "7",
+      "when": 1795662533086,
+      "tag": "0066_account_deletion_preserves_crew_reference_history",
+      "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1795662598268,
+      "tag": "0067_finish_end_crew_performance_review",
+      "breakpoints": true
     }
   ]
 }

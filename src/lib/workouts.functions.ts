@@ -497,6 +497,8 @@ export const cheerWorkout = createServerFn({ method: "POST" })
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!session) throw new Error("That workout is no longer available");
+    const { requireActiveCrew } = await import("./crew-lifecycle.server");
+    await requireActiveCrew(supabase, session.group_id as string);
     const { blockedPairs } = await import('./safety.server');
     if ((await blockedPairs(supabase, userId)).has(session.user_id as string)) throw new Error('Interaction not allowed');
     if (session.user_id === userId) return { ok: true, alreadyCheered: true };
@@ -550,6 +552,11 @@ export const getWorkoutSession = createServerFn({ method: "GET" })
       .eq("id", data.sessionId)
       .maybeSingle();
     if (!row) return null;
+
+    const { data: activeCrew, error: crewError } = await supabase.from("groups")
+      .select("id").eq("id", row.group_id as string).is("ended_at", null).maybeSingle();
+    if (crewError) throw new Error("Could not check crew availability");
+    if (!activeCrew) return null;
 
     const [{ data: group }, { data: profile }, { data: cheers }] = await Promise.all([
       supabase.from("groups").select("name").eq("id", row.group_id as string).maybeSingle(),

@@ -239,6 +239,10 @@ export const toggleMessageReaction = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { data: message, error: messageError } = await supabase.from("group_messages")
+      .select("id, groups!inner(ended_at)").eq("id", data.messageId)
+      .is("groups.ended_at", null).maybeSingle();
+    if (messageError || !message) throw new Error("This crew has ended or is no longer available");
     const { data: existing } = await supabase
       .from("message_reactions")
       .select("id")
