@@ -638,6 +638,20 @@
       "when": 1795717422659,
       "tag": "0090_discover_copies_owner_rule",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1795718713907,
+      "tag": "0091_logger_check_tip_seen",
+      "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1795718812878,
+      "tag": "0092_get_my_logger_check_tip",
+      "breakpoints": true
     }
   ]
 }

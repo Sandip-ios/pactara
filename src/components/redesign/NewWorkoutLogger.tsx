@@ -1,5 +1,8 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { checkTipTarget, shouldShowCheckTip } from "@/lib/logger-check-tip";
 import { Check, ChevronDown, MoreHorizontal, Plus, Repeat, Timer, Trash2 } from "lucide-react";
 import { NewConfirm } from "./NewConfirm";
 import { NewSheet, NewSheetRow } from "./NewSheet";
@@ -50,6 +53,7 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
   const swapEx = picker?.replace ? w.exercises.find((e) => e.key === picker.replace) ?? null : null;
   const restLeft = restSecondsLeft(w.rest, now);
   const unchecked = uncheckedSets(w);
+  const tip = useCheckTip(w, restLeft > 0);
 
   return (
     <div ref={scrollRef} className="fixed inset-0 overflow-y-auto" style={{ background: BG, color: INK, fontFamily: FONT }} data-scroll-root>
@@ -90,7 +94,7 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
 
       <div className="flex flex-col gap-[10px] px-4 pb-[calc(32px+env(safe-area-inset-bottom))] pt-3">
         {w.exercises.map((ex) => (
-          <ExerciseCard key={ex.key} ex={ex} w={w} imageBg={lib.get(ex.exerciseId)?.imageBg ?? null} onMenu={() => setMenuKey(ex.key)} onToggle={(s) => actions.toggleSet(ex, s)} />
+          <ExerciseCard key={ex.key} ex={ex} w={w} imageBg={lib.get(ex.exerciseId)?.imageBg ?? null} onMenu={() => setMenuKey(ex.key)} tipSetId={tip.target?.exKey === ex.key ? tip.target.setId : null} onTipDismiss={tip.dismiss} onToggle={(s) => { tip.dismiss(); actions.toggleSet(ex, s); }} />
         ))}
 
         {w.untracked.length > 0 && (
@@ -180,7 +184,7 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
   );
 }
 
-function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; w: ActiveWorkout; imageBg: string | null; onMenu: () => void; onToggle: (s: LiveSet) => void }) {
+function ExerciseCard({ ex, w, imageBg, onMenu, onToggle, tipSetId, onTipDismiss }: { ex: LiveExercise; w: ActiveWorkout; imageBg: string | null; onMenu: () => void; onToggle: (s: LiveSet) => void; tipSetId: string | null; onTipDismiss: () => void }) {
   const unit = w.unit;
   const timed = ex.logType === "timed";
   const tip = ex.authorTip ?? ex.tip;
@@ -232,10 +236,11 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
                 aria-disabled={!s.done && !canCheckOffSet(s, ex) ? true : undefined}
                 onClick={() => { if (s.done || canCheckOffSet(s, ex)) onToggle(s); }}
                 className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px]"
-                style={s.done ? { background: GREEN, color: "#FFFFFF" } : { background: "#FFFFFF", border: "2px solid #D6D3D1", color: "#A8A29E" }}
+                style={s.done ? { background: GREEN, color: "#FFFFFF" } : tipSetId === s.id ? { background: "#FFFFFF", border: "2px solid #7C3AED", boxShadow: "0 0 0 5px rgba(124,58,237,0.18)" } : { background: "#FFFFFF", border: "2px solid #D6D3D1", color: "#A8A29E" }}
               >
                 {s.done && <Check size={18} strokeWidth={3} />}
               </button>
+              {tipSetId === s.id && <CheckTip onDismiss={onTipDismiss} />}
               {st.showPr && (
                 <span className="absolute -right-2 -top-1.5 rounded-full px-1.5 py-px text-[10px] font-extrabold leading-[14px]" style={{ background: "#F59E0B", color: "#FFFFFF" }}>PR</span>
               )}
@@ -281,5 +286,47 @@ function NumBox({ value, bg, decimal, placeholder, ariaLabel, onChange }: { valu
       className="h-[34px] w-full min-w-0 rounded-[8px] text-center text-[16px] font-extrabold outline-none placeholder:font-semibold placeholder:text-[#A8A29E] focus:ring-2 focus:ring-[#C4B5FD]"
       style={{ background: bg, color: INK, fontVariantNumeric: "tabular-nums" }}
     />
+  );
+}
+
+/** Once-per-account first-run tip; the seen time lives on the profile. */
+function useCheckTip(w: ActiveWorkout, restRunning: boolean) {
+  const qc = useQueryClient();
+  const [dismissed, setDismissed] = useState(false);
+  const q = useQuery({
+    queryKey: ["logger-check-tip-seen"],
+    staleTime: Infinity,
+    queryFn: async () => {
+      const { data: s } = await supabase.auth.getSession();
+      const uid = s.session?.user.id;
+      if (!uid) return { uid: null, seenAt: "signed-out" };
+      const { data, error } = await supabase.rpc("get_my_logger_check_tip_seen");
+      if (error) throw error;
+      return { uid, seenAt: (data as string | null) ?? null };
+    },
+  });
+  const show = shouldShowCheckTip({ loaded: q.isSuccess, seenAt: q.data?.seenAt ?? null, dismissed, restRunning: false, exercises: w.exercises });
+  const dismiss = () => {
+    if (!show) return;
+    setDismissed(true);
+    const at = new Date().toISOString();
+    qc.setQueryData(["logger-check-tip-seen"], { ...q.data, seenAt: at });
+    if (q.data?.uid) void supabase.from("profiles").update({ seen_logger_check_tip_at: at }).eq("id", q.data.uid).then(() => undefined);
+  };
+  // The rest timer starting also counts as dismissing it.
+  useEffect(() => { if (restRunning) dismiss(); }, [restRunning]); // eslint-disable-line react-hooks/exhaustive-deps
+  return { target: show && !restRunning ? checkTipTarget(w.exercises) : null, dismiss };
+}
+
+function CheckTip({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <div role="status" className="absolute right-0 top-[calc(100%+12px)] z-20 w-[232px] rounded-[14px] px-[14px] py-3 text-left" style={{ background: "#1C1917", boxShadow: "0 8px 24px rgba(20,18,24,0.22)" }}>
+      <span aria-hidden className="absolute -top-[6px] right-[11px] h-3 w-3 rotate-45" style={{ background: "#1C1917" }} />
+      <div className="text-[15px] font-extrabold text-white">Tap when complete</div>
+      <p className="mt-1 text-[13px] leading-[1.4]" style={{ color: "rgba(255,255,255,0.78)" }}>Check off each set as you finish it. Your rest timer starts on its own.</p>
+      <div className="mt-1 flex justify-end">
+        <button type="button" onClick={onDismiss} className="-mr-2 h-9 px-2 text-[14px] font-extrabold" style={{ color: "#C4B5FD" }}>Got it</button>
+      </div>
+    </div>
   );
 }

@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -1422,6 +1417,7 @@ export type Database = {
           new_version_enabled: boolean
           new_version_seen_at: string | null
           plan_quiz: Json | null
+          seen_logger_check_tip_at: string | null
           streak_freezes_available: number
           timezone: string
           username: string | null
@@ -1443,6 +1439,7 @@ export type Database = {
           new_version_enabled?: boolean
           new_version_seen_at?: string | null
           plan_quiz?: Json | null
+          seen_logger_check_tip_at?: string | null
           streak_freezes_available?: number
           timezone?: string
           username?: string | null
@@ -1464,6 +1461,7 @@ export type Database = {
           new_version_enabled?: boolean
           new_version_seen_at?: string | null
           plan_quiz?: Json | null
+          seen_logger_check_tip_at?: string | null
           streak_freezes_available?: number
           timezone?: string
           username?: string | null
@@ -2283,6 +2281,7 @@ export type Database = {
           username: string
         }[]
       }
+      get_my_logger_check_tip_seen: { Args: never; Returns: string }
       get_profile: { Args: { target: string }; Returns: Json }
       get_redesign_activity_extras: { Args: never; Returns: Json }
       get_social_list: {
@@ -2581,3 +2580,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
