@@ -57,7 +57,8 @@ export function useStartWorkout() {
         // Reps target from the builder (new version) wins over last time's reps.
         const targetReps = built.logType === "reps" ? repsFromTarget(it.reps) : null;
         const live = targetReps != null ? { ...built, sets: built.sets.map((s) => ({ ...s, reps: targetReps })) } : built;
-        exercises.push(it.tip ? { ...live, authorTip: it.tip } : live);
+        const withGoal = targetReps != null && it.reps ? { ...live, repsGoal: it.reps } : live;
+        exercises.push(it.tip ? { ...withGoal, authorTip: it.tip } : withGoal);
       }
       begin({ title: workout.name, workoutId: workout.id, unit: hist.unit, plan: null, from, untracked: [], exercises });
     },

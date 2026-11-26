@@ -48,6 +48,8 @@ export type LiveExercise = {
   tip: string | null;
   /** The workout author's own tip for this exercise (new-version logger shows it). */
   authorTip?: string | null;
+  /** The saved workout item's reps goal ("5", "8-12"); the new-version logger builds its hint from it. */
+  repsGoal?: string | null;
   target: Target | null;
   last: LastSession | null;
   /** Heaviest set before today, for live personal bests. */

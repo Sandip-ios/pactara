@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { checkTipTarget, shouldShowCheckTip } from "@/lib/logger-check-tip";
@@ -11,8 +11,9 @@ import { useNow } from "@/components/workout/WorkoutBar";
 import { update, updateEx, useLoggerActions } from "@/components/workout/useLoggerActions";
 import { emptySet, withPrs, type ActiveWorkout, type LiveExercise, type LiveSet } from "@/lib/active-workout";
 import { useExerciseMap } from "@/lib/exercise-library";
-import { canCheckOffSet, fmtClock, fmtNum, lastCell } from "@/lib/lift-rules";
-import { adjustRest, loggerSubtitle, restSecondsLeft, setRowState, skipRest, uncheckedLine, uncheckedSets } from "@/lib/new-workout-logger";
+import { canCheckOffSet, fmtClock, fmtNum, lastCell, missingSetField } from "@/lib/lift-rules";
+import { hapticLight } from "@/lib/native";
+import { adjustRest, loggerSubtitle, newLoggerTip, restSecondsLeft, setRowState, skipRest, uncheckedLine, uncheckedSets } from "@/lib/new-workout-logger";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 
 const INK = "#1C1917";
@@ -187,7 +188,19 @@ export function NewWorkoutLogger({ w }: { w: ActiveWorkout }) {
 function ExerciseCard({ ex, w, imageBg, onMenu, onToggle, tipSetId, onTipDismiss }: { ex: LiveExercise; w: ActiveWorkout; imageBg: string | null; onMenu: () => void; onToggle: (s: LiveSet) => void; tipSetId: string | null; onTipDismiss: () => void }) {
   const unit = w.unit;
   const timed = ex.logType === "timed";
-  const tip = ex.authorTip ?? ex.tip;
+  const tip = ex.authorTip ?? newLoggerTip(ex, unit);
+  // Tapped a box that can't be checked off yet: which set, so its missing box gets focus + a hint.
+  const [needSetId, setNeedSetId] = useState<string | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLDivElement>());
+  useEffect(() => {
+    if (!needSetId) return;
+    const onDown = (e: PointerEvent) => {
+      const row = rowRefs.current.get(needSetId);
+      if (!row || !row.contains(e.target as Node)) setNeedSetId(null);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, [needSetId]);
   const setField = (setId: string, patch: Partial<LiveSet>) =>
     updateEx(ex.key, (e) => withPrs({ ...e, sets: e.sets.map((s) => (s.id === setId ? { ...s, ...patch } : s)) }, unit));
   return (
@@ -215,12 +228,17 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle, tipSetId, onTipDismiss
       {ex.sets.map((s, i) => {
         const st = setRowState(s);
         const last = lastCell(ex.last?.sets[i] ?? null, unit, ex.logType).replace("×", " × ");
+        const missing = needSetId === s.id && !s.done ? missingSetField(s, ex) : null;
+        const hintId = `${s.id}-need`;
         return (
-          <div key={s.id} className="grid h-11 items-center gap-[7px]" style={{ gridTemplateColumns: GRID }} data-set-row data-done={s.done || undefined}>
+          <div key={s.id} ref={(el) => { if (el) rowRefs.current.set(s.id, el); else rowRefs.current.delete(s.id); }}>
+          <div className="grid h-11 items-center gap-[7px]" style={{ gridTemplateColumns: GRID }} data-set-row data-done={s.done || undefined}>
             <span className="text-[15px] font-extrabold">{i + 1}</span>
             <span className="truncate text-[14px]" style={{ color: MUTED }}>{last}</span>
-            <NumBox value={emptyWhenZero(s.weight, s.done)} bg={st.boxBg} decimal placeholder={ex.loadable ? "" : "—"} ariaLabel={`Set ${i + 1} weight in ${unit}`} onChange={(v) => setField(s.id, { weight: v })} />
+            <NumBox id={`${s.id}-weight`} ring={missing === "weight"} value={emptyWhenZero(s.weight, s.done)} bg={st.boxBg} decimal placeholder={ex.loadable ? "" : "—"} ariaLabel={`Set ${i + 1} weight in ${unit}`} onChange={(v) => setField(s.id, { weight: v })} />
             <NumBox
+              id={`${s.id}-amount`}
+              ring={missing === "reps" || missing === "time"}
               value={timed ? (s.seconds == null ? null : ex.minutes ? Math.round((s.seconds / 60) * 10) / 10 : s.seconds) : emptyWhenZero(s.reps, s.done)}
               bg={st.boxBg}
               decimal={timed && ex.minutes}
@@ -233,8 +251,14 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle, tipSetId, onTipDismiss
                 type="button"
                 aria-label={s.done ? `Mark set ${i + 1} not done` : `Mark set ${i + 1} done`}
                 aria-pressed={s.done}
-                aria-disabled={!s.done && !canCheckOffSet(s, ex) ? true : undefined}
-                onClick={() => { if (s.done || canCheckOffSet(s, ex)) onToggle(s); }}
+                aria-describedby={missing ? hintId : undefined}
+                onClick={() => {
+                  if (s.done || canCheckOffSet(s, ex)) { setNeedSetId(null); onToggle(s); return; }
+                  const field = missingSetField(s, ex);
+                  void hapticLight();
+                  setNeedSetId(s.id);
+                  document.getElementById(`${s.id}-${field === "weight" ? "weight" : "amount"}`)?.focus();
+                }}
                 className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px]"
                 style={s.done ? { background: GREEN, color: "#FFFFFF" } : tipSetId === s.id ? { background: "#FFFFFF", border: "2px solid #7C3AED", boxShadow: "0 0 0 5px rgba(124,58,237,0.18)" } : { background: "#FFFFFF", border: "2px solid #D6D3D1", color: "#A8A29E" }}
               >
@@ -245,6 +269,12 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle, tipSetId, onTipDismiss
                 <span className="absolute -right-2 -top-1.5 rounded-full px-1.5 py-px text-[10px] font-extrabold leading-[14px]" style={{ background: "#F59E0B", color: "#FFFFFF" }}>PR</span>
               )}
             </span>
+          </div>
+          {missing && (
+            <p id={hintId} role="status" className="pb-1 pl-[33px] text-[13px]" style={{ color: MUTED }}>
+              Add the {missing}, then tap the box.
+            </p>
+          )}
           </div>
         );
       })}
@@ -260,12 +290,13 @@ function emptyWhenZero(v: number | null, done: boolean): number | null {
   return v === 0 && !done ? null : v;
 }
 
-function NumBox({ value, bg, decimal, placeholder, ariaLabel, onChange }: { value: number | null; bg: string; decimal?: boolean; placeholder: string; ariaLabel: string; onChange: (v: number | null) => void }) {
+function NumBox({ id, ring, value, bg, decimal, placeholder, ariaLabel, onChange }: { id?: string; ring?: boolean; value: number | null; bg: string; decimal?: boolean; placeholder: string; ariaLabel: string; onChange: (v: number | null) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? (value == null ? "" : fmtNum(value));
   return (
     <input
       type="text"
+      id={id}
       inputMode={decimal ? "decimal" : "numeric"}
       pattern={decimal ? "[0-9]*[.,]?[0-9]*" : "[0-9]*"}
       value={shown}
@@ -284,7 +315,7 @@ function NumBox({ value, bg, decimal, placeholder, ariaLabel, onChange }: { valu
       onBlur={() => setDraft(null)}
       onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
       className="h-[34px] w-full min-w-0 rounded-[8px] text-center text-[16px] font-extrabold outline-none placeholder:font-semibold placeholder:text-[#A8A29E] focus:ring-2 focus:ring-[#C4B5FD]"
-      style={{ background: bg, color: INK, fontVariantNumeric: "tabular-nums" }}
+      style={{ background: bg, color: INK, fontVariantNumeric: "tabular-nums", ...(ring ? { boxShadow: `0 0 0 2px ${PURPLE}` } : {}) }}
     />
   );
 }

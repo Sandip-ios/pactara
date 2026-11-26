@@ -1,3 +1,4 @@
+import { parseRepTarget, progression } from "./lift-rules";
 /** Pure rules for the new-version workout logger (rest timer, rows, header line). */
 import type { ActiveWorkout, LiveSet } from "@/lib/active-workout";
 
@@ -58,4 +59,14 @@ export function fmtElapsed(seconds: number): string {
 export function loggerSubtitle(from: string | null | undefined, elapsedSeconds: number): string {
   const t = fmtElapsed(elapsedSeconds);
   return from ? `from ${from} · ${t}` : t;
+}
+
+/** The progression hint the new logger shows: built from the item's reps goal or the plan dose when there is one, else the stored tip. */
+export function newLoggerTip(
+  ex: Pick<import("./active-workout").LiveExercise, "tip" | "repsGoal" | "target" | "last" | "logType" | "loadable">,
+  unit: import("./lift-rules").WeightUnit,
+): string | null {
+  const goal = parseRepTarget(ex.repsGoal) ?? (ex.target?.repsLo && ex.target.repsHi ? { lo: ex.target.repsLo, hi: ex.target.repsHi } : null);
+  if (!goal || !ex.last?.sets.length || ex.logType === "timed") return ex.tip;
+  return progression({ last: ex.last, target: ex.target, unit, logType: ex.logType, loadable: ex.loadable, repTarget: goal }).tip ?? ex.tip;
 }

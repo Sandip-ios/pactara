@@ -227,8 +227,11 @@ export function progression(input: {
   unit: WeightUnit;
   logType: LogType;
   loadable: boolean;
+  /** New-version logger only: the workout item's or plan dose's own reps goal. Omit for classic wording. */
+  repTarget?: RepTarget | null;
 }): Progression {
   const { last, target, unit, logType, loadable } = input;
+  if (input.repTarget && last && last.sets.length > 0 && logType !== "timed") return targetedProgression(last, input.repTarget, unit, loadable);
   if (!last || last.sets.length === 0) {
     if (target && target.repsLo && loadable && logType === "reps") {
       const range = target.repsHi && target.repsHi !== target.repsLo ? `${target.repsLo}–${target.repsHi}` : `${target.repsLo}`;
@@ -282,6 +285,35 @@ export function progression(input: {
   if (allTop) {
     const next = lastWeight + weightStep(unit);
     return { tip: `${hit} Try ${fmtWeight(next, unit)} next time.`, nextWeight: next, allTop };
+  }
+  return { tip: `Next time: ${fmtWeight(lastWeight, unit)} again. ${aim}`, nextWeight: lastWeight, allTop };
+}
+
+/** A reps goal: lo = floor, hi = top (equal for a single number). */
+export type RepTarget = { lo: number; hi: number };
+
+/** "5" → 5–5, "8-12" → 8–12, "10 each" → 10–10; null when there's no number. */
+export function parseRepTarget(reps: string | null | undefined): RepTarget | null {
+  const m = /^\s*(\d+)(?:\s*[-–]\s*(\d+))?/.exec(reps ?? "");
+  if (!m) return null;
+  const lo = Number(m[1]);
+  const hi = m[2] ? Number(m[2]) : lo;
+  return lo > 0 && hi >= lo ? { lo, hi } : null;
+}
+
+/** Hint from the workout's own reps goal: top on every set last time → next weight step, else same weight. */
+function targetedProgression(last: LastSession, t: RepTarget, unit: WeightUnit, loadable: boolean): Progression {
+  const reps = last.sets.map((s) => s.reps ?? 0);
+  const n = last.sets.length;
+  const lastWeight = Math.max(0, ...last.sets.map((s) => (s.weight == null ? 0 : convertWeight(s.weight, s.unit, unit))));
+  const allTop = reps.every((r) => r >= t.hi);
+  const aim = `Aim for ${repsLabel(t.hi)}${onEverySet(n)}.`;
+  if (!loadable || lastWeight <= 0) {
+    return { tip: allTop ? `Next time: add a rep or two.` : `Next time: ${aim}`, nextWeight: null, allTop };
+  }
+  if (allTop) {
+    const next = lastWeight + weightStep(unit);
+    return { tip: `Next time: try ${fmtWeight(next, unit)}.`, nextWeight: next, allTop };
   }
   return { tip: `Next time: ${fmtWeight(lastWeight, unit)} again. ${aim}`, nextWeight: lastWeight, allTop };
 }
@@ -511,6 +543,14 @@ export function canCheckOffSet(set: LoggableSet, ex: { logType: LogType; loadabl
   if (ex.logType === "timed") return (set.seconds ?? 0) > 0;
   if ((set.reps ?? 0) <= 0) return false;
   return ex.loadable ? (set.weight ?? 0) > 0 : true;
+}
+
+/** What's still missing before a set can be checked off: weight first, then reps (time for timed moves). */
+export function missingSetField(set: LoggableSet, ex: { logType: LogType; loadable: boolean }): "weight" | "reps" | "time" | null {
+  if (canCheckOffSet(set, ex)) return null;
+  if (ex.logType === "timed") return "time";
+  if (ex.loadable && (set.weight ?? 0) <= 0) return "weight";
+  return "reps";
 }
 
 const isEmptySet = (s: LoggableSet) => s.weight == null && s.reps == null && s.seconds == null;
