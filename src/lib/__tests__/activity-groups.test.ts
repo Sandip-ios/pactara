@@ -52,7 +52,20 @@ describe('new-version Activity grouping', () => {
       row('c', 'c', { kind: 'checkin', text: 'checked in', postId: 'post-c', groupId: 'other', createdAt: '2026-11-26T09:00:00Z' }),
     ], now);
     expect(result).toHaveLength(2);
-    expect(result[0]?.groupText).toBe('A and B checked in in FitFam');
+    expect(result[0]?.groupText).toBe('A and B checked in');
+  });
+
+  it('groups joins and pact signatures by crew and local day with crew destinations intact', () => {
+    const result = groupActivityRows([
+      row('join-a', 'a', { kind: 'join', text: 'joined FitFam', postId: null, createdAt: '2026-11-26T11:00:00Z' }),
+      row('join-b', 'b', { kind: 'join', text: 'joined FitFam', postId: null, createdAt: '2026-11-26T10:00:00Z' }),
+      row('pact-a', 'a', { kind: 'pact_signed', text: 'made the pact in FitFam', postId: null, createdAt: '2026-11-25T11:00:00Z' }),
+      row('pact-b', 'b', { kind: 'pact_signed', text: 'made the pact in FitFam', postId: null, createdAt: '2026-11-25T10:00:00Z' }),
+      row('pact-c', 'c', { kind: 'pact_signed', text: 'made the pact in FitFam', postId: null, groupId: 'other', groupName: 'Other', createdAt: '2026-11-25T09:00:00Z' }),
+    ], now);
+    expect(result.map(item => item.groupText)).toEqual(['A and B joined FitFam', 'A and B made the pact in FitFam', null]);
+    expect(result[0]).toMatchObject({ kind: 'join', groupId: 'crew' });
+    expect(result[1]).toMatchObject({ kind: 'pact_signed', groupId: 'crew' });
   });
 
   it('groups follows into a followers-list row with no single-target action', () => {

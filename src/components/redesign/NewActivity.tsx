@@ -141,10 +141,10 @@ export function NewActivity() {
           {row.kind === 'reminder'
             ? <Button variant="ghost" className="new-activity-avatar" aria-label="Open check-in reminder" onClick={() => void open(row)}><span className="new-activity-icon"><Flame size={20} /></span></Button>
             : row.groupKind === 'people'
-              ? <div className="new-activity-group-avatars">{row.actors.slice(0, 2).map(actor => <Button key={actor.id} variant="ghost" className="new-activity-group-avatar" aria-label={actor.id === user.id ? 'Your profile' : `${actor.name}'s profile`} onClick={() => void open(row, 'follow', actor.id, true)}><SocialAvatar url={actor.avatar} size={32} /></Button>)}</div>
+              ? <div className="new-activity-group-avatars">{row.actors.slice(0, 2).map(actor => <Button key={actor.id} variant="ghost" className="new-activity-group-avatar" aria-label={actor.id === user.id ? 'Your profile' : `${actor.name}'s profile`} onClick={() => void open(row, 'follow', actor.id, true)}><SocialAvatar url={actor.avatar} size={28} /></Button>)}</div>
               : <Button variant="ghost" className="new-activity-avatar" aria-label={row.actorId === user.id ? 'Your profile' : `${row.name}'s profile`} onClick={() => void open(row, 'follow')}><SocialAvatar url={row.avatar} size={40} /></Button>}
           <Button variant="ghost" className="new-activity-open" disabled={opening === row.key} onClick={() => void open(row)}>
-            <span className="new-activity-copy"><ActivityCopy row={row} /><small>{activityTime(row.createdAt)}</small></span>
+            <span className="new-activity-copy"><ActivityCopy row={row} /><small>{activityTime(row.createdAt)}{row.grouped && row.kind === 'checkin' ? ` · ${row.groupName}` : ''}</small></span>
           </Button>
         </div>
         {row.kind === 'crew_request'

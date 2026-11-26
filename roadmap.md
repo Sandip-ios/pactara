@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Activity grouping review: diagonal 28px avatars aligned in a 40px slot, latest-post thumbnails retained, grouped check-in crew moved to time line, same-day join/pact grouping opens the crew; dl3-grouped.png refreshed at 390px; 678 tests and typecheck pass; temporary accounts/activity removed; classic notifications/server reads unchanged; unpublished.
+
 - [x] New-version Activity grouping within Today/This week/Earlier: grouped reactions/comments/cheers/check-ins/follows, per-person multi-post groups, unread union, safe actions and grouped followers navigation; dl3-grouped.png added to public/qa/deeplinks.json; 677 tests and typecheck pass; temporary accounts/crew/activity removed; unpublished.
 
 - [x] New-version Activity rows and matching pushes open their exact check-in, comment, profile, request or crew destination; deleted/blocked targets toast and stay on Activity; Back restores the same scroll position; two 390px QA captures in public/qa/deeplinks.json; 669 tests and typecheck pass; throwaway accounts and crews removed; unpublished.

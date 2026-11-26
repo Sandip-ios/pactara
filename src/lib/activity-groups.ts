@@ -40,7 +40,7 @@ function peopleLabel(actors: ActivityActor[]) {
 function peopleBucket(row: ActivityRow, now: Date): string | null {
   const section = activitySection(row.createdAt, now);
   if (row.kind === 'follow') return `${section}:follow`;
-  if (row.kind === 'checkin' && row.groupId) return `${section}:checkin:${row.groupId}:${localDay(row.createdAt)}`;
+  if (['checkin', 'join', 'pact_signed'].includes(row.kind) && row.groupId) return `${section}:${row.kind}:${row.groupId}:${localDay(row.createdAt)}`;
   if ((row.kind === 'reaction' || row.kind === 'comment') && row.postId) return `${section}:${row.kind}:${row.postId}`;
   return null;
 }
@@ -56,7 +56,11 @@ function grouped(rows: ActivityRow[], groupKind: 'people' | 'posts'): ActivityDi
   } else if (latest.kind === 'follow') {
     groupText = `${actorLabel} started following you`;
   } else if (latest.kind === 'checkin') {
-    groupText = `${actorLabel} checked in in ${latest.groupName}`;
+    groupText = `${actorLabel} checked in`;
+  } else if (latest.kind === 'join') {
+    groupText = `${actorLabel} joined ${latest.groupName}`;
+  } else if (latest.kind === 'pact_signed') {
+    groupText = `${actorLabel} made the pact in ${latest.groupName}`;
   } else {
     groupText = `${actorLabel} ${latest.kind === 'reaction' ? 'reacted to' : 'commented on'} your check-in`;
   }
