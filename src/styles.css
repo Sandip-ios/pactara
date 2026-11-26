@@ -68,8 +68,8 @@
 }
 
 .new-profile-page { background: var(--new-bg); color: var(--new-ink); }
-.new-profile-header { background: var(--new-white); }
-.new-profile-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; height: 56px; }
+.new-profile-header { background: var(--new-white); padding-bottom: 4px; }
+.new-profile-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 20px; height: 44px; }
 .new-profile-header-row h1 { flex: 1; min-width: 0; text-align: center; font-size: 17px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .new-profile-header-spacer { width: 44px; height: 44px; flex: 0 0 44px; }
 .new-profile-menu-button { width: 44px; height: 44px; flex: 0 0 44px; padding: 0; border-radius: 50%; background: var(--new-control); color: var(--new-ink); }
