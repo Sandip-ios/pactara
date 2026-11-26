@@ -41,7 +41,7 @@ export function NewSocialList({ target, tab, onTab }: { target: string; tab: 'fo
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-social-page fixed inset-0 overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]">
     <SocialHeader title={first.profile.username || first.profile.name} />
     <div className="new-social-tabs" role="tablist" aria-label="Profile connections">{(['followers', 'following'] as const).map(direction => <Button key={direction} variant="ghost" role="tab" aria-selected={tab === direction} className={tab === direction ? 'active' : ''} onClick={() => { setSearch(''); setQuery(''); onTab(direction); }}>{direction === 'followers' ? first.profile.follower_count : first.profile.following_count} {direction}</Button>)}</div>
-    <label className="new-social-search"><Search size={18} aria-hidden /><input aria-label="Search" placeholder="Search" value={search} onChange={e => setSearch(e.target.value)} /></label>
+    <div className="new-social-search-wrap"><label className="new-social-search"><Search size={18} aria-hidden /><input aria-label="Search" placeholder="Search" value={search} onChange={e => setSearch(e.target.value)} /></label></div>
     {pages.isError && <div className="new-social-empty" role="alert">Couldn't load this list. <Button variant="ghost" onClick={() => void pages.refetch()}>Try again</Button></div>}
     {pages.isFetching && !people.length ? <p className="new-social-empty">Loading…</p> : !people.length && !pages.isError ? <p className="new-social-empty">{query ? 'No matches.' : tab === 'followers' ? 'No followers yet.' : 'Not following anyone yet.'}</p> : null}
     {people.map(p => <div className="new-social-row" key={p.id}>

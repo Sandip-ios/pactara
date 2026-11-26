@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useRouteContext } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import { ChevronRight, Flame, Image as ImageIcon, Play } from 'lucide-react';
 import { toast } from 'sonner';
@@ -36,12 +36,15 @@ export function NewActivity() {
   const { data } = useSuspenseQuery(activityOptions); const qc = useQueryClient(); const navigate = useNavigate();
   const mark = useServerFn(markNotificationsRead); const follow = useServerFn(followUser); const [busy, setBusy] = useState<string | null>(null);
   const scroll = useOpenAtTop(); useStatusBarScrollToTop(); const submitted = useRef(new Set<string>());
-  const rows: ActivityRow[] = [
+  const { user } = useRouteContext({ from: '/_authenticated' });
+  const allRows: ActivityRow[] = [
     ...data.crew.map(i => ({ key: i.key, kind: i.kind, actorId: i.actorId, name: i.actorName, avatar: i.actorAvatarUrl, text: i.text, createdAt: i.createdAt, read: i.read, groupId: i.groupId, groupName: i.groupName, postId: i.postId, media: i.mediaUrl, mediaKind: i.mediaKind, canFollow: false, canCheckIn: false, relationship: 'none' })),
     ...data.follows.map(i => ({ ...i, name: i.actorName, groupId: null, groupName: '', postId: null, media: null, mediaKind: null, canCheckIn: false })),
     ...data.items.map(i => ({ ...i, name: i.actorName, postId: null, media: null, mediaKind: null, canFollow: false, relationship: 'none' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  const unread = rows.filter(i => !i.read).map(i => i.key).join('|');
+  // Own actions and pending follow requests never show as rows; they are still marked read.
+  const rows = allRows.filter(r => r.actorId !== user.id && r.kind !== 'follow_request');
+  const unread = allRows.filter(i => !i.read).map(i => i.key).join('|');
   useEffect(() => {
     const keys = unread.split('|').filter(key => key && !submitted.current.has(key)); if (!keys.length) return;
     keys.forEach(key => submitted.current.add(key));
@@ -74,7 +77,7 @@ export function NewActivity() {
           {row.kind === 'reminder' ? <span className="new-activity-icon"><Flame size={20} /></span> : <SocialAvatar url={row.avatar} size={40} />}
           <span className="new-activity-copy"><ActivityCopy row={row} /><small>{activityTime(row.createdAt)}</small></span>
         </Button>
-        {row.kind === 'crew_request' ? <Button variant="ghost" className="new-activity-pill primary" onClick={() => open(row)}>Review</Button> : row.kind === 'follow' && row.canFollow && !['following', 'requested'].includes(row.relationship) ? <Button variant="ghost" className="new-activity-pill primary" disabled={busy === row.key} onClick={async () => { if (busy) return; setBusy(row.key); try { await follow({ data: { target: row.actorId } }); await Promise.all(['new-activity', 'new-activity-unread', 'social-list', 'social-list-pages', 'new-own-profile'].map(key => qc.invalidateQueries({ queryKey: [key] }))); } catch (e) { toast.error(e instanceof Error ? e.message : 'Please try again.'); } finally { setBusy(null); } }}>Follow back</Button> : row.kind === 'reminder' && row.canCheckIn && row.groupId ? <Button variant="ghost" className="new-activity-pill soft" onClick={() => { if (!row.groupId) return; beginNewCheckIn(row.groupId, null); void navigate({ to: '/check-in' }); }}>Check in</Button> : row.media || row.mediaKind === 'video' ? <ActivityThumbnail row={row} onOpen={() => open(row)} /> : null}
+        {row.kind === 'crew_request' ? <Button variant="ghost" className="new-activity-pill primary" onClick={() => open(row)}>Review</Button> : row.kind === 'follow' && row.canFollow && !['following', 'requested'].includes(row.relationship) ? <Button variant="ghost" className="new-activity-pill primary" disabled={busy === row.key} onClick={async () => { if (busy) return; setBusy(row.key); try { await follow({ data: { target: row.actorId } }); await Promise.all(['new-activity', 'new-activity-unread', 'social-list', 'social-list-pages', 'new-own-profile'].map(key => qc.invalidateQueries({ queryKey: [key] }))); } catch (e) { toast.error(e instanceof Error ? e.message : 'Please try again.'); } finally { setBusy(null); } }}>Follow back</Button> : row.kind === 'reminder' && row.canCheckIn && row.groupId ? <Button variant="ghost" className="new-activity-pill soft" onClick={() => { if (!row.groupId) return; beginNewCheckIn(row.groupId, null); void navigate({ to: '/check-in' }); }}>Check in</Button> : row.postId && (row.media || row.mediaKind === 'video') ? <ActivityThumbnail row={row} onOpen={() => open(row)} /> : null}
       </div>)}</section>;
     })}
   </div>;

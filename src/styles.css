@@ -90,12 +90,13 @@
 .new-crew-avatar { --new-avatar-ring: #FFFFFF; }
 .new-crew-avatar-ring { border: 2px solid var(--new-avatar-ring); }
 .new-profile-stat { height: auto; min-height: 44px; display: flex; flex-direction: column; gap: 2px; padding: 0; border-radius: 0; }
-.new-social-page { background: var(--new-white); color: var(--new-ink); }
-.new-social-tabs { display: flex; height: 46px; border-bottom: 1px solid var(--new-profile-track); }
+.new-social-page { background: var(--new-control); color: var(--new-ink); }
+.new-social-search-wrap { background: var(--new-white); padding: 12px 16px; }
+.new-social-tabs { background: var(--new-white); display: flex; height: 46px; border-bottom: 1px solid var(--new-profile-track); }
 .new-social-tabs > button { flex: 1; height: 46px; border-radius: 0; border-bottom: 2px solid transparent; font-size: 15px; font-weight: 700; color: var(--new-disabled-text); }
 .new-social-tabs > button.active { color: var(--new-purple); border-bottom-color: var(--new-purple); }
 .new-social-tabs > button:hover { background: transparent; }
-.new-social-search { display: flex; align-items: center; gap: 8px; height: 40px; margin: 12px 16px; padding: 0 12px; border-radius: 12px; background: var(--new-control); color: var(--new-disabled-text); }
+.new-social-search { display: flex; align-items: center; gap: 8px; height: 40px; margin: 0; padding: 0 12px; border-radius: 12px; background: var(--new-control); color: var(--new-disabled-text); }
 .new-social-search input { flex: 1; min-width: 0; outline: none; background: transparent; font-size: 15px; color: var(--new-ink); }
 .new-social-search input::placeholder { color: var(--new-disabled-text); }
 .new-social-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: var(--new-white); }
