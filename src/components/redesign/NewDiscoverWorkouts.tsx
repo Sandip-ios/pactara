@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bookmark, ChevronDown } from "lucide-react";
 import { NewSheet, NewSheetRadio, NewSheetRow } from "./NewSheet";
 import { NewConfirm } from "./NewConfirm";
+import { PactaraAuthorIcon } from "./PactaraAuthorIcon";
 import { newToast as toast } from "./new-toast";
 import { coverThumb } from "@/lib/plan-filters";
 import {
@@ -219,7 +220,7 @@ export function WorkoutCards({ cards, onOpen }: { cards: DiscoverCard[]; onOpen:
                 <span className="line-clamp-2 text-[16px] font-extrabold leading-[1.2]" style={{ color: INK }}>{c.name}</span>
                 <span className="text-[13px]" style={{ color: MUTED }}>{cardMeta(c)}</span>
                 <span className="flex min-w-0 items-center gap-1 text-[13px]" style={{ color: MUTED }}>
-                  {c.pactara && <img src="/pactara-icon.png" alt="" className="h-4 w-4 shrink-0 rounded-full" aria-hidden />}
+                  {c.pactara && <PactaraAuthorIcon size={16} />}
                   <span className="truncate">by <strong className="font-bold" style={{ color: INK }}>{by.author}</strong>{by.saves}</span>
                 </span>
               </span>

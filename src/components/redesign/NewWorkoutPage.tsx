@@ -6,6 +6,7 @@ import { Bookmark, ChevronLeft, ChevronRight, MoreHorizontal, Pencil, Play, Shar
 import { newToast as toast } from "./new-toast";
 import { NewAvatarFallback } from "./NewAvatarFallback";
 import { NewConfirm } from "./NewConfirm";
+import { PactaraAuthorIcon } from "./PactaraAuthorIcon";
 import { NewSheet, NewSheetRow } from "./NewSheet";
 import { useMyWorkoutsFlow } from "@/components/workout/MyWorkoutsFlow";
 import { WorkoutSharePanel } from "@/components/workout/WorkoutSharePanel";
@@ -289,7 +290,7 @@ function Stat({ value, label }: { value: string; label: string }) {
 
 function AuthorAvatar({ author }: { author: WorkoutPage["author"] }) {
   if (author.kind === "pactara") {
-    return <img src="/pactara-icon.png" alt="" className="h-6 w-6 shrink-0 rounded-full" aria-hidden />;
+    return <PactaraAuthorIcon size={24} />;
   }
   return (
     <span className="flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full" style={{ background: author.avatarUrl ? author.avatarColor : "var(--new-profile-avatar-bg)" }} aria-hidden>
