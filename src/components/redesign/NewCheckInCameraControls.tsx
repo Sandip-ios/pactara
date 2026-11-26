@@ -62,20 +62,20 @@ export function NewCheckInCameraControls({ recording, starting, elapsed, switchi
       <p className="text-[15px] font-semibold" aria-live="polite">{recording ? `Recording · ${left} seconds left` : starting ? "Starting recording" : "Tap to record 5 seconds"}</p>
     </div>
     <Drawer open={picker} onOpenChange={setPicker}>
-      <DrawerContent className="redesign-step3 rounded-t-[24px] border-0 bg-[var(--new-white)] px-4 pb-[calc(env(safe-area-inset-bottom)+24px)] text-[var(--new-ink)]">
-        <DrawerTitle className="mt-3 text-[22px] font-extrabold">Check in to</DrawerTitle>
-        <DrawerDescription className="mt-2 text-[15px] text-[var(--new-muted)]">One video counts for every crew you pick.</DrawerDescription>
-        <div className="mt-3">{groups.map((group) => {
+      <DrawerContent className="redesign-step3 rounded-t-[24px] border-0 bg-[var(--new-white)] px-5 pt-[10px] pb-[calc(env(safe-area-inset-bottom)+40px)] text-[var(--new-ink)] [&>div:first-child]:mt-0 [&>div:first-child]:mb-[14px] [&>div:first-child]:h-[5px] [&>div:first-child]:w-9 [&>div:first-child]:rounded-[3px] [&>div:first-child]:bg-[var(--new-handle)]">
+        <DrawerTitle className="m-0 text-[20px] font-extrabold">Check in to</DrawerTitle>
+        <DrawerDescription className="mt-1 text-[14px] text-[var(--new-muted)]">One video counts for every crew you pick.</DrawerDescription>
+        <div className="mt-[10px]">{groups.map((group) => {
           const done = group.members.find((m) => m.isYou)?.status === "done";
           const counts = crewPageCounts(group.members);
           const checked = selected.includes(group.id);
-          return <Button key={group.id} variant="ghost" disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} className="h-auto w-full justify-start gap-3 whitespace-normal border-b border-[var(--new-divider)] px-0 py-4 text-left disabled:opacity-50">
-            <span className="w-[76px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={32} limit={3} /></span>
-            <span className="min-w-0 flex-1"><span className="block text-[17px] font-bold">{group.name}</span><span className="mt-1 block text-[13px] font-normal text-[var(--new-muted)]">{done ? "You're in" : `${counts.done} of ${counts.due} in today`}</span></span>
-            <span className={`flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-lg border ${checked ? "border-[var(--new-purple)] bg-[var(--new-purple)] text-[var(--new-white)]" : "border-[var(--new-muted)]"}`}>{checked && <Check className="!size-[18px]" />}</span>
+          return <Button key={group.id} variant="ghost" disabled={done} role="checkbox" aria-checked={checked} aria-label={group.name} onClick={() => toggle(group.id)} className="h-auto w-full justify-start gap-3 whitespace-normal border-b border-[var(--new-divider)] px-0 py-[10px] text-left last:border-b-0 disabled:opacity-50">
+            <span className="w-[70px] shrink-0"><CrewAvatarOverlap members={group.members.map((m) => ({ id: m.userId, name: m.name, avatarUrl: m.avatarUrl, avatarColor: m.avatarColor }))} size={30} limit={3} /></span>
+            <span className="min-w-0 flex-1"><span className="block text-[15px] font-bold">{group.name}</span><span className="mt-1 block text-[12px] font-normal text-[var(--new-muted)]">{done ? "You're in" : `${counts.done} of ${counts.due} in today`}</span></span>
+            <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] border ${checked ? "border-[var(--new-purple)] bg-[var(--new-purple)] text-[var(--new-white)]" : "border-[var(--new-muted)]"}`}>{checked && <Check className="!size-[18px]" />}</span>
           </Button>;
         })}</div>
-        <Button variant="ghost" disabled={!selected.length} onClick={() => setPicker(false)} className="mt-5 h-[52px] w-full rounded-[26px] bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]">Done</Button>
+        <Button variant="ghost" disabled={!selected.length} onClick={() => setPicker(false)} className="mt-4 h-[52px] w-full rounded-[26px] bg-[var(--new-purple)] text-[17px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]">Done</Button>
       </DrawerContent>
     </Drawer>
   </>;
