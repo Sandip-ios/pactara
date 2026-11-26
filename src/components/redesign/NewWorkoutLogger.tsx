@@ -206,7 +206,7 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
         <span>Last time</span>
         <span className="text-center">{unit.toUpperCase()}</span>
         <span className="text-center">{timed ? (ex.minutes ? "Min" : "Sec") : "Reps"}</span>
-        <span />
+        <span className="flex justify-center" aria-label="Done"><Check size={12} strokeWidth={3} /></span>
       </div>
       {ex.sets.map((s, i) => {
         const st = setRowState(s);
@@ -227,14 +227,14 @@ function ExerciseCard({ ex, w, imageBg, onMenu, onToggle }: { ex: LiveExercise; 
             <span className="relative flex h-[34px] w-[34px]">
               <button
                 type="button"
-                aria-label={s.done ? `Undo set ${i + 1}` : `Done with set ${i + 1}`}
+                aria-label={s.done ? `Mark set ${i + 1} not done` : `Mark set ${i + 1} done`}
                 aria-pressed={s.done}
                 aria-disabled={!s.done && !canCheckOffSet(s, ex) ? true : undefined}
                 onClick={() => { if (s.done || canCheckOffSet(s, ex)) onToggle(s); }}
                 className="flex h-[34px] w-[34px] items-center justify-center rounded-[8px]"
-                style={{ background: st.checkBg, color: s.done ? "#FFFFFF" : "#C9C3BA" }}
+                style={s.done ? { background: GREEN, color: "#FFFFFF" } : { background: "#FFFFFF", border: "2px solid #D6D3D1", color: "#A8A29E" }}
               >
-                {s.done && <Check size={18} strokeWidth={3} />}
+                <Check size={18} strokeWidth={3} />
               </button>
               {st.showPr && (
                 <span className="absolute -right-2 -top-1.5 rounded-full px-1.5 py-px text-[10px] font-extrabold leading-[14px]" style={{ background: "#F59E0B", color: "#FFFFFF" }}>PR</span>
