@@ -74,3 +74,12 @@ export function answerChips(f: PlanFilters): AnswerChip[] {
 
 /** "2 plans fit your answers" */
 export const fitCountLine = (n: number) => `${n} ${n === 1 ? "plan fits" : "plans fit"} your answers`;
+
+/** Discover's saved match card never repeats Your plan: if the best match is the active plan, show the next-best one. */
+export function discoverCardMatch<T extends { plan: { slug: string } }>(
+  match: { best: T; also: T[] },
+  activeSlug: string | null | undefined,
+): T {
+  if (!activeSlug || match.best.plan.slug !== activeSlug) return match.best;
+  return match.also.find((r) => r.plan.slug !== activeSlug) ?? match.best;
+}

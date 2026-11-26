@@ -8,7 +8,7 @@ import { matchPlans } from "@/lib/plan-quiz";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
 import { quizSearchFor, type SavedQuiz } from "@/lib/plan-quiz-saved";
-import { answerChips, droppedNote, fitCountLine, type DroppableKey } from "@/lib/new-quiz";
+import { answerChips, discoverCardMatch, droppedNote, fitCountLine, type DroppableKey } from "@/lib/new-quiz";
 import { getPlanCrewmate } from "@/lib/new-discover.functions";
 import {
   NEW_GOAL_CHIPS,
@@ -128,7 +128,6 @@ function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { quer
           <span className="text-[14px]" style={{ color: "#57534E" }}>{fitCountLine(list.length)}</span>
           <button type="button" onClick={onClearQuiz} className="-my-2 min-h-10 px-1 text-[14px] font-bold" style={{ color: PURPLE }}>Clear</button>
         </div>
-        {note && <p className="-mt-2 text-[13px] leading-[1.35]" style={{ color: "#78716C" }}>{note}</p>}
         <div className="flex flex-col gap-[10px]">
           {isLoading && [0, 1].map((i) => <div key={i} className="h-[108px] animate-pulse rounded-[18px] bg-white/70" />)}
           {list.map((p) => (
@@ -138,6 +137,7 @@ function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { quer
             </button>
           ))}
         </div>
+        {note && <p className="px-1 text-[14px] leading-[1.4]" style={{ color: "#78716C" }}>{note}</p>}
       </>
     );
   }
@@ -150,7 +150,7 @@ function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { quer
       {active && activePlan && (
         <ActivePlanCard plan={activePlan} line={activePlanProgressLine({ ...active, daysPerWeek: activePlan.daysPerWeek })} onOpen={() => openPlan(activePlan.slug)} />
       )}
-      {mine && !quizPending && (showMatch && savedQuiz ? <MatchCard saved={savedQuiz} plans={all} /> : <QuizCard onOpen={() => navigate({ to: "/find-plan" })} />)}
+      {mine && !quizPending && (showMatch && savedQuiz ? <MatchCard saved={savedQuiz} plans={all} activeSlug={activePlan?.slug ?? null} /> : <QuizCard onOpen={() => navigate({ to: "/find-plan" })} />)}
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Goals">
         {NEW_GOAL_CHIPS.map((c) => {
           const on = chipOn === c.key;
@@ -267,14 +267,15 @@ function QuizCard({ onOpen }: { onOpen: () => void }) {
   );
 }
 
-function MatchCard({ saved, plans }: { saved: SavedQuiz; plans: Plan[] }) {
+function MatchCard({ saved, plans, activeSlug }: { saved: SavedQuiz; plans: Plan[]; activeSlug: string | null }) {
   const navigate = useNavigate();
   const { data } = useQuery({ queryKey: ["my-groups"], queryFn: () => listMyGroups(), staleTime: 60_000 });
   const targets = (data?.groups ?? []).map((g) => weeklyTarget({ frequency: g.frequency, days_per_week: g.daysPerWeek }));
   const crewDays = targets.length ? Math.max(...targets) : null;
   const match = useMemo(() => (plans.length ? matchPlans(plans, saved.answers, crewDays) : null), [plans, saved, crewDays]);
   if (!match) return null;
-  const bp = match.best.plan;
+  const shown = discoverCardMatch(match, activeSlug);
+  const bp = shown.plan;
   const open = () => navigate({ to: "/plans/$slug", params: { slug: bp.slug } });
   return (
     <section className="flex flex-col gap-3 rounded-[18px] p-[14px]" style={{ background: "#EDE9FE" }} aria-label="Your best match">
@@ -291,7 +292,7 @@ function MatchCard({ saved, plans }: { saved: SavedQuiz; plans: Plan[] }) {
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] font-extrabold leading-tight">{bp.name}</span>
           <span className="text-[13px]" style={{ color: "#44403C" }}>{bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min</span>
-          {match.best.why.length > 0 && <span className="text-[12px] font-bold" style={{ color: "#6D28D9" }}>{match.best.why.join(" · ")}</span>}
+          {shown.why.length > 0 && <span className="text-[12px] font-bold" style={{ color: "#6D28D9" }}>{shown.why.join(" · ")}</span>}
         </span>
         <ChevronRight size={20} className="shrink-0" style={{ color: "#6D28D9" }} aria-hidden />
       </button>

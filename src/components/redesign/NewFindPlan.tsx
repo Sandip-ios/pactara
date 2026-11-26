@@ -11,7 +11,7 @@ import { EQUIPMENT_OPTIONS, EXPERIENCE_OPTIONS, QUIZ_DAY_OPTIONS, QUIZ_GOALS, QU
 import { browseWithDropped, daysStepState } from "@/lib/new-quiz";
 import type { EquipmentKey, Plan, PlanGoal } from "@/lib/workout-plans";
 import { GOAL_TILE, usePlans } from "@/components/plans/PlanBits";
-import { MemberAvatar } from "@/components/groups/AccountabilityBits";
+import { CrewAvatarOverlap } from "@/components/redesign/CrewAvatars";
 import { useSaveQuizResult } from "@/components/plans/QuizMatchCard";
 
 const BG = "#F5F2EC";
@@ -188,17 +188,17 @@ function GoalStep({ value, onPick }: { value?: PlanGoal; onPick: (g: PlanGoal) =
         {QUIZ_GOALS.map((g) => {
           const on = picked === g.goal;
           return (
-            <button key={g.goal} type="button" role="radio" aria-checked={on} onClick={() => tap(g.goal)} className="relative flex min-h-[84px] flex-col items-start gap-2 rounded-[16px] bg-white p-3 text-left" style={{ boxShadow: on ? ON_RING : CARD_RING }}>
-              <span className="flex h-9 w-9 items-center justify-center rounded-[10px] text-[19px]" style={{ background: GOAL_TILE[g.goal]?.tint ?? "#F0EDE8" }} aria-hidden>{g.emoji}</span>
+            <button key={g.goal} type="button" role="radio" aria-checked={on} onClick={() => tap(g.goal)} className="relative flex min-h-[106px] flex-col items-start gap-2 rounded-[16px] bg-white p-3 text-left" style={{ boxShadow: on ? ON_RING : CARD_RING }}>
+              <span className="flex h-10 w-10 items-center justify-center rounded-[10px] text-[21px]" style={{ background: GOAL_TILE[g.goal]?.tint ?? "#F0EDE8" }} aria-hidden>{g.goal === "glutes" ? "🍑" : g.emoji}</span>
               <span className="flex flex-col">
-                <span className="text-[15px] font-extrabold leading-tight">{g.label}</span>
-                <span className="text-[12px]" style={{ color: GRAY }}>{g.hint}</span>
+                <span className="text-[16px] font-extrabold leading-tight">{g.label}</span>
+                <span className="text-[13px]" style={{ color: GRAY }}>{g.hint}</span>
               </span>
               {on && <span className="absolute right-2.5 top-2.5"><Check22 on /></span>}
             </button>
           );
         })}
-        <div className="flex min-h-[84px] items-center justify-center rounded-[16px] p-3 text-center text-[13px]" style={{ border: "1.5px dashed #D6D3D1", color: GRAY }}>
+        <div className="flex min-h-[106px] items-center justify-center rounded-[16px] p-3 text-center text-[13px]" style={{ border: "1.5px dashed #D6D3D1", color: GRAY }}>
           You can switch plans anytime
         </div>
       </div>
@@ -286,9 +286,9 @@ function DaysStep({ initial, crew, onContinue }: { initial?: number; crew: Crew 
         {QUIZ_DAY_OPTIONS.map((d) => {
           const on = state.value === d;
           return (
-            <button key={d} type="button" role="radio" aria-checked={on} aria-label={`${d} days`} onClick={() => setPicked(d)} className="flex h-[100px] flex-col items-center justify-center rounded-[16px]" style={on ? { background: PURPLE, color: "#FFFFFF" } : { background: "#FFFFFF", boxShadow: CARD_RING }}>
-              <span className="text-[34px] font-extrabold leading-none">{d}</span>
-              <span className="mt-1 text-[13px]" style={{ color: on ? "#EDE9FE" : GRAY }}>days</span>
+            <button key={d} type="button" role="radio" aria-checked={on} aria-label={`${d} days`} onClick={() => setPicked(d)} className="flex h-[110px] flex-col items-center justify-center rounded-[16px]" style={on ? { background: PURPLE, color: "#FFFFFF" } : { background: "#FFFFFF", boxShadow: CARD_RING }}>
+              <span className="text-[40px] font-extrabold leading-none">{d}</span>
+              <span className="mt-1 text-[14px] font-semibold" style={{ color: on ? "#EDE9FE" : GRAY }}>days</span>
             </button>
           );
         })}
@@ -296,11 +296,7 @@ function DaysStep({ initial, crew, onContinue }: { initial?: number; crew: Crew 
       {crew && (
         <div className="mt-4 flex items-center gap-3 rounded-[16px] px-4 py-3" style={{ background: "#EDE9FE" }}>
           {crew.mates.length > 0 && (
-            <span className="flex shrink-0 -space-x-2">
-              {crew.mates.slice(0, 3).map((m) => (
-                <span key={m.id} className="rounded-full ring-2 ring-[#EDE9FE]"><MemberAvatar member={m} size={28} /></span>
-              ))}
-            </span>
+            <CrewAvatarOverlap members={crew.mates} size={32} limit={3} />
           )}
           <p className="text-[14px] leading-snug" style={{ color: "#5B21B6" }}>
             <b>{crew.name} checks in {crew.days} {crew.days === 1 ? "day" : "days"} a week.</b> Pick fewer and the other days can be a walk, a run or any workout.
@@ -317,7 +313,7 @@ function DaysStep({ initial, crew, onContinue }: { initial?: number; crew: Crew 
 function Loading() {
   return (
     <div className="mt-6 flex flex-col gap-3" aria-busy="true">
-      <div className="h-[230px] animate-pulse rounded-[18px]" style={{ background: "#ECE7DF" }} />
+      <div className="h-[296px] animate-pulse rounded-[18px]" style={{ background: "#ECE7DF" }} />
       <div className="h-[84px] animate-pulse rounded-[16px]" style={{ background: "#ECE7DF" }} />
       <div className="h-[84px] animate-pulse rounded-[16px]" style={{ background: "#ECE7DF" }} />
       <p className="mt-2 text-center text-[14px] font-semibold" style={{ color: GRAY }}>Finding your plans…</p>
@@ -346,11 +342,11 @@ function Results({ plans, answers, crewDays, onClose, onOpen, onBrowse }: { plan
         <span className="text-[12px] font-extrabold tracking-[0.6px]" style={{ color: PURPLE }}>YOUR BEST MATCH</span>
         <button type="button" onClick={onClose} aria-label="Close" className="flex h-11 w-11 items-center justify-center"><X size={22} /></button>
       </div>
-      <button type="button" onClick={() => onOpen(bp.slug)} className="relative block h-[230px] w-full overflow-hidden rounded-[18px] text-left" aria-label={`Best match: ${bp.name}`}>
+      <button type="button" onClick={() => onOpen(bp.slug)} className="relative block h-[296px] w-full overflow-hidden rounded-[18px] text-left" aria-label={`Best match: ${bp.name}`}>
         <Cover plan={bp} px={1200} className="absolute inset-0 h-full w-full" />
         <span className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgba(10,10,10,0) 20%, rgba(10,10,10,.85) 100%)" }} />
         <span className="absolute inset-x-0 bottom-0 flex flex-col gap-1 p-4 text-white">
-          <span className="text-[26px] font-extrabold leading-tight tracking-[-0.4px]">{bp.name}</span>
+          <span className="text-[24px] font-extrabold leading-tight tracking-[-0.4px]">{bp.name}</span>
           <span className="text-[14px]">{bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min</span>
           {best.why.length > 0 && (
             <span className="mt-1.5 flex flex-wrap gap-1.5">

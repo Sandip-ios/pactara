@@ -45,3 +45,16 @@ describe("browse with my answers", () => {
     expect(labels).toEqual(["Build muscle", "Dumbbells", "Beginner"]);
   });
 });
+
+import { discoverCardMatch as _dcm } from "@/lib/new-quiz";
+describe("discoverCardMatch", () => {
+  const r = (slug: string) => ({ plan: { slug } });
+  const m = { best: r("build-muscle"), also: [r("glute-builder"), r("strength-foundations")] };
+  it("shows the next-best match when the best is my active plan", () => {
+    expect(_dcm(m, "build-muscle").plan.slug).toBe("glute-builder");
+  });
+  it("keeps the best match when it is not my plan", () => {
+    expect(_dcm(m, "home-no-equipment").plan.slug).toBe("build-muscle");
+    expect(_dcm(m, null).plan.slug).toBe("build-muscle");
+  });
+});
