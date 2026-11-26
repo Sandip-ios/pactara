@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { activityOpenUrl } from "./activity-deeplink";
 
 export const DEFAULT_PACT_LINES = [
   "I'll tell my group what I'm doing each day.",
@@ -172,6 +173,7 @@ export const signPact = createServerFn({ method: "POST" })
               ? `Everyone's in on ${groupName}. Time to show up.`
               : `${name} is in on ${groupName}.`,
             url: `/groups/${data.groupId}`,
+            newUrl: activityOpenUrl({ kind: "pact_signed", groupId: data.groupId }),
           },
           "group_activity_enabled",
         );

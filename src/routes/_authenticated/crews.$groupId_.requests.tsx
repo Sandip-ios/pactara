@@ -3,6 +3,7 @@ import { NewCrewJoinRequests, crewJoinRequestsOptions } from "@/components/redes
 import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 
 export const Route = createFileRoute("/_authenticated/crews/$groupId_/requests")({
+  validateSearch: (search: Record<string, unknown>) => ({ ...(search.from === "activity" ? { fromActivity: true } : {}) }),
   loader: ({ context, params }) => context.queryClient.ensureQueryData(crewJoinRequestsOptions(params.groupId)),
   head: () => ({ meta: [
     { title: "Join requests · Pactara" },
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/crews/$groupId_/requests")
 
 function CrewJoinRequestsRoute() {
   const version = useAppVersion(), prefs = useAppPrefs(), { groupId } = Route.useParams();
+  const { fromActivity } = Route.useSearch();
   if (!prefs.isSuccess) return null;
-  return version === "new" ? <NewCrewJoinRequests groupId={groupId} /> : <Navigate to="/groups/$groupId" params={{ groupId }} replace />;
+  return version === "new" ? <NewCrewJoinRequests groupId={groupId} fromActivity={fromActivity} /> : <Navigate to="/groups/$groupId" params={{ groupId }} replace />;
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useQueryClient, useSuspenseQuery, queryOptions } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft } from "lucide-react";
@@ -18,9 +18,10 @@ export const crewJoinRequestsOptions = (groupId: string) => queryOptions({
   queryFn: async () => stabilizeSignedUrls(await getCrewJoinRequests({ data: { groupId } })),
 });
 
-export function NewCrewJoinRequests({ groupId }: { groupId: string }) {
+export function NewCrewJoinRequests({ groupId, fromActivity = false }: { groupId: string; fromActivity?: boolean }) {
   useHideBottomTabs(true, false);
   const navigate = useNavigate();
+  const router = useRouter();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
   const queryClient = useQueryClient();
@@ -52,7 +53,7 @@ export function NewCrewJoinRequests({ groupId }: { groupId: string }) {
     <div className="redesign-step3 fixed inset-0 bg-[var(--new-bg)] text-[var(--new-ink)]">
       <div ref={scrollRef} data-scroll-root className="h-full overflow-y-auto pb-[calc(100px+env(safe-area-inset-bottom))]">
         <header className="grid grid-cols-[44px_1fr_44px] items-center bg-[var(--new-white)] px-4 pb-4 pt-new-top">
-          <Button variant="ghost" size="icon" aria-label="Back" className="h-11 w-11 rounded-full bg-[var(--new-control)]" onClick={() => navigate({ to: "/crews/$groupId", params: { groupId } })}>
+          <Button variant="ghost" size="icon" aria-label="Back" className="h-11 w-11 rounded-full bg-[var(--new-control)]" onClick={() => { if (fromActivity && router.history.canGoBack()) router.history.back(); else void navigate({ to: "/crews/$groupId", params: { groupId } }); }}>
             <ChevronLeft className="!size-[22px]" />
           </Button>
           <h1 className="text-center text-[17px] font-bold">Join requests</h1>

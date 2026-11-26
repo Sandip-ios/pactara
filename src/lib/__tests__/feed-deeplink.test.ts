@@ -15,8 +15,10 @@ describe("feed deep links", () => {
     expect(parseFeedDeepLink(feedUrl({ groupId: "g2", postId: "p1", comments: true }).split("?")[1])).toEqual({
       group: "g2",
       post: "p1",
+      comment: undefined,
       comments: true,
     });
-    expect(parseFeedDeepLink("?post=p1")).toEqual({ group: undefined, post: "p1", comments: false });
+    expect(parseFeedDeepLink("?post=p1")).toEqual({ group: undefined, post: "p1", comment: undefined, comments: false });
+    expect(parseFeedDeepLink(feedUrl({ groupId: "g2", postId: "p1", comments: true, commentId: "c1" }).split("?")[1])).toEqual({ group: "g2", post: "p1", comment: "c1", comments: true });
   });
 });

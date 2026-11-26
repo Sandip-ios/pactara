@@ -1,5 +1,6 @@
 import { followNotificationText, followProfileStats, type FollowActivity } from './follow-profile';
 import { signAvatarThumbs } from './media-urls';
+import { activityOpenUrl } from './activity-deeplink';
 
 export type FollowProfile = {
   id: string; name: string; username: string | null; bio: string | null;
@@ -35,7 +36,9 @@ export async function dispatchFollowPushes(actorId: string) {
     for (const event of events ?? []) {
       await notifyUsers([event.recipient_id], {
         title: 'Pactara', body: followNotificationText(actor?.name ?? '', event.kind as 'follow' | 'follow_request' | 'follow_accepted'),
-        url: `/u/${actorId}`, actorUserId: actorId,
+        url: `/u/${actorId}`,
+        newUrl: activityOpenUrl({ kind: event.kind as 'follow' | 'follow_request' | 'follow_accepted', actorId }),
+        actorUserId: actorId,
       }, 'group_activity_enabled');
     }
   } catch (error) {

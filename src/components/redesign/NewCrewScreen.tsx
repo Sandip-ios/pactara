@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Camera, Check, ChevronLeft, ChevronRight, CircleCheck, Flame, Lock, Moon, Snowflake } from "lucide-react";
 import { getGroupsToday, type GroupToday, type MemberToday } from "@/lib/group-today.functions";
@@ -33,6 +33,8 @@ import { NewPactBanner } from "./NewPactBanner";
 import { pactStatusOptions } from "./pact-query";
 import { JOIN_GOAL_MAX } from "@/lib/crew-join";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { ACTIVITY_UNAVAILABLE } from "@/lib/activity-deeplink";
 
 const BG = "#F5F2EE";
 const INK = "#1C1917";
@@ -54,12 +56,35 @@ function avatarMember(member: MemberToday | HomeCrewMember) {
 
 export function NewCrewScreen({ groupId }: { groupId: string }) {
   const navigate = useNavigate();
+  const router = useRouter();
+  const searchStr = useRouterState({ select: state => state.location.searchStr });
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
+  const [deepLink, setDeepLink] = useState<{ post: string; comments: boolean; comment: string | null } | null>(() => {
+    if (typeof window === "undefined") return null;
+    const query = new URLSearchParams(window.location.search);
+    const post = query.get("post");
+    return post ? { post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment") } : null;
+  });
+  const [fromActivity, setFromActivity] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("from") === "activity");
   const [tab, setTab] = useState<Tab>(() => {
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("post")) return "posts";
     const value = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("crewTab") : null;
     return value === "chat" || value === "posts" ? value : "today";
   });
+  // Activity rows and new-version pushes share this exact Posts-tab target.
+  // Consume the URL after storing it so tapping the same row again still works.
+  useEffect(() => {
+    const query = new URLSearchParams(searchStr || (typeof window !== "undefined" ? window.location.search : ""));
+    const requestedTab = query.get("crewTab");
+    if (requestedTab === "chat" || requestedTab === "posts") setTab(requestedTab);
+    const post = query.get("post");
+    if (!post) return;
+    setDeepLink({ post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment") });
+    setFromActivity(query.get("from") === "activity");
+    setTab("posts");
+    void navigate({ to: "/crews/$groupId", params: { groupId }, search: { crewTab: "posts" }, replace: true });
+  }, [searchStr, groupId, navigate]);
   // The design hides the bottom bar in Chat so the composer sits at the bottom.
   useHideBottomTabs(tab === "chat", false);
   const [streakOpen, setStreakOpen] = useState(false);
@@ -138,7 +163,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
       <div ref={scrollRef} data-scroll-root className={`redesign-step3 fixed inset-0 w-full overflow-y-auto overscroll-none ${tab === "chat" ? "" : "pb-[calc(104px+env(safe-area-inset-bottom))]"}`} style={{ background: BG, color: INK, fontFamily: "Inter, system-ui, sans-serif" }}>
         <header className="bg-white pt-new-top">
           <div className="flex items-center justify-between px-4">
-            <button type="button" aria-label="Back" onClick={() => navigate({ to: "/crews" })} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
+            <button type="button" aria-label="Back" onClick={() => { if (fromActivity && router.history.canGoBack()) router.history.back(); else void navigate({ to: "/crews" }); }} className="flex h-11 w-11 items-center justify-center rounded-full" style={{ background: "#F4F2EF" }}>
               <ChevronLeft size={22} />
             </button>
             <NewCrewControls group={group} groups={data.groups} tab={tab} name={displayName} />
@@ -231,6 +256,13 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               onLoadMore={groupFeed.loadMore}
               todayCounts={{ inCount: counts.done, dueCount: counts.due }}
               variant="redesign"
+              deepLinkPost={deepLink?.post}
+              deepLinkComments={deepLink?.comments}
+              deepLinkComment={deepLink?.comment}
+              onDeepLinkMissing={() => {
+                toast.error(ACTIVITY_UNAVAILABLE);
+                void navigate({ to: "/activity", replace: true });
+              }}
             />
           </main>
         )}

@@ -17,13 +17,13 @@ const INK = "#1C1917";
 const MUTED = "#57534E";
 
 type Props =
-  | { kind: "checkins"; item: FeedItem; checkIns: CheckInNode[]; autoOpenComments?: boolean }
-  | { kind: "update"; item: FeedItem; node: UpdateNode; autoOpenComments?: boolean };
+  | { kind: "checkins"; item: FeedItem; checkIns: CheckInNode[]; autoOpenComments?: boolean; targetCommentId?: string | null }
+  | { kind: "update"; item: FeedItem; node: UpdateNode; autoOpenComments?: boolean; targetCommentId?: string | null };
 
 /** The redesign's crew post card: same cheers, comments and menus as the classic card, new layout. */
 export function RedesignPostCard(props: Props) {
   const { item } = props;
-  const comments = useCommentsSheet(item);
+  const comments = useCommentsSheet(item, props.targetCommentId);
   const cheers = useCheers(item);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
 

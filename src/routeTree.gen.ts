@@ -55,6 +55,7 @@ import { Route as AuthenticatedAccountSettingsEmailRouteImport } from './routes/
 import { Route as AuthenticatedAccountSettingsNameRouteImport } from './routes/_authenticated/account-settings.name'
 import { Route as AuthenticatedAccountSettingsNotificationsRouteImport } from './routes/_authenticated/account-settings.notifications'
 import { Route as AuthenticatedAccountSettingsPasswordRouteImport } from './routes/_authenticated/account-settings.password'
+import { Route as AuthenticatedActivityOpenRouteImport } from './routes/_authenticated/activity.open'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedChatGroupIdRouteImport } from './routes/_authenticated/chat.$groupId'
 import { Route as AuthenticatedCheckInIndexRouteImport } from './routes/_authenticated/check-in.index'
@@ -335,6 +336,12 @@ const AuthenticatedAccountSettingsPasswordRoute =
     path: '/account-settings/password',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedActivityOpenRoute =
+  AuthenticatedActivityOpenRouteImport.update({
+    id: '/open',
+    path: '/open',
+    getParentRoute: () => AuthenticatedActivityRoute,
+  } as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/chat/',
   path: '/chat/',
@@ -575,7 +582,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/activity': typeof AuthenticatedActivityRoute
+  '/activity': typeof AuthenticatedActivityRouteWithChildren
   '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/follow-requests': typeof AuthenticatedFollowRequestsRoute
@@ -606,6 +613,7 @@ export interface FileRoutesByFullPath {
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
   '/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
+  '/activity/open': typeof AuthenticatedActivityOpenRoute
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
@@ -660,7 +668,7 @@ export interface FileRoutesByTo {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/activity': typeof AuthenticatedActivityRoute
+  '/activity': typeof AuthenticatedActivityRouteWithChildren
   '/apple-health': typeof AuthenticatedAppleHealthRoute
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/follow-requests': typeof AuthenticatedFollowRequestsRoute
@@ -691,6 +699,7 @@ export interface FileRoutesByTo {
   '/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
   '/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
+  '/activity/open': typeof AuthenticatedActivityOpenRoute
   '/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
@@ -748,7 +757,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
-  '/_authenticated/activity': typeof AuthenticatedActivityRoute
+  '/_authenticated/activity': typeof AuthenticatedActivityRouteWithChildren
   '/_authenticated/apple-health': typeof AuthenticatedAppleHealthRoute
   '/_authenticated/find-plan': typeof AuthenticatedFindPlanRoute
   '/_authenticated/follow-requests': typeof AuthenticatedFollowRequestsRoute
@@ -779,6 +788,7 @@ export interface FileRoutesById {
   '/_authenticated/account-settings/name': typeof AuthenticatedAccountSettingsNameRoute
   '/_authenticated/account-settings/notifications': typeof AuthenticatedAccountSettingsNotificationsRoute
   '/_authenticated/account-settings/password': typeof AuthenticatedAccountSettingsPasswordRoute
+  '/_authenticated/activity/open': typeof AuthenticatedActivityOpenRoute
   '/_authenticated/chat/$groupId': typeof AuthenticatedChatGroupIdRoute
   '/_authenticated/check-in/camera': typeof AuthenticatedCheckInCameraRoute
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
@@ -867,6 +877,7 @@ export interface FileRouteTypes {
     | '/account-settings/name'
     | '/account-settings/notifications'
     | '/account-settings/password'
+    | '/activity/open'
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
@@ -952,6 +963,7 @@ export interface FileRouteTypes {
     | '/account-settings/name'
     | '/account-settings/notifications'
     | '/account-settings/password'
+    | '/activity/open'
     | '/chat/$groupId'
     | '/check-in/camera'
     | '/check-in/notes'
@@ -1039,6 +1051,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account-settings/name'
     | '/_authenticated/account-settings/notifications'
     | '/_authenticated/account-settings/password'
+    | '/_authenticated/activity/open'
     | '/_authenticated/chat/$groupId'
     | '/_authenticated/check-in/camera'
     | '/_authenticated/check-in/notes'
@@ -1437,6 +1450,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountSettingsPasswordRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/activity/open': {
+      id: '/_authenticated/activity/open'
+      path: '/open'
+      fullPath: '/activity/open'
+      preLoaderRoute: typeof AuthenticatedActivityOpenRouteImport
+      parentRoute: typeof AuthenticatedActivityRoute
+    }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
       path: '/chat'
@@ -1713,8 +1733,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedActivityRouteChildren {
+  AuthenticatedActivityOpenRoute: typeof AuthenticatedActivityOpenRoute
+}
+
+const AuthenticatedActivityRouteChildren: AuthenticatedActivityRouteChildren = {
+  AuthenticatedActivityOpenRoute: AuthenticatedActivityOpenRoute,
+}
+
+const AuthenticatedActivityRouteWithChildren =
+  AuthenticatedActivityRoute._addFileChildren(
+    AuthenticatedActivityRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRouteWithChildren
   AuthenticatedAppleHealthRoute: typeof AuthenticatedAppleHealthRoute
   AuthenticatedFindPlanRoute: typeof AuthenticatedFindPlanRoute
   AuthenticatedFollowRequestsRoute: typeof AuthenticatedFollowRequestsRoute
@@ -1763,7 +1796,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
+  AuthenticatedActivityRoute: AuthenticatedActivityRouteWithChildren,
   AuthenticatedAppleHealthRoute: AuthenticatedAppleHealthRoute,
   AuthenticatedFindPlanRoute: AuthenticatedFindPlanRoute,
   AuthenticatedFollowRequestsRoute: AuthenticatedFollowRequestsRoute,

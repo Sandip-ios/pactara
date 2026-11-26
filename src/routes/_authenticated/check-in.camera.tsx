@@ -749,11 +749,11 @@ function VideoRecordScreen() {
     bakeCleanupRef.current?.();
     bakeCleanupRef.current = null;
     stopStream();
-    // Back to home — /check-in now relaunches the camera, so returning there
-    // would bounce straight back into the recorder.
-    const returnCrewId = version === "new" && to === "/home" ? readNewCheckIn()?.returnCrewId : null;
+    // /check-in relaunches the camera, so exit to the origin instead of bouncing back.
+    const newSession = version === "new" && to === "/home" ? readNewCheckIn() : null;
     if (version === "new") clearNewCheckIn();
-    if (returnCrewId) navigate({ to: "/crews/$groupId", params: { groupId: returnCrewId } });
+    if (newSession?.returnToActivity) navigate({ to: "/activity", replace: true });
+    else if (newSession?.returnCrewId) navigate({ to: "/crews/$groupId", params: { groupId: newSession.returnCrewId } });
     else navigate({ to });
   };
 

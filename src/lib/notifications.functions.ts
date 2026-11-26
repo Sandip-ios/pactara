@@ -29,6 +29,8 @@ export type NotificationItem = {
   groupId: string;
   groupName: string;
   postId: string | null;
+  /** Exact comment for the new-version Activity deep link; classic ignores it. */
+  commentId: string | null;
 };
 
 const WINDOW_DAYS = 30;
@@ -59,8 +61,8 @@ async function signMany(
 
 type RawItem = Omit<
   NotificationItem,
-  "actorName" | "actorColor" | "actorAvatarUrl" | "read" | "mediaUrl" | "groupName"
-> & { mediaPath: string | null };
+  "actorName" | "actorColor" | "actorAvatarUrl" | "read" | "mediaUrl" | "groupName" | "commentId"
+> & { mediaPath: string | null; commentId?: string | null };
 
 /** Collect raw notification rows for one group, newest first. */
 async function collect(
@@ -194,6 +196,7 @@ async function collect(
         mediaKind: null,
         groupId,
         postId: c.post_id,
+        commentId: c.id,
       });
     }
 
@@ -246,6 +249,7 @@ async function collect(
           mediaKind: null,
           groupId,
           postId: pid,
+          commentId: l.comment_id,
         });
       }
     }
@@ -486,6 +490,7 @@ export const getNotifications = createServerFn({ method: "GET" })
         groupId: r.groupId,
         groupName: nameById.get(r.groupId) ?? "",
         postId: r.postId,
+        commentId: r.commentId ?? null,
       };
     });
 

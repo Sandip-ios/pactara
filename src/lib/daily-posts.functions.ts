@@ -19,6 +19,7 @@ import { feedDayNumber, type DayStat, type Reactor } from "./feed-view";
 import { activityLabelFor, postShareNumbers, shareMediaKind, type ShareMediaKind } from "./share-post";
 import { healthWorkoutSchema, healthVideoRequired, type HealthWorkout } from './health-workouts';
 import { visibleTo, visiblePost } from './safety-rules';
+import { activityOpenUrl } from "./activity-deeplink";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -385,6 +386,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         await notifyGroupActivity(groupId, userId, {
           ...text,
           url: postRow?.id ? `/home?post=${postRow.id}` : "/home",
+          newUrl: postRow?.id ? activityOpenUrl({ kind: "checkin", groupId, postId: postRow.id }) : undefined,
           sender: { id: userId, name: name.trim().split(/\s+/)[0] || name, avatarUrl: media.avatarUrl },
           imageUrl: media.imageUrl,
           threadId: groupId,
@@ -1142,6 +1144,7 @@ export const togglePostReaction = createServerFn({ method: "POST" })
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
           url: `/home?post=${data.postId}`,
+          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId }),
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
@@ -1175,6 +1178,7 @@ export const setPostReaction = createServerFn({ method: "POST" })
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
           url: `/home?post=${data.postId}`,
+          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId }),
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
@@ -1220,14 +1224,14 @@ export const addPostComment = createServerFn({ method: "POST" })
       }
     }
 
-    const { error } = await (supabase as any).from("post_comments").insert({
+    const { data: insertedComment, error } = await (supabase as any).from("post_comments").insert({
       post_id: data.postId,
       user_id: userId,
       body,
       media_url: mediaUrl,
       media_type: mediaType,
       parent_comment_id: parentId,
-    });
+    }).select("id").single();
     if (error) throw new Error(error.message);
     try {
       const { notifyPostComment } = await import("@/lib/notify.server");
@@ -1235,6 +1239,7 @@ export const addPostComment = createServerFn({ method: "POST" })
       await notifyPostComment(data.postId, userId, (name) => ({
         ...commentPush(name, body, kind),
         url: `/home?post=${data.postId}&comments=1`,
+        newUrl: activityOpenUrl({ kind: "comment", postId: data.postId, commentId: insertedComment.id }),
       }));
     } catch (err) {
       console.warn("[comment] push failed", err);

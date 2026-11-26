@@ -43,7 +43,7 @@ export const requestCrewJoin = createServerFn({ method:"POST" }).middleware([req
   const row=result as {id:string;changed:boolean;owner_id:string};
   if(row.changed){
     const { sendCrewJoinPush }=await import("./crew-join-push.server");
-    await sendCrewJoinPush("requested",context.userId,row.owner_id,data.groupId);
+    await sendCrewJoinPush("requested",context.userId,row.owner_id,data.groupId,row.id);
   }
   return {requestId:row.id};
 });
@@ -54,7 +54,7 @@ export const decideCrewJoinRequest = createServerFn({method:"POST"}).middleware(
   if(row.status==="expired")throw new Error("This request has expired");
   if(row.changed && row.status==="approved" && row.group_id && row.requester_id){
     const {sendCrewJoinPush}=await import("./crew-join-push.server");
-    await sendCrewJoinPush("approved",context.userId,row.requester_id,row.group_id);
+    await sendCrewJoinPush("approved",context.userId,row.requester_id,row.group_id,data.requestId);
   }
   return {status:row.status};
 });

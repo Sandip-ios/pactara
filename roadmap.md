@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] New-version Activity rows and matching pushes open their exact check-in, comment, profile, request or crew destination; deleted/blocked targets toast and stay on Activity; Back restores the same scroll position; two 390px QA captures in public/qa/deeplinks.json; 669 tests and typecheck pass; throwaway accounts and crews removed; unpublished.
+
 ## Phase 3 step 4
 - [x] New-only followers/following pages, permission-gated profile stat taps, 30-row server pagination/search, follow/remove/unfollow actions; own and approved-other lists verified.
 - [x] New-only Activity with existing crew/follow notifications, retained nudges/join requests/streak milestones/pact restarts/evening reminders, pending-follow row, shared read keys, matching bell/native badge window, poster-only media previews. Classic notification page unchanged.

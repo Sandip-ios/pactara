@@ -6,6 +6,10 @@ export const Route = createFileRoute("/_authenticated/crews/$groupId")({
   validateSearch: (search: Record<string, unknown>) => ({
     ...(search["crewTab"] === "chat" || search["crewTab"] === "posts" ? { crewTab: search["crewTab"] } : {}),
     ...(search["compose"] === true || search["compose"] === 1 || search["compose"] === "1" ? { compose: true } : {}),
+    ...(typeof search["post"] === "string" ? { post: search["post"] } : {}),
+    ...(search["comments"] === "1" || search["comments"] === 1 ? { comments: "1" } : {}),
+    ...(typeof search["comment"] === "string" ? { comment: search["comment"] } : {}),
+    ...(search["from"] === "activity" ? { from: "activity" } : {}),
   }),
   head: () => ({ meta: [
     { title: "Crew today · Pactara" },

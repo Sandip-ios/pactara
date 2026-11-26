@@ -3,7 +3,7 @@ import { crewPageCounts, crewWaiting } from "./group-today-view";
 import { BADGE_MILESTONES } from "./badges";
 
 const KEY = "pactara:new-checkin";
-export type NewCheckInSession = { groupIds: string[]; returnCrewId: string | null };
+export type NewCheckInSession = { groupIds: string[]; returnCrewId: string | null; returnToActivity?: boolean };
 export function readNewCheckIn(): NewCheckInSession | null {
   try {
     const value = JSON.parse(sessionStorage.getItem(KEY) ?? "null") as NewCheckInSession | null;
@@ -16,9 +16,9 @@ export function writeNewCheckIn(value: NewCheckInSession) {
 export function clearNewCheckIn() {
   try { sessionStorage.removeItem(KEY); } catch { /* private mode */ }
 }
-export function beginNewCheckIn(groupId: string, returnCrewId: string | null) {
+export function beginNewCheckIn(groupId: string, returnCrewId: string | null, returnToActivity = false) {
   try { localStorage.setItem("active-group-id", groupId); } catch { /* private mode */ }
-  writeNewCheckIn({ groupIds: [], returnCrewId });
+  writeNewCheckIn({ groupIds: [], returnCrewId, returnToActivity });
 }
 export function eligibleCrewIds(groups: GroupToday[]): string[] {
   return groups.filter((g) => g.members.find((m) => m.isYou)?.status !== "done").map((g) => g.id);

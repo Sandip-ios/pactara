@@ -131,6 +131,12 @@
 .new-activity-pill.soft, .new-activity-pill.soft:hover { background: var(--new-soft); color: var(--new-purple); }
 .new-activity-thumbnail { width: 44px; height: 44px; flex-shrink: 0; padding: 0; border-radius: 8px; overflow: hidden; background: var(--new-control); }
 .new-activity-thumbnail img, .new-activity-thumbnail video { width: 100%; height: 100%; object-fit: cover; }
+.new-activity-avatar { width: 40px; height: 40px; flex-shrink: 0; padding: 0; border-radius: 50%; }
+.new-activity-open { display: flex; flex: 1; min-width: 0; height: auto; padding: 0; justify-content: flex-start; text-align: left; white-space: normal; border-radius: 0; }
+.activity-comment-highlight { animation: activity-comment-fade 1.5s ease-out forwards; }
+.activity-post-highlight { animation: activity-post-fade 1.5s ease-out forwards; border-radius: 20px; }
+@keyframes activity-comment-fade { from { background: #F5F0FF; } to { background: transparent; } }
+@keyframes activity-post-fade { from { background: #F5F0FF; box-shadow: 0 0 0 3px #F5F0FF; } to { background: transparent; box-shadow: 0 0 0 3px transparent; } }
 .new-profile-edit-button { width: 100%; height: 44px; border-radius: 22px; background: var(--new-soft); color: var(--new-purple); font-size: 15px; font-weight: 700; gap: 8px; }
 .new-profile-plan { height: auto; min-height: 60px; padding: 10px 12px; border-radius: 14px; gap: 12px; background: var(--new-profile-surface); color: var(--new-ink); text-align: left; white-space: normal; }
 .new-profile-plan img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; object-fit: cover; }

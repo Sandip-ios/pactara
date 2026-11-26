@@ -289,6 +289,10 @@ function NotesPage() {
       navigate({ to: "/groups", search: { tab: "plans", complete: plan.slug } });
       return;
     }
+    if (newSession?.returnToActivity) {
+      navigate({ to: "/activity", replace: true });
+      return;
+    }
     const returnCrewId = newSession?.returnCrewId;
     if (returnCrewId) navigate({ to: "/crews/$groupId", params: { groupId: returnCrewId } });
     else navigate({ to: "/home" });

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { localDateFor } from "@/lib/daily-posts.functions";
 import { daysShownUp, isPactDone, longestCrewRun, newPactPush, pactLastDay } from "@/lib/pact-cycle";
+import { activityOpenUrl } from "./activity-deeplink";
 
 const groupInput = z.object({ groupId: z.string().uuid() });
 
@@ -114,7 +115,7 @@ export const startNextPact = createServerFn({ method: "POST" })
       const others = (members ?? []).map((m) => m.user_id as string).filter((id) => id !== userId);
       if (crew && others.length) {
         const users = await filterOptedIn(others, "group_activity_enabled");
-        await pushToUsers(users, { title: "Pactara", body: newPactPush(crew.name as string, data.durationDays), url: `/crews/${data.groupId}`, actorUserId: userId, crewIds: [data.groupId] });
+        await pushToUsers(users, { title: "Pactara", body: newPactPush(crew.name as string, data.durationDays), url: `/crews/${data.groupId}`, newUrl: activityOpenUrl({ kind: "pact_restart", groupId: data.groupId }), actorUserId: userId, crewIds: [data.groupId] });
       }
     } catch (e) {
       console.warn("[pact] new pact push failed", e);

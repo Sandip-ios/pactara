@@ -78,7 +78,7 @@ export function QuickReplyChips({ onPick, disabled }: { onPick: (text: string) =
  * Open/close state for one post's comments sheet, plus its unread count.
  * Unread comments are remembered at open time so the sheet can mark them "New".
  */
-export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commentCount" | "name" | "isMe">) {
+export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commentCount" | "name" | "isMe">, targetCommentId?: string | null) {
   const qc = useQueryClient();
   const { data: unreadMap } = useQuery(unreadCommentsQueryOptions());
   const [open, setOpen] = useState(false);
@@ -115,6 +115,7 @@ export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commen
       ownPost={item.isMe}
       unreadAtOpen={unreadAtOpen}
       fallbackCount={item.commentCount}
+      highlightCommentId={targetCommentId ?? null}
     />
   );
   return { unread, openSheet, prefetch, sheet };
@@ -162,6 +163,7 @@ function CommentsSheet({
   ownPost,
   unreadAtOpen,
   fallbackCount,
+  highlightCommentId,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -171,6 +173,7 @@ function CommentsSheet({
   ownPost: boolean;
   unreadAtOpen: number;
   fallbackCount: number;
+  highlightCommentId: string | null;
 }) {
   const { data } = useQuery({ ...commentsQueryOptions(postId), enabled: open });
   const [safetyTarget, setSafetyTarget] = useState<SafetyTarget | null>(null);
@@ -195,6 +198,7 @@ function CommentsSheet({
             ownPost={ownPost}
             unreadAtOpen={unreadAtOpen}
             selectedCommentId={safetyTarget?.targetId ?? null}
+            highlightCommentId={highlightCommentId}
             onSafety={target => {
               setSafetyTarget(target);
               setSafetyReady(false);
@@ -219,6 +223,7 @@ function CommentThread({
   ownPost,
   unreadAtOpen,
   selectedCommentId,
+  highlightCommentId,
   onSafety,
 }: {
   postId: string;
@@ -227,11 +232,13 @@ function CommentThread({
   ownPost: boolean;
   unreadAtOpen: number;
   selectedCommentId: string | null;
+  highlightCommentId: string | null;
   onSafety: (target: SafetyTarget) => void;
 }) {
   const queryClient = useQueryClient();
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdStart = useRef<{ x: number; y: number } | null>(null);
+  const highlightHandled = useRef<string | null>(null);
   const cancelHold = () => { if (holdTimer.current) clearTimeout(holdTimer.current); holdTimer.current = null; holdStart.current = null; };
   useEffect(() => cancelHold, []);
   const [text, setText] = useState("");
@@ -353,6 +360,24 @@ function CommentThread({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newIds]);
 
+  // Activity deep links open the exact comment, including a collapsed reply.
+  useEffect(() => {
+    if (!highlightCommentId || !data || highlightHandled.current === highlightCommentId) return;
+    const target = allComments.find(comment => comment.id === highlightCommentId);
+    if (!target) return;
+    if (target.parentCommentId && !expanded[target.parentCommentId]) {
+      setExpanded(prev => ({ ...prev, [target.parentCommentId!]: true }));
+      return;
+    }
+    const el = document.querySelector<HTMLElement>(`[data-comment-id="${highlightCommentId}"]`);
+    if (!el) return;
+    highlightHandled.current = highlightCommentId;
+    el.scrollIntoView({ block: "center" });
+    el.classList.add("activity-comment-highlight");
+    window.setTimeout(() => el.classList.remove("activity-comment-highlight"), 1500);
+    // Expanding the parent renders the reply on the next pass.
+  }, [highlightCommentId, data, expanded, allComments]);
+
   const startReply = (id: string, name: string, isMine: boolean) => {
     void hapticLight();
     setReplyTo({ id, name });
@@ -366,7 +391,7 @@ function CommentThread({
   const renderComment = (c: (typeof allComments)[number], isReply: boolean) => {
     const isNew = newIds.has(c.id);
     return (
-      <div className={`relative flex items-start gap-3 select-none ${selectedCommentId === c.id ? 'safety-selected-comment' : ''}`}
+      <div data-comment-id={c.id} className={`relative flex items-start gap-3 rounded-lg select-none ${selectedCommentId === c.id ? 'safety-selected-comment' : ''}`}
         onContextMenu={event => { if (!c.isMine) event.preventDefault(); }}
         onPointerDown={event => {
           if (c.isMine || event.button !== 0 || (event.target instanceof Element && event.target.closest('button, a'))) return;

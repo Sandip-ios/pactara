@@ -6,6 +6,7 @@ import { WORKOUT_SESSION_TTL_MS } from "@/lib/workouts.functions";
 import { currentStreak, dayCovered, groupStreak as computeGroupStreak, localDateIn } from "@/lib/streak-rules";
 import { memberOwnToday } from "@/lib/group-today-view";
 import { alreadyNudgedResult, nudgeDecision, type NudgeResult } from "@/lib/nudge-rules";
+import { activityOpenUrl } from "./activity-deeplink";
 
 /**
  * Daily accountability status for the Groups tab.
@@ -415,6 +416,7 @@ export const nudgeMember = createServerFn({ method: "POST" })
         actorUserId: userId,
         body: `${groupName} is waiting on you today. You've got this.`,
         url: `/check-in?group=${data.groupId}`,
+        newUrl: activityOpenUrl({ kind: "nudge", groupId: data.groupId }),
       },
       "nudges_enabled",
     );

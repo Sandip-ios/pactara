@@ -113,9 +113,9 @@ function StatusBarCover({ target, active }: { target: React.RefObject<HTMLElemen
   );
 }
 
-function Entry({ entry, groupId, autoOpen, redesign = false }: { entry: FeedEntry; groupId: string; autoOpen: boolean; redesign?: boolean }) {
-  if (redesign && entry.kind === "checkins") return <RedesignPostCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} />;
-  if (redesign && entry.kind === "update") return <RedesignPostCard kind="update" item={entry.item} node={entry.node} autoOpenComments={autoOpen} />;
+function Entry({ entry, groupId, autoOpen, commentId, redesign = false }: { entry: FeedEntry; groupId: string; autoOpen: boolean; commentId?: string | null; redesign?: boolean }) {
+  if (redesign && entry.kind === "checkins") return <RedesignPostCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} targetCommentId={commentId} />;
+  if (redesign && entry.kind === "update") return <RedesignPostCard kind="update" item={entry.item} node={entry.node} autoOpenComments={autoOpen} targetCommentId={commentId} />;
   switch (entry.kind) {
     case "checkins":
       return <TimelineCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} />;
@@ -150,6 +150,8 @@ export function FeedList({
   todayCounts,
   deepLinkPost,
   deepLinkComments,
+  deepLinkComment,
+  onDeepLinkMissing,
   onInvite,
   solo = false,
   hasMore = false,
@@ -168,6 +170,8 @@ export function FeedList({
   todayCounts?: { inCount: number; dueCount: number } | null;
   deepLinkPost?: string;
   deepLinkComments?: boolean;
+  deepLinkComment?: string | null;
+  onDeepLinkMissing?: () => void;
   onInvite?: () => void;
   /** Solo crew or still waiting for a partner: the empty feed speaks to just you. */
   solo?: boolean;
@@ -221,6 +225,32 @@ export function FeedList({
   );
 
   const listRef = useRef<HTMLDivElement>(null);
+  const missingNotified = useRef<string | null>(null);
+
+  // New-version Activity lands directly on the post in the crew's Posts tab.
+  useEffect(() => {
+    if (!redesign || !deepLinkPost || !items || deepLinkMissing) return;
+    let tries = 0;
+    const timer = window.setInterval(() => {
+      tries += 1;
+      const el = document.getElementById(`post-${deepLinkPost}`);
+      if (el) {
+        window.clearInterval(timer);
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("activity-post-highlight");
+        window.setTimeout(() => el.classList.remove("activity-post-highlight"), 1500);
+      } else if (tries > 40) window.clearInterval(timer);
+    }, 100);
+    return () => window.clearInterval(timer);
+  }, [redesign, deepLinkPost, items, deepLinkMissing]);
+
+  useEffect(() => {
+    if (!redesign || !deepLinkPost || !items || loading || !deepLinkMissing) return;
+    const exhausted = !hasMore || loadMoreFailed || deepLinkTries.current >= 4;
+    if (!exhausted || missingNotified.current === deepLinkPost) return;
+    missingNotified.current = deepLinkPost;
+    onDeepLinkMissing?.();
+  }, [redesign, deepLinkPost, items, loading, deepLinkMissing, hasMore, loadMoreFailed, onDeepLinkMissing]);
 
   const loadMoreFooter = hasMore ? (
     <div ref={sentinel}>
@@ -342,7 +372,7 @@ export function FeedList({
                         autoOpenItem={autoOpen ? entry.missedItems.find((i) => i.id === pid) : undefined}
                       />
                     ) : (
-                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} redesign={redesign} />
+                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} commentId={autoOpen ? deepLinkComment : null} redesign={redesign} />
                     )}
                   </div>
                 );

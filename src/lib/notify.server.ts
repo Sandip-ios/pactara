@@ -6,6 +6,8 @@ export type PushPayload = {
   title: string;
   body: string;
   url?: string;
+  /** New-version recipients only; classic recipients keep url unchanged. */
+  newUrl?: string;
   /** Native (FCM) only: sender photo, thumbnail and crew thread for rich check-in pushes. */
   sender?: { id: string; name: string; avatarUrl: string | null };
   imageUrl?: string | null;
@@ -76,6 +78,19 @@ export async function pushToUsers(
     if (!userIds.length) return { webSent: 0, fcmSent: 0 };
   }
 
+  const { inferredReminderActivityUrl, pushUrlForVersion } = await import("./activity-deeplink");
+  const newUrl = payload.newUrl ?? inferredReminderActivityUrl(payload.url);
+  const newRecipients = new Set<string>();
+  if (newUrl) {
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id,new_version_enabled,app_version").in("id", userIds);
+    for (const profile of profiles ?? []) if (profile.new_version_enabled && profile.app_version === "new") newRecipients.add(profile.id);
+  }
+  const payloadFor = (userId: string): PushPayload => ({
+    ...payload,
+    url: pushUrlForVersion(payload.url, newUrl, newRecipients.has(userId)),
+    newUrl: undefined,
+  });
+
   // --- Web Push -------------------------------------------------------------
   const publicKey = process.env.VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
@@ -89,18 +104,13 @@ export async function pushToUsers(
       );
       const { data: subs } = await supabaseAdmin
         .from("push_subscriptions" as never)
-        .select("id, endpoint, p256dh, auth")
+        .select("id, user_id, endpoint, p256dh, auth")
         .in("user_id", userIds);
 
-      const body = JSON.stringify({
-        title: payload.title,
-        body: payload.body,
-        url: payload.url ?? "/home",
-        ...(actorId ? { actor_id: actorId } : {}),
-      });
       const expired: string[] = [];
       for (const s of (subs ?? []) as Array<{
         id: string;
+        user_id: string;
         endpoint: string;
         p256dh: string;
         auth: string;
@@ -108,7 +118,12 @@ export async function pushToUsers(
         try {
           await webpush.sendNotification(
             { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
-            body,
+            JSON.stringify({
+              title: payload.title,
+              body: payload.body,
+              url: payloadFor(s.user_id).url ?? "/home",
+              ...(actorId ? { actor_id: actorId } : {}),
+            }),
           );
           webSent++;
         } catch (err) {
@@ -158,13 +173,22 @@ export async function pushToUsers(
         }
 
         const { sendFcm } = await import("@/lib/fcm.server");
-        const result = await sendFcm(tokens, payload, badgeByToken);
-        fcmSent = result.sent;
-        if (result.expired.length > 0) {
+        const variants = new Map<string, { tokens: string[]; payload: PushPayload }>();
+        for (const row of tokenRows) {
+          const variant = payloadFor(row.user_id);
+          const key = variant.url ?? "/home";
+          const group = variants.get(key) ?? { tokens: [], payload: variant };
+          group.tokens.push(row.token);
+          variants.set(key, group);
+        }
+        const results = await Promise.all([...variants.values()].map(variant => sendFcm(variant.tokens, variant.payload, badgeByToken)));
+        fcmSent = results.reduce((total, result) => total + result.sent, 0);
+        const expired = results.flatMap(result => result.expired);
+        if (expired.length > 0) {
           await supabaseAdmin
             .from("fcm_tokens" as never)
             .delete()
-            .in("token", result.expired);
+            .in("token", expired);
         }
       }
     } catch (err) {
@@ -287,9 +311,10 @@ export async function notifyPostAuthor(
     const name = await displayName(actorUserId);
     const payload = build(name);
     const { withFeedGroup } = await import("@/lib/feed-deeplink");
+    const { withActivityGroup } = await import("./activity-deeplink");
     await notifyUsers(
       [authorId],
-      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined), newUrl: withActivityGroup(payload.newUrl, post?.group_id as string | undefined) },
       "group_activity_enabled",
     );
   } catch (err) {
@@ -323,9 +348,10 @@ export async function notifyPostComment(
     const name = await displayName(actorUserId);
     const payload = build(name);
     const { withFeedGroup } = await import("@/lib/feed-deeplink");
+    const { withActivityGroup } = await import("./activity-deeplink");
     await notifyUsers(
       recipients,
-      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined) },
+      { ...payload, actorUserId, url: withFeedGroup(payload.url ?? "/home", post?.group_id as string | undefined), newUrl: withActivityGroup(payload.newUrl, post?.group_id as string | undefined) },
       "group_activity_enabled",
     );
   } catch (err) {
