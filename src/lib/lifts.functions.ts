@@ -1,3 +1,4 @@
+import { mergeTemplate } from "@/lib/workout-update";
 import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -531,9 +532,23 @@ export const saveWorkoutTemplate = createServerFn({ method: "POST" })
     const now = new Date().toISOString();
     let workoutId = data.workoutId;
     if (workoutId) {
+      // Merge, never overwrite: builder reps/seconds/tips survive; equipment is left alone.
+      const { data: current } = await supabase.from("workouts").select("exercises").eq("id", workoutId).eq("user_id", userId).maybeSingle();
+      let exercises: SavedWorkout["exercises"] = data.exercises;
+      if (current) {
+        const saved = (Array.isArray(current.exercises) ? current.exercises : []) as SavedWorkout["exercises"];
+        const known = new Set(saved.map((e) => e.exerciseId));
+        const fresh = data.exercises.map((e) => e.exerciseId).filter((id) => !known.has(id));
+        const timed = new Set<string>();
+        if (fresh.length) {
+          const { data: ex } = await supabase.from("exercises").select("id, log_type").in("id", fresh);
+          for (const e of ex ?? []) if (e.log_type === "timed") timed.add(e.id);
+        }
+        exercises = mergeTemplate(saved, data.exercises, (id) => (timed.has(id) ? "timed" : "reps"));
+      }
       const { data: row, error } = await supabase
         .from("workouts")
-        .update({ name: data.name, exercises: data.exercises as never, last_done_at: now })
+        .update({ name: data.name, exercises: exercises as never, last_done_at: now })
         .eq("id", workoutId)
         .eq("user_id", userId)
         .select("id")

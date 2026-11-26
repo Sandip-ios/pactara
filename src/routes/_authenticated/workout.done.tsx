@@ -9,7 +9,9 @@ import { FeedAvatar } from "@/components/feed/FeedMedia";
 import { checkInMetaLine } from "@/lib/feed-view";
 import { getPostPreviewDay, saveWorkoutTemplate } from "@/lib/lifts.functions";
 import { getMyGroupStatus } from "@/lib/groups.functions";
-import { MY_WORKOUTS_KEY } from "@/lib/exercise-library";
+import { MY_WORKOUTS_KEY, useExerciseMap, useMyWorkouts } from "@/lib/exercise-library";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { doneSaveRow } from "@/lib/workout-update";
 import { clearFinishedWorkout, getFinishedWorkout, setWorkoutCheckIn, type FinishedWorkout } from "@/lib/active-workout";
 import { setPlanCheckIn } from "@/lib/plan-checkin";
 import { doneKicker, fmtNum, prFeedLabel, repsLabel, suggestWorkoutName, summaryLine } from "@/lib/lift-rules";
@@ -46,7 +48,14 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   const previewFn = useServerFn(getPostPreviewDay);
   // Already in My workouts: offer to update it. Plan days and unsaved sessions: offer to save.
   const isNew = !fw.workoutId;
-  const [save, setSave] = useState(!fw.plan);
+  const version = useAppVersion();
+  const { data: myWorkouts } = useMyWorkouts();
+  const { map: exMap } = useExerciseMap();
+  const saved = fw.workoutId ? myWorkouts?.find((x) => x.id === fw.workoutId)?.exercises ?? null : null;
+  const row = doneSaveRow(version, fw, saved, (id) => exMap.get(id)?.name ?? "an exercise");
+  // Until the member flips it, the switch follows the row's default (version prefs may load late).
+  const [picked, setSave] = useState<boolean | null>(null);
+  const save = picked ?? row.defaultOn;
   const [name, setName] = useState(() => (fw.plan || !isNew ? fw.title : suggestWorkoutName(fw.template)));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -59,16 +68,16 @@ function Done({ fw }: { fw: FinishedWorkout }) {
   const s = fw.summary;
   const prs = s.prs;
   const topPr = prs[0] ?? null;
-  const title = save && name.trim() ? name.trim() : fw.title;
+  const title = save && row.show && name.trim() ? name.trim() : fw.title;
 
   const persistTemplate = async () => {
-    if (!save) return;
+    if (!save || !row.show) return;
     await saveFn({
       data: {
         workoutId: fw.workoutId,
         name: name.trim() || fw.title,
         sessionId: fw.sessionId,
-        exercises: fw.template.map(({ exerciseId, sets, restSeconds }) => ({ exerciseId, sets, restSeconds })),
+        exercises: row.template.map(({ exerciseId, sets, restSeconds }) => ({ exerciseId, sets, restSeconds })),
       },
     });
     void qc.invalidateQueries({ queryKey: MY_WORKOUTS_KEY });
@@ -175,16 +184,16 @@ function Done({ fw }: { fw: FinishedWorkout }) {
           ))}
         </section>
 
-        {fw.template.length > 0 && (
+        {row.show && (
           <section className="flex flex-col gap-3 rounded-[20px] bg-white px-4 py-3.5">
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <div className="text-[16px] font-extrabold">{isNew ? "Save as a workout" : `Update “${fw.title}”`}</div>
-                <div className="text-[13px]" style={{ color: W.stone }}>
-                  Next time starts with today's weights.
+                <div className="text-[16px] font-extrabold">{row.title}</div>
+                <div className="line-clamp-2 text-[13px]" style={{ color: W.stone }}>
+                  {row.subtitle}
                 </div>
               </div>
-              <Switch on={save} onChange={setSave} label={isNew ? "Save as a workout" : `Update “${fw.title}”`} />
+              <Switch on={save} onChange={setSave} label={row.title} />
             </div>
             {isNew && save && (
               <input

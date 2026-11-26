@@ -233,6 +233,8 @@ export type FinishedWorkout = {
   localDate?: string;
   summary: WorkoutSummary;
   template: { exerciseId: string; sets: number; restSeconds: number; primary: string[] }[];
+  /** New version only: every exercise left in the logger, sets = set rows. */
+  fullTemplate?: { exerciseId: string; name: string; sets: number; restSeconds: number; primary: string[] }[];
   plan: PlanCheckIn | null;
 };
 

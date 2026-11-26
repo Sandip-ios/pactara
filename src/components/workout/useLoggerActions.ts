@@ -20,6 +20,8 @@ import {
 } from "@/lib/active-workout";
 import { canCheckOffSet, carryLoggedSetForward } from "@/lib/lift-rules";
 import { hapticLight } from "@/lib/native";
+import { useAppVersion } from "@/hooks/use-app-version";
+import { templateFromLogger } from "@/lib/workout-update";
 
 export const update = (fn: (w: ActiveWorkout) => ActiveWorkout) => updateActiveWorkout(fn);
 export const updateEx = (key: string, fn: (e: LiveExercise) => LiveExercise) =>
@@ -38,6 +40,7 @@ export function useLoggerActions(w: ActiveWorkout) {
   const qc = useQueryClient();
   const { data: history } = useLiftHistory();
   const finishFn = useServerFn(finishLoggedSession);
+  const version = useAppVersion();
   const endFn = useServerFn(endWorkoutWithoutCompleting);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -109,6 +112,7 @@ export function useLoggerActions(w: ActiveWorkout) {
         template: w.exercises
           .filter((e) => e.sets.some((s) => s.done))
           .map((e) => ({ exerciseId: e.exerciseId, sets: e.sets.filter((s) => s.done).length, restSeconds: e.restSeconds, primary: e.primary })),
+        ...(version === "new" ? { fullTemplate: templateFromLogger(w.exercises) } : {}),
         plan: w.plan,
       });
       recordQuickPick("logged");
