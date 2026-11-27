@@ -1,0 +1,84 @@
+{
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "screenshots": [
+    {
+      "file": "p5-2-fix-add-workout-sheet.png",
+      "url": "/qa/p5-2-fix-add-workout-sheet.png"
+    },
+    {
+      "file": "p5-2-fix-compose-caption-attached.png",
+      "url": "/qa/p5-2-fix-compose-caption-attached.png"
+    },
+    {
+      "file": "p5-2-fix-compose-caption-banner.png",
+      "url": "/qa/p5-2-fix-compose-caption-banner.png"
+    },
+    {
+      "file": "p5-2-fix-compose-only-me.png",
+      "url": "/qa/p5-2-fix-compose-only-me.png"
+    },
+    {
+      "file": "p5-2-fix-compose-private-account.png",
+      "url": "/qa/p5-2-fix-compose-private-account.png"
+    },
+    {
+      "file": "p5-2-fix-compose-teen-no-crews.png",
+      "url": "/qa/p5-2-fix-compose-teen-no-crews.png"
+    },
+    {
+      "file": "p5-2-fix-compose-workout-attached.png",
+      "url": "/qa/p5-2-fix-compose-workout-attached.png"
+    },
+    {
+      "file": "p5-2-fix-crew-posts-and-checkin.png",
+      "url": "/qa/p5-2-fix-crew-posts-and-checkin.png"
+    },
+    {
+      "file": "p5-2-fix-edit-exercises-sheet.png",
+      "url": "/qa/p5-2-fix-edit-exercises-sheet.png"
+    },
+    {
+      "file": "p5-2-fix-home-posting-strip.png",
+      "url": "/qa/p5-2-fix-home-posting-strip.png"
+    },
+    {
+      "file": "p5-2-fix-media-edit-video-trim.png",
+      "url": "/qa/p5-2-fix-media-edit-video-trim.png"
+    },
+    {
+      "file": "p5-2-fix-own-post-menu.png",
+      "url": "/qa/p5-2-fix-own-post-menu.png"
+    },
+    {
+      "file": "p5-2-fix-picker-multiple.png",
+      "url": "/qa/p5-2-fix-picker-multiple.png"
+    },
+    {
+      "file": "p5-2-fix-picker-single.png",
+      "url": "/qa/p5-2-fix-picker-single.png"
+    },
+    {
+      "file": "p5-2-fix-profile-only-me-lock.png",
+      "url": "/qa/p5-2-fix-profile-only-me-lock.png"
+    },
+    {
+      "file": "p5-2-fix-share-workout.png",
+      "url": "/qa/p5-2-fix-share-workout.png"
+    },
+    {
+      "file": "p5-2-fix-which-crews-sheet.png",
+      "url": "/qa/p5-2-fix-which-crews-sheet.png"
+    }
+  ],
+  "verification": {
+    "realDraftPosting": true,
+    "onlyMeProfileLock": true,
+    "everyoneOwnMenu": true,
+    "crewPostNextToGreenCheckinTag": true,
+    "temporaryDataRemoved": true,
+    "pageErrors": []
+  }
+}

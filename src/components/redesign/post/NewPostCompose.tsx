@@ -67,8 +67,9 @@ export function NewPostCompose() {
   };
 
   return (
-    <div className="redesign-step3 fixed inset-0 overflow-y-auto bg-white pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
+    <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
       <PostTopBar title="New post" left={<TextAction onClick={back}>Back</TextAction>} right={<TextAction tone="purple" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
+      <div className="bg-[var(--new-white)] pb-4">
       <div className="flex gap-2 overflow-x-auto px-4 pt-2 [scrollbar-width:none]">
         {picked.map(({ media }) => (
           <span key={media.id} className="h-[72px] w-[58px] shrink-0 overflow-hidden rounded-[10px] bg-neutral-200">
@@ -86,6 +87,7 @@ export function NewPostCompose() {
         className="mx-4 mt-3 block w-[calc(100%-32px)] resize-none bg-transparent text-[16px] outline-none placeholder:text-[#A8A29E]"
       />
 
+      </div>
       <WorkoutAttachment ctx={ctx.data} suggestions={moves} workout={workout} onChange={setWorkout} />
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
       {audience.kind !== "only_me" && <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}

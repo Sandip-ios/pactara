@@ -141,7 +141,7 @@ describe("upload limits", () => {
   const v = (len: number) => ({ kind: "video" as const, duration: len, trimStart: 0, trimEnd: len });
   it("crew-only videos up to 3 minutes", () => {
     expect(videoLengthError([v(180)], false)).toBeNull();
-    expect(videoLengthError([v(200)], false)).toBe("This video is 3:20. Crew-only posts take videos up to 3:00. Trim it or turn on Everyone.");
+    expect(videoLengthError([v(200)], false)).toBe("This video is 3:20. Crew-only posts take videos up to 3:00. Trim it or choose Everyone.");
   });
   it("Everyone videos up to 10 minutes", () => {
     expect(videoLengthError([v(200)], true)).toBeNull();

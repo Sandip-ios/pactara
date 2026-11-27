@@ -98,5 +98,5 @@ export function videoLengthError(items: Pick<DraftItem, "kind" | "duration" | "t
   const len = formatClock(trimmedLength(long));
   return everyone
     ? `This video is ${len}. Videos can be up to 10:00. Trim it to post.`
-    : `This video is ${len}. Crew-only posts take videos up to 3:00. Trim it or turn on Everyone.`;
+    : `This video is ${len}. Crew-only posts take videos up to 3:00. Trim it or choose Everyone.`;
 }

@@ -219,3 +219,8 @@
 - [x] Attachment suggestion, workout cards and selection/edit sheets; meals remain hidden
 - [x] Single-choice audiences, durable remembered defaults, privacy/teen rules, own-post audience editing and lock
 - [x] Real draft-only posting, audience-edit readback, lock, picker/editor and defaults verified; nine 390x844 screenshots in public/qa; all temporary members, subscriptions, crews, posts, workouts, exercises and media removed; 939 tests pass, typecheck clean; committed without publishing
+
+## Phase 5.2 visual review fixes
+- [x] Compose and Share workout stone background, separate cards, icons, inline crew Change, lighter radios and exercise pills; updated length error copy only
+- [x] Captured nine composer states plus single/multiple picker, video trim, Home posting strip, own Everyone menu, profile lock, mixed crew feed and Share workout at 390×844; 17 p5-2-fix- captures in public/qa
+- [x] All 939 tests passed; preview compilation clean; actual posting/readback and zero page errors verified; both temporary members and every related row/media object removed; committed without publishing

@@ -59,8 +59,9 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
   };
 
   return (
-    <div className="redesign-step3 fixed inset-0 overflow-y-auto bg-white pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
+    <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
       <PostTopBar title="Share workout" left={<TextAction onClick={cancel}>Cancel</TextAction>} right={<TextAction tone="purple" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
+      <div className="bg-[var(--new-white)] pb-4">
       <div className="flex gap-2 overflow-x-auto px-4 pt-2 [scrollbar-width:none]">
         {picked.map(({ media }) => (
           <span key={media.id} className="relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
@@ -80,7 +81,8 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
       <textarea value={draft.caption} onChange={(e) => setDraft({ caption: e.target.value })} maxLength={2200} rows={3} placeholder="Say something about it (optional)" aria-label="Caption"
         className="mx-4 mt-3 block w-[calc(100%-32px)] resize-none bg-transparent text-[16px] outline-none placeholder:text-[#A8A29E]" />
 
-      <section className="mx-4 mt-3 rounded-[16px] p-3.5" style={{ background: "#F7F5F2" }}>
+      </div>
+      <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] p-3.5">
         <div className="text-[11px] font-extrabold" style={{ letterSpacing: "0.6px", color: PURPLE }}>WORKOUT ATTACHED</div>
         {preview.data ? (
           <>
