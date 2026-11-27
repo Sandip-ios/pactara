@@ -115,25 +115,25 @@ export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoste
 }
 
 /** Swipeable media with a "1/3" counter and dots. */
-export function PostCarousel({ items, height = 420 }: { items: SocialPostItem[]; height?: number }) {
+export function PostCarousel({ items, height = 420, aspectRatio }: { items: SocialPostItem[]; height?: number; aspectRatio?: "4 / 5" }) {
   const [index, setIndex] = useState(0);
   const ref = useRef<HTMLDivElement>(null);
   if (!items.length) return null;
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <div
         ref={ref}
         onScroll={(e) => { const el = e.currentTarget; setIndex(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); }}
-        className="flex snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((m) => {
           const pos = m.crop?.aspect === "4:5" ? `50% ${Math.round((m.crop.y ?? 0.5) * 100)}%` : undefined;
           return (
-            <div key={m.id} className="w-full shrink-0 snap-center" style={{ height }}>
+            <div key={m.id} className="w-full shrink-0 snap-center" style={aspectRatio ? { aspectRatio } : { height }}>
               {!m.url ? <div className="h-full w-full bg-neutral-200" /> : m.kind === "video" ? (
                 <PostVideo src={m.url} poster={m.posterUrl} trimStart={m.trimStart} trimEnd={m.trimEnd} muted={m.muted} objectPosition={pos} />
               ) : (
-                <img src={m.url} alt="" className="h-full w-full object-cover" style={pos ? { objectPosition: pos } : { objectFit: "contain", background: "#0C0A09" }} />
+                <img src={m.url} alt="" className="h-full w-full object-cover" style={pos || aspectRatio ? { objectPosition: pos, objectFit: "cover" } : { objectFit: "contain", background: "#0C0A09" }} />
               )}
             </div>
           );

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Camera, ChevronDown, Copy, Images, Info, Play, X } from "lucide-react";
+import { Camera, ChevronDown, Copy, Images, Info, Layers, Play, X } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClock, MAX_POST_ITEMS, selectionNumber, toggleSelection } from "@/lib/post-composer";
@@ -74,6 +75,8 @@ export function NewPostPicker() {
 
   const preview = draft.library.find((m) => m.id === current) ?? null;
   const canNext = draft.selected.length > 0;
+  const native = Capacitor.isNativePlatform();
+  const pickedMultiple = multi && draft.selected.length > 0;
 
   return (
     <div className="redesign-step3 fixed inset-0 flex flex-col overflow-hidden bg-white" style={{ color: INK }}>
@@ -110,9 +113,9 @@ export function NewPostPicker() {
           aria-pressed={multi}
           onClick={toggleMulti}
           className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold"
-          style={multi ? { background: "var(--new-soft)", color: "var(--new-purple-text)", border: `1px solid ${PURPLE}` } : { background: "var(--new-control)", color: INK, border: "1px solid transparent" }}
+          style={pickedMultiple ? { background: PURPLE, color: "#FFFFFF", border: `1px solid ${PURPLE}` } : multi ? { background: "var(--new-soft)", color: "var(--new-purple-text)", border: `1px solid ${PURPLE}` } : { background: "var(--new-control)", color: INK, border: "1px solid transparent" }}
         >
-          <Copy size={15} aria-hidden /> Select multiple
+          {pickedMultiple ? <Layers size={15} aria-hidden /> : <Copy size={15} aria-hidden />} {pickedMultiple ? `${draft.selected.length} selected` : "Select multiple"}
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -129,17 +132,17 @@ export function NewPostPicker() {
                 {m.kind === "video" && m.duration != null && <span className="absolute bottom-1 right-1.5 text-[12px] font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,.6)]">{formatClock(m.duration)}</span>}
                 {current === m.id && <span className="absolute inset-0" style={{ background: "rgba(255,255,255,0.35)" }} />}
                 {multi && (
-                  <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full text-[12px] font-extrabold text-white" style={n ? { background: PURPLE, border: "2px solid #FFFFFF" } : { border: "2px solid #FFFFFF", background: "rgba(0,0,0,0.2)" }}>
+                  <span className="absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-extrabold text-white shadow-[0_1px_4px_rgba(0,0,0,0.28)]" style={n ? { background: PURPLE, border: "2px solid #FFFFFF" } : { border: "2px solid #FFFFFF", background: "transparent" }}>
                     {n ?? ""}
                   </span>
                 )}
               </button>
             );
           })}
-          <button type="button" aria-label="Open your library" onClick={() => void openLibrary()} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
+          {!native && <button type="button" aria-label="Open your library" onClick={() => void openLibrary()} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
             <Images size={26} aria-hidden />
             <span className="text-[13px] font-semibold">Library</span>
-          </button>
+          </button>}
         </div>
         {multi && <p className="px-4 pt-2 text-[12px]" style={{ color: MUTED }}>Up to {MAX_POST_ITEMS} photos and videos</p>}
       </div>

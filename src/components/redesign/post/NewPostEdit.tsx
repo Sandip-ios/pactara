@@ -2,14 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Crop, Image as ImageIcon, Plus, Scissors, Volume2, VolumeX } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
-import { EVERYONE_MAX_VIDEO_S, itemsStripLabel, moveItem, trimLabel, trimmedLength, type DraftItem } from "@/lib/post-composer";
+import { EVERYONE_MAX_VIDEO_S, formatClock, itemsStripLabel, moveItem, trimmedLength, type DraftItem } from "@/lib/post-composer";
 import { pickedItems, setDraft, usePostDraft } from "@/lib/post-draft";
 import { PostTopBar, TextAction } from "./PostBits";
 
 type Tool = "trim" | "cover" | "crop";
-const YELLOW = "#FACC15";
+const DARK = "#141218";
+const YELLOW = "#FBBF24";
+const PURPLE = "#7C3AED";
 
-/** Dark Edit screen: trim, cover, sound and 4:5 crop for videos; crop only for photos. */
+/** Edit screen: dark preview and trim, white tools and reorder strip. */
 export function NewPostEdit() {
   useHideBottomTabs(true);
   const navigate = useNavigate();
@@ -31,10 +33,10 @@ export function NewPostEdit() {
   const pos = `50% ${Math.round(edit.crop.y * 100)}%`;
 
   return (
-    <div className="redesign-step3 fixed inset-0 flex flex-col overflow-hidden text-white" style={{ background: "#0C0A09" }}>
-      <PostTopBar dark title="Edit" left={<TextAction dark onClick={() => navigate({ to: "/post/new" })}>Back</TextAction>} right={<TextAction dark tone="purple" onClick={() => navigate({ to: "/post/compose" })}>Next</TextAction>} />
-      <div className="flex min-h-0 flex-1 items-center justify-center px-4">
-        <div className="relative w-full overflow-hidden rounded-[14px]" style={{ aspectRatio: edit.crop.aspect === "4:5" ? "4 / 5" : undefined, maxHeight: "100%", height: edit.crop.aspect === "4:5" ? undefined : "100%" }}>
+    <div className="redesign-step3 fixed inset-0 flex flex-col overflow-y-auto bg-[var(--new-white)] text-[var(--new-ink-deep)]">
+      <section className="shrink-0" style={{ background: DARK }}>
+        <PostTopBar dark title="Edit" left={<TextAction dark onClick={() => navigate({ to: "/post/new" })}>Back</TextAction>} right={<TextAction dark tone="purple" onClick={() => navigate({ to: "/post/compose" })}>Next</TextAction>} />
+        <div className="relative h-[min(42vh,360px)] min-h-[220px] w-full overflow-hidden">
           {isVideo ? (
             <video
               key={active.media.id}
@@ -51,42 +53,44 @@ export function NewPostEdit() {
             <img src={active.media.url} alt="" className="h-full w-full" style={{ objectFit: edit.crop.aspect === "4:5" ? "cover" : "contain", objectPosition: pos }} />
           )}
         </div>
-      </div>
-
-      <div className="shrink-0 px-4 pt-3">
-        {isVideo && tool === "trim" && (
-          <div>
-            <TrimBar duration={dur} start={edit.trimStart} end={edit.trimEnd ?? dur} onChange={(s, e) => { update({ trimStart: s, trimEnd: e }); if (video.current) video.current.currentTime = s; }} />
-            <p className="pt-2 text-center text-[13px] font-semibold" style={{ color: "#D6D3D1" }}>{trimLabel(edit)}</p>
+        {isVideo && (
+          <div className="px-4 pb-3 pt-3">
+            <TrimBar url={active.media.url} duration={dur} start={edit.trimStart} end={edit.trimEnd ?? dur} onChange={(s, e) => { update({ trimStart: s, trimEnd: e }); if (video.current) video.current.currentTime = s; }} />
+            <div className="flex items-center justify-between pt-2 text-[12px]" style={{ color: "#A8A29E" }}>
+              <span>Trimmed to {formatClock(trimmedLength(edit))}</span>
+              <span>of {formatClock(dur)}</span>
+            </div>
             {trimmedLength(edit) > EVERYONE_MAX_VIDEO_S + 0.5 && <p className="pt-1 text-center text-[13px] font-semibold" style={{ color: "#FCA5A5" }}>Trim to 10:00 or less to post. Crew-only posts take up to 3:00.</p>}
           </div>
         )}
+      </section>
+
+      <section className="shrink-0 bg-[var(--new-white)] px-4 py-3">
+        <div className={`flex items-start ${isVideo ? "justify-between" : "justify-center"}`}>
+          {isVideo && <ToolButton label="Trim" active={tool === "trim"} onClick={() => setTool("trim")}><Scissors size={20} /></ToolButton>}
+          {isVideo && <ToolButton label="Cover" active={tool === "cover"} onClick={() => setTool("cover")}><ImageIcon size={20} /></ToolButton>}
+          {isVideo && <ToolButton label="Sound" active={edit.muted} onClick={() => update({ muted: !edit.muted })}>{edit.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}</ToolButton>}
+          <ToolButton label="4:5" active={tool === "crop"} onClick={() => setTool("crop")}><Crop size={20} /></ToolButton>
+        </div>
         {isVideo && tool === "cover" && (
-          <label className="block">
-            <span className="text-[13px] font-semibold" style={{ color: "#D6D3D1" }}>Pick the frame people see first</span>
+          <label className="mt-3 block">
+            <span className="text-[12px] font-semibold text-[var(--new-muted)]">Pick the frame people see first</span>
             <input type="range" min={0} max={Math.max(0.1, dur)} step={0.1} value={edit.cover} aria-label="Cover frame"
               onChange={(e) => { const t = Number(e.target.value); update({ cover: t }); if (video.current) { video.current.pause(); video.current.currentTime = t; } }}
-              className="mt-2 w-full accent-[#FACC15]" />
+              className="mt-2 w-full accent-[var(--new-purple)]" />
           </label>
         )}
         {tool === "crop" && (
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => update({ crop: { ...edit.crop, aspect: edit.crop.aspect === "4:5" ? "original" : "4:5" } })} className="h-9 shrink-0 rounded-full px-3.5 text-[14px] font-bold" style={{ background: "#292524" }}>
+          <div className="mt-3 flex items-center gap-3">
+            <button type="button" onClick={() => update({ crop: { ...edit.crop, aspect: edit.crop.aspect === "4:5" ? "original" : "4:5" } })} className="h-9 shrink-0 rounded-full bg-[var(--new-control)] px-3.5 text-[14px] font-bold">
               {edit.crop.aspect === "4:5" ? "4:5" : "Original"}
             </button>
             {edit.crop.aspect === "4:5" && (
-              <input type="range" min={0} max={1} step={0.01} value={edit.crop.y} aria-label="Crop position" onChange={(e) => update({ crop: { ...edit.crop, y: Number(e.target.value) } })} className="min-w-0 flex-1 accent-[#FACC15]" />
+              <input type="range" min={0} max={1} step={0.01} value={edit.crop.y} aria-label="Crop position" onChange={(e) => update({ crop: { ...edit.crop, y: Number(e.target.value) } })} className="min-w-0 flex-1 accent-[var(--new-purple)]" />
             )}
           </div>
         )}
-      </div>
-
-      <div className="flex shrink-0 justify-around px-4 pt-3">
-        {isVideo && <ToolButton label="Trim" active={tool === "trim"} onClick={() => setTool("trim")}><Scissors size={20} /></ToolButton>}
-        {isVideo && <ToolButton label="Cover" active={tool === "cover"} onClick={() => setTool("cover")}><ImageIcon size={20} /></ToolButton>}
-        {isVideo && <ToolButton label={edit.muted ? "Sound off" : "Sound"} active={edit.muted} onClick={() => update({ muted: !edit.muted })}>{edit.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}</ToolButton>}
-        <ToolButton label="4:5 crop" active={tool === "crop"} onClick={() => setTool("crop")}><Crop size={20} /></ToolButton>
-      </div>
+      </section>
 
       <ReorderStrip items={picked.map((p) => ({ id: p.media.id, url: p.media.url, kind: p.media.kind }))} activeId={active.media.id} onSelect={(id) => setActiveId(id)} onAdd={() => navigate({ to: "/post/new" })} />
     </div>
@@ -95,14 +99,14 @@ export function NewPostEdit() {
 
 function ToolButton({ label, active, onClick, children }: { label: string; active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} className="flex min-w-[64px] flex-col items-center gap-1 py-1 text-[12px] font-semibold" style={{ color: active ? YELLOW : "#E7E5E4" }}>
-      {children}
+    <button type="button" onClick={onClick} aria-pressed={active} className="flex w-[64px] flex-col items-center gap-1.5 text-[12px] font-semibold" style={{ color: active ? PURPLE : "#57534E" }}>
+      <span className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: active ? "#EDE4FF" : "#F4F2EF", color: active ? PURPLE : DARK }}>{children}</span>
       {label}
     </button>
   );
 }
 
-function TrimBar({ duration, start, end, onChange }: { duration: number; start: number; end: number; onChange: (s: number, e: number) => void }) {
+function TrimBar({ url, duration, start, end, onChange }: { url: string; duration: number; start: number; end: number; onChange: (s: number, e: number) => void }) {
   const bar = useRef<HTMLDivElement>(null);
   const drag = (which: "s" | "e") => (ev: React.PointerEvent) => {
     ev.preventDefault();
@@ -121,10 +125,15 @@ function TrimBar({ duration, start, end, onChange }: { duration: number; start: 
   const l = duration ? (start / duration) * 100 : 0;
   const r = duration ? (end / duration) * 100 : 100;
   return (
-    <div ref={bar} className="relative mx-4 h-12 rounded-[10px]" style={{ background: "#292524" }} aria-label="Trim">
-      <div className="absolute inset-y-0 rounded-[8px]" style={{ left: `${l}%`, right: `${100 - r}%`, borderTop: `3px solid ${YELLOW}`, borderBottom: `3px solid ${YELLOW}`, background: "rgba(250,204,21,0.12)" }} />
-      <button type="button" aria-label="Trim start" onPointerDown={drag("s")} className="absolute inset-y-0 w-4 -translate-x-full touch-none rounded-l-[8px]" style={{ left: `${l}%`, background: YELLOW }} />
-      <button type="button" aria-label="Trim end" onPointerDown={drag("e")} className="absolute inset-y-0 w-4 touch-none rounded-r-[8px]" style={{ left: `${r}%`, background: YELLOW }} />
+    <div ref={bar} className="relative h-11 rounded-[8px]" aria-label="Trim">
+      <div className="flex h-11 gap-[1px] overflow-hidden rounded-[8px] bg-[#292524]">
+        {Array.from({ length: 10 }, (_, i) => (
+          <video key={i} src={`${url}#t=${((duration * i) / 10).toFixed(1)}`} muted playsInline preload="metadata" className="h-11 min-w-0 flex-1 object-cover" aria-hidden />
+        ))}
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 rounded-[8px] border-2" style={{ left: `${l}%`, right: `${100 - r}%`, borderColor: YELLOW }} />
+      <button type="button" aria-label="Trim start" onPointerDown={drag("s")} className="absolute inset-y-0 w-4 -translate-x-1/2 touch-none rounded-l-[8px] border-0 bg-transparent" style={{ left: `${l}%` }} />
+      <button type="button" aria-label="Trim end" onPointerDown={drag("e")} className="absolute inset-y-0 w-4 -translate-x-1/2 touch-none rounded-r-[8px] border-0 bg-transparent" style={{ left: `${r}%` }} />
     </div>
   );
 }
@@ -158,22 +167,22 @@ function ReorderStrip({ items, activeId, onSelect, onAdd }: { items: { id: strin
     window.addEventListener("pointerup", up);
   };
   return (
-    <div className="shrink-0 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
-      <p className="pb-2 text-[13px] font-semibold" style={{ color: "#D6D3D1" }}>{itemsStripLabel(items.length)}</p>
+    <section className="shrink-0 bg-[var(--new-white)] px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-2">
+      <p className="pb-2 text-[12px]" style={{ color: "#57534E" }}>{itemsStripLabel(items.length)}</p>
       <div className="flex gap-2 overflow-x-auto [scrollbar-width:none]">
         {items.map((it, i) => (
-          <button key={it.id} type="button" onPointerDown={start(it.id)} aria-label={`Item ${i + 1}`} className="relative shrink-0 touch-none overflow-hidden rounded-[10px]"
-            style={{ width: THUMB, height: THUMB, outline: it.id === activeId ? "2px solid #FFFFFF" : "none", transform: dragging === it.id ? "scale(1.08)" : undefined, opacity: dragging && dragging !== it.id ? 0.7 : 1 }}>
+          <button key={it.id} type="button" onPointerDown={start(it.id)} aria-label={`Item ${i + 1}`} className="relative shrink-0 touch-none overflow-hidden rounded-[12px]"
+            style={{ width: THUMB, height: THUMB, outline: it.id === activeId ? `2px solid ${PURPLE}` : "none", outlineOffset: 0, transform: dragging === it.id ? "scale(1.08)" : undefined, opacity: dragging && dragging !== it.id ? 0.7 : 1 }}>
             {it.kind === "video" ? <video src={`${it.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={it.url} alt="" className="h-full w-full object-cover" />}
-            <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-extrabold text-white" style={{ background: "#7C3AED" }}>{i + 1}</span>
+            <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-extrabold text-white" style={{ background: PURPLE }}>{i + 1}</span>
           </button>
         ))}
         {items.length < 10 && (
-          <button type="button" aria-label="Add more" onClick={onAdd} className="flex shrink-0 items-center justify-center rounded-[10px]" style={{ width: THUMB, height: THUMB, border: "2px dashed #57534E", color: "#D6D3D1" }}>
+          <button type="button" aria-label="Add more" onClick={onAdd} className="flex shrink-0 items-center justify-center rounded-[12px]" style={{ width: THUMB, height: THUMB, border: "1.5px dashed #D6D0C9", color: "#8A847E" }}>
             <Plus size={22} />
           </button>
         )}
       </div>
-    </div>
+    </section>
   );
 }

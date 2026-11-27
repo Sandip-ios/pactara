@@ -1911,6 +1911,7 @@ export type Database = {
           created_at: string
           credit_user_id: string | null
           id: string
+          pinned_at: string | null
           skip_discover: boolean
           status: string
           updated_at: string
@@ -1927,6 +1928,7 @@ export type Database = {
           created_at?: string
           credit_user_id?: string | null
           id?: string
+          pinned_at?: string | null
           skip_discover?: boolean
           status?: string
           updated_at?: string
@@ -1943,6 +1945,7 @@ export type Database = {
           created_at?: string
           credit_user_id?: string | null
           id?: string
+          pinned_at?: string | null
           skip_discover?: boolean
           status?: string
           updated_at?: string
@@ -2717,6 +2720,21 @@ export type Database = {
       set_profile_privacy: { Args: { private: boolean }; Returns: undefined }
       set_social_post_audience: {
         Args: { _audience: string; _group_ids: string[]; _post_id: string }
+        Returns: undefined
+      }
+      set_social_post_content: {
+        Args: {
+          _caption: string
+          _credit_user_id: string
+          _post_id: string
+          _workout: Json
+          _workout_id: string
+          _workout_session_id: string
+        }
+        Returns: undefined
+      }
+      set_social_post_pin: {
+        Args: { _pinned: boolean; _post_id: string }
         Returns: undefined
       }
       shares_active_crew_with: {

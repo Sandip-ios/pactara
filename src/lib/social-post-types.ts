@@ -38,6 +38,9 @@ export type SocialPostView = {
   commentsOn: boolean;
   items: SocialPostItem[];
   workout: PostWorkout | null;
+  workoutId: string | null;
+  workoutSessionId: string | null;
+  pinnedAt: string | null;
   cheers: number;
   cheeredByMe: boolean;
   comments: number;

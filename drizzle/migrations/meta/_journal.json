@@ -708,6 +708,20 @@
       "when": 1795747740621,
       "tag": "0100_remember_library_post_audience",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1795749590222,
+      "tag": "0101_pin_library_posts",
+      "breakpoints": true
+    },
+    {
+      "idx": 102,
+      "version": "7",
+      "when": 1795749644232,
+      "tag": "0102_library_post_content_and_pin_actions",
+      "breakpoints": true
     }
   ]
 }

@@ -19,22 +19,22 @@ export function PostingStrip() {
   }, [qc]);
   if (!strip) return null;
   return (
-    <div className="mx-3 mt-2 flex items-center gap-3 rounded-[14px] bg-white px-3 py-2.5" role="status" style={{ color: INK }}>
-      <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[8px] bg-neutral-200">{strip.thumbUrl && <img src={strip.thumbUrl} alt="" className="h-full w-full object-cover" />}</span>
+    <div className="flex w-full items-center gap-3 border-b border-[var(--new-header-border)] bg-[var(--new-white)] px-4 py-2.5" role="status" style={{ color: INK }}>
+      <span className="h-10 w-10 shrink-0 overflow-hidden rounded-[8px] bg-[var(--new-control)]">{strip.thumbUrl && <img src={strip.thumbUrl} alt="" className="h-full w-full object-cover" />}</span>
       <div className="min-w-0 flex-1">
         {strip.failed ? (
           <div className="flex items-center justify-between">
-            <span className="text-[14px] font-bold">Couldn't post</span>
+            <span className="text-[15px] font-bold">Couldn't post</span>
             <button type="button" onClick={() => void retryPost(strip.postId)} className="h-9 px-2 text-[14px] font-bold" style={{ color: PURPLE }}>Retry</button>
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between text-[14px]">
-              <span className="font-bold">{strip.label}</span>
-              <span style={{ color: MUTED, fontVariantNumeric: "tabular-nums" }}>{strip.progress}%</span>
+            <div className="flex items-center justify-between">
+              <span className="text-[15px] font-bold">{strip.label}</span>
+              <span className="text-[13px]" style={{ color: MUTED, fontVariantNumeric: "tabular-nums" }}>{strip.progress}%</span>
             </div>
-            <div className="mt-1.5 h-1 overflow-hidden rounded-full" style={{ background: "#EFEAE4" }}>
-              <div className="h-full rounded-full transition-[width]" style={{ width: `${strip.progress}%`, background: PURPLE }} />
+            <div className="mt-1.5 h-1 overflow-hidden rounded-[2px]" style={{ background: "#EFEAE4" }}>
+              <div className="h-full rounded-[2px] transition-[width]" style={{ width: `${strip.progress}%`, background: PURPLE }} />
             </div>
           </>
         )}

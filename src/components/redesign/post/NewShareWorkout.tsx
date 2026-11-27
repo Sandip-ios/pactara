@@ -1,16 +1,17 @@
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
-import { ImagePlus, X } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { getShareWorkoutPreview } from "@/lib/posts.functions";
 import { audienceIsValid } from "@/lib/post-audience";
-import { creditLine, formatClock, MAX_POST_ITEMS, shareWorkoutStats, trimmedLength, videoLengthError } from "@/lib/post-composer";
+import { formatClock, MAX_POST_ITEMS, shareWorkoutStats, trimmedLength, videoLengthError } from "@/lib/post-composer";
 import { addFiles, pickedItems, resetDraft, setDraft, usePostDraft } from "@/lib/post-draft";
 import { pickFromNativeLibrary } from "@/lib/media-picker";
 import { submitPost } from "@/lib/post-submit";
 import { newToast } from "../new-toast";
-import { PostOptionRows, WhoSeesIt, useAudience, useComposeContext } from "./ComposeParts";
+import { CrewAvatar } from "../CrewAvatars";
+import { WhoSeesIt, useAudience, useComposeContext } from "./ComposeParts";
 import { INK, MUTED, PostTopBar, TextAction } from "./PostBits";
 
 /** Share workout: optional media, caption, the attached workout card and who sees it. */
@@ -24,8 +25,6 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
   const ctx = useComposeContext();
   const preview = useQuery({ queryKey: ["share-workout-preview", workoutId, sessionId], queryFn: () => getShareWorkoutPreview({ data: { workoutId, sessionId } }) });
   const { audience, setAudience } = useAudience(ctx.data);
-  const [tags, setTags] = useState<string[]>([]);
-  const [commentsOn, setCommentsOn] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -47,7 +46,7 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
     setBusy(true);
     setErr(null);
     try {
-      await submitPost({ picked, caption: draft.caption, audience, workout: sessionId ? { source: "session", id: sessionId } : workoutId ? { source: "saved", id: workoutId } : null, commentsOn, tags });
+      await submitPost({ picked, caption: draft.caption, audience, workout: sessionId ? { source: "session", id: sessionId } : workoutId ? { source: "saved", id: workoutId } : null, commentsOn: true, tags: [] });
       await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] })]);
       await navigate({ to: "/home" });
       resetDraft();
@@ -61,42 +60,46 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
   return (
     <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
       <PostTopBar compose title="Share workout" left={<TextAction tone="muted" className="w-full min-w-0 justify-start px-0 font-semibold" onClick={cancel}>Cancel</TextAction>} right={<TextAction tone="purple" className="w-full min-w-0 justify-end px-0" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
-      <section className="bg-[var(--new-white)] px-4 pb-1.5 pt-3.5">
-        <div className="flex gap-2 overflow-hidden">
-          {picked.map(({ media, edit }) => (
-            <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
-              {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
-              {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
-              <button type="button" aria-label="Remove" onClick={() => setDraft((d) => ({ selected: d.selected.filter((x) => x !== media.id) }))} className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center">
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></span>
+      <section className="bg-[var(--new-white)] px-4 py-3.5">
+        <div className="flex items-start gap-3">
+          <div className="flex max-w-[196px] shrink-0 gap-2 overflow-x-auto [scrollbar-width:none]">
+            {picked.map(({ media, edit }) => (
+              <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
+                {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
+                {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
+                <button type="button" aria-label="Remove" onClick={() => setDraft((d) => ({ selected: d.selected.filter((x) => x !== media.id) }))} className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></span>
+                </button>
+              </span>
+            ))}
+            {picked.length < MAX_POST_ITEMS && (
+              <button type="button" onClick={() => void openLibrary()} className="flex h-[116px] w-[92px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-[12px] px-2" style={{ border: "1.5px dashed #D6D0C9", background: "#F4F2EF", color: INK }}>
+                <Camera size={20} aria-hidden />
+                <span className="text-[13px] font-semibold leading-tight">Add photo or video</span>
               </button>
-            </span>
-          ))}
-          {picked.length < MAX_POST_ITEMS && (
-            <button type="button" onClick={() => void openLibrary()} className="flex h-[116px] shrink-0 flex-col items-center justify-center gap-1 rounded-[12px] px-3" style={{ width: picked.length ? 92 : "100%", border: "2px dashed #D6D3D1", background: "var(--new-bg)", color: MUTED }}>
-              <ImagePlus size={22} aria-hidden />
-              <span className="text-[13px] font-semibold">Add photo or video</span>
-            </button>
-          )}
+            )}
+          </div>
+          <textarea value={draft.caption} onChange={(e) => setDraft({ caption: e.target.value })} maxLength={2200} rows={4} placeholder="Say something about it (optional)" aria-label="Caption"
+            className="min-w-0 flex-1 resize-none bg-transparent p-0 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]" />
         </div>
-        <textarea value={draft.caption} onChange={(e) => setDraft({ caption: e.target.value })} maxLength={2200} rows={3} placeholder="Say something about it (optional)" aria-label="Caption"
-          className="block w-full resize-none bg-transparent pb-3.5 pt-2.5 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]" />
       </section>
       <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] px-4">
-        <div className="py-2.5"><div className="rounded-[14px] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-3">
+        <div className="py-2.5"><div className="rounded-[14px] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-2">
           <div className="text-[11px] font-extrabold tracking-[0.6px] text-[var(--new-purple)]">WORKOUT</div>
           {preview.data ? (
             <>
               <div className="truncate text-[16px] font-extrabold">{preview.data.title}</div>
               <div className="text-[12px]" style={{ color: MUTED }}>{shareWorkoutStats(preview.data)}</div>
-              {preview.data.credit && <div className="pt-1.5 text-[12px] font-semibold" style={{ color: "var(--new-purple-text)" }}>{audience.kind === "only_me" ? `Credits ${preview.data.credit}.` : creditLine(preview.data.credit)}</div>}
+              {preview.data.credit && <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-[var(--new-post-credit)] py-0.5 pr-2.5 text-[12px]" style={{ color: "var(--new-purple-text)" }}>
+                <CrewAvatar member={{ id: "workout-credit", name: preview.data.credit, avatarUrl: preview.data.creditAvatar, avatarColor: "#7C3AED" }} size={24} />
+                <span className="min-w-0">Credits <b>{preview.data.credit}</b>.{audience.kind !== "only_me" && " She gets a notification."}</span>
+              </div>}
             </>
           ) : <div className="mt-1 h-10 animate-pulse rounded bg-white" />}
         </div></div>
       </section>
 
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
-      {audience.kind !== "only_me" && <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}
       {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}
       {err && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{err}</p>}
       <p className="px-4 pt-5 text-center text-[12px]" style={{ color: "#78716C" }}>No photo needed. Posts without one show the workout card on its own.</p>

@@ -94,6 +94,15 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     expect(await rows('social_posts',`id=eq.${id}`,viewer.token)).toEqual([]);
     await expect(request(`/rest/v1/social_posts?id=eq.${id}`,author.token,'PATCH',{audience:'everyone'})).rejects.toThrow();
   });
+  it('Only the author can pin a library post',async()=>{
+    const {author,viewer}=pair(); const id=await post('only_me',[]);
+    await expect(rpc(viewer,'set_social_post_pin',{_post_id:id,_pinned:true})).rejects.toThrow('Post not found');
+    expect((await rows('social_posts',`id=eq.${id}`))[0]?.['pinned_at']).toBeNull();
+    await rpc(author,'set_social_post_pin',{_post_id:id,_pinned:true});
+    expect((await rows('social_posts',`id=eq.${id}`))[0]?.['pinned_at']).toBeTypeOf('string');
+    await rpc(author,'set_social_post_pin',{_post_id:id,_pinned:false});
+    expect((await rows('social_posts',`id=eq.${id}`))[0]?.['pinned_at']).toBeNull();
+  });
   it('Posts never create check-ins or change the daily count',async()=>{
     const {author}=pair();
     const before=await rows('check_ins',`user_id=eq.${author.id}`); const days=await rows('daily_posts',`user_id=eq.${author.id}`);

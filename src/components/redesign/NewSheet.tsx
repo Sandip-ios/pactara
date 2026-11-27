@@ -43,9 +43,9 @@ export function NewSheetRow({ title, subtitle, leading, trailing, simple = false
   </Button>;
 }
 
-/** Menu-row icon: 16px at semibold weight, shared so every row in a menu lines up. */
-export function NewSheetMenuIcon({ children }: { children: ReactNode }) {
-  return <span aria-hidden className="flex shrink-0 items-center [&>svg]:size-4 [&>svg]:[stroke-width:2.25]">{children}</span>;
+/** Menu-row icon: 16px by default; canvas-specific menus can request another exact size. */
+export function NewSheetMenuIcon({ children, size = 16 }: { children: ReactNode; size?: number }) {
+  return <span aria-hidden className="flex shrink-0 items-center [&>svg]:h-[1em] [&>svg]:w-[1em] [&>svg]:[stroke-width:2.25]" style={{ fontSize: size }}>{children}</span>;
 }
 
 export function NewSheetIcon({ children, tone = "soft" }: { children: ReactNode; tone?: "soft" | "primary" | "meal" }) {

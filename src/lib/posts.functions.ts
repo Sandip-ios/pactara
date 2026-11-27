@@ -159,11 +159,14 @@ export const getShareWorkoutPreview = createServerFn({ method: "GET" })
     const choice: PostWorkoutChoice = data.sessionId ? { source: "session", id: data.sessionId } : data.workoutId ? { source: "saved", id: data.workoutId } : null;
     const snap = await snapshotWorkout(supabase, context.userId, choice);
     let credit: string | null = null;
+    let creditAvatar: string | null = null;
     if (snap.creditUserId) {
-      const { data: p } = await supabase.from("profiles").select("name").eq("id", snap.creditUserId).maybeSingle();
+      const { data: p } = await supabase.from("profiles").select("name, avatar_url").eq("id", snap.creditUserId).maybeSingle();
       credit = firstName(p?.["name"] as string | null);
+      const avatar = (p?.["avatar_url"] as string | null) ?? null;
+      if (avatar) creditAvatar = avatar.startsWith("http") ? avatar : (await signAvatarThumbs(supabase, [avatar], 96)).get(avatar) ?? null;
     }
-    return { title: snap.workout?.title ?? "Workout", minutes: snap.workout?.minutes ?? 0, sets: snap.workout?.sets ?? 0, prs: snap.workout?.prCount ?? 0, credit };
+    return { title: snap.workout?.title ?? "Workout", minutes: snap.workout?.minutes ?? 0, sets: snap.workout?.sets ?? 0, prs: snap.workout?.prCount ?? 0, credit, creditAvatar };
   });
 
 /** Step 1 of posting: one atomic insert (audience, crews, items) while media uploads. */
@@ -259,6 +262,9 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
         muted: !!i["muted"], crop: (i["crop"] ?? null) as SocialPostView["items"][number]["crop"],
       })),
       workout,
+      workoutId: (r["workout_id"] as string | null) ?? null,
+      workoutSessionId: (r["workout_session_id"] as string | null) ?? null,
+      pinnedAt: (r["pinned_at"] as string | null) ?? null,
       cheers: ((cheers ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
       cheeredByMe: ((cheers ?? []) as Row[]).some((c) => c["post_id"] === id && c["user_id"] === userId),
       comments: ((comments ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
@@ -273,7 +279,7 @@ export const getMySocialPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = sb(context.supabase);
-    const { data } = await supabase.from("social_posts").select("*").eq("user_id", context.userId).neq("status", "failed").order("created_at", { ascending: false }).limit(60);
+    const { data } = await supabase.from("social_posts").select("*").eq("user_id", context.userId).neq("status", "failed").order("pinned_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(60);
     return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (data ?? []) as Row[]));
   });
 
@@ -306,6 +312,26 @@ export const updateSocialPostCaption = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; caption: string }) => ({ id: String(input.id), caption: String(input.caption ?? "").slice(0, 2200) }))
   .handler(async ({ context, data }) => {
     const { error } = await sb(context.supabase).from("social_posts").update({ caption: data.caption }).eq("id", data.id).eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const updateSocialPostContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; caption: string; workout: PostWorkoutChoice }) => ({ id: String(input.id), caption: String(input.caption ?? "").slice(0, 2200), workout: input.workout }))
+  .handler(async ({ context, data }) => {
+    const supabase = sb(context.supabase);
+    const snap = await snapshotWorkout(supabase, context.userId, data.workout);
+    const { error } = await supabase.rpc("set_social_post_content", { _post_id: data.id, _caption: data.caption, _workout: snap.workout, _workout_session_id: snap.sessionId, _workout_id: snap.workoutId, _credit_user_id: snap.creditUserId });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const toggleSocialPostPin = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; on: boolean }) => ({ id: String(input.id), on: !!input.on }))
+  .handler(async ({ context, data }) => {
+    const { error } = await sb(context.supabase).rpc("set_social_post_pin", { _post_id: data.id, _pinned: data.on });
     if (error) throw new Error(error.message);
     return { ok: true };
   });

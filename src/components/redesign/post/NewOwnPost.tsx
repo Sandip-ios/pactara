@@ -2,9 +2,9 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Bookmark, ChevronLeft, Flame, MessageCircle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Flame, MessageCircle, MoreHorizontal, Pencil, Pin, Trash2, Users } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
-import { deleteSocialPost, getSocialPost, toggleSocialPostSave, updateSocialPostCaption, updateSocialPostAudience } from "@/lib/posts.functions";
+import { deleteSocialPost, getSocialPost, toggleSocialPostPin, toggleSocialPostSave, updateSocialPostAudience, updateSocialPostContent } from "@/lib/posts.functions";
 import { clock } from "@/components/TimelineCard";
 import { NewSheet, NewSheetMenuIcon, NewSheetRow, NewSheetButton } from "../NewSheet";
 import { NewConfirm } from "../NewConfirm";
@@ -12,10 +12,21 @@ import { newToast } from "../new-toast";
 import { CrewAvatar } from "../CrewAvatars";
 import { PostCarousel, PostWorkoutCard, INK, MUTED, PostTopBar } from "./PostBits";
 import { WhoSeesIt, useComposeContext, SheetActions } from "./ComposeParts";
+import { WorkoutAttachment } from "./WorkoutAttachment";
 import { audienceLabel, defaultAudience, type PostAudience } from "@/lib/post-audience";
+import type { PostWorkoutChoice, SocialPostView } from "@/lib/social-post-types";
 import { PostCommentsSheet } from "./PostComments";
 
-/** One post: header "Posts", menu (Edit caption, Delete), carousel, caption, workout, counts. */
+function editChoice(post: SocialPostView): PostWorkoutChoice {
+  const workout = post.workout;
+  if (!workout) return null;
+  if (workout.source === "caption") return { source: "caption", moves: workout.moves.map((m) => ({ exerciseId: m.exerciseId, name: m.name, imageStart: m.imageStart, sets: m.sets.length, reps: m.sets[0]?.reps ?? 10 })) };
+  if (workout.source === "session" && post.workoutSessionId) return { source: "session", id: post.workoutSessionId };
+  if (workout.source === "saved" && post.workoutId) return { source: "saved", id: post.workoutId };
+  return null;
+}
+
+/** One post: carousel, caption, workout and the owner's exact canvas menu. */
 export function NewOwnPost({ postId }: { postId: string }) {
   useHideBottomTabs(true);
   const navigate = useNavigate();
@@ -23,8 +34,9 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const qc = useQueryClient();
   const { data: post, isLoading } = useQuery({ queryKey: ["social-post", postId], queryFn: () => getSocialPost({ data: { id: postId } }) });
   const delFn = useServerFn(deleteSocialPost);
-  const capFn = useServerFn(updateSocialPostCaption);
+  const contentFn = useServerFn(updateSocialPostContent);
   const saveFn = useServerFn(toggleSocialPostSave);
+  const pinFn = useServerFn(toggleSocialPostPin);
   const ctx = useComposeContext();
   const audienceFn = useServerFn(updateSocialPostAudience);
   const [audienceOpen, setAudienceOpen] = useState(false);
@@ -32,6 +44,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState("");
+  const [workout, setWorkout] = useState<PostWorkoutChoice>(null);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -56,11 +69,17 @@ export function NewOwnPost({ postId }: { postId: string }) {
       back();
     } catch { setErr("Couldn't delete. Try again."); setBusy(false); }
   };
-  const saveCaption = async () => {
+  const openEditor = () => {
+    setMenu(false);
+    setCaption(post.caption);
+    setWorkout(editChoice(post));
+    setEditing(true);
+  };
+  const saveContent = async () => {
     setBusy(true);
     try {
-      await capFn({ data: { id: post.id, caption } });
-      await qc.invalidateQueries({ queryKey: ["social-post", post.id] });
+      await contentFn({ data: { id: post.id, caption, workout } });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["social-post", post.id] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] })]);
       setEditing(false);
     } catch { newToast("Couldn't save. Try again."); } finally { setBusy(false); }
   };
@@ -75,6 +94,15 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const toggleSave = async () => {
     try { await saveFn({ data: { id: post.id, on: !post.savedByMe } }); void qc.invalidateQueries({ queryKey: ["social-post", post.id] }); } catch { newToast("Couldn't save. Try again."); }
   };
+  const togglePin = async () => {
+    setMenu(false);
+    try {
+      await pinFn({ data: { id: post.id, on: !post.pinnedAt } });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["social-post", post.id] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] })]);
+      newToast(post.pinnedAt ? "Unpinned from your profile" : "Pinned to your profile", { success: true });
+    } catch { newToast("Couldn't update the pin. Try again."); }
+  };
+  const chevron = <ChevronRight size={16} className="shrink-0 text-[var(--new-chevron)]" aria-hidden />;
 
   return (
     <div className="redesign-step3 fixed inset-0 overflow-y-auto bg-white pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
@@ -103,14 +131,16 @@ export function NewOwnPost({ postId }: { postId: string }) {
         )}
       </div>
 
-      <NewSheet open={menu} onOpenChange={setMenu} title="Post" hideTitle description="Post options">
-        <NewSheetRow simple title="Edit caption" leading={<NewSheetMenuIcon><Pencil /></NewSheetMenuIcon>} onClick={() => { setMenu(false); setCaption(post.caption); setEditing(true); }} />
-        <NewSheetRow simple title={`Who sees it · ${audienceLabel({ kind: post.audience, crewIds: post.crewIds }, ctx.data?.isPrivate ?? false)} ›`} onClick={() => { setMenu(false); setNextAudience(ctx.data ? defaultAudience({ ...ctx.data, remembered: { kind: post.audience, crewIds: post.crewIds } }) : { kind: post.audience, crewIds: post.crewIds }); setAudienceOpen(true); }} />
-        <NewSheetRow simple destructive title="Delete" leading={<NewSheetMenuIcon><Trash2 /></NewSheetMenuIcon>} onClick={() => { setMenu(false); setConfirm(true); }} />
+      <NewSheet open={menu} onOpenChange={setMenu} title="Post" hideTitle description="Post options" compose>
+        <NewSheetRow simple className="h-14! py-0!" title="Edit caption and workout" leading={<NewSheetMenuIcon size={22}><Pencil /></NewSheetMenuIcon>} trailing={chevron} onClick={openEditor} />
+        <NewSheetRow simple className="h-14! py-0!" title="Who sees it" leading={<NewSheetMenuIcon size={22}><Users /></NewSheetMenuIcon>} trailing={<span className="flex items-center gap-2"><span className="text-[13px] font-normal text-[var(--new-muted)]">{audienceLabel({ kind: post.audience, crewIds: post.crewIds }, ctx.data?.isPrivate ?? false)}</span>{chevron}</span>} onClick={() => { setMenu(false); setNextAudience(ctx.data ? defaultAudience({ ...ctx.data, remembered: { kind: post.audience, crewIds: post.crewIds } }) : { kind: post.audience, crewIds: post.crewIds }); setAudienceOpen(true); }} />
+        <NewSheetRow simple className="h-14! py-0!" title={post.pinnedAt ? "Unpin from your profile" : "Pin to your profile"} leading={<NewSheetMenuIcon size={22}><Pin /></NewSheetMenuIcon>} onClick={() => void togglePin()} />
+        <NewSheetRow simple destructive className="h-14! py-0!" title="Delete" leading={<span className="text-[var(--new-destructive)]"><NewSheetMenuIcon size={22}><Trash2 /></NewSheetMenuIcon></span>} onClick={() => { setMenu(false); setConfirm(true); }} />
       </NewSheet>
-      <NewSheet open={editing} onOpenChange={setEditing} title="Edit caption">
+      <NewSheet open={editing} onOpenChange={setEditing} title="Edit caption and workout" compose>
         <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2200} rows={4} aria-label="Caption" className="w-full resize-none rounded-[14px] bg-[var(--new-control)] p-3 text-[16px] outline-none" />
-        <NewSheetButton disabled={busy} onClick={() => void saveCaption()}>Save</NewSheetButton>
+        {ctx.data ? <div className="mt-3 rounded-[16px] border border-[var(--new-divider)] px-3"><WorkoutAttachment ctx={ctx.data} suggestions={[]} workout={workout} onChange={setWorkout} /></div> : <div className="mt-3 h-14 animate-pulse rounded-[14px] bg-[var(--new-control)]" />}
+        <NewSheetButton disabled={busy || !ctx.data} onClick={() => void saveContent()}>Save</NewSheetButton>
       </NewSheet>
       <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle compose>
         <SheetActions title="Who sees it" cancel={() => setAudienceOpen(false)} disabled={busy || !ctx.data} done={() => void saveAudience()} />
