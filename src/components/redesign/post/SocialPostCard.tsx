@@ -53,7 +53,7 @@ export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupI
       {post.isMine ? <Link to="/post/$postId" params={{ postId: post.id }} className="block w-full"><PostCarousel items={post.items} aspectRatio="4 / 5" /></Link> : <PostCarousel items={post.items} aspectRatio="4 / 5" />}
       {post.caption && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={post.isMine ? null : { ...post.author, firstName, when: clock(post.createdAt) }} />}
-      <FeedCardActions cheer={post.isMine ? undefined : () => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment} />
+      <FeedCardActions cheer={() => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment} />
       {post.isMine && <OwnPostMenu post={post} open={menu} onOpenChange={setMenu} />}
       <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />
     </article>

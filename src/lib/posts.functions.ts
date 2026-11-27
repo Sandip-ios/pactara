@@ -384,10 +384,6 @@ export const toggleSocialPostCheer = createServerFn({ method: "POST" })
   .inputValidator((input: { id: string; on: boolean }) => ({ id: String(input.id), on: !!input.on }))
   .handler(async ({ context, data }) => {
     const supabase = sb(context.supabase);
-    if (data.on) {
-      const { data: own } = await supabase.from("social_posts").select("user_id").eq("id", data.id).maybeSingle();
-      if (!own || own["user_id"] === context.userId) throw new Error("You can't cheer your own post");
-    }
     const t = supabase.from("social_post_cheers");
     const { error } = data.on ? await t.upsert({ post_id: data.id, user_id: context.userId }) : await t.delete().eq("post_id", data.id).eq("user_id", context.userId);
     if (error) throw new Error(error.message);
