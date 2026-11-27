@@ -3,10 +3,10 @@
 ## Phase 5.1c: Posted screen
 - [x] Replaced the new-version You're in screen and following celebration modal with one Posted screen, preserving classic completion and share paths.
 - [x] Recolored the launch wordmark for the Posted video and new-version share exports; classic share drawing remains unchanged.
-- [x] Captured six 390×844 states in public/qa/p5-1c-*.png from real draft check-ins; verified reduced motion, sound, manual play, Share, Close and Done. All 882 tests and typecheck pass; every temporary member, crew, post, subscription and media file was removed; unpublished.
-- [x] Matched the Posted header to New check-in with pt-new-top and recaptured badge/no-badge at 390×844 as p5-1c-fix-*.png, preserving the originals. All 882 tests and typecheck pass; unpublished.
-- [x] Made Posted media flex between 260px and 430px with a separate pinned-button row and scrollable content only when below the minimum. Captured p5-1c-fix2-1-badge.png and p5-1c-fix2-2-no-badge.png at 390×844 plus p5-1c-fix2-3-small.png at 375×667; the badge/description state has a 16px card-to-button gap and no overlap. All 882 tests and typecheck pass; unpublished.
-- [x] Reused the Your progress medal through NewProgressMedal in the Posted badge banner at 40px, preserving BADGE_META titles and classic artwork. Captured p5-1c-fix3-badge.png at 390×844 and a true 3× banner crop, p5-1c-fix3-medal-3x.png; verified purple 1, white ring and no white backing circle. All 883 tests and typecheck pass; temporary capture data removed; unpublished.
+- [x] Captured six 390×844 states from real draft check-ins; verified reduced motion, sound, manual play, Share, Close and Done. All 882 tests and typecheck pass; every temporary member, crew, post, subscription and media file was removed; unpublished.
+- [x] Matched the Posted header to New check-in with pt-new-top and recaptured badge/no-badge at 390×844, preserving the originals. All 882 tests and typecheck pass; unpublished.
+- [x] Made Posted media flex between 260px and 430px with a separate pinned-button row and scrollable content only when below the minimum. Captured the badge/description and no-badge states at 390×844 plus 375×667; the badge/description state has a 16px card-to-button gap and no overlap. All 882 tests and typecheck pass; unpublished.
+- [x] Reused the Your progress medal through NewProgressMedal in the Posted badge banner at 40px, preserving BADGE_META titles and classic artwork. Captured the badge state at 390×844 and a true 3× banner crop; verified purple 1, white ring and no white backing circle. All 883 tests and typecheck pass; temporary capture data removed; unpublished.
 
 ## Toast clearance above pinned actions
 - [x] Registered the new-version plan, plan-day, quiz, pact, notification and done-screen primary actions with useToastAbove; shared classic surfaces opt in only for the new version. Existing tab, Resume, classic builder and Share your win offsets remain.
