@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { DraftItem } from "./post-composer";
-import { MAX_POST_ITEMS } from "./post-composer";
+import { MAX_POST_ITEMS, fileTooBigMessage } from "./post-composer";
 
 /** Session-only state for the New post flow; files never leave memory until Share. */
 export type DraftMedia = { id: string; file: Blob; url: string; kind: "photo" | "video"; duration: number | null; name: string };
@@ -61,9 +61,11 @@ async function probeDuration(url: string): Promise<number | null> {
 }
 
 /** Add files to the library; newest first. Returns the new ids. */
-export async function addFiles(files: { blob: Blob; name: string }[]): Promise<string[]> {
+export async function addFiles(files: { blob: Blob; name: string }[], onReject?: (message: string) => void): Promise<string[]> {
   const added: DraftMedia[] = [];
   for (const f of files) {
+    const big = fileTooBigMessage(f.blob.size);
+    if (big) { onReject?.(big); continue; }
     const kind = f.blob.type.startsWith("video/") || /\.(mov|mp4|m4v|webm)$/i.test(f.name) ? "video" : "photo";
     if (kind === "photo" && !f.blob.type.startsWith("image/") && !/\.(jpe?g|png|heic|heif|webp|gif)$/i.test(f.name)) continue;
     const url = URL.createObjectURL(f.blob);

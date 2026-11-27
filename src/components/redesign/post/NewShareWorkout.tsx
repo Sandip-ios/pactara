@@ -5,10 +5,11 @@ import { ImagePlus, X } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { getShareWorkoutPreview } from "@/lib/posts.functions";
 import { audienceIsValid } from "@/lib/post-audience";
-import { creditLine, MAX_POST_ITEMS, shareWorkoutStats } from "@/lib/post-composer";
+import { creditLine, MAX_POST_ITEMS, shareWorkoutStats, videoLengthError } from "@/lib/post-composer";
 import { addFiles, pickedItems, resetDraft, setDraft, usePostDraft } from "@/lib/post-draft";
 import { pickFromNativeLibrary } from "@/lib/media-picker";
 import { submitPost } from "@/lib/post-submit";
+import { newToast } from "../new-toast";
 import { PostOptionRows, WhoSeesIt, useAudience, useComposeContext } from "./ComposeParts";
 import { INK, MUTED, PURPLE, PostTopBar, TextAction } from "./PostBits";
 
@@ -27,10 +28,11 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  const valid = !!ctx.data && !!preview.data && audienceIsValid(audience, ctx.data.under18);
+  const lengthErr = videoLengthError(picked.map((p) => p.edit), audience.everyone);
+  const valid = !lengthErr && !!ctx.data && !!preview.data && audienceIsValid(audience, ctx.data.under18);
 
   const add = async (files: { blob: Blob; name: string }[]) => {
-    const ids = await addFiles(files);
+    const ids = await addFiles(files, (m) => newToast(m));
     setDraft((d) => ({ selected: [...d.selected, ...ids].slice(0, MAX_POST_ITEMS) }));
   };
   const openLibrary = async () => {
@@ -89,6 +91,7 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
 
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onEveryone={toggleEveryone} onCrew={toggleCrew} />}
       <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />
+      {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}
       {err && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{err}</p>}
       <p className="px-4 pt-5 text-center text-[12px]" style={{ color: "#78716C" }}>No photo needed. Posts without one show the workout card on its own.</p>
       <input ref={input} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void add(fs.map((f) => ({ blob: f, name: f.name }))); }} />

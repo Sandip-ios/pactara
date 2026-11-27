@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Crop, Image as ImageIcon, Plus, Scissors, Volume2, VolumeX } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
-import { itemsStripLabel, moveItem, trimLabel, type DraftItem } from "@/lib/post-composer";
+import { EVERYONE_MAX_VIDEO_S, itemsStripLabel, moveItem, trimLabel, trimmedLength, type DraftItem } from "@/lib/post-composer";
 import { pickedItems, setDraft, usePostDraft } from "@/lib/post-draft";
 import { PostTopBar, TextAction } from "./PostBits";
 
@@ -58,6 +58,7 @@ export function NewPostEdit() {
           <div>
             <TrimBar duration={dur} start={edit.trimStart} end={edit.trimEnd ?? dur} onChange={(s, e) => { update({ trimStart: s, trimEnd: e }); if (video.current) video.current.currentTime = s; }} />
             <p className="pt-2 text-center text-[13px] font-semibold" style={{ color: "#D6D3D1" }}>{trimLabel(edit)}</p>
+            {trimmedLength(edit) > EVERYONE_MAX_VIDEO_S + 0.5 && <p className="pt-1 text-center text-[13px] font-semibold" style={{ color: "#FCA5A5" }}>Trim to 10:00 or less to post. Crew-only posts take up to 3:00.</p>}
           </div>
         )}
         {isVideo && tool === "cover" && (

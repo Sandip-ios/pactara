@@ -77,3 +77,24 @@ export function shareWorkoutStats(w: { minutes: number; sets: number; prs: numbe
 export function creditLine(firstName: string): string {
   return `Credits ${firstName}. They get a notification.`;
 }
+
+/** Upload limits for library posts. */
+export const MAX_FILE_BYTES = 200 * 1024 * 1024;
+export const CREW_MAX_VIDEO_S = 180;
+export const EVERYONE_MAX_VIDEO_S = 600;
+
+/** A file over 200 MB is refused when picked, with a message instead of a silent failure. */
+export function fileTooBigMessage(bytes: number): string | null {
+  return bytes > MAX_FILE_BYTES ? "This file is too big to post. Pick one under 200 MB." : null;
+}
+
+/** Crew-only videos up to 3:00, Everyone up to 10:00 (after trim). Null when it can post. */
+export function videoLengthError(items: Pick<DraftItem, "kind" | "duration" | "trimStart" | "trimEnd">[], everyone: boolean): string | null {
+  const max = everyone ? EVERYONE_MAX_VIDEO_S : CREW_MAX_VIDEO_S;
+  const long = items.find((i) => i.kind === "video" && trimmedLength(i) > max + 0.5);
+  if (!long) return null;
+  const len = formatClock(trimmedLength(long));
+  return everyone
+    ? `This video is ${len}. Videos can be up to 10:00. Trim it to post.`
+    : `This video is ${len}. Crew-only posts take videos up to 3:00. Trim it or turn on Everyone.`;
+}

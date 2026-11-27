@@ -6,7 +6,7 @@ import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { matchCaptionWorkout } from "@/lib/posts.functions";
 import { foundLabel, setsRepsLine } from "@/lib/caption-workout";
 import { audienceIsValid } from "@/lib/post-audience";
-import { composerIsDirty } from "@/lib/post-composer";
+import { composerIsDirty, videoLengthError } from "@/lib/post-composer";
 import { pickedItems, resetDraft, setDraft, usePostDraft } from "@/lib/post-draft";
 import { submitPost } from "@/lib/post-submit";
 import type { PostWorkoutChoice } from "@/lib/social-post-types";
@@ -54,7 +54,8 @@ export function NewPostCompose() {
   const workout: PostWorkoutChoice =
     attach === "nothing" ? null : mode === "caption" ? (moves.length ? { source: "caption", moves } : null) : pickedWorkout;
   const dirty = composerIsDirty({ items: picked.length, caption: draft.caption, workoutAttached: !!workout });
-  const valid = !!ctx.data && audienceIsValid(audience, ctx.data.under18);
+  const lengthErr = videoLengthError(picked.map((p) => p.edit), audience.everyone);
+  const valid = !lengthErr && !!ctx.data && audienceIsValid(audience, ctx.data.under18);
 
   const back = () => (dirty ? setDiscard(true) : navigate({ to: "/post/edit" }));
   const share = async () => {
@@ -138,6 +139,7 @@ export function NewPostCompose() {
 
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onEveryone={toggleEveryone} onCrew={toggleCrew} />}
       <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />
+      {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}
       {err && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{err}</p>}
 
       <NewConfirm

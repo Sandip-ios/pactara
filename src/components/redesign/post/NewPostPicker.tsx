@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatClock, MAX_POST_ITEMS, selectionNumber, toggleSelection } from "@/lib/post-composer";
 import { addFiles, defaultEdit, setDraft, usePostDraft } from "@/lib/post-draft";
 import { pickFromNativeLibrary } from "@/lib/media-picker";
+import { newToast } from "../new-toast";
 import { PostTopBar, TextAction, PURPLE, INK, MUTED } from "./PostBits";
 
 const NOTE_KEY = (uid: string) => `pactara:post-library-note:${uid}`;
@@ -45,7 +46,7 @@ export function NewPostPicker() {
   };
 
   const added = async (files: { blob: Blob; name: string }[]) => {
-    const ids = await addFiles(files);
+    const ids = await addFiles(files, (m) => newToast(m));
     if (!ids.length) return;
     setDraft((d) => {
       const lib = d.library;

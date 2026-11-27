@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { audienceIsValid, canSeePost, defaultAudience, reachesFollowers, toggleCrew, toggleEveryone } from "../post-audience";
-import { composerIsDirty, creditLine, moveItem, selectionNumber, shareWorkoutStats, skipsDiscover, toggleSelection, trimLabel } from "../post-composer";
+import { fileTooBigMessage, videoLengthError, composerIsDirty, creditLine, moveItem, selectionNumber, shareWorkoutStats, skipsDiscover, toggleSelection, trimLabel } from "../post-composer";
 import { bestExerciseMatch, foundLabel, parseCaptionMoves, setsRepsLine } from "../caption-workout";
 import { jobProgress } from "../posting-queue";
 
@@ -107,5 +107,22 @@ describe("workout from the caption", () => {
     const lib = [{ name: "Barbell Back Squat" }, { name: "Squat" }, { name: "Bench Press" }];
     expect(bestExerciseMatch("squats", lib)?.name).toBe("Squat");
     expect(bestExerciseMatch("bench", lib)?.name).toBe("Bench Press");
+  });
+});
+
+describe("upload limits", () => {
+  const v = (len: number) => ({ kind: "video" as const, duration: len, trimStart: 0, trimEnd: len });
+  it("crew-only videos up to 3 minutes", () => {
+    expect(videoLengthError([v(180)], false)).toBeNull();
+    expect(videoLengthError([v(200)], false)).toBe("This video is 3:20. Crew-only posts take videos up to 3:00. Trim it or turn on Everyone.");
+  });
+  it("Everyone videos up to 10 minutes", () => {
+    expect(videoLengthError([v(200)], true)).toBeNull();
+    expect(videoLengthError([v(601)], true)).toBe("This video is 10:01. Videos can be up to 10:00. Trim it to post.");
+    expect(videoLengthError([{ ...v(900), trimEnd: 500 }], true)).toBeNull();
+  });
+  it("files over 200 MB get a message", () => {
+    expect(fileTooBigMessage(200 * 1024 * 1024)).toBeNull();
+    expect(fileTooBigMessage(200 * 1024 * 1024 + 1)).toBe("This file is too big to post. Pick one under 200 MB.");
   });
 });
