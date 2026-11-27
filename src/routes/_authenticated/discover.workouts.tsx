@@ -171,13 +171,13 @@ function NewWorkoutsList() {
             })
           }
         />
-        <p
+        {!isLoading && !isError && <p
           className="m-0 text-[13px]"
           style={{ color: "var(--new-disabled-text)" }}
           aria-live="polite"
         >
-          {isLoading ? "\u00a0" : countLine(total, q.muscle)}
-        </p>
+          {countLine(total, q.muscle)}
+        </p>}
         {isLoading && <DiscoverListSkeleton />}
         {isError && <DiscoverError kind="workouts" retry={() => void refetch()} />}
         {!isLoading && !isError && items.length === 0 && (

@@ -403,7 +403,7 @@ export function WorkoutCards({
               <strong className="line-clamp-2 text-[15px] font-bold">{c.name}</strong>
               <span className="p5-small block">{cardMeta(c)}</span>
               <span className="p5-small block">
-                by {c.author} · {savesLabel(c.saves)}
+                by {c.author}{cardByline(c).saves}
               </span>
             </span>
           </Button>

@@ -1,4 +1,4 @@
-import { NO_FILTERS, FILTER_KEYS, type PlanFilters } from "@/lib/plan-filters";
+import { NO_FILTERS, FILTER_KEYS, filterPlans, type FilterablePlan, type PlanFilters } from "@/lib/plan-filters";
 
 /** New-version Discover tabs shown in phase 4. Posts, Meals and People come later. */
 export type DiscoverTab = "workouts" | "plans";
@@ -24,6 +24,18 @@ export const NEW_GOAL_CHIPS: GoalChip[] = [
 ];
 
 export const chipFilters = (c: GoalChip): PlanFilters => ({ ...NO_FILTERS, ...c.filters });
+
+/** Lists filter the full catalog, including the active plan, then put it first. */
+export function plansForGoal<T extends FilterablePlan & { slug: string }>(plans: T[], chip: GoalChip, activeSlug: string | null): T[] {
+  return filterPlans(plans, chipFilters(chip)).sort(
+    (a, b) => Number(b.slug === activeSlug) - Number(a.slug === activeSlug),
+  );
+}
+
+export function planGearLevelLine(plan: { gearShort: string | null; gear: string[]; level: string }): string {
+  const sentenceCase = (value: string) => value.charAt(0).toUpperCase() + value.slice(1);
+  return `${sentenceCase(plan.gearShort ?? (plan.gear.length ? plan.gear.join(" · ") : "No equipment"))} · ${sentenceCase(plan.level)}`;
+}
 
 /** The chip whose filters equal the current ones, or null when other filters are on. */
 export function selectedChipKey(f: PlanFilters): string | null {

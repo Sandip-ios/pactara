@@ -260,6 +260,7 @@
 - [x] Full suite: 1032 tests across 110 files passed on first run, no failures; typecheck passed; unpublished.
 
 ## Phase 5 Discover one page and search
+- [x] New-only Discover corrections: shared flat icons, sentence case, active-plan goal filtering/progress, 12px chip spacing, inline errors, hidden zero saves/count on errors, persistent search ring and detailed skeletons. All 18 named captures retaken at 390×844/2× without toasts; 05 scrolled above the bottom bar and 07 shows active Dawn Run Base. Real plan/filter/retry/save/follow flows verified; original accounts and example fields restored, all four temporary accounts removed. Full suite 1055 passed across 112 files with no failures on any run; typecheck clean, unpublished.
 - [x] New-only Discover top states, horizontal plans/workouts, all-plans and workouts lists
 - [x] Authenticated search, privacy, follow actions, phone-only history and suggestions
 - [x] 18 phone captures in public/qa at 390×844; real Follow/Unfollow/request cancellation, workout sheet/add/remove, plan start and retry/reset verified; Classic and legacy links checked; all temporary accounts/data removed and original version choices restored. Full suite 1054 passed across 112 files; automatic typecheck/build clean; unpublished. One focused test failed once: discover-page.test.ts / names the approved core kettlebell under-15 filters, then corrected and passed.

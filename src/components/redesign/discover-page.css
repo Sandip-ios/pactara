@@ -25,7 +25,8 @@
   min-width: 0;
   flex: 1;
 }
-.p5-search:focus-within {
+.p5-search:focus-within,
+.p5-search-open {
   outline: 2px solid var(--new-purple);
 }
 .p5-search input {
@@ -108,6 +109,10 @@
 .p5-rail::-webkit-scrollbar {
   display: none;
 }
+.p5-goal-rail {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
 .p5-plan-card {
   width: 260px;
   flex-shrink: 0;
@@ -166,6 +171,26 @@
   color: var(--new-ink) !important;
   margin-top: 12px;
   font-weight: 700;
+}
+.p5-error-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+}
+.p5-error-row strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+.p5-error-row p {
+  font-size: 12px;
+  margin-top: 2px;
+}
+.p5-error-row .p5-outline {
+  flex-shrink: 0;
+  margin-top: 0;
+  padding: 0 14px;
+  font-size: 12px;
 }
 .p5-group-heading {
   display: flex;

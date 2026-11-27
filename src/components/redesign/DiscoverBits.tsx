@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { ChevronLeft, Dumbbell } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
+import { FlatDumbbell } from "./NewProfileParts";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { coverThumb } from "@/lib/plan-filters";
@@ -12,7 +13,7 @@ export function DiscoverImage({ url, className = "" }: { url: string | null; cla
       {src && !failed ? (
         <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
       ) : (
-        <Dumbbell className="size-7!" aria-hidden />
+        <FlatDumbbell size={28} />
       )}
     </span>
   );
@@ -25,23 +26,30 @@ export function DiscoverError({
   retry: () => void;
 }) {
   return (
-    <div className="p5-error" role="alert">
-      <strong>Couldn't load {kind}</strong>
-      <p>Check your connection and try again.</p>
+    <div className="p5-error p5-error-row" role="alert">
+      <div className="min-w-0 flex-1">
+        <strong>Couldn't load {kind}</strong>
+        <p>Check your connection and try again.</p>
+      </div>
       <Button variant="ghost" className="p5-outline" onClick={retry}>
         Try again
       </Button>
     </div>
   );
 }
-export function DiscoverListSkeleton({ n = 5 }: { n?: number }) {
+export function DiscoverListSkeleton({ n = 5, search = false }: { n?: number; search?: boolean }) {
   return (
-    <div className="flex flex-col gap-2" aria-label="Loading">
-      <>
+    <div className={search ? "p5-white" : "flex flex-col gap-[10px]"} aria-label="Loading">
         {Array.from({ length: n }, (_, i) => (
-          <div key={i} className="p5-skeleton h-[90px] animate-pulse" />
+          <div key={i} className={search ? "p5-result animate-pulse" : "p5-white flex items-center gap-3 rounded-[16px] px-3 py-[10px] animate-pulse"}>
+            <span className={`p5-skeleton rounded-[12px] ${search ? "size-11" : "size-16"}`} />
+            <span className="min-w-0 flex-1 flex flex-col gap-[7px]">
+              <span className="p5-skeleton h-[13px] w-3/5 rounded-full" />
+              <span className="p5-skeleton h-[10px] w-4/5 rounded-full" />
+              {!search && <span className="p5-skeleton h-[10px] w-[45%] rounded-full" />}
+            </span>
+          </div>
         ))}
-      </>
     </div>
   );
 }

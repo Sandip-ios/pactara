@@ -10,7 +10,9 @@ import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
 import { quizSearchFor, type SavedQuiz } from "@/lib/plan-quiz-saved";
 import { discoverCardMatch } from "@/lib/new-quiz";
-import { useMyPlans, usePlans, gearText } from "@/components/plans/PlanBits";
+import { useMyPlans, usePlans } from "@/components/plans/PlanBits";
+import { planGearLevelLine } from "@/lib/new-discover";
+import { cardByline } from "@/lib/discover-workouts";
 import { useSavedQuiz } from "@/components/plans/QuizMatchCard";
 import { discoverTopCard, popularPlans, showDiscoverRow } from "@/lib/discover-page";
 import { getDiscoverPlanStarts } from "@/lib/discover-page.functions";
@@ -56,7 +58,7 @@ export function NewDiscover() {
       <header className="p5-white px-4 pb-[14px] pt-new-top">
         <h1 className="text-[26px] font-extrabold leading-[30px]">Discover</h1>
         <div className="mt-[13px] flex gap-3 items-center">
-          <label className="p5-search">
+          <label className={`p5-search${focused ? " p5-search-open" : ""}`}>
             <Search size={18} />
             <input
               placeholder="Search workouts, plans, people"
@@ -170,7 +172,7 @@ export function NewDiscover() {
                               {p.weeks} weeks · {p.daysPerWeek} days a week · {p.minutes} min
                             </span>
                             <span className="p5-small block font-semibold">
-                              {p.gearShort ?? gearText(p)} · {p.level}
+                              {planGearLevelLine(p)}
                             </span>
                           </span>
                         </Button>
@@ -211,7 +213,7 @@ export function NewDiscover() {
                               {c.minutes} min
                             </span>
                             <span className="p5-small block">
-                              by {c.author} · {c.saves} saves
+                              by {c.author}{cardByline(c).saves}
                             </span>
                           </span>
                         </Button>

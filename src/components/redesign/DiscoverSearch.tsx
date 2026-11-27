@@ -129,9 +129,7 @@ export function DiscoverSearch({
     );
   if (query.trim() !== debounced || result.isPending)
     return (
-      <div className="px-4 pt-4">
-        <DiscoverListSkeleton n={6} />
-      </div>
+      <DiscoverListSkeleton n={6} search />
     );
   if (result.isError)
     return (

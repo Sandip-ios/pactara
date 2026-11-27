@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "react";
 import { createFileRoute, Navigate, useNavigate } from "@tanstack/react-router";
 import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
-import { useMyPlans, usePlans, gearText } from "@/components/plans/PlanBits";
+import { useMyPlans, usePlans } from "@/components/plans/PlanBits";
 import { Button } from "@/components/ui/button";
-import { filterPlans } from "@/lib/plan-filters";
-import { NEW_GOAL_CHIPS, chipFilters, activePlanProgressLine } from "@/lib/new-discover";
+import { NEW_GOAL_CHIPS, plansForGoal, planGearLevelLine, activePlanProgressLine } from "@/lib/new-discover";
 import {
   DiscoverError,
   DiscoverHeader,
@@ -52,10 +51,7 @@ function NewPlansList() {
   const chip = NEW_GOAL_CHIPS.find((c) => c.key === goal) ?? NEW_GOAL_CHIPS[0];
   const all = plans.data ?? [];
   const active = mine.data?.active;
-  const filtered = chip ? filterPlans(all, chipFilters(chip)) : all;
-  const list = [...filtered].sort(
-    (a, b) => Number(b.slug === active?.slug) - Number(a.slug === active?.slug),
-  );
+  const list = chip ? plansForGoal(all, chip, active?.slug ?? null) : all;
   return (
     <div
       ref={scroll}
@@ -63,7 +59,7 @@ function NewPlansList() {
       className="redesign-step3 p5-discover fixed inset-0 overflow-y-auto overscroll-none"
     >
       <DiscoverHeader title="Plans" />
-      <div ref={chipRail} className="p5-rail py-[14px]" role="group" aria-label="Goals">
+      <div ref={chipRail} className="p5-rail p5-goal-rail" role="group" aria-label="Goals">
         {NEW_GOAL_CHIPS.map((c) => (
           <Button
             key={c.key}
@@ -120,14 +116,13 @@ function NewPlansList() {
                 )}
                 <strong className="p5-title block line-clamp-2">{p.name}</strong>
                 <span className="p5-meta block">
-                  {p.weeks} weeks · {p.daysPerWeek} days a week · {p.minutes} min
+                  {active?.slug === p.slug
+                    ? activePlanProgressLine(active)
+                    : `${p.weeks} weeks · ${p.daysPerWeek} days a week · ${p.minutes} min`}
                 </span>
                 <span className="p5-small block font-semibold">
-                  {p.gearShort ?? gearText(p)} · {p.level}
+                  {planGearLevelLine(p)}
                 </span>
-                {active?.slug === p.slug && (
-                  <span className="p5-small block">{activePlanProgressLine(active)}</span>
-                )}
               </span>
             </Button>
           ))
