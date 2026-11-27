@@ -96,3 +96,13 @@ export async function signActivityThumbs(supabase: SupabaseClient, paths: (strin
   ]);
   return new Map([...images, ...posters]);
 }
+
+/** Profile/Saved grid tiles: images cropped to 4:5 at 3x tile size, videos use their poster frame. */
+export async function signGridThumbs(supabase: SupabaseClient, paths: (string | null | undefined)[]) {
+  const unique = [...new Set(paths.filter((path): path is string => Boolean(path) && !path?.startsWith('http')))];
+  const [images, posters] = await Promise.all([
+    signImages(supabase, 'chat-photos', unique.filter(path => !isVideoPath(path)), 360, 450),
+    signVideoPosters(supabase, unique),
+  ]);
+  return new Map([...images, ...posters]);
+}

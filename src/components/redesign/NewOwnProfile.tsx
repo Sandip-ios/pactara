@@ -2,7 +2,7 @@ import { progressSummary } from '@/lib/redesign-profile';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake, Users } from 'lucide-react';
+import { Bookmark, Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getHomeCrew } from '@/lib/home-crew.functions';
 import { newProfileWeek, profileWeekChips } from '@/lib/redesign-profile';
@@ -46,6 +46,7 @@ export function NewOwnProfile() {
     <div className="new-profile-note"><Lock size={18} aria-hidden /><p>Your crews always see your check-ins. Only you choose what goes on your public profile.</p></div>
     <NewProfilePosts />
     <NewSheet open={menu} onOpenChange={setMenu} title="Profile" hideTitle description="Your profile menu">
+      <NewSheetRow simple className="border-b-0" title="Saved" leading={<Bookmark />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/saved' }); }} />
       <NewSheetRow simple className="border-b-0" title="Account privacy" leading={<Lock />} trailing={<><span className="text-[14px] font-normal text-[var(--new-muted)]">{profile.isPrivate ? 'Private' : 'Public'}</span><NewSheetChevron /></>} onClick={() => { setMenu(false); void navigate({ to: '/profile/privacy' }); }} />
       {profile.isPrivate && <NewSheetRow simple title="Follow requests" leading={<Users />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/follow-requests' }); }} />}
       <NewSheetRow simple className="border-b-0" title="Blocked people" leading={<ShieldBan />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/account-settings/blocked' }); }} />

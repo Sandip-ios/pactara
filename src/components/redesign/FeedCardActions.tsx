@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Flame, MessageCircle } from "lucide-react";
+import { Bookmark, Flame, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { commentsQueryOptions, type CommentScope } from "@/components/feed/CommentsSheet";
 import { getSocialPostComments } from "@/lib/posts.functions";
@@ -17,7 +17,7 @@ export function useLibraryFirstComment(postId: string, count: number, allowed: b
 }
 
 /** New-only shared card actions. Comments and their count share one tap target. */
-export function FeedCardActions({ cheer, cheered, cheers, comments, openComments, prefetchComments, cheerLine, preview, canComment = true }: {
+export function FeedCardActions({ cheer, cheered, cheers, comments, openComments, prefetchComments, cheerLine, preview, canComment = true, save }: {
   cheer?: (() => void) | undefined;
   cheered: boolean;
   cheers: number;
@@ -27,6 +27,8 @@ export function FeedCardActions({ cheer, cheered, cheers, comments, openComments
   cheerLine?: string | null | undefined;
   preview: CommentPreview | null;
   canComment?: boolean;
+  /** Bookmark at the far right; filled when saved. */
+  save?: { saved: boolean; toggle: () => void } | undefined;
 }) {
   const visiblePreview = canComment ? preview : null;
   return <>
@@ -40,6 +42,9 @@ export function FeedCardActions({ cheer, cheered, cheers, comments, openComments
         {comments > 0 && <span className="text-[14px] font-bold tabular-nums">{comments}</span>}
       </Button>}
       {cheerLine && <span className="ml-auto min-w-0 truncate text-[13px] text-[var(--new-muted)]">{cheerLine}</span>}
+      {save && <Button variant="ghost" aria-label={save.saved ? "Saved" : "Save"} aria-pressed={save.saved} onClick={save.toggle} className={`relative h-[22px] min-h-0 min-w-0 shrink-0 rounded-none p-0 text-[#141218] after:absolute after:-inset-y-[11px] after:left-1/2 after:w-full after:min-w-11 after:-translate-x-1/2 after:content-[''] hover:bg-transparent ${cheerLine ? "" : "ml-auto"}`}>
+        <Bookmark className="!size-[22px]" strokeWidth={2} fill={save.saved ? "currentColor" : "none"} aria-hidden />
+      </Button>}
     </div>
     {visiblePreview && <div className="px-3.5 pb-3 text-[14px] leading-[1.4] text-[var(--new-ink-deep)]">
       <Button variant="ghost" aria-label={`Comments: ${visiblePreview.name} ${visiblePreview.body}`} onClick={openComments} className="relative block h-auto min-h-0 w-full rounded-none p-0 text-left text-[14px] font-normal leading-[1.4] after:absolute after:inset-x-0 after:top-1/2 after:min-h-11 after:h-full after:-translate-y-1/2 after:content-[''] hover:bg-transparent">

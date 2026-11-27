@@ -1,4 +1,5 @@
 import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
+import { useFeedSave } from "./use-feed-save";
 import { useEffect, useState } from "react";
 import { Check } from "lucide-react";
 import type { FeedItem } from "@/lib/daily-posts.functions";
@@ -48,6 +49,7 @@ export function RedesignPostCard(props: Props) {
         ? [{ id: props.node.id, url: props.node.photoUrl, poster: props.node.posterUrl }]
         : [];
   const caption = props.kind === "checkins" ? checkIns.map((c) => c.note).find(Boolean) ?? null : props.node.text;
+  const save = useFeedSave("checkin", first?.id.replace(/^c-/, "") ?? "");
   const cheered = !!cheers.myEmoji;
   const cheerLine = cheeredByLine(cheers.reactors);
 
@@ -102,7 +104,7 @@ export function RedesignPostCard(props: Props) {
 
       {caption && <p className="whitespace-pre-wrap break-words text-[15px]" style={{ padding: "10px 14px 0" }}>{caption}</p>}
 
-      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={item.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} />
+      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={item.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={first ? save : undefined} />
       {comments.sheet}
       {lightbox && <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />}
     </article>

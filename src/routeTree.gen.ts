@@ -34,6 +34,7 @@ import { Route as AuthenticatedNotificationsOffRouteImport } from './routes/_aut
 import { Route as AuthenticatedPartnerRouteImport } from './routes/_authenticated/partner'
 import { Route as AuthenticatedPlanRouteImport } from './routes/_authenticated/plan'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSavedRouteImport } from './routes/_authenticated/saved'
 import { Route as AuthenticatedWorkoutsRouteImport } from './routes/_authenticated/workouts'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminAccountabilityRouteImport } from './routes/admin/accountability'
@@ -232,6 +233,11 @@ const AuthenticatedPlanRoute = AuthenticatedPlanRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSavedRoute = AuthenticatedSavedRouteImport.update({
+  id: '/saved',
+  path: '/saved',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedWorkoutsRoute = AuthenticatedWorkoutsRouteImport.update({
@@ -653,6 +659,7 @@ export interface FileRoutesByFullPath {
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
@@ -748,6 +755,7 @@ export interface FileRoutesByTo {
   '/partner': typeof AuthenticatedPartnerRoute
   '/plan': typeof AuthenticatedPlanRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/saved': typeof AuthenticatedSavedRoute
   '/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
@@ -846,6 +854,7 @@ export interface FileRoutesById {
   '/_authenticated/partner': typeof AuthenticatedPartnerRoute
   '/_authenticated/plan': typeof AuthenticatedPlanRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/saved': typeof AuthenticatedSavedRoute
   '/_authenticated/workouts': typeof AuthenticatedWorkoutsRoute
   '/admin/accountability': typeof AdminAccountabilityRoute
   '/admin/events': typeof AdminEventsRoute
@@ -944,6 +953,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/plan'
     | '/profile'
+    | '/saved'
     | '/workouts'
     | '/admin/accountability'
     | '/admin/events'
@@ -1039,6 +1049,7 @@ export interface FileRouteTypes {
     | '/partner'
     | '/plan'
     | '/profile'
+    | '/saved'
     | '/workouts'
     | '/admin/accountability'
     | '/admin/events'
@@ -1136,6 +1147,7 @@ export interface FileRouteTypes {
     | '/_authenticated/partner'
     | '/_authenticated/plan'
     | '/_authenticated/profile'
+    | '/_authenticated/saved'
     | '/_authenticated/workouts'
     | '/admin/accountability'
     | '/admin/events'
@@ -1415,6 +1427,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/saved': {
+      id: '/_authenticated/saved'
+      path: '/saved'
+      fullPath: '/saved'
+      preLoaderRoute: typeof AuthenticatedSavedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/workouts': {
@@ -1935,6 +1954,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPartnerRoute: typeof AuthenticatedPartnerRoute
   AuthenticatedPlanRoute: typeof AuthenticatedPlanRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSavedRoute: typeof AuthenticatedSavedRoute
   AuthenticatedWorkoutsRoute: typeof AuthenticatedWorkoutsRoute
   AuthenticatedAccountSettingsBlockedRoute: typeof AuthenticatedAccountSettingsBlockedRoute
   AuthenticatedAccountSettingsEmailRoute: typeof AuthenticatedAccountSettingsEmailRoute
@@ -1993,6 +2013,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPartnerRoute: AuthenticatedPartnerRoute,
   AuthenticatedPlanRoute: AuthenticatedPlanRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSavedRoute: AuthenticatedSavedRoute,
   AuthenticatedWorkoutsRoute: AuthenticatedWorkoutsRoute,
   AuthenticatedAccountSettingsBlockedRoute:
     AuthenticatedAccountSettingsBlockedRoute,

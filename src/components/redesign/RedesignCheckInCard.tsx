@@ -1,4 +1,5 @@
 import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
+import { useFeedSave } from "./use-feed-save";
 import { useEffect, useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import type { FeedItem } from "@/lib/daily-posts.functions";
@@ -49,6 +50,7 @@ export function RedesignCheckInCard({
     targetCommentId,
     { checkInId: rawId, includeUnscoped: isFirst },
   );
+  const save = useFeedSave("checkin", rawId);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [unit, setUnit] = useState<"mi" | "km">("mi");
@@ -130,7 +132,7 @@ export function RedesignCheckInCard({
         </button>
       )}
 
-      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} />
+      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />
       {comments.sheet}
       {card && card.kind !== "health" && (
         <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} />

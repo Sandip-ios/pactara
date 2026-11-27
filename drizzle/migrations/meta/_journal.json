@@ -743,6 +743,13 @@
       "when": 1795758944185,
       "tag": "0105_allow_self_cheer_social_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1795760061531,
+      "tag": "0106_check_in_saves",
+      "breakpoints": true
     }
   ]
 }
