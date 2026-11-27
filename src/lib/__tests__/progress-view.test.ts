@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { badgeTiles, freezeHint, monthGrid, nextBadge, nextBadgeLine, prsInMonth, progressStreak, shiftMonth, uniqueCheckIns } from '../progress-view';
+import { badgeTiles, freezeHint, medalColor, monthGrid, nextBadge, nextBadgeLine, prsInMonth, progressStreak, shiftMonth, uniqueCheckIns } from '../progress-view';
 
 describe('progress view', () => {
   it('streak is the best run across crews, rest/freeze days keep it', () => {
@@ -28,6 +28,10 @@ describe('progress view', () => {
     expect(g[8]?.state).toBe('none');
     expect(g[9]?.state).toBe('future');
     expect(shiftMonth('2026-01', -1)).toBe('2025-12');
+  });
+  it('uses purple for a first-day medal and amber for two weeks', () => {
+    expect(medalColor(1)).toBe('#A78BFA');
+    expect(medalColor(14)).toBe('#F59E0B');
   });
   it('next badge is the first unearned milestone above the streak', () => {
     expect(nextBadge(5, new Set([1, 3]))).toBe(7);

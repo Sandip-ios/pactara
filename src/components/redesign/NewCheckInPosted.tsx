@@ -6,6 +6,7 @@ import { highestPostedBadge, postedCrew, postedCrewChip, postedMediaHeight, post
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
 import { CrewAvatarOverlap } from "./CrewAvatars";
+import { NewProgressMedal } from "./NewProgressMedal";
 
 const VIDEO_WORDMARK = "/brand/pactara-wordmark-video.png";
 
@@ -153,7 +154,7 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
 
     <div ref={scrollRef} data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
       {badge !== null && badgeMeta && <div ref={badgeRef} className="mx-4 mt-3.5 flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3" style={{ background: "linear-gradient(90deg,#FFF1E7,#EDE4FF)" }}>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--new-white)]"><img src={badgeMeta.image} alt="" className="h-8 w-8 object-contain" /></span>
+        <NewProgressMedal days={badge} size={40} className="shrink-0" />
         <div className="min-w-0"><p className="text-[11px] font-extrabold tracking-[1px] text-[var(--new-purple-text)]">NEW BADGE UNLOCKED</p><p className="text-[17px] font-extrabold">{badgeMeta.title}</p></div>
       </div>}
 

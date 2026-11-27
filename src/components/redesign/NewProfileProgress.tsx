@@ -4,7 +4,8 @@ import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight, Snowflake } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getRedesignProgress } from '@/lib/redesign-profile.functions';
-import { badgeTiles, freezeHint, medalColor, monthGrid, monthLabel, nextBadge, nextBadgeLine, shiftMonth } from '@/lib/progress-view';
+import { badgeTiles, freezeHint, monthGrid, monthLabel, nextBadge, nextBadgeLine, shiftMonth } from '@/lib/progress-view';
+import { NewProgressMedal } from './NewProgressMedal';
 import { BADGE_META } from '@/lib/badges';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
@@ -61,7 +62,7 @@ export function NewProfileProgress() {
     <section className="new-progress-card new-progress-badges">
       <div className="new-progress-badges-head"><h2>Streak badges</h2><span>{earnedCount} of {tiles.length}</span></div>
       <div className="new-progress-badge-grid">{tiles.map(t => t.kind === 'earned'
-        ? <div key={t.days} className="new-progress-tile is-earned"><span className="new-progress-medal" style={{ background: medalColor(t.days) }}>{t.days}</span><b>{t.name}</b><small>{shortDate(t.earnedAt)}</small></div>
+        ? <div key={t.days} className="new-progress-tile is-earned"><NewProgressMedal days={t.days} /><b>{t.name}</b><small>{shortDate(t.earnedAt)}</small></div>
         : t.kind === 'next'
           ? <div key={t.days} className="new-progress-tile is-next"><Ring size={56} value={t.streak} max={t.days} stroke={5}><b className="new-progress-tile-num">{t.days}</b></Ring><b>{t.name}</b><small>{t.streak} of {t.days}</small></div>
           : <div key={t.days} className="new-progress-tile is-locked"><Ring size={56} value={0} max={t.days} track="#E7E5E4" stroke={5}><b className="new-progress-tile-num">{t.days}</b></Ring><b>{t.days} days</b><small>{t.days}-day streak</small></div>)}</div>

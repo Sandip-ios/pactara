@@ -657,8 +657,8 @@ body [class*="min-h-[100dvh]"] {
 .new-progress-tile > b { font-size: 14px; font-weight: 700; color: #1C1917; margin-top: 4px; }
 .new-progress-tile > small { font-size: 12px; color: #78716C; }
 .new-progress-tile.is-earned { background: #F7F3EE; }
-.new-progress-medal { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; color: #FFFFFF; font-size: 22px; font-weight: 800; position: relative; }
-.new-progress-medal::after { content: ''; position: absolute; inset: 4px; border-radius: 50%; border: 2px solid #FFFFFF; pointer-events: none; }
+.new-progress-medal { width: calc(56px * var(--new-progress-medal-scale, 1)); height: calc(56px * var(--new-progress-medal-scale, 1)); border-radius: 50%; display: grid; place-items: center; color: #FFFFFF; font-size: calc(22px * var(--new-progress-medal-scale, 1)); font-weight: 800; position: relative; }
+.new-progress-medal::after { content: ''; position: absolute; inset: calc(4px * var(--new-progress-medal-scale, 1)); border-radius: 50%; border: calc(2px * var(--new-progress-medal-scale, 1)) solid #FFFFFF; pointer-events: none; }
 .new-progress-tile.is-next { background: #FFFFFF; border: 1.5px solid #DDD6FE; }
 .new-progress-tile.is-next > small { font-weight: 700; color: #7C3AED; }
 .new-progress-tile-num { font-size: 22px; font-weight: 800; color: #A8A29E; }
