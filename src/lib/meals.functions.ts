@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
-import { mealInputSchema, mealForViewer, nutritionSchema, uniqueFoodResults, type Food, type MealSnapshot } from './meals';
+import { mealInputSchema, mealForViewer, nutritionSchema, uniqueFoodResults, rankFoodResults, type Food, type MealSnapshot } from './meals';
 import { mealAccess, loadMeals, visibleMealOwner, saveMealServer, attachmentSnapshot } from './meals.server';
 const idSchema=z.object({id:z.string().uuid()});
 export const getMeals=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({target:z.string().uuid().nullable().default(null),q:z.string().max(80).default(''),type:z.string().nullable().default(null),discover:z.boolean().default(false)}).parse(i)).handler(({context,data})=>loadMeals(context,data.target,data.q,data.type,data.discover));
@@ -30,7 +30,7 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));}
  else {
  // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
- const key=`v4:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
+ const key=`v5:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
  if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=cache.food_ids.flatMap(id=>{const row=rows?.find(r=>r.id===id);return row?[toFood(row as unknown as Record<string,unknown>)]:[];});}
  else {try {
  const {fetchUsda,normalizeUsdaFood,rankUsdaRows,distinctFoodNames}=await import('./usda-foods.server');
@@ -54,7 +54,8 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  await admin.from('meal_food_searches').upsert({query:key,food_ids:foods.map(f=>f.id)});
  }catch(e){console.error('[meals] Food search unavailable:', e instanceof Error ? e.message : 'Request failed');error=true;}}
  }
- return mealForViewer({under18,foods:uniqueFoodResults(foods),own:(own??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),error},under18);
+ const ranked=uniqueFoodResults(foods);const {data:counts}=ranked.length?await admin.from('meal_food_add_counts').select('food_id,adds').in('food_id',ranked.map(f=>f.id)):{data:[]};
+ return mealForViewer({under18,foods:rankFoodResults(ranked,Object.fromEntries((counts??[]).map(c=>[c.food_id,c.adds]))),own:(own??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),error},under18);
 });
 export const createOwnFood=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({name:z.string().trim().min(1).max(200),amount:z.number().positive().max(100000),unit:z.enum(['g','oz','cup','tbsp','tsp','piece','scoop']),nutrition:nutritionSchema}).parse(i)).handler(async({context,data})=>{
  const {admin,under18}=await mealAccess(context);const gramsPerUnit=data.unit==='oz'?28.349523125:data.unit==='g'?1:1;

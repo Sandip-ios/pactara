@@ -48,3 +48,7 @@ Cleanup verified: both temporary members restored then deleted; crew, meals/copi
 - Generic USDA names are cleaned the same way for every food (for example "White rice, medium-grain, cooked", "Chicken breast, cooked, braised"). Foods that would share a name but differ in numbers get a fuller name or a source note; identical ones collapse.
 - "1 food" singular on meal rows. Search cache cleared so Recent and meal cards use the cleaned names.
 - Retaken: 76c, 76m, 75m, 75n. Full suite 1,126 passed, typecheck clean.
+
+## Ranking and portions follow-up (Nov 27)
+- Search sorts by how often members add each food, then foods with a household portion, then tier and name match. Starting portion prefers cup, then piece/slice/medium, then tbsp, then grams; size notes in brackets are dropped from unit names.
+- Retaken: 76c, 76d, 76m.

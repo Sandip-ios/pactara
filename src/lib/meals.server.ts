@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isUnder18 } from './redesign-profile';
-import { foodPortions, mealForViewer, mealCopyCredit, buildSnapshot, type Meal, type Food, type MealInput, type MealFood, type MealSnapshot, type Nutrition } from './meals';
+import { foodPortions, newlyAddedFoodIds, mealForViewer, mealCopyCredit, buildSnapshot, type Meal, type Food, type MealInput, type MealFood, type MealSnapshot, type Nutrition } from './meals';
 type Context={supabase:SupabaseClient;userId:string};
 export async function mealAccess(context:Context) {
  const {data:prefs,error}=await context.supabase.rpc('get_my_app_prefs'); if(error) throw new Error('Could not load your settings');
@@ -53,6 +53,8 @@ export async function saveMealServer(context:Context,input:MealInput) {
  const result=old?await admin.from('meals').update(payload).eq('id',old.id).eq('user_id',context.userId).select('id').single():await admin.from('meals').insert({...payload,user_id:context.userId}).select('id').single();
  if(result.error||!result.data) throw new Error("Couldn't save the meal. Try again.");
  await admin.from('meal_food_recent').upsert(ids.filter(id=>!id.startsWith('legacy-')).map(food_id=>({user_id:context.userId,food_id,used_at:new Date().toISOString()})));
+ const added=newlyAddedFoodIds(foods.map(f=>f.foodId),previous?.foods.map(f=>f.foodId)??[]).filter(id=>id.startsWith('usda:'));
+ if(added.length)await admin.rpc('bump_meal_food_adds',{_ids:added});
  return {id:result.data.id};
 }
 export async function attachmentSnapshot(context:Context,kind:'post'|'checkin',id:string):Promise<MealSnapshot|null> {

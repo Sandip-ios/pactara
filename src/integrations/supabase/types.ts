@@ -875,6 +875,24 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_food_add_counts: {
+        Row: {
+          adds: number
+          food_id: string
+          updated_at: string
+        }
+        Insert: {
+          adds?: number
+          food_id: string
+          updated_at?: string
+        }
+        Update: {
+          adds?: number
+          food_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meal_food_recent: {
         Row: {
           food_id: string
@@ -2617,6 +2635,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bump_meal_food_adds: { Args: { _ids: string[] }; Returns: undefined }
       caller_on_new_version: { Args: never; Returns: boolean }
       can_read_follow_notification: {
         Args: { actor: string; recipient: string }

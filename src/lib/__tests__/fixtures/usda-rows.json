@@ -1,0 +1,244 @@
+{
+ "rice white medium grain cooked": {
+  "fdcId": 168930,
+  "description": "Rice, white, medium-grain, cooked, unenriched",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 1.0,
+    "gramWeight": 186.0,
+    "modifier": "cup",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 130.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 2.38
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 0.21
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 28.59
+   }
+  ]
+ },
+ "rice puffed": {
+  "fdcId": 2779256,
+  "description": "Brown rice, puffed",
+  "dataType": "Foundation",
+  "foodPortions": [],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 7.8125
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 2.76
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 80.2625
+   }
+  ]
+ },
+ "broccoli cooked boiled drained without salt": {
+  "fdcId": 169967,
+  "description": "Broccoli, cooked, boiled, drained, without salt",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 1.0,
+    "gramWeight": 280.0,
+    "modifier": "stalk, large (11\"-12\" long)",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 37.0,
+    "modifier": "spear (about 5\" long)",
+    "portionDescription": null
+   },
+   {
+    "amount": 0.5,
+    "gramWeight": 78.0,
+    "modifier": "cup, chopped",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 180.0,
+    "modifier": "stalk, medium (7-1/2\" - 8\" long)",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 140.0,
+    "modifier": "stalk, small (5\" long)",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 35.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 2.38
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 0.41
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 7.18
+   }
+  ]
+ },
+ "chicken breast skinless boneless braised": {
+  "fdcId": 171140,
+  "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 3.0,
+    "gramWeight": 85.0,
+    "modifier": "oz",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 181.0,
+    "modifier": "piece",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 157.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 32.06
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 3.24
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 0.0
+   }
+  ]
+ },
+ "egg whole raw fresh": {
+  "fdcId": 171287,
+  "description": "Egg, whole, raw, fresh",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 1.0,
+    "gramWeight": 243.0,
+    "modifier": "cup (4.86 large eggs)",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 44.0,
+    "modifier": "medium",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 56.0,
+    "modifier": "extra large",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 38.0,
+    "modifier": "small",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 63.0,
+    "modifier": "jumbo",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 50.0,
+    "modifier": "large",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 143.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 12.56
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 9.51
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 0.72
+   }
+  ]
+ }
+}
