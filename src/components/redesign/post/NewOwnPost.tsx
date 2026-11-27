@@ -15,6 +15,8 @@ import { CrewAvatar } from "../CrewAvatars";
 import { PostCarousel, PostWorkoutCard, INK, MUTED, PostTopBar } from "./PostBits";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { PostSubline } from "./PostTags";
+import { useRemoveMe } from "./use-remove-me";
 import { PostMealCard } from "./PostSections";
 import { PostCommentsSheet } from "./PostComments";
 
@@ -32,6 +34,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const canComment = !!post && post.commentsOn && post.audience !== "only_me";
   const preview = useLibraryFirstComment(postId, post?.comments ?? 0, canComment);
   const save = useFeedSave("post", postId, post?.savedByMe);
+  const remove = useRemoveMe(post ?? null);
   const back = () => (router.history.canGoBack() ? router.history.back() : void navigate({ to: "/profile" }));
 
   if (isLoading) return <div className="fixed inset-0 bg-white" aria-busy="true" />;
@@ -63,7 +66,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
         left={<Button variant="ghost" aria-label="Back" onClick={back} className="new-profile-menu-button"><ChevronLeft size={22} /></Button>}
         right={post.isMine ? <button type="button" aria-label="Post options" onClick={() => setMenu(true)} className="flex h-11 w-11 items-center justify-center"><MoreHorizontal size={22} /></button> : (
           <span className="[&>button]:h-11! [&>button]:w-11! [&>button]:min-w-11! [&>button]:bg-transparent! [&>button]:p-0 [&>button>svg]:size-[22px]!">
-            <SafetyActions target={{ userId: post.author.id, name: post.author.name, avatarUrl: post.author.avatarUrl, avatarColor: post.author.avatarColor, groupId: post.viewerCrews[0]?.id ?? "", type: "post", targetId: post.id, update: true }} />
+            <SafetyActions target={{ userId: post.author.id, name: post.author.name, avatarUrl: post.author.avatarUrl, avatarColor: post.author.avatarColor, groupId: post.viewerCrews[0]?.id ?? "", type: "post", targetId: post.id, update: true, removeMe: remove.canRemove ? remove.run : undefined }} />
           </span>
         )}
       />
@@ -71,7 +74,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
         <CrewAvatar member={post.author} size={36} />
         <div className="min-w-0">
           <div className="truncate text-[15px] font-bold">{post.isMine ? "You" : post.author.name}</div>
-          <div className="text-[12px]" style={{ color: MUTED }}>{postSubline(post.audience, post.viewerCrews, clock(post.createdAt))}</div>
+          <PostSubline post={remove.post ?? post} viewerId={remove.viewerId} rest={postSubline(post.audience, post.viewerCrews, clock(post.createdAt))} />
         </div>
       </div>
       <PostCarousel items={post.items} />

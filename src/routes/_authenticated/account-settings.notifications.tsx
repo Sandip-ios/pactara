@@ -19,6 +19,7 @@ import {
 } from "@/lib/push-client";
 import { SubPage, Flash, useFlash } from "@/components/account/SettingsKit";
 import { isNative } from "@/lib/native";
+import { useAppVersion } from "@/hooks/use-app-version";
 
 const PURPLE = "#7C3AED";
 const LABEL = "#8A8580";
@@ -39,12 +40,14 @@ type Prefs = {
   workout_complete_enabled: boolean;
   nudges_enabled: boolean;
   group_milestones_enabled: boolean;
+  tags_enabled: boolean;
 };
 
 function NotificationsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { msg, flash } = useFlash();
+  const version = useAppVersion();
 
   const { data } = useQuery({
     queryKey: ["notification-prefs"],
@@ -224,6 +227,17 @@ function NotificationsPage() {
         />
       </Card>
 
+      {version === "new" && <>
+        <SectionLabel>PEOPLE</SectionLabel>
+        <Card>
+          <ToggleRow
+            title="Tags"
+            subtitle="When someone tags you in a post"
+            value={prefs.tags_enabled}
+            onChange={(v) => save.mutate({ tags_enabled: v })}
+          />
+        </Card>
+      </>}
 
       <p className="text-[12px] text-neutral-400 mt-4 px-1">
         Changes save automatically.

@@ -25,7 +25,8 @@ type PrefColumn =
   | "workout_start_enabled"
   | "workout_complete_enabled"
   | "nudges_enabled"
-  | "group_milestones_enabled";
+  | "group_milestones_enabled"
+  | "tags_enabled";
 
 /** Filter a list of user ids down to those who opted in to this kind of push. */
 export async function filterOptedIn(

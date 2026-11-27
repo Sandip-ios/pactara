@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -960,6 +955,7 @@ export type Database = {
           morning_ritual_reminder_enabled: boolean
           nudges_enabled: boolean
           push_enabled: boolean
+          tags_enabled: boolean
           updated_at: string
           user_id: string
           workout_complete_enabled: boolean
@@ -974,6 +970,7 @@ export type Database = {
           morning_ritual_reminder_enabled?: boolean
           nudges_enabled?: boolean
           push_enabled?: boolean
+          tags_enabled?: boolean
           updated_at?: string
           user_id: string
           workout_complete_enabled?: boolean
@@ -988,6 +985,7 @@ export type Database = {
           morning_ritual_reminder_enabled?: boolean
           nudges_enabled?: boolean
           push_enabled?: boolean
+          tags_enabled?: boolean
           updated_at?: string
           user_id?: string
           workout_complete_enabled?: boolean
@@ -1947,14 +1945,20 @@ export type Database = {
       }
       social_post_tags: {
         Row: {
+          created_at: string
+          notified_at: string | null
           post_id: string
           user_id: string
         }
         Insert: {
+          created_at?: string
+          notified_at?: string | null
           post_id: string
           user_id: string
         }
         Update: {
+          created_at?: string
+          notified_at?: string | null
           post_id?: string
           user_id?: string
         }
@@ -2505,6 +2509,15 @@ export type Database = {
         Args: { _post_id: string; _viewer: string }
         Returns: boolean
       }
+      can_tag_user: {
+        Args: {
+          _audience: string
+          _author: string
+          _group_ids: string[]
+          _target: string
+        }
+        Returns: boolean
+      }
       can_use_home_checkin: { Args: { _id: string }; Returns: boolean }
       can_view_new_shared_checkin: { Args: { _id: string }; Returns: boolean }
       cancel_crew_join_request: {
@@ -2535,6 +2548,10 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      claim_social_post_tag_pushes: {
+        Args: { _post_id: string }
+        Returns: string[]
       }
       complete_crew_join_goal: {
         Args: { _goal?: string; _group_id: string }
@@ -2698,6 +2715,10 @@ export type Database = {
         }
         Returns: Json
       }
+      get_taggable_people: {
+        Args: { _audience: string; _group_ids: string[] }
+        Returns: Json
+      }
       get_usernames: {
         Args: { _ids: string[] }
         Returns: {
@@ -2737,6 +2758,7 @@ export type Database = {
         Args: { candidate: string }
         Returns: boolean
       }
+      is_under_18: { Args: { _user: string }; Returns: boolean }
       leave_crew: { Args: { _group_id: string }; Returns: undefined }
       list_profile_follows: {
         Args: {
@@ -2792,9 +2814,14 @@ export type Database = {
           crew_id: string
         }[]
       }
+      prune_social_post_tags: { Args: { _post_id: string }; Returns: undefined }
       random_share_code: { Args: never; Returns: string }
       refresh_pactara_workouts: { Args: never; Returns: number }
       remove_follower: { Args: { follower: string }; Returns: undefined }
+      remove_me_from_social_post: {
+        Args: { _post_id: string }
+        Returns: undefined
+      }
       report_new_home_post: {
         Args: {
           _block: boolean
@@ -2844,6 +2871,10 @@ export type Database = {
       }
       set_social_post_pin: {
         Args: { _pinned: boolean; _post_id: string }
+        Returns: undefined
+      }
+      set_social_post_tags: {
+        Args: { _post_id: string; _tags: string[] }
         Returns: undefined
       }
       shares_active_crew_with: {
@@ -3028,3 +3059,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

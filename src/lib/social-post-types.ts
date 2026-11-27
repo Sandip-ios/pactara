@@ -49,4 +49,6 @@ export type SocialPostView = {
   comments: number;
   saves: number;
   savedByMe: boolean;
+  /** People tagged in the post the viewer may see (blocked pairs left out). */
+  tagged: { id: string; name: string; username: string | null; avatarUrl: string | null; avatarColor: string }[];
 };

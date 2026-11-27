@@ -14,6 +14,8 @@ import { PostCarousel, PostWorkoutCard, INK, MUTED } from "./PostBits";
 import { PostCommentsSheet } from "./PostComments";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { PostSubline } from "./PostTags";
+import { useRemoveMe } from "./use-remove-me";
 import { PostMealCard } from "./PostSections";
 import { FollowPill } from "../FollowPill";
 import { MoreHorizontal } from "lucide-react";
@@ -29,6 +31,8 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
   const preview = useLibraryFirstComment(post.id, post.comments, canComment);
   const save = useFeedSave("post", post.id, post.savedByMe);
   const firstName = post.author.name.split(" ")[0] || "Member";
+  const remove = useRemoveMe(post);
+  const shown = remove.post;
   const cheer = async () => {
     const next = !cheered;
     setCheered(next);
@@ -43,7 +47,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
         </MemberProfileLink>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-bold leading-tight">{post.isMine ? "You" : post.author.name}</div>
-          <div className="truncate text-[12px]" style={{ color: MUTED }}>{postSubline(post.audience, post.viewerCrews, clock(post.createdAt))}</div>
+          <PostSubline post={shown} viewerId={remove.viewerId} rest={postSubline(post.audience, post.viewerCrews, clock(post.createdAt))} />
         </div>
         {showFollow && !post.isMine && <FollowPill userId={post.author.id} />}
         {post.isMine && (
@@ -51,7 +55,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
         )}
         {!post.isMine && (
           <span className="-mr-2 shrink-0 [&>button]:h-9 [&>button]:w-9 [&>button]:min-w-9 [&>button]:bg-transparent! [&>button]:p-0 [&>button]:text-[var(--new-muted)]! [&>button>svg]:size-5">
-            <SafetyActions target={{ userId: post.author.id, name: post.author.name, avatarUrl: post.author.avatarUrl, avatarColor: post.author.avatarColor, groupId, type: "post", targetId: post.id, update: true }} />
+            <SafetyActions target={{ userId: post.author.id, name: post.author.name, avatarUrl: post.author.avatarUrl, avatarColor: post.author.avatarColor, groupId, type: "post", targetId: post.id, update: true, removeMe: remove.canRemove ? remove.run : undefined }} />
           </span>
         )}
       </header>

@@ -220,6 +220,7 @@ type NotificationPrefs = {
   workout_complete_enabled: boolean;
   nudges_enabled: boolean;
   group_milestones_enabled: boolean;
+  tags_enabled: boolean;
 };
 
 const DEFAULT_PREFS: NotificationPrefs = {
@@ -233,10 +234,11 @@ const DEFAULT_PREFS: NotificationPrefs = {
   workout_complete_enabled: false,
   nudges_enabled: true,
   group_milestones_enabled: true,
+  tags_enabled: true,
 };
 
 const PREF_COLUMNS =
-  "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled, morning_ritual_reminder_enabled, workout_start_enabled, workout_complete_enabled, nudges_enabled, group_milestones_enabled";
+  "push_enabled, email_enabled, daily_reminder_enabled, daily_reminder_time, group_activity_enabled, morning_ritual_reminder_enabled, workout_start_enabled, workout_complete_enabled, nudges_enabled, group_milestones_enabled, tags_enabled";
 
 const BOOLEAN_PREFS = [
   "push_enabled",
@@ -248,6 +250,7 @@ const BOOLEAN_PREFS = [
   "workout_complete_enabled",
   "nudges_enabled",
   "group_milestones_enabled",
+  "tags_enabled",
 ] as const;
 
 export const getNotificationPrefs = createServerFn({ method: "GET" })

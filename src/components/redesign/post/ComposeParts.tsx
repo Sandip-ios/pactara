@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Globe, Lock, Users, UserCheck, Tag, MessageCircleOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPostComposeContext, getTaggablePeople } from "@/lib/posts.functions";
 import { audienceLabel, audienceOptions, defaultAudience, selectAudience, type AudienceContext, type PostAudience } from "@/lib/post-audience";
 import { cn } from "@/lib/utils";
+import { pruneTags, tagRowLabel } from "@/lib/post-tags";
+import { TagPeopleSheet } from "./PostTags";
 import { NewSheet, NewSheetCheckbox, NewSheetRadio, NewSheetRow } from "../NewSheet";
 import { MUTED } from "./PostBits";
 
@@ -63,29 +65,30 @@ export function WhoSeesIt({ ctx, audience, onChange, showTitle = true }: { ctx: 
   </section>;
 }
 
-/** "Tag people ›" and "Comments On ›" rows with their sheets. */
-export function PostOptionRows({ tags, setTags, commentsOn, setCommentsOn }: { tags: string[]; setTags: (t: string[]) => void; commentsOn: boolean; setCommentsOn: (on: boolean) => void }) {
+/** "Tag people ›" and "Comments On ›" rows with their sheets. Only people who can see the post with this audience are listed. */
+export function PostOptionRows({ tags, setTags, commentsOn, setCommentsOn, audience }: { tags: string[]; setTags: (t: string[]) => void; commentsOn: boolean; setCommentsOn: (on: boolean) => void; audience: PostAudience }) {
   const [tagOpen, setTagOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
-  const people = useQuery({ queryKey: ["post-taggable"], queryFn: () => getTaggablePeople(), enabled: tagOpen, staleTime: 60_000 });
+  const people = useQuery({ queryKey: ["post-taggable", audience.kind, audience.crewIds.join(",")], queryFn: () => getTaggablePeople({ data: { audience: audience.kind, crewIds: audience.crewIds } }), enabled: audience.kind !== "only_me", staleTime: 60_000 });
+  const allowed = people.data?.map((p) => p.id) ?? null;
+  // Audience changed: drop tags for people who can no longer see the post.
+  useEffect(() => {
+    const next = pruneTags(tags, audience.kind, allowed);
+    if (next.length !== tags.length) setTags(next);
+  }, [allowed?.join(","), audience.kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  const names = tags.map((id) => people.data?.find((p) => p.id === id)?.name).filter((n): n is string => !!n);
   const row = "flex h-auto w-full items-center justify-between gap-3 rounded-none px-0 py-3.5 text-left text-[15px] font-semibold hover:bg-transparent";
   return (
     <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] px-4 text-[var(--new-ink-deep)]">
       <Button variant="ghost" className={`${row} border-b border-[var(--new-divider)]`} onClick={() => setTagOpen(true)}>
-        <Tag className="!size-5 shrink-0" /><span className="flex-1">Tag people</span>
-        <span className="flex items-center gap-1 text-[14px] font-normal" style={{ color: MUTED }}>{tags.length ? `${tags.length} tagged` : ""}<ChevronRight className="!size-4" style={{ color: "var(--new-chevron)" }} /></span>
+        <Tag className="!size-5 shrink-0" /><span className="shrink-0">Tag people</span>
+        <span className="flex min-w-0 flex-1 items-center justify-end gap-1 text-[14px] font-normal" style={{ color: "var(--new-disabled-text)" }}><span className="truncate">{tagRowLabel(names)}</span><ChevronRight className="!size-4 shrink-0" style={{ color: "var(--new-chevron)" }} /></span>
       </Button>
+      <TagPeopleSheet open={tagOpen} onOpenChange={setTagOpen} people={people.data ?? []} loading={people.isLoading} tags={tags} onDone={setTags} />
       <Button variant="ghost" className={row} onClick={() => setCommentsOpen(true)}>
         <MessageCircleOff className="!size-5 shrink-0" /><span className="flex-1">Comments</span>
         <span className="flex items-center gap-1 text-[14px] font-normal" style={{ color: MUTED }}>{commentsOn ? "On" : "Off"}<ChevronRight className="!size-4" style={{ color: "var(--new-chevron)" }} /></span>
       </Button>
-      <NewSheet open={tagOpen} onOpenChange={setTagOpen} title="Tag people" subtitle="Your crewmates" compose>
-        {people.isLoading ? <div className="h-24 animate-pulse rounded-[16px] bg-[var(--new-control)]" /> : (people.data ?? []).length === 0 ? (
-          <p className="py-3 text-[14px]" style={{ color: MUTED }}>No one to tag yet.</p>
-        ) : (people.data ?? []).map((p) => (
-          <NewSheetRow key={p.id} simple title={p.name} trailing={<NewSheetCheckbox checked={tags.includes(p.id)} canvas />} onClick={() => setTags(tags.includes(p.id) ? tags.filter((t) => t !== p.id) : [...tags, p.id])} />
-        ))}
-      </NewSheet>
       <NewSheet open={commentsOpen} onOpenChange={setCommentsOpen} title="Comments" compose>
         <NewSheetRow simple title="On" trailing={<NewSheetRadio checked={commentsOn} />} onClick={() => { setCommentsOn(true); setCommentsOpen(false); }} />
         <NewSheetRow simple title="Off" trailing={<NewSheetRadio checked={!commentsOn} />} onClick={() => { setCommentsOn(false); setCommentsOpen(false); }} />

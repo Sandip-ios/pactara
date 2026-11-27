@@ -75,6 +75,7 @@ export function NewActivity() {
   const allRows: ActivityRow[] = [
     ...data.crew.map(i => ({ key: i.key, kind: i.kind, actorId: i.actorId, name: i.actorName, avatar: i.actorAvatarUrl, text: i.text, createdAt: i.createdAt, read: i.read, groupId: i.groupId, groupName: i.groupName, postId: i.postId, commentId: i.commentId, checkInId: i.checkInId ?? null, targetId: null, media: i.mediaUrl, mediaKind: i.mediaKind, canFollow: false, canCheckIn: false, relationship: 'none' })),
     ...data.follows.map(i => ({ ...i, kind: i.kind as ActivityDeepLinkKind, name: i.actorName, groupId: null, groupName: '', postId: null, commentId: null, targetId: null, media: null, mediaKind: null, canCheckIn: false })),
+    ...data.tags.map(i => ({ key: i.key, kind: 'tag' as const, actorId: i.actorId, name: i.actorName, avatar: i.avatar, text: 'tagged you in a post', createdAt: i.createdAt, read: true, groupId: null, groupName: '', postId: i.postId, commentId: null, checkInId: null, targetId: null, media: i.media, mediaKind: i.mediaKind, canFollow: false, canCheckIn: false, relationship: 'none' })),
     ...data.items.map(i => ({ ...i, name: i.actorName, postId: null, commentId: null, targetId: i.targetId ?? null, media: null, mediaKind: null, canFollow: false, relationship: 'none' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   // Own actions and individual pending follow requests never show as rows; the summary row covers the latter.
@@ -100,6 +101,11 @@ export function NewActivity() {
       if (row.grouped && row.kind === 'follow' && !profileOnly) {
         try { sessionStorage.setItem('activity-return-scroll', JSON.stringify({ index: activityIndex, top: scroll.current?.scrollTop ?? 0 })); } catch { /* private mode */ }
         await navigate({ href: `/u/${user.id}/follows?socialTab=followers` });
+        return;
+      }
+      if (row.kind === 'tag' && row.postId) {
+        try { sessionStorage.setItem('activity-return-scroll', JSON.stringify({ index: activityIndex, top: scroll.current?.scrollTop ?? 0 })); } catch { /* private mode */ }
+        await navigate({ href: withActivityReturn(`/post/${row.postId}`) });
         return;
       }
       const destination = await resolve({ data: {

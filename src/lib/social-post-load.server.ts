@@ -21,6 +21,7 @@ export async function loadSocialPostsForViewer(
     { data: saves },
     { data: authors },
     { data: memberRows },
+    { data: tagRows },
   ] = await Promise.all([
     supabase.from("social_post_items").select("*").in("post_id", ids).order("position"),
     supabase.from("social_post_crews").select("post_id, group_id").in("post_id", ids),
@@ -52,7 +53,16 @@ export async function loadSocialPostsForViewer(
         return { data: [...((data ?? []) as Row[]), ...extra.filter(Boolean)] as Row[] };
       }),
     supabase.from("group_members").select("group_id, groups!inner(name)").eq("user_id", userId),
+    supabase.from("social_post_tags").select("post_id, user_id, created_at").in("post_id", ids).order("created_at"),
   ]);
+  const tagUserIds = [...new Set(((tagRows ?? []) as Row[]).map((t) => t["user_id"] as string))];
+  const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
+  const { blockedPairs } = await import("./safety.server");
+  const [{ data: tagProfiles }, blocked] = tagUserIds.length
+    ? await Promise.all([admin.from("profiles").select("id, name, username, avatar_url, avatar_color").in("id", tagUserIds), blockedPairs(admin, userId)])
+    : [{ data: [] as Row[] }, new Set<string>()];
+  const tagAvatars = await signAvatarThumbs(admin, ((tagProfiles ?? []) as Row[]).map((p) => p["avatar_url"] as string | null));
+  const tagProfile = new Map(((tagProfiles ?? []) as Row[]).map((p) => [p["id"] as string, p]));
   const paths = ((items ?? []) as Row[]).flatMap((i) =>
     [i["path"] as string, i["poster_path"] as string | null].filter((p): p is string => !!p),
   );
@@ -133,6 +143,19 @@ export async function loadSocialPostsForViewer(
       savedByMe: ((saves ?? []) as Row[]).some(
         (c) => c["post_id"] === id && c["user_id"] === userId,
       ),
+      tagged: ((tagRows ?? []) as Row[])
+        .filter((t) => t["post_id"] === id && !blocked.has(t["user_id"] as string) && tagProfile.has(t["user_id"] as string))
+        .map((t) => {
+          const p = tagProfile.get(t["user_id"] as string)!;
+          const av = (p["avatar_url"] as string | null) ?? null;
+          return {
+            id: p["id"] as string,
+            name: ((p["name"] as string | null) ?? "").trim() || (p["username"] as string | null) || "Member",
+            username: (p["username"] as string | null) ?? null,
+            avatarUrl: av ? (av.startsWith("http") ? av : (tagAvatars.get(av) ?? null)) : null,
+            avatarColor: (p["avatar_color"] as string | null) ?? "#7C3AED",
+          };
+        }),
     };
   });
 }

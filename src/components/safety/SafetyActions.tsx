@@ -18,6 +18,8 @@ export type SafetyTarget = {
   userId: string; name: string; avatarUrl: string | null; avatarColor: string;
   groupId: string; type: 'user' | 'post' | 'comment'; targetId: string | null;
   update?: boolean; crewNames?: string[];
+  /** New-version library posts: the viewer is tagged and may remove themselves. */
+  removeMe?: () => void;
 };
 
 export function useSafetyState() {
@@ -115,6 +117,7 @@ export function SafetyActions({ target, initialOpen = false, onClose }: { target
             <div className="safety-menu-heading"><DrawerTitle className="safety-menu-title">{title}</DrawerTitle><DrawerDescription className={target.type === 'comment' ? 'sr-only' : 'safety-menu-description'}>{target.type === 'comment' ? `Options for ${firstName}'s comment` : 'Only you see what you choose here.'}</DrawerDescription></div>
             <div className="safety-menu-group">
               {target.type === 'post' && <><Button variant="ghost" className="safety-button safety-menu-row" disabled={busy} onClick={() => void hide()}>Hide this post</Button><div className="safety-menu-rule" /></>}
+              {target.type === 'post' && target.removeMe && <><Button variant="ghost" className="safety-button safety-menu-row h-auto! flex-col items-start! py-3!" disabled={busy} onClick={() => { setOpen(false); target.removeMe?.(); }}><span>Remove me from this post</span><span className="text-[13px] font-normal text-[var(--new-muted)]">Your name comes off. The post stays.</span></Button><div className="safety-menu-rule" /></>}
               <Button variant="ghost" className="safety-button safety-menu-row" onClick={() => setMode('report')}>{target.type === 'comment' ? 'Report comment' : 'Report this post'}</Button><div className="safety-menu-rule" />
               <Button variant="ghost" className="safety-button safety-menu-row safety-menu-block" onClick={chooseBlock}>Block {firstName}</Button>
             </div>

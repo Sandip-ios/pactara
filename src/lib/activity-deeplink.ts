@@ -5,7 +5,7 @@ export type ActivityDeepLinkKind =
   | "nudge" | "reminder" | "crew_request" | "crew_approved"
   | "pact_signed" | "pact_restart" | "pact_complete" | "join"
   | "milestone" | "follow" | "follow_request" | "follow_accepted"
-  | "message" | "plan_invite";
+  | "message" | "plan_invite" | "tag";
 
 export type ActivityDeepLinkInput = {
   kind: ActivityDeepLinkKind;

@@ -98,7 +98,7 @@ export function NewPostCompose() {
       </section>
       <WorkoutAttachment ctx={ctx.data} suggestions={moves} workout={workout} onChange={setWorkout} />
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
-      {audience.kind !== "only_me" && <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}
+      {audience.kind !== "only_me" && <PostOptionRows audience={audience} tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}
       {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}
       {err && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{err}</p>}
 

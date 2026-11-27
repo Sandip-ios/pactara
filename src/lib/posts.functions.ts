@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { bestExerciseMatch, parseCaptionMoves } from "./caption-workout";
 import type { AudienceKind, PostAudience } from "./post-audience";
+import type { TaggablePerson } from "./post-tags";
 import { isUnder18 } from "./redesign-profile";
 import { signAvatarThumbs } from "./media-urls";
 import { stabilizeSignedUrls } from "./stable-urls";
@@ -185,7 +186,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
       _comments_on: data.commentsOn !== false, _tags: data.tags ?? [], _skip_discover: !!data.skipDiscover,
     });
     if (error || !id) throw new Error(error?.message ?? "Couldn't post");
-    if (!items.length) await notifyCredit(supabase, context.userId, id as string);
+    if (!items.length) { await notifyCredit(supabase, context.userId, id as string); await notifyTags(supabase, context.userId, id as string); }
     return { id: id as string };
   });
 
@@ -205,6 +206,25 @@ async function notifyCredit(supabase: SupabaseClient, userId: string, postId: st
   }
 }
 
+/** Claims never-notified tags of a live post (one push per person per post) and pushes those with Tags on. */
+async function notifyTags(supabase: SupabaseClient, userId: string, postId: string) {
+  try {
+    const { data: claimed } = await supabase.rpc("claim_social_post_tag_pushes", { _post_id: postId });
+    const ids = ((claimed ?? []) as unknown[]).map((x) => (typeof x === "string" ? x : (x as Row)["claim_social_post_tag_pushes"] as string)).filter(Boolean);
+    if (!ids.length) return;
+    const [{ data: me }, { data: post }] = await Promise.all([
+      supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
+      supabase.from("social_posts").select("caption").eq("id", postId).maybeSingle(),
+    ]);
+    const { tagPushText } = await import("./post-tags");
+    const { notifyUsers } = await import("./notify.server");
+    const text = tagPushText((me?.["name"] as string | null) ?? "", (post?.["caption"] as string | null) ?? "");
+    await notifyUsers(ids, { ...text, url: `/post/${postId}`, newUrl: `/post/${postId}`, actorUserId: userId } as Parameters<typeof notifyUsers>[1], "tags_enabled");
+  } catch (e) {
+    console.error("[posts] tag push failed", e);
+  }
+}
+
 /** Step 2: media is up (live) or failed (Retry). */
 export const finalizeSocialPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -213,7 +233,7 @@ export const finalizeSocialPost = createServerFn({ method: "POST" })
     const supabase = sb(context.supabase);
     const { error } = await supabase.from("social_posts").update({ status: data.ok ? "live" : "failed" }).eq("id", data.id).eq("user_id", context.userId);
     if (error) throw new Error(error.message);
-    if (data.ok) await notifyCredit(supabase, context.userId, data.id);
+    if (data.ok) { await notifyCredit(supabase, context.userId, data.id); await notifyTags(supabase, context.userId, data.id); }
     return { ok: true };
   });
 
@@ -372,20 +392,41 @@ export const addSocialPostComment = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** People you can tag: your crewmates (blocked pairs excluded by the profile read). */
+/** People you can tag for this audience: crewmates of the chosen crews, plus people you follow for Everyone. The database rechecks every rule. */
 export const getTaggablePeople = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .inputValidator((input: { audience: AudienceKind; crewIds: string[] }) => ({ audience: input?.audience ?? "only_me", crewIds: (input?.crewIds ?? []).map(String) }))
+  .handler(async ({ context, data }) => {
+    if (data.audience === "only_me") return [];
     const supabase = sb(context.supabase);
-    const crews = await myCrews(supabase, context.userId);
-    if (!crews.length) return [];
-    const { data: members } = await supabase.from("group_members").select("user_id").in("group_id", crews.map((c) => c.id));
-    const ids = [...new Set(((members ?? []) as Row[]).map((m) => m["user_id"] as string))].filter((id) => id !== context.userId);
-    if (!ids.length) return [];
-    const { blockedPairs } = await import("./safety.server");
-    const blocked = await blockedPairs(supabase, context.userId);
-    const { data: people } = await supabase.from("profiles").select("id, name").in("id", ids.filter((id) => !blocked.has(id)));
-    return ((people ?? []) as Row[]).map((p) => ({ id: p["id"] as string, name: (p["name"] as string) || "Member" }));
+    const { data: rows, error } = await supabase.rpc("get_taggable_people", { _audience: data.audience, _group_ids: data.crewIds });
+    if (error) throw new Error("Couldn't load people");
+    const people = (rows ?? []) as unknown as TaggablePerson[];
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const avatars = await signAvatarThumbs(supabaseAdmin, people.map((p) => p.avatar));
+    return people.map((p) => ({ ...p, avatar: p.avatar ? (p.avatar.startsWith("http") ? p.avatar : avatars.get(p.avatar) ?? null) : null }));
+  });
+
+/** Edit tags on your post: existing tags keep their notified state; only newly added people get a push. */
+export const setSocialPostTags = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; tags: string[] }) => ({ id: String(input.id), tags: (input.tags ?? []).map(String).slice(0, 50) }))
+  .handler(async ({ context, data }) => {
+    const supabase = sb(context.supabase);
+    const { error } = await supabase.rpc("set_social_post_tags", { _post_id: data.id, _tags: data.tags });
+    if (error) throw new Error(error.message);
+    await notifyTags(supabase, context.userId, data.id);
+    return { ok: true };
+  });
+
+/** Remove me from this post: no confirm, the author isn't told. */
+export const removeMeFromSocialPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => ({ id: String(input.id) }))
+  .handler(async ({ context, data }) => {
+    const { error } = await sb(context.supabase).rpc("remove_me_from_social_post", { _post_id: data.id });
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 /** Audience edits are atomic and recheck ownership, membership, age and video limits. */
@@ -406,4 +447,49 @@ export const searchPostExercises = createServerFn({ method: "GET" })
     const { data: rows, error } = await sb(context.supabase).from("exercises").select("id, name, image_start").or(`owner_id.is.null,owner_id.eq.${context.userId}`).ilike("name", `%${data.query}%`).order("name").limit(30);
     if (error) throw new Error(error.message);
     return ((rows ?? []) as Row[]).map(r => ({ exerciseId: r["id"] as string, name: r["name"] as string, imageStart: r["image_start"] as string | null, sets: 3, reps: 10 }));
+  });
+
+/** Activity rows for posts you're tagged in. Read live, so a removed tag, deleted, hidden or blocked post drops out. */
+export const getTagActivity = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const supabase = sb(context.supabase);
+    const { data: tags } = await supabase.from("social_post_tags").select("post_id, created_at").eq("user_id", context.userId).order("created_at", { ascending: false }).limit(60);
+    const ids = ((tags ?? []) as Row[]).map((t) => t["post_id"] as string);
+    if (!ids.length) return [];
+    const [{ data: posts }, { data: hidden }, { data: items }] = await Promise.all([
+      supabase.from("social_posts").select("id, user_id, status").in("id", ids).eq("status", "live"),
+      supabase.from("hidden_posts").select("post_id").eq("user_id", context.userId).in("post_id", ids),
+      supabase.from("social_post_items").select("post_id, kind, path, poster_path, position").in("post_id", ids).order("position"),
+    ]);
+    const hiddenIds = new Set(((hidden ?? []) as Row[]).map((h) => h["post_id"] as string));
+    const live = new Map(((posts ?? []) as Row[]).filter((p) => p["user_id"] !== context.userId && !hiddenIds.has(p["id"] as string)).map((p) => [p["id"] as string, p["user_id"] as string]));
+    const { blockedPairs } = await import("./safety.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const blocked = await blockedPairs(supabaseAdmin, context.userId);
+    const authorIds = [...new Set([...live.values()])].filter((id) => !blocked.has(id));
+    const { data: authors } = authorIds.length ? await supabaseAdmin.from("profiles").select("id, name, username, avatar_url").in("id", authorIds) : { data: [] };
+    const byAuthor = new Map(((authors ?? []) as Row[]).map((a) => [a["id"] as string, a]));
+    const firstItem = new Map<string, Row>();
+    for (const i of (items ?? []) as Row[]) if (!firstItem.has(i["post_id"] as string)) firstItem.set(i["post_id"] as string, i);
+    const thumbPaths = [...firstItem.values()].map((i) => (i["kind"] === "video" ? i["poster_path"] : i["path"]) as string | null).filter((p): p is string => !!p);
+    const { signFeedMedia } = await import("./media-urls");
+    const [signed, avatars] = await Promise.all([signFeedMedia(supabase, thumbPaths, "posts"), signAvatarThumbs(supabaseAdmin, ((authors ?? []) as Row[]).map((a) => a["avatar_url"] as string | null))]);
+    return ((tags ?? []) as Row[]).flatMap((t) => {
+      const postId = t["post_id"] as string;
+      const authorId = live.get(postId);
+      const a = authorId ? byAuthor.get(authorId) : undefined;
+      if (!authorId || !a) return [];
+      const item = firstItem.get(postId);
+      const path = item ? ((item["kind"] === "video" ? item["poster_path"] : item["path"]) as string | null) : null;
+      const av = (a["avatar_url"] as string | null) ?? null;
+      return [{
+        key: `tag:${postId}`, postId, actorId: authorId,
+        actorName: ((a["name"] as string | null) ?? "").trim() || (a["username"] as string | null) || "Someone",
+        avatar: av ? (av.startsWith("http") ? av : avatars.get(av) ?? null) : null,
+        createdAt: t["created_at"] as string,
+        media: path ? signed.get(path) ?? null : null,
+        mediaKind: (item?.["kind"] as "photo" | "video" | undefined) ?? null,
+      }];
+    });
   });
