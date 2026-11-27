@@ -51,34 +51,8 @@ export function localHourFor(timezone: string, when: Date = new Date()): number 
   }
 }
 
-/** Returns a UTC ISO timestamp corresponding to the given local wall time
- *  (YYYY-MM-DD plus hour/minute) in the given IANA timezone. */
-export function zonedWallTimeToISO(
-  timezone: string,
-  localDate: string,
-  hour: number,
-  minute: number = 0,
-): string {
-  const [y, m, d] = localDate.split("-").map(Number);
-  const guess = Date.UTC(y, (m ?? 1) - 1, d ?? 1, hour, minute, 0);
-  try {
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).formatToParts(new Date(guess));
-    const get = (t: string) => Number(parts.find((p) => p.type === t)?.value);
-    const asUTC = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"));
-    const offset = asUTC - guess;
-    return new Date(guess - offset).toISOString();
-  } catch {
-    return new Date(guess).toISOString();
-  }
-}
+import { zonedWallTimeToISO } from "./local-day-bounds";
+export { zonedWallTimeToISO };
 
 async function signAvatar(
   supabase: SupabaseClient,
@@ -383,7 +357,6 @@ export const recordCheckIn = createServerFn({ method: "POST" })
 
       // A later same-day check-in is a normal post: no badges, no crew push.
       if (!counted) {
-        console.info("[check-in] later same-day post, no badges or crew push", { groupId });
         badgesByGroup[groupId] = [];
         continue;
       }
@@ -431,7 +404,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     if (data.planDay) {
       try {
         const { logPlanWorkout } = await import("./plan-progress.server");
-        plan = await logPlanWorkout(supabase as SupabaseClient, userId, data.planDay, postedCheckInIds, today);
+        plan = await logPlanWorkout(supabase as SupabaseClient, userId, data.planDay, postedCheckInIds, today, timezone);
       } catch (err) {
         console.error("[check-in] plan log failed", err);
       }
