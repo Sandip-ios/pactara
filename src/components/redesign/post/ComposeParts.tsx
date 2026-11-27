@@ -21,7 +21,7 @@ export function useAudience(ctx: { crews: { id: string }[]; under18: boolean } |
   };
 }
 
-/** "Who sees it": title and chips only. */
+/** "Who sees it": title, chips and one short grey line. */
 export function WhoSeesIt({ ctx, audience, onEveryone, onCrew }: { ctx: { crews: { id: string; name: string }[]; under18: boolean }; audience: PostAudience; onEveryone: () => void; onCrew: (id: string) => void }) {
   return (
     <section className="px-4 pt-5">
@@ -30,6 +30,7 @@ export function WhoSeesIt({ ctx, audience, onEveryone, onCrew }: { ctx: { crews:
         {!ctx.under18 && <AudienceChip label="Everyone" on={audience.everyone} onClick={onEveryone} />}
         {ctx.crews.map((c) => <AudienceChip key={c.id} label={c.name} on={audience.crewIds.includes(c.id)} onClick={() => onCrew(c.id)} />)}
       </div>
+      <p className="mt-2 text-[13px]" style={{ color: MUTED }}>Posts don't count as check-ins.</p>
     </section>
   );
 }
