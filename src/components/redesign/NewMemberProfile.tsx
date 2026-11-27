@@ -50,7 +50,7 @@ export function NewMemberProfile({ target, tab, onTab }: { target: string; tab: 
   const back = () => { if (router.history.canGoBack()) router.history.back(); else void navigate({ to: '/home' }); };
   if (query.isPending) return <Shell title="" state={profileState({ status: 'loading' })} onBack={back}><ProfileSkeleton /></Shell>;
   if (query.isError) return <Shell title="" state={profileState({ status: 'error' })} onBack={back}>
-    <section className="p51-error" role="alert"><div><h2>Couldn't load this profile</h2><p>Check your connection and try again.</p></div><Button variant="ghost" className="p51-btn outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Try again</Button></section>
+    <section className="p51-error" role="alert"><div><h2>Couldn't load this profile</h2><p>Check your connection and try again.</p></div><Button variant="ghost" className="p51-btn is-outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Try again</Button></section>
   </Shell>;
   const profile = query.data;
   if (!profile) return <Shell title="" state={profileState({ status: 'unavailable' })} onBack={back}>
@@ -81,9 +81,9 @@ function BlockedProfile({ profile, onBack }: { profile: Blocked; onBack: () => v
   };
   return <Shell title={profile.username || first} state={state} onBack={onBack} onMore={() => setOpen(true)} moreLabel={`Options for ${first}`}>
     <section className="new-profile-identity">
-      <div className="new-profile-avatar-row"><P51Avatar url={null} label={first} /><P51Stats userId={profile.id} posts={0} followers={0} following={0} listsOpen={false} /></div>
+      <div className="new-profile-avatar-row"><P51Avatar url={null} label={first} /><P51Stats userId={profile.id} posts={profile.posts} followers={profile.followers} following={profile.following} listsOpen={false} /></div>
       <h2 className="new-profile-name">{profile.name?.trim() || profile.username}</h2>
-      <div className="p51-buttons"><Button variant="ghost" className="p51-btn outline" onClick={() => setOpen(true)}>Unblock</Button></div>
+      <div className="p51-buttons"><Button variant="ghost" className="p51-btn is-outline" onClick={() => setOpen(true)}>Unblock</Button></div>
     </section>
     <section className="p51-card"><span className="lock"><Ban size={24} /></span><h2>You blocked {first}</h2><p>They can't see your profile, posts or check-ins, and you won't see theirs. They aren't told you blocked them.</p></section>
     <NewSheet open={open} onOpenChange={setOpen} title={`Unblock ${first}?`} subtitle={`${first} will be able to see your profile and follow you again. They aren't told.`}>

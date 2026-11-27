@@ -56,7 +56,14 @@ export const getRedesignMemberProfile = createServerFn({ method: 'GET' }).middle
       // Only your own block is ever revealed; their block reads as an unavailable account.
       const { data: mine } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', userId).eq('blocked_id', base.id).maybeSingle();
       if (!mine) return null;
-      return { isSelf: false as const, blocked: true as const, id: base.id, username: base.username, name: base.name, avatarUrl: null as string | null };
+      // Counts only (no content): RLS hides a blocked pair's rows, so count with the service client after confirming the caller is the blocker.
+      const { supabaseAdmin } = await import('@/integrations/supabase/client.server');
+      const [posts, followers, following] = await Promise.all([
+        supabaseAdmin.from('social_posts').select('id', { count: 'exact', head: true }).eq('user_id', base.id).eq('status', 'live'),
+        supabaseAdmin.from('follows').select('follower_id', { count: 'exact', head: true }).eq('following_id', base.id).eq('status', 'accepted'),
+        supabaseAdmin.from('follows').select('following_id', { count: 'exact', head: true }).eq('follower_id', base.id).eq('status', 'accepted'),
+      ]);
+      return { isSelf: false as const, blocked: true as const, id: base.id, username: base.username, name: base.name, avatarUrl: null as string | null, posts: posts.count ?? 0, followers: followers.count ?? 0, following: following.count ?? 0 };
     }
     const { completeFollowProfile } = await import('./follows.server');
     const profile = await completeFollowProfile(base, userId);

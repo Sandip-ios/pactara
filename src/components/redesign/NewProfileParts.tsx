@@ -177,9 +177,11 @@ export function PlansTab({ target }: { target: string | null }) {
   return <section className="p51-section">
     <div className="p51-section-head"><h2>{target ? 'PLANS' : 'YOUR PLANS'} · {data.length}</h2></div>
     {data.map(p => <div key={p.slug} className="p51-plan-card">
-      <Link to="/plans/$slug" params={{ slug: p.slug }} className="cover" aria-hidden tabIndex={-1}>{p.coverUrl && <img src={p.coverUrl} alt="" loading="lazy" />}</Link>
-      <Link to="/plans/$slug" params={{ slug: p.slug }} className="min-w-0"><strong>{p.name}</strong><small>{p.weeks} weeks · {p.daysPerWeek} days · {p.minutes} min</small><small>{peopleStarted(p.started)}</small></Link>
-      <Button variant="ghost" className="p51-dots" aria-label={`Options for ${p.name}`} onClick={() => setMenu(p)}><MoreHorizontal size={18} /></Button>
+      <Link to="/plans/$slug" params={{ slug: p.slug }} className="cover" aria-hidden tabIndex={-1}>{p.coverUrl ? <img src={p.coverUrl} alt="" loading="lazy" /> : <FlatDumbbell size={32} />}</Link>
+      <div className="body">
+        <Link to="/plans/$slug" params={{ slug: p.slug }} className="min-w-0"><strong>{p.name}</strong><small>{p.weeks} weeks · {p.daysPerWeek} days · {p.minutes} min</small><small>{peopleStarted(p.started)}</small></Link>
+        <Button variant="ghost" className="p51-dots" aria-label={`Options for ${p.name}`} onClick={() => setMenu(p)}><MoreHorizontal size={20} /></Button>
+      </div>
     </div>)}
     <NewSheet open={!!menu} onOpenChange={o => { if (!o) setMenu(null); }} title={menu?.name ?? 'Plan'} hideTitle>
       <NewSheetRow simple title="Share" leading={<NewSheetMenuIcon><Share /></NewSheetMenuIcon>} onClick={() => { const m = menu; setMenu(null); if (m) void shareLink(`/p/${m.slug}`, m.name); }} />
