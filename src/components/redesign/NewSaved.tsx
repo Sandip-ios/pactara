@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { Bookmark, Check, ChevronLeft, Layers, Play } from 'lucide-react';
@@ -6,6 +7,8 @@ import { getSavedPosts } from '@/lib/saved.functions';
 import type { SavedTile } from '@/lib/saved-posts';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
+import { dismissToastNow } from './new-toast';
+import { SAVED_TOAST_ID } from './use-feed-save';
 
 export const savedPostsKey = ['saved-posts'] as const;
 
@@ -26,6 +29,7 @@ export function PostGridTile({ tile }: { tile: SavedTile }) {
 
 export function NewSaved() {
   useHideBottomTabs(true, false);
+  useEffect(() => dismissToastNow(SAVED_TOAST_ID), []);
   const scroll = useOpenAtTop();
   const router = useRouter();
   const navigate = useNavigate();

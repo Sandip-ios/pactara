@@ -4,7 +4,9 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toggleSocialPostSave } from "@/lib/posts.functions";
 import { getMySavedCheckInIds, toggleCheckInSave } from "@/lib/saved.functions";
-import { newToast } from "./new-toast";
+import { dismissToastNow, newToast } from "./new-toast";
+
+export const SAVED_TOAST_ID = "feed-saved";
 
 export const SAVED_CHECKIN_IDS_KEY = ["saved-checkin-ids"] as const;
 
@@ -25,7 +27,7 @@ export function useFeedSave(kind: "post" | "checkin", id: string, initial?: bool
       if (kind === "checkin") qc.setQueryData<string[]>(SAVED_CHECKIN_IDS_KEY, (old = []) => (next ? [id, ...old.filter((x) => x !== id)] : old.filter((x) => x !== id)));
       void qc.invalidateQueries({ queryKey: ["saved-posts"] });
       if (kind === "post") void qc.invalidateQueries({ queryKey: ["social-post", id] });
-      if (next) newToast("Saved", { success: true, action: { label: "View", onClick: () => void navigate({ to: "/saved" }) } });
+      if (next) newToast("Saved", { id: SAVED_TOAST_ID, success: true, action: { label: "View", onClick: () => { dismissToastNow(SAVED_TOAST_ID); void navigate({ to: "/saved" }); } } });
     } catch {
       setOverride(!next);
       newToast("Couldn't save. Try again.");

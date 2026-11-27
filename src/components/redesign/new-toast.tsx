@@ -29,6 +29,7 @@ export function newToast(message: string, opts: NewToastOpts = {}) {
     (id) => (
       <div
         role="status"
+        data-new-toast={String(id)}
         onClick={() => toast.dismiss(id)}
         className="flex w-full cursor-pointer items-center gap-2.5 rounded-[14px] px-4 py-[14px]"
         style={{ background: "#1C1917", boxShadow: "0 8px 24px rgba(20,18,24,0.25)", fontFamily: "Inter, system-ui, sans-serif" }}
@@ -58,6 +59,15 @@ export function newToast(message: string, opts: NewToastOpts = {}) {
       style: { background: "transparent", border: "none", boxShadow: "none", padding: 0 },
     },
   );
+}
+
+/** Dismiss without the exit fade, e.g. before navigating away from the toast's action. */
+export function dismissToastNow(id: string) {
+  if (typeof document !== "undefined") {
+    const li = document.querySelector(`[data-new-toast="${id}"]`)?.closest("[data-sonner-toast]");
+    if (li instanceof HTMLElement) li.style.display = "none";
+  }
+  toast.dismiss(id);
 }
 
 /** Drop-in for sonner's `toast` in new-version screens: success gets the green check. */
