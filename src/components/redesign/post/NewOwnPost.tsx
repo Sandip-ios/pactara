@@ -4,13 +4,15 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Bookmark, ChevronLeft, Flame, MessageCircle, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
-import { deleteSocialPost, getSocialPost, toggleSocialPostSave, updateSocialPostCaption } from "@/lib/posts.functions";
+import { deleteSocialPost, getSocialPost, toggleSocialPostSave, updateSocialPostCaption, updateSocialPostAudience } from "@/lib/posts.functions";
 import { clock } from "@/components/TimelineCard";
 import { NewSheet, NewSheetMenuIcon, NewSheetRow, NewSheetButton } from "../NewSheet";
 import { NewConfirm } from "../NewConfirm";
 import { newToast } from "../new-toast";
 import { CrewAvatar } from "../CrewAvatars";
 import { PostCarousel, PostWorkoutCard, INK, MUTED, PostTopBar } from "./PostBits";
+import { WhoSeesIt, useComposeContext, SheetActions } from "./ComposeParts";
+import { audienceLabel, defaultAudience, type PostAudience } from "@/lib/post-audience";
 import { PostCommentsSheet } from "./PostComments";
 
 /** One post: header "Posts", menu (Edit caption, Delete), carousel, caption, workout, counts. */
@@ -23,6 +25,10 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const delFn = useServerFn(deleteSocialPost);
   const capFn = useServerFn(updateSocialPostCaption);
   const saveFn = useServerFn(toggleSocialPostSave);
+  const ctx = useComposeContext();
+  const audienceFn = useServerFn(updateSocialPostAudience);
+  const [audienceOpen, setAudienceOpen] = useState(false);
+  const [nextAudience, setNextAudience] = useState<PostAudience>({ kind: "only_me", crewIds: [] });
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState("");
@@ -58,6 +64,14 @@ export function NewOwnPost({ postId }: { postId: string }) {
       setEditing(false);
     } catch { newToast("Couldn't save. Try again."); } finally { setBusy(false); }
   };
+  const saveAudience = async () => {
+    setBusy(true);
+    try {
+      await audienceFn({ data: { id: post.id, audience: nextAudience } });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["social-post", post.id] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] }), qc.invalidateQueries({ queryKey: ["post-compose-context"] })]);
+      setAudienceOpen(false);
+    } catch (e) { newToast(e instanceof Error ? e.message : "Couldn't save. Try again."); } finally { setBusy(false); }
+  };
   const toggleSave = async () => {
     try { await saveFn({ data: { id: post.id, on: !post.savedByMe } }); void qc.invalidateQueries({ queryKey: ["social-post", post.id] }); } catch { newToast("Couldn't save. Try again."); }
   };
@@ -91,11 +105,16 @@ export function NewOwnPost({ postId }: { postId: string }) {
 
       <NewSheet open={menu} onOpenChange={setMenu} title="Post" hideTitle description="Post options">
         <NewSheetRow simple title="Edit caption" leading={<NewSheetMenuIcon><Pencil /></NewSheetMenuIcon>} onClick={() => { setMenu(false); setCaption(post.caption); setEditing(true); }} />
+        <NewSheetRow simple title={`Who sees it · ${audienceLabel({ kind: post.audience, crewIds: post.crewIds }, ctx.data?.isPrivate ?? false)} ›`} onClick={() => { setMenu(false); setNextAudience(ctx.data ? defaultAudience({ ...ctx.data, remembered: { kind: post.audience, crewIds: post.crewIds } }) : { kind: post.audience, crewIds: post.crewIds }); setAudienceOpen(true); }} />
         <NewSheetRow simple destructive title="Delete" leading={<NewSheetMenuIcon><Trash2 /></NewSheetMenuIcon>} onClick={() => { setMenu(false); setConfirm(true); }} />
       </NewSheet>
       <NewSheet open={editing} onOpenChange={setEditing} title="Edit caption">
         <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2200} rows={4} aria-label="Caption" className="w-full resize-none rounded-[14px] bg-[var(--new-control)] p-3 text-[16px] outline-none" />
         <NewSheetButton disabled={busy} onClick={() => void saveCaption()}>Save</NewSheetButton>
+      </NewSheet>
+      <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle>
+        <SheetActions title="Who sees it" cancel={() => setAudienceOpen(false)} disabled={busy || !ctx.data} done={() => void saveAudience()} />
+        {ctx.data && <WhoSeesIt ctx={ctx.data} audience={nextAudience} onChange={setNextAudience} showTitle={false} />}
       </NewSheet>
       <NewConfirm open={confirm} onOpenChange={setConfirm} title="Delete this post?" subtitle="It's removed from your profile and your crews." action="Delete" busy={busy} error={err} onConfirm={() => void remove()} />
       <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />

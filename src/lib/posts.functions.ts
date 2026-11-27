@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { bestExerciseMatch, parseCaptionMoves } from "./caption-workout";
+import type { AudienceKind, PostAudience } from "./post-audience";
 import { isUnder18 } from "./redesign-profile";
 import { signAvatarThumbs } from "./media-urls";
 import { stabilizeSignedUrls } from "./stable-urls";
@@ -21,11 +22,11 @@ const firstName = (name: string | null | undefined) => (name ?? "").trim().split
 async function myCrews(supabase: SupabaseClient, userId: string) {
   const { data } = await supabase
     .from("group_members")
-    .select("group_id, joined_at, groups!inner(id, name, ended_at)")
+    .select("group_id, joined_at, groups!inner(id, name, ended_at, group_members(count))")
     .eq("user_id", userId)
     .is("groups.ended_at", null)
     .order("joined_at", { ascending: true });
-  return ((data ?? []) as unknown as { group_id: string; groups: { name: string } }[]).map((r) => ({ id: r.group_id, name: r.groups.name }));
+  return ((data ?? []) as unknown as { group_id: string; groups: { name: string; group_members: { count: number }[] } }[]).map((r) => ({ id: r.group_id, name: r.groups.name, members: r.groups.group_members?.[0]?.count ?? 0 }));
 }
 
 async function exerciseMap(supabase: SupabaseClient, ids: string[]) {
@@ -101,20 +102,32 @@ export const getPostComposeContext = createServerFn({ method: "GET" })
     const { userId } = context;
     const [crews, { data: prof }, { data: sessions }, { data: saved }] = await Promise.all([
       myCrews(supabase, userId),
-      supabase.from("profiles").select("name, birthday").eq("id", userId).maybeSingle(),
+      supabase.rpc("get_my_app_prefs"),
       supabase.from("workout_sessions").select("id, title, summary, logged_at").eq("user_id", userId).not("logged_at", "is", null).order("logged_at", { ascending: false }).limit(10),
       supabase.from("workouts").select("id, name, exercises").eq("user_id", userId).order("updated_at", { ascending: false }).limit(20),
     ]);
+    const prefs = prof?.[0];
+    const { data: remembered } = await supabase.rpc("get_my_post_audience");
+    const savedIds = ((saved ?? []) as Row[]).flatMap(w => ((w["exercises"] ?? []) as { exerciseId: string }[]).map(x => x.exerciseId));
+    const drawings = await exerciseMap(supabase, savedIds);
+    const sessionDrawings = await Promise.all(((sessions ?? []) as Row[]).map(async s => {
+      const { data: log } = await supabase.from("workout_set_logs").select("exercise_id").eq("session_id", s["id"]).order("position").limit(1).maybeSingle();
+      const map = await exerciseMap(supabase, log ? [log["exercise_id"]] : []);
+      return log ? map.get(log["exercise_id"])?.image_start ?? null : null;
+    }));
     return {
+      userId,
       crews,
-      under18: isUnder18((prof?.["birthday"] as string | null) ?? null),
-      sessions: ((sessions ?? []) as Row[]).map((s) => {
+      isPrivate: prefs?.["is_private"] !== false,
+      remembered: remembered as PostAudience | null,
+      under18: isUnder18((prefs?.["birthday"] as string | null) ?? null),
+      sessions: ((sessions ?? []) as Row[]).map((s, i) => {
         const sum = (s["summary"] ?? {}) as { exercises?: number; sets?: number; minutes?: number };
-        return { id: s["id"] as string, title: (s["title"] as string) || "Workout", loggedAt: s["logged_at"] as string, exercises: sum.exercises ?? 0, sets: sum.sets ?? 0, minutes: sum.minutes ?? 0 };
+        return { id: s["id"] as string, title: (s["title"] as string) || "Workout", loggedAt: s["logged_at"] as string, imageStart: sessionDrawings[i] ?? null, exercises: sum.exercises ?? 0, sets: sum.sets ?? 0, minutes: sum.minutes ?? 0 };
       }),
       saved: ((saved ?? []) as Row[]).map((w) => {
-        const list = (w["exercises"] ?? []) as { sets?: number }[];
-        return { id: w["id"] as string, title: (w["name"] as string) || "Workout", exercises: list.length, sets: list.reduce((n, x) => n + (x.sets ?? 1), 0) };
+        const list = (w["exercises"] ?? []) as { exerciseId: string; sets?: number }[];
+        return { id: w["id"] as string, title: (w["name"] as string) || "Workout", imageStart: list[0] ? drawings.get(list[0].exerciseId)?.image_start ?? null : null, exercises: list.length, sets: list.reduce((n, x) => n + (x.sets ?? 1), 0) };
       }),
     };
   });
@@ -156,7 +169,7 @@ export const getShareWorkoutPreview = createServerFn({ method: "GET" })
 /** Step 1 of posting: one atomic insert (audience, crews, items) while media uploads. */
 export const createSocialPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { caption: string; everyone: boolean; crewIds: string[]; items: PostItemInput[]; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[]; skipDiscover: boolean }) => input)
+  .inputValidator((input: { caption: string; audience: AudienceKind; crewIds: string[]; items: PostItemInput[]; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[]; skipDiscover: boolean }) => input)
   .handler(async ({ context, data }) => {
     const supabase = sb(context.supabase);
     const snap = await snapshotWorkout(supabase, context.userId, data.workout);
@@ -164,8 +177,8 @@ export const createSocialPost = createServerFn({ method: "POST" })
       kind: i.kind, path: i.path, poster_path: i.posterPath, duration_s: i.duration, trim_start: i.trimStart, trim_end: i.trimEnd,
       muted: i.muted, cover_s: i.cover, crop: i.crop,
     }));
-    const { data: id, error } = await supabase.rpc("create_social_post", {
-      _caption: (data.caption ?? "").slice(0, 2200), _everyone: !!data.everyone, _group_ids: data.crewIds ?? [], _items: items,
+    const { data: id, error } = await supabase.rpc("create_library_post_v2", {
+      _caption: (data.caption ?? "").slice(0, 2200), _audience: data.audience, _group_ids: data.crewIds ?? [], _items: items,
       _workout: snap.workout, _workout_session_id: snap.sessionId, _workout_id: snap.workoutId, _credit_user_id: snap.creditUserId,
       _comments_on: data.commentsOn !== false, _tags: data.tags ?? [], _skip_discover: !!data.skipDiscover,
     });
@@ -175,9 +188,11 @@ export const createSocialPost = createServerFn({ method: "POST" })
   });
 
 async function notifyCredit(supabase: SupabaseClient, userId: string, postId: string) {
-  const { data: p } = await supabase.from("social_posts").select("credit_user_id, workout").eq("id", postId).maybeSingle();
+  const { data: p } = await supabase.from("social_posts").select("credit_user_id, workout, audience").eq("id", postId).maybeSingle();
   const credit = p?.["credit_user_id"] as string | null;
-  if (!credit) return;
+  if (!credit || p?.["audience"] === "only_me") return;
+  const { data: visible } = await supabase.rpc("can_see_social_post", { _post_id: postId, _viewer: credit });
+  if (!visible) return;
   try {
     const { data: me } = await supabase.from("profiles").select("name").eq("id", userId).maybeSingle();
     const { pushToUsers } = await import("./notify.server");
@@ -234,7 +249,7 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
       caption: (r["caption"] as string) ?? "",
       createdAt: r["created_at"] as string,
       status: r["status"] as SocialPostView["status"],
-      everyone: !!r["audience_everyone"],
+      audience: r["audience"] as AudienceKind,
       crewIds: ((crews ?? []) as Row[]).filter((c) => c["post_id"] === id).map((c) => c["group_id"] as string),
       commentsOn: r["comments_on"] !== false,
       items: ((items ?? []) as Row[]).filter((i) => i["post_id"] === id).map((i) => ({
@@ -282,7 +297,7 @@ export const getCrewSocialPosts = createServerFn({ method: "GET" })
     const { data: links } = await supabase.from("social_post_crews").select("post_id").eq("group_id", data.groupId).limit(500);
     const ids = ((links ?? []) as Row[]).map((l) => l["post_id"] as string);
     if (!ids.length) return [];
-    const { data: rows } = await supabase.from("social_posts").select("*").in("id", ids).eq("status", "live").gte("created_at", data.since).order("created_at", { ascending: false }).limit(100);
+    const { data: rows } = await supabase.from("social_posts").select("*").in("id", ids).eq("status", "live").neq("audience", "only_me").gte("created_at", data.since).order("created_at", { ascending: false }).limit(100);
     return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (rows ?? []) as Row[]));
   });
 
@@ -364,4 +379,24 @@ export const getTaggablePeople = createServerFn({ method: "GET" })
     const blocked = await blockedPairs(supabase, context.userId);
     const { data: people } = await supabase.from("profiles").select("id, name").in("id", ids.filter((id) => !blocked.has(id)));
     return ((people ?? []) as Row[]).map((p) => ({ id: p["id"] as string, name: (p["name"] as string) || "Member" }));
+  });
+
+/** Audience edits are atomic and recheck ownership, membership, age and video limits. */
+export const updateSocialPostAudience = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; audience: PostAudience }) => input)
+  .handler(async ({ context, data }) => {
+    const { error } = await sb(context.supabase).rpc("set_social_post_audience", { _post_id: data.id, _audience: data.audience.kind, _group_ids: data.audience.crewIds });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+/** Caption editor additions use the same exercise library, with no weight fields. */
+export const searchPostExercises = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { query: string }) => ({ query: String(input.query ?? "").replace(/[%_,()]/g, "").slice(0, 80) }))
+  .handler(async ({ context, data }) => {
+    const { data: rows, error } = await sb(context.supabase).from("exercises").select("id, name, image_start").or(`owner_id.is.null,owner_id.eq.${context.userId}`).ilike("name", `%${data.query}%`).order("name").limit(30);
+    if (error) throw new Error(error.message);
+    return ((rows ?? []) as Row[]).map(r => ({ exerciseId: r["id"] as string, name: r["name"] as string, imageStart: r["image_start"] as string | null, sets: 3, reps: 10 }));
   });

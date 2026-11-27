@@ -44,8 +44,8 @@ export async function submitPost(input: {
     });
   }
   const { id } = await createSocialPost({ data: {
-    caption: input.caption, everyone: input.audience.everyone, crewIds: input.audience.crewIds, items, workout: input.workout,
-    commentsOn: input.commentsOn, tags: input.tags, skipDiscover: skipsDiscover(input.picked.map((p) => p.edit)),
+    caption: input.caption, audience: input.audience.kind, crewIds: input.audience.crewIds, items, workout: input.workout,
+    commentsOn: input.audience.kind !== "only_me" && input.commentsOn, tags: input.audience.kind === "only_me" ? [] : input.tags, skipDiscover: skipsDiscover(input.picked.map((p) => p.edit)),
   } });
   if (files.length) await enqueuePost({ postId: id, label: "Posting...", thumb, files, failed: false });
   return { id, uploading: files.length > 0 };

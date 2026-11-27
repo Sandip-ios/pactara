@@ -212,5 +212,10 @@
 
 ## Phase 5.2 camera-roll posts
 - [x] Build posts flow (picker, edit, compose, share workout, posting strip, own post, crew feed)
-- [x] No helper text under "Who sees it" chips (owner change)
+- [x] Audience design superseded by the single-choice Compose update below
 - [x] Tests + p5-2 QA screenshots (10 at 390x844); test data removed
+
+## Phase 5.2 Compose design update
+- [x] Attachment suggestion, workout cards and selection/edit sheets; meals remain hidden
+- [x] Single-choice audiences, durable remembered defaults, privacy/teen rules, own-post audience editing and lock
+- [x] Real draft-only posting, audience-edit readback, lock, picker/editor and defaults verified; nine 390x844 screenshots in public/qa; all temporary members, subscriptions, crews, posts, workouts, exercises and media removed; 939 tests pass, typecheck clean; committed without publishing

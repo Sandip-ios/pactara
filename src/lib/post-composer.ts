@@ -90,6 +90,8 @@ export function fileTooBigMessage(bytes: number): string | null {
 
 /** Crew-only videos up to 3:00, Everyone up to 10:00 (after trim). Null when it can post. */
 export function videoLengthError(items: Pick<DraftItem, "kind" | "duration" | "trimStart" | "trimEnd">[], everyone: boolean): string | null {
+  const total = items.filter(i => i.kind === "video").reduce((n, i) => n + trimmedLength(i), 0);
+  if (total > EVERYONE_MAX_VIDEO_S + 0.5 && items.filter(i => i.kind === "video").length > 1) return "Videos can be up to 10:00 total. Trim them to post.";
   const max = everyone ? EVERYONE_MAX_VIDEO_S : CREW_MAX_VIDEO_S;
   const long = items.find((i) => i.kind === "video" && trimmedLength(i) > max + 0.5);
   if (!long) return null;

@@ -33,7 +33,7 @@ export type SocialPostView = {
   caption: string;
   createdAt: string;
   status: "uploading" | "live" | "failed";
-  everyone: boolean;
+  audience: import("./post-audience").AudienceKind;
   crewIds: string[];
   commentsOn: boolean;
   items: SocialPostItem[];

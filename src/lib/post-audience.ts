@@ -1,42 +1,38 @@
-/** Who sees a camera-roll post. Pure, so the composer and tests share one rule set. */
-export type PostAudience = { everyone: boolean; crewIds: string[] };
-
-/** Everyone and every crew on by default; under-18 accounts get crews only. */
-export function defaultAudience(crewIds: string[], under18: boolean): PostAudience {
-  return { everyone: !under18, crewIds: [...crewIds] };
+/** One audience per library post. Private status limits Everyone at read time. */
+export type AudienceKind = 'everyone' | 'crews' | 'only_me';
+export type PostAudience = { kind: AudienceKind; crewIds: string[] };
+export type AudienceContext = { crews: { id: string; name?: string; members?: number }[]; under18: boolean; isPrivate: boolean; remembered?: PostAudience | null };
+export function audienceOptions(ctx: AudienceContext): AudienceKind[] {
+  return [...(!ctx.under18 ? ['everyone' as const] : []), ...(ctx.crews.length ? ['crews' as const] : []), 'only_me'];
 }
-
+export function selectAudience(kind: AudienceKind, ctx: AudienceContext, crewIds?: string[]): PostAudience {
+  const all = ctx.crews.map(c => c.id);
+  return { kind, crewIds: kind === 'only_me' ? [] : kind === 'everyone' ? all : (crewIds ?? all).filter(id => all.includes(id)) };
+}
+export function defaultAudience(ctx: AudienceContext): PostAudience {
+  const options = audienceOptions(ctx);
+  const last = ctx.remembered;
+  let kind = last?.kind ?? options[0] ?? 'only_me';
+  if (!options.includes(kind)) kind = kind === 'everyone' && options.includes('crews') ? 'crews' : 'only_me';
+  const value = selectAudience(kind, ctx, last?.kind === 'crews' ? last.crewIds : undefined);
+  // A remembered crew selection whose last crew was left falls down to Only me.
+  return value.kind === 'crews' && !value.crewIds.length ? selectAudience('only_me', ctx) : value;
+}
 export function audienceIsValid(a: PostAudience, under18: boolean): boolean {
-  if (under18 && a.everyone) return false;
-  return a.everyone || a.crewIds.length > 0;
+  return ['everyone', 'crews', 'only_me'].includes(a.kind) && !(under18 && a.kind === 'everyone') && (a.kind !== 'crews' || a.crewIds.length > 0) && (a.kind !== 'only_me' || a.crewIds.length === 0);
 }
-
-/** Toggle "Everyone". Never leaves the post with no audience; under-18 can't turn it on. */
-export function toggleEveryone(a: PostAudience, under18: boolean): PostAudience {
-  if (under18) return { ...a, everyone: false };
-  const next = { ...a, everyone: !a.everyone };
-  return audienceIsValid(next, under18) ? next : a;
+export function audienceLabel(a: PostAudience, isPrivate: boolean): string {
+  return a.kind === 'everyone' ? isPrivate ? 'Followers' : 'Everyone' : a.kind === 'crews' ? 'Crews' : 'Only me';
 }
-
-/** Toggle one crew chip. At least one chip always stays on. */
-export function toggleCrew(a: PostAudience, crewId: string, under18: boolean): PostAudience {
-  const on = a.crewIds.includes(crewId);
-  const next = { ...a, crewIds: on ? a.crewIds.filter((id) => id !== crewId) : [...a.crewIds, crewId] };
-  return audienceIsValid(next, under18) ? next : a;
-}
-
-/** Mirrors can_see_social_post in the database. */
 export function canSeePost(
-  post: { authorId: string; live: boolean; everyone: boolean; crewIds: string[]; authorPrivate: boolean },
+  post: { authorId: string; live: boolean; kind: AudienceKind; crewIds: string[]; authorPrivate: boolean },
   viewer: { id: string; crewIds: string[]; followsAuthor: boolean; blockedEitherWay: boolean },
 ): boolean {
   if (viewer.id === post.authorId) return true;
-  if (!post.live || viewer.blockedEitherWay) return false;
-  if (post.crewIds.some((id) => viewer.crewIds.includes(id))) return true;
-  return post.everyone && (!post.authorPrivate || viewer.followsAuthor);
+  if (!post.live || post.kind === 'only_me' || viewer.blockedEitherWay) return false;
+  return post.crewIds.some(id => viewer.crewIds.includes(id)) || (post.kind === 'everyone' && (!post.authorPrivate || viewer.followsAuthor));
 }
-
-/** Only "Everyone" posts can reach followers' feeds and Discover. */
-export function reachesFollowers(post: { everyone: boolean }): boolean {
-  return post.everyone;
+export function reachesFollowers(post: { kind: AudienceKind }): boolean { return post.kind === 'everyone'; }
+export function reachesDiscover(post: { kind: AudienceKind; authorPrivate: boolean; skipDiscover: boolean }): boolean {
+  return post.kind === 'everyone' && !post.authorPrivate && !post.skipDiscover;
 }

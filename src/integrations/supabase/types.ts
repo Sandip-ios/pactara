@@ -1436,6 +1436,7 @@ export type Database = {
           id: string
           interests: string[]
           is_private: boolean
+          last_post_audience: Json | null
           name: string
           new_version_enabled: boolean
           new_version_seen_at: string | null
@@ -1458,6 +1459,7 @@ export type Database = {
           id: string
           interests?: string[]
           is_private?: boolean
+          last_post_audience?: Json | null
           name?: string
           new_version_enabled?: boolean
           new_version_seen_at?: string | null
@@ -1480,6 +1482,7 @@ export type Database = {
           id?: string
           interests?: string[]
           is_private?: boolean
+          last_post_audience?: Json | null
           name?: string
           new_version_enabled?: boolean
           new_version_seen_at?: string | null
@@ -1901,6 +1904,7 @@ export type Database = {
       }
       social_posts: {
         Row: {
+          audience: string
           audience_everyone: boolean
           caption: string
           comments_on: boolean
@@ -1916,6 +1920,7 @@ export type Database = {
           workout_session_id: string | null
         }
         Insert: {
+          audience?: string
           audience_everyone?: boolean
           caption?: string
           comments_on?: boolean
@@ -1931,6 +1936,7 @@ export type Database = {
           workout_session_id?: string | null
         }
         Update: {
+          audience?: string
           audience_everyone?: boolean
           caption?: string
           comments_on?: boolean
@@ -2446,6 +2452,22 @@ export type Database = {
         Args: { _goal?: string; _group_id: string }
         Returns: boolean
       }
+      create_library_post_v2: {
+        Args: {
+          _audience: string
+          _caption: string
+          _comments_on: boolean
+          _credit_user_id: string
+          _group_ids: string[]
+          _items: Json
+          _skip_discover: boolean
+          _tags: string[]
+          _workout: Json
+          _workout_id: string
+          _workout_session_id: string
+        }
+        Returns: string
+      }
       create_social_post: {
         Args: {
           _caption: string
@@ -2567,6 +2589,7 @@ export type Database = {
         }[]
       }
       get_my_logger_check_tip_seen: { Args: never; Returns: string }
+      get_my_post_audience: { Args: never; Returns: Json }
       get_profile: { Args: { target: string }; Returns: Json }
       get_redesign_activity_extras: { Args: never; Returns: Json }
       get_social_list: {
@@ -2692,6 +2715,10 @@ export type Database = {
       }
       safety_visible: { Args: { _author: string }; Returns: boolean }
       set_profile_privacy: { Args: { private: boolean }; Returns: undefined }
+      set_social_post_audience: {
+        Args: { _audience: string; _group_ids: string[]; _post_id: string }
+        Returns: undefined
+      }
       shares_active_crew_with: {
         Args: { _a: string; _b: string }
         Returns: boolean

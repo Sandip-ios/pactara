@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { ImagePlus, X } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
@@ -17,18 +17,19 @@ import { INK, MUTED, PURPLE, PostTopBar, TextAction } from "./PostBits";
 export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | null; sessionId: string | null }) {
   useHideBottomTabs(true);
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const router = useRouter();
   const draft = usePostDraft();
   const picked = pickedItems(draft);
   const ctx = useComposeContext();
   const preview = useQuery({ queryKey: ["share-workout-preview", workoutId, sessionId], queryFn: () => getShareWorkoutPreview({ data: { workoutId, sessionId } }) });
-  const { audience, toggleEveryone, toggleCrew } = useAudience(ctx.data);
+  const { audience, setAudience } = useAudience(ctx.data);
   const [tags, setTags] = useState<string[]>([]);
   const [commentsOn, setCommentsOn] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const input = useRef<HTMLInputElement>(null);
-  const lengthErr = videoLengthError(picked.map((p) => p.edit), audience.everyone);
+  const lengthErr = videoLengthError(picked.map((p) => p.edit), audience.kind !== "crews");
   const valid = !lengthErr && !!ctx.data && !!preview.data && audienceIsValid(audience, ctx.data.under18);
 
   const add = async (files: { blob: Blob; name: string }[]) => {
@@ -46,7 +47,8 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
     setBusy(true);
     setErr(null);
     try {
-      await submitPost({ picked, caption: draft.caption, audience, workout: sessionId ? { source: "session", id: sessionId } : { source: "saved", id: workoutId! }, commentsOn, tags });
+      await submitPost({ picked, caption: draft.caption, audience, workout: sessionId ? { source: "session", id: sessionId } : workoutId ? { source: "saved", id: workoutId } : null, commentsOn, tags });
+      await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] })]);
       await navigate({ to: "/home" });
       resetDraft();
     } catch (e) {
@@ -84,13 +86,13 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
           <>
             <div className="mt-0.5 truncate text-[17px] font-extrabold">{preview.data.title}</div>
             <div className="text-[13px]" style={{ color: MUTED }}>{shareWorkoutStats(preview.data)}</div>
-            {preview.data.credit && <div className="pt-1.5 text-[13px] font-semibold" style={{ color: "var(--new-purple-text)" }}>{creditLine(preview.data.credit)}</div>}
+            {preview.data.credit && <div className="pt-1.5 text-[13px] font-semibold" style={{ color: "var(--new-purple-text)" }}>{audience.kind === "only_me" ? `Credits ${preview.data.credit}.` : creditLine(preview.data.credit)}</div>}
           </>
         ) : <div className="mt-1 h-10 animate-pulse rounded bg-white" />}
       </section>
 
-      {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onEveryone={toggleEveryone} onCrew={toggleCrew} />}
-      <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />
+      {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
+      {audience.kind !== "only_me" && <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}
       {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}
       {err && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{err}</p>}
       <p className="px-4 pt-5 text-center text-[12px]" style={{ color: "#78716C" }}>No photo needed. Posts without one show the workout card on its own.</p>

@@ -44,3 +44,5 @@
 - Check-in badges unlock from the current streak in that group (`currentStreak` + `milestonesReached`), as celebration and share cards show; only the silent backfill uses the best run. Why: past runs contradicted the card.
 - Crews live on Home: `YourCrewsSheet` (pure `src/lib/your-crews.ts`), each crew's ••• a second step via `useCrewOptions`; `/groups` is plans only (legacy crew links redirect to `/home?crews=1|invite=`); leaving uses the `leave_crew` RPC (archives membership); rules via `crewRuleLabel`. Why: one place for crews, history kept, real weekly target shown.
 - What's new: pure rules in `src/lib/whats-new.ts` (cutoff vs `profiles.created_at`, seen in `profiles.whats_new_seen` + localStorage); Home's `useWhatsNewOnHome` skips the visit if any sheet or layout paywall (`app-overlays.ts`) is up. Why: never stack on overlays or reach new signups.
+
+- Library posts share new-only composers and atomic audience RPCs. Why: privacy stays enforced without changing classic.
