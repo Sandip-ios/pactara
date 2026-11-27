@@ -84,19 +84,19 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
         </div>
       </section>
       <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] px-4">
-        <div className="py-2.5"><div className="rounded-[14px] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-2">
-          <div className="text-[11px] font-extrabold tracking-[0.6px] text-[var(--new-purple)]">WORKOUT</div>
+        <div className="py-3.5">
+          <div className="text-[11px] font-extrabold tracking-[0.6px] text-[var(--new-purple)]">WORKOUT ATTACHED</div>
           {preview.data ? (
             <>
               <div className="truncate text-[16px] font-extrabold">{preview.data.title}</div>
               <div className="text-[12px]" style={{ color: MUTED }}>{shareWorkoutStats(preview.data)}</div>
-              {preview.data.credit && <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full bg-[var(--new-post-credit)] py-0.5 pr-2.5 text-[12px]" style={{ color: "var(--new-purple-text)" }}>
+              {preview.data.credit && <div className="mt-2.5 inline-flex max-w-full items-center gap-1.5 rounded-[12px] bg-[var(--new-post-credit)] px-2.5 py-2 text-[13px] text-[var(--new-ink-deep)]">
                 <CrewAvatar member={{ id: "workout-credit", name: preview.data.credit, avatarUrl: preview.data.creditAvatar, avatarColor: "#7C3AED" }} size={24} />
                 <span className="min-w-0">Credits <b>{preview.data.credit}</b>.{audience.kind !== "only_me" && " She gets a notification."}</span>
               </div>}
             </>
           ) : <div className="mt-1 h-10 animate-pulse rounded bg-white" />}
-        </div></div>
+        </div>
       </section>
 
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}

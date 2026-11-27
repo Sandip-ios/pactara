@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -22,6 +22,13 @@ export function NewPostCompose() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const draft = usePostDraft();
+  const captionRef = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const field = captionRef.current;
+    if (!field) return;
+    field.style.height = "auto";
+    field.style.height = `${field.scrollHeight}px`;
+  }, [draft.caption]);
   const picked = pickedItems(draft);
   const ctx = useComposeContext();
   const { audience, setAudience } = useAudience(ctx.data);
@@ -69,7 +76,7 @@ export function NewPostCompose() {
   return (
     <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
       <PostTopBar compose title="New post" left={<TextAction tone="muted" className="w-full min-w-0 justify-start px-0 font-semibold" onClick={back}>Back</TextAction>} right={<TextAction tone="purple" className="w-full min-w-0 justify-end px-0" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
-      <section className="bg-[var(--new-white)] px-4 pb-1.5 pt-3.5">
+      <section className="bg-[var(--new-white)] px-4 pt-3.5">
         <div className="flex gap-2 overflow-hidden">
           {picked.map(({ media, edit }) => (
             <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
@@ -79,13 +86,14 @@ export function NewPostCompose() {
           ))}
         </div>
         <textarea
+          ref={captionRef}
           value={draft.caption}
           onChange={(e) => setDraft({ caption: e.target.value })}
           maxLength={2200}
-          rows={3}
+          rows={1}
           placeholder="Write a caption..."
           aria-label="Caption"
-          className="block w-full resize-none bg-transparent pb-3.5 pt-2.5 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]"
+          className="block w-full resize-none overflow-hidden bg-transparent pb-3.5 pt-2.5 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]"
         />
       </section>
       <WorkoutAttachment ctx={ctx.data} suggestions={moves} workout={workout} onChange={setWorkout} />

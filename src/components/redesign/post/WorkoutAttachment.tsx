@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight, Dumbbell, Minus, Plus, Search, Sparkles, X } from 'lucide-react';
+import { ChevronRight, Dumbbell, Minus, Plus, Search, Sparkle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExerciseThumb } from '@/components/workout/WorkoutBits';
 import { searchPostExercises } from '@/lib/posts.functions';
@@ -32,7 +32,7 @@ export function WorkoutAttachment({ ctx, suggestions, workout, onChange }: { ctx
 
   return <section className="mx-4 mt-3 text-[var(--new-ink)]">
     {!workout && suggestions.length > 0 && <div className="mb-3 flex items-center gap-3 rounded-[16px] border border-[var(--new-post-banner-border)] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-3">
-      <Sparkles size={20} className="shrink-0 text-[var(--new-purple)]" />
+      <Sparkle size={20} className="shrink-0 text-[var(--new-purple)]" />
       <div className="min-w-0 flex-1"><div className="text-[14px] font-bold text-[var(--new-ink-deep)]">We found {suggestions.length} {suggestions.length === 1 ? 'exercise' : 'exercises'} in your caption</div><div className="text-[12px] text-[var(--new-muted)]">{suggestions.map(m => m.name).join(', ')}</div></div>
       <Button onClick={() => onChange({ source: 'caption', moves: suggestions.map(m => ({ ...m })) })} className="h-[34px] rounded-[17px] bg-[var(--new-purple)] px-3.5 text-[14px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]">Attach</Button>
     </div>}

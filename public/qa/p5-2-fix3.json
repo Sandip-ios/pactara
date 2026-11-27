@@ -1,0 +1,53 @@
+{
+  "screenshots": [
+    {
+      "screen": "picker-single-note",
+      "url": "http://localhost:8080/post/new"
+    },
+    {
+      "screen": "picker-multiple",
+      "url": "http://localhost:8080/post/new"
+    },
+    {
+      "screen": "compose-caption-banner",
+      "url": "http://localhost:8080/post/compose"
+    },
+    {
+      "screen": "compose-caption-attached",
+      "url": "http://localhost:8080/post/compose"
+    },
+    {
+      "screen": "edit-exercises-sheet",
+      "url": "http://localhost:8080/post/compose"
+    },
+    {
+      "screen": "add-workout-sheet",
+      "url": "http://localhost:8080/post/compose"
+    },
+    {
+      "screen": "share-workout",
+      "url": "http://localhost:8080/post/share-workout?sessionId=75e14170-2359-4d6b-a5a6-79a777905b45"
+    },
+    {
+      "screen": "posting-strip",
+      "url": "http://localhost:8080/home"
+    }
+  ],
+  "pageErrors": [],
+  "caption": {
+    "height": 68,
+    "padding": "14px",
+    "sectionBottom": 311,
+    "bottom": 311
+  },
+  "credit": {
+    "bg": "rgb(244, 240, 255)",
+    "color": "rgb(20, 18, 24)",
+    "r": "12px",
+    "p": "8px 10px",
+    "mt": "10px",
+    "size": "13px"
+  },
+  "postingBorder": "1px solid rgb(239, 234, 228)",
+  "verifiedLivePost": true
+}

@@ -225,3 +225,6 @@
 - [x] Captured nine composer states plus single/multiple picker, video trim, Home posting strip, own Everyone menu, profile lock, mixed crew feed and Share workout at 390×844; 17 p5-2-fix- captures in public/qa
 - [x] All 939 tests passed; preview compilation clean; actual posting/readback and zero page errors verified; both temporary members and every related row/media object removed; committed without publishing
 - [x] Matched the Compose and Share workout canvas values, including headers, 92×116 media, cards, audience rows, icons, sheets, steppers, chips and dividers; recaptured and compared 22 p5-2-fix images at 390×844 with zero page errors. The specified 1.5px Add exercise border is inline, while Chromium reports it as 1px. All 939 tests and typecheck pass, build OK, temporary draft data removed; unpublished
+
+## Phase 5.2 Round 3
+- [x] Matched Share workout card/credit, auto-sized caption, posting border and single-star banner; captured eight p5-2-fix3 states at 390×844 with real library drawings, six picker items and first-open note. Verified values and successful post/media readback; temporary accounts, crews, workouts, library examples and media removed; 940 tests and typecheck pass; unpublished.

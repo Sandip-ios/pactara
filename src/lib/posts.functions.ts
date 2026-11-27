@@ -162,7 +162,7 @@ export const getShareWorkoutPreview = createServerFn({ method: "GET" })
     let creditAvatar: string | null = null;
     if (snap.creditUserId) {
       const { data: p } = await supabase.from("profiles").select("name, avatar_url").eq("id", snap.creditUserId).maybeSingle();
-      credit = firstName(p?.["name"] as string | null);
+      credit = (p?.["name"] as string | null)?.trim() || "Member";
       const avatar = (p?.["avatar_url"] as string | null) ?? null;
       if (avatar) creditAvatar = avatar.startsWith("http") ? avatar : (await signAvatarThumbs(supabase, [avatar], 96)).get(avatar) ?? null;
     }
