@@ -55,7 +55,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
           </span>
         )}
       </header>
-      {post.isMine ? <Link to="/post/$postId" params={{ postId: post.id }} className="block w-full"><PostCarousel items={post.items} aspectRatio="4 / 5" /></Link> : <PostCarousel items={post.items} aspectRatio="4 / 5" />}
+      {post.isMine ? <Link to="/post/$postId" params={{ postId: post.id }} className="block w-full"><PostCarousel items={post.items} aspectRatio="3 / 4" /></Link> : <PostCarousel items={post.items} aspectRatio="3 / 4" />}
       {post.caption && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={post.isMine ? null : { ...post.author, firstName, when: clock(post.createdAt) }} />}
       {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}

@@ -207,6 +207,6 @@ export function ProfileSkeleton() {
       <div className="p51-buttons"><span className="p51-bone flex-1" style={{ height: 44 }} /><span className="p51-bone flex-1" style={{ height: 44 }} /></div>
     </section>
     <P51Tabs tab="posts" muted />
-    <div className="grid grid-cols-3 gap-[2px] pt-[2px]">{Array.from({ length: 6 }, (_, i) => <span key={i} className="aspect-[4/5] bg-[var(--new-header-border)]" />)}</div>
+    <div className="grid grid-cols-3 gap-[2px] pt-[2px]">{Array.from({ length: 6 }, (_, i) => <span key={i} className="aspect-[3/4] bg-[var(--new-header-border)]" />)}</div>
   </div>;
 }

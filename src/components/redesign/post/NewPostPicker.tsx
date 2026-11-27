@@ -145,7 +145,7 @@ export function NewPostPicker() {
         left={<button type="button" aria-label="Close" onClick={() => navigate({ to: "/home" })} className="flex h-11 w-11 items-center justify-center"><X size={24} /></button>}
         right={<TextAction tone="purple" disabled={!canNext} onClick={() => navigate({ to: "/post/edit" })}>Next</TextAction>}
       />
-      <div className="relative shrink-0" style={{ height: "min(46vh, 390px)", background: "#0C0A09" }}>
+      <div className={`relative shrink-0 bg-[var(--new-library-video)] ${preview?.kind === "photo" ? "aspect-[3/4] w-full" : "h-[min(46vh,390px)]"}`}>
         {preview ? (
           preview.kind === "video" ? (
             <>
@@ -156,7 +156,7 @@ export function NewPostPicker() {
                 </span>
               )}
             </>
-          ) : <img src={preview.url} alt="" className="h-full w-full object-contain" />
+          ) : <img src={preview.url} alt="" className="h-full w-full object-cover object-center" />
         ) : (
           <button type="button" onClick={() => void openLibrary()} className="flex h-full w-full flex-col items-center justify-center gap-2 text-white">
             <Images size={30} aria-hidden />

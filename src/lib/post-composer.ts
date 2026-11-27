@@ -2,7 +2,7 @@
 export const MAX_POST_ITEMS = 10;
 export const DISCOVER_MAX_VIDEO_S = 180;
 
-export type DraftCrop = { aspect: "4:5" | "original"; y: number };
+export type DraftCrop = { aspect: "4:5" | "3:4" | "original"; y: number };
 export type DraftItem = {
   id: string;
   kind: "photo" | "video";

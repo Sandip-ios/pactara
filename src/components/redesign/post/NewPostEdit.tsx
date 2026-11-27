@@ -34,13 +34,12 @@ export function NewPostEdit() {
   const update = (patch: Partial<DraftItem>) => setDraft((d) => ({ edits: { ...d.edits, [active.media.id]: { ...edit, ...patch } } }));
   const isVideo = active.media.kind === "video";
   const dur = active.media.duration ?? 0;
-  const pos = `50% ${Math.round(edit.crop.y * 100)}%`;
 
   return (
     <div className="redesign-step3 fixed inset-0 flex flex-col overflow-y-auto bg-[var(--new-white)] text-[var(--new-ink-deep)]">
       <section className="shrink-0" style={{ background: DARK }}>
         <PostTopBar dark title="Edit" left={<TextAction dark onClick={() => navigate({ to: "/post/new" })}>Back</TextAction>} right={<TextAction dark tone="purple" onClick={() => navigate({ to: "/post/compose" })}>Next</TextAction>} />
-        <div className={`relative h-[min(42vh,360px)] min-h-[220px] w-full overflow-hidden ${isVideo ? "bg-[var(--new-library-video)]" : ""}`}>
+        <div className={`relative w-full overflow-hidden ${isVideo ? "h-[min(42vh,360px)] min-h-[220px] bg-[var(--new-library-video)]" : "aspect-[3/4]"}`}>
           {isVideo ? (
             <video
               key={active.media.id}
@@ -53,7 +52,7 @@ export function NewPostEdit() {
               className="h-full w-full object-contain object-center"
             />
           ) : (
-            <img src={active.media.url} alt="" className="h-full w-full" style={{ objectFit: edit.crop.aspect === "4:5" ? "cover" : "contain", objectPosition: pos }} />
+            <img src={active.media.url} alt="" className="h-full w-full object-cover object-center" />
           )}
         </div>
         {isVideo && (
@@ -73,7 +72,7 @@ export function NewPostEdit() {
           {isVideo && <ToolButton label="Trim" active={tool === "trim"} onClick={() => setTool("trim")}><Scissors size={20} /></ToolButton>}
           {isVideo && <ToolButton label="Cover" active={tool === "cover"} onClick={() => setTool("cover")}><ImageIcon size={20} /></ToolButton>}
           {isVideo && <ToolButton label="Sound" active={edit.muted} onClick={() => update({ muted: !edit.muted })}>{edit.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}</ToolButton>}
-          {!isVideo && <ToolButton label="4:5" active={tool === "crop"} onClick={() => setTool("crop")}><Crop size={20} /></ToolButton>}
+          {!isVideo && <ToolButton label="3:4" active={tool === "crop"} onClick={() => setTool("crop")}><Crop size={20} /></ToolButton>}
         </div>
         {isVideo && tool === "cover" && (
           <label className="mt-3 block">
@@ -82,16 +81,6 @@ export function NewPostEdit() {
               onChange={(e) => { const t = Number(e.target.value); update({ cover: t }); if (video.current) { video.current.pause(); video.current.currentTime = t; } }}
               className="mt-2 w-full accent-[var(--new-purple)]" />
           </label>
-        )}
-        {!isVideo && tool === "crop" && (
-          <div className="mt-3 flex items-center gap-3">
-            <button type="button" onClick={() => update({ crop: { ...edit.crop, aspect: edit.crop.aspect === "4:5" ? "original" : "4:5" } })} className="h-9 shrink-0 rounded-full bg-[var(--new-control)] px-3.5 text-[14px] font-bold">
-              {edit.crop.aspect === "4:5" ? "4:5" : "Original"}
-            </button>
-            {edit.crop.aspect === "4:5" && (
-              <input type="range" min={0} max={1} step={0.01} value={edit.crop.y} aria-label="Crop position" onChange={(e) => update({ crop: { ...edit.crop, y: Number(e.target.value) } })} className="min-w-0 flex-1 accent-[var(--new-purple)]" />
-            )}
-          </div>
         )}
       </section>
 

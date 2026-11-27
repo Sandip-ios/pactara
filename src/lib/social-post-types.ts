@@ -12,7 +12,7 @@ export type PostItemInput = {
   trimEnd: number | null;
   muted: boolean;
   cover: number | null;
-  crop: { aspect: "4:5" | "original"; y: number } | null;
+  crop: { aspect: "4:5" | "3:4" | "original"; y: number } | null;
 };
 
 export type PostWorkoutChoice =
@@ -23,7 +23,7 @@ export type PostWorkoutChoice =
 
 export type SocialPostItem = {
   id: string; kind: "photo" | "video"; url: string | null; posterUrl: string | null;
-  trimStart: number | null; trimEnd: number | null; muted: boolean; crop: { aspect: "4:5" | "original"; y: number } | null;
+  trimStart: number | null; trimEnd: number | null; muted: boolean; crop: { aspect: "4:5" | "3:4" | "original"; y: number } | null;
 };
 
 export type SocialPostView = {

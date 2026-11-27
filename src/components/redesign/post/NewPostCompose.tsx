@@ -79,8 +79,8 @@ export function NewPostCompose() {
       <section className="bg-[var(--new-white)] px-4 pt-3.5">
         <div className="flex gap-2 overflow-hidden">
           {picked.map(({ media, edit }) => (
-            <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
-              {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full bg-[var(--new-library-video)] object-contain" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
+            <span key={media.id} className="relative aspect-[3/4] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
+              {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full bg-[var(--new-library-video)] object-contain" /> : <img src={media.url} alt="" className="h-full w-full object-cover object-center" />}
               {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
             </span>
           ))}

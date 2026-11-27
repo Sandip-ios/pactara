@@ -19,10 +19,11 @@ describe("uncropped library video", () => {
     expect(postVideoRatio(3840, 1080)).toBe(1.91);
     expect(postVideoRatio(1080, 2400)).toBe(9 / 16);
   });
-  it("defaults video to original without changing photo crop", () => {
+  it("defaults video to original and photos to centered 3:4", () => {
     const media = { id: "phone", file: new Blob(), url: "blob:test", duration: 10, name: "phone.mp4" };
     expect(defaultEdit({ ...media, kind: "video" }).crop.aspect).toBe("original");
-    expect(defaultEdit({ ...media, kind: "photo" }).crop.aspect).toBe("4:5");
+    expect(defaultEdit({ ...media, kind: "photo" }).crop).toEqual({ aspect: "3:4", y: 0.5 });
+    expect(postItemCrop("video", { aspect: "3:4", y: 0.5 })).toBeNull();
   });
   it("seeks the first trim thumbnail to 0.1s and subsequent frames across the video", () => {
     expect(trimFrameTime(10, 0)).toBe(0.1);

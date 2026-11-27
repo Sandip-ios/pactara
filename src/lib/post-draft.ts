@@ -36,7 +36,7 @@ export function usePostDraft(): PostDraft {
 }
 
 export function defaultEdit(m: DraftMedia): DraftItem {
-  return { id: m.id, kind: m.kind, duration: m.duration, trimStart: 0, trimEnd: m.duration, muted: false, cover: 0, crop: { aspect: m.kind === "video" ? "original" : "4:5", y: 0.5 } };
+  return { id: m.id, kind: m.kind, duration: m.duration, trimStart: 0, trimEnd: m.duration, muted: false, cover: 0, crop: { aspect: m.kind === "video" ? "original" : "3:4", y: 0.5 } };
 }
 
 /** The picked media in order, with their edits. */

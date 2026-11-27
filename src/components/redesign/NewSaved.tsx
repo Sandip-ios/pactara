@@ -17,12 +17,12 @@ function TilePill({ children }: { children: React.ReactNode }) {
   return <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center gap-0.5 rounded-full bg-[rgba(20,18,24,0.72)] px-1.5 text-[10px] font-extrabold tracking-[0.04em] text-white">{children}</span>;
 }
 
-/** One 4:5 tile shared by Saved and the profile Posts grid: video, multi-photo, WORKOUT, check-in and (profile only) pin markers. */
+/** One 3:4 tile shared by Saved and the profile Posts grid: video, multi-photo, WORKOUT, check-in and (profile only) pin markers. */
 export function PostGridTile({ tile }: { tile: SavedTile }) {
   const router = useRouter();
   const [failed, setFailed] = useState<string | null>(null);
   const thumb = tile.thumbUrl && tile.thumbUrl !== failed ? tile.thumbUrl : null;
-  return <a href={tile.href} onClick={e => { e.preventDefault(); router.history.push(tile.href); }} aria-label={tile.label} className="relative block aspect-[4/5] overflow-hidden bg-[var(--new-control)]">
+  return <a href={tile.href} onClick={e => { e.preventDefault(); router.history.push(tile.href); }} aria-label={tile.label} className="relative block aspect-[3/4] overflow-hidden bg-[var(--new-control)]">
     {thumb ? <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover" onError={() => setFailed(thumb)} />
       : <span className="flex h-full w-full items-center justify-center bg-[#EDE4FF] p-2 text-center text-[12px] font-semibold leading-[1.3] text-[#5B21B6]"><span className="line-clamp-4">{tile.label}</span></span>}
     {tile.multi ? <Layers size={16} className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : tile.video ? <Play size={16} fill="currentColor" className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : null}
@@ -48,7 +48,7 @@ export function NewSaved() {
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-privacy-page fixed inset-0 overflow-y-auto overscroll-none bg-white pb-10" style={{ paddingBottom: 'calc(40px + var(--workout-bar-pad, 0px))' }}>
     <header className="new-profile-header pt-new-top"><div className="new-profile-header-row"><Button variant="ghost" className="new-profile-menu-button" aria-label="Back" onClick={back}><ChevronLeft size={22} /></Button><h1>Saved</h1><span className="new-profile-header-spacer" /></div></header>
     <p className="text-[13px] text-[#57534E]" style={{ padding: '12px 16px 8px' }}>Only you can see what you save.</p>
-    {q.isLoading ? <div aria-busy="true" className="grid grid-cols-3 gap-[2px]">{Array.from({ length: 6 }, (_, i) => <span key={i} className="aspect-[4/5] bg-[var(--new-control)]" />)}</div>
+    {q.isLoading ? <div aria-busy="true" className="grid grid-cols-3 gap-[2px]">{Array.from({ length: 6 }, (_, i) => <span key={i} className="aspect-[3/4] bg-[var(--new-control)]" />)}</div>
       : tiles.length ? <>
         <div className="grid grid-cols-3 gap-[2px]">{tiles.map(t => <PostGridTile key={`${t.kind}:${t.id}`} tile={t} />)}</div>
         {q.hasNextPage && <div className="flex justify-center py-4"><Button variant="ghost" disabled={q.isFetchingNextPage} onClick={() => void q.fetchNextPage()} className="text-[14px] font-bold text-[var(--new-purple-text)]">{q.isFetchingNextPage ? 'Loading…' : 'Load more'}</Button></div>}
