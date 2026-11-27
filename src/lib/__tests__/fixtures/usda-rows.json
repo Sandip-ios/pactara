@@ -64,6 +64,108 @@
    }
   ]
  },
+ "apples raw with skin": {
+  "fdcId": 171689,
+  "description": "Apples, raw, without skin",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 1.0,
+    "gramWeight": 216.0,
+    "modifier": "large (3-1/4\" dia)",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 110.0,
+    "modifier": "cup slices",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 132.0,
+    "modifier": "small (2-3/4\" dia)",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 161.0,
+    "modifier": "medium (3\" dia)",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 48.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 0.27
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 0.13
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 12.76
+   }
+  ]
+ },
+ "bread whole wheat commercially prepared": {
+  "fdcId": 172688,
+  "description": "Bread, whole-wheat, commercially prepared",
+  "dataType": "SR Legacy",
+  "foodPortions": [
+   {
+    "amount": 1.0,
+    "gramWeight": 28.35,
+    "modifier": "oz",
+    "portionDescription": null
+   },
+   {
+    "amount": 1.0,
+    "gramWeight": 32.0,
+    "modifier": "slice",
+    "portionDescription": null
+   }
+  ],
+  "foodNutrients": [
+   {
+    "nutrient": {
+     "id": 1008
+    },
+    "amount": 252.0
+   },
+   {
+    "nutrient": {
+     "id": 1003
+    },
+    "amount": 12.45
+   },
+   {
+    "nutrient": {
+     "id": 1004
+    },
+    "amount": 3.5
+   },
+   {
+    "nutrient": {
+     "id": 1005
+    },
+    "amount": 42.71
+   }
+  ]
+ },
  "broccoli cooked boiled drained without salt": {
   "fdcId": 169967,
   "description": "Broccoli, cooked, boiled, drained, without salt",

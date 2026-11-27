@@ -24,15 +24,21 @@ export function foodAmount(amount: number, unit: string) {
  const rounded=roundNutrition(amount);const plural:Record<string,string>={cup:'cups',scoop:'scoops',piece:'pieces',serving:'servings',slice:'slices',tablespoon:'tablespoons',teaspoon:'teaspoons'};
  return `${rounded} ${rounded===1?unit:plural[unit]??unit}`;
 }
-/** Household measure preference for the starting portion: cup, then piece/slice/medium, then tbsp, then other measures, then grams. */
-export function portionPreference(unit:string) { const u=unit.toLowerCase();if(/\bcups?\b/.test(u))return 0;if(/\b(piece|slice|medium)s?\b/.test(u))return 1;if(/\b(tbsp|tablespoons?)\b/.test(u))return 2;if(u==='g'||u==='oz')return 5;if(u==='serving'||/\bracc\b/.test(u))return 4;return 3; }
+/** Starting-portion preference: whole items (sizes, piece, slice, whole), then cup, then tbsp, then other measures, then grams. Parts such as stalk or spear count as other measures. */
+const SIZE=/^(extra large|jumbo|large|medium|small)$/;
+export function portionPreference(unit:string) { const u=unit.toLowerCase().trim();if(SIZE.test(u)||/^(piece|slice|whole)s?\b/.test(u))return 0;if(/^cups?\b/.test(u))return 1;if(/^(tbsp|tablespoons?)\b/.test(u))return 2;if(u==='g'||u==='oz')return 5;if(u==='serving'||/\bracc\b/.test(u))return 4;return 3; }
+/** Orders portions by preference; among whole-item sizes the middle size by weight comes first (egg: large, apple: medium). */
+function sortPortions(portions:Portion[]):Portion[] {
+ const sizes=portions.filter(p=>SIZE.test(p.unit.toLowerCase().trim())).sort((a,b)=>a.grams-b.grams);const mid=sizes[Math.floor((sizes.length-1)/2)];
+ return portions.map((p,i)=>({p,i})).sort((a,b)=>portionPreference(a.p.unit)-portionPreference(b.p.unit)||Number(b.p===mid)-Number(a.p===mid)||a.i-b.i).map(x=>x.p);
+}
 export function hasHouseholdPortion(food:Food) { return food.portions.some(p=>p.grams>0&&portionPreference(p.unit)<=3); }
 /** Search order: most added by members first, then foods with a household portion, then the incoming tier/name order. */
 export function rankFoodResults(foods:Food[],adds:Record<string,number>):Food[] { return foods.map((f,i)=>({f,i})).sort((a,b)=>(adds[b.f.id]??0)-(adds[a.f.id]??0)||Number(hasHouseholdPortion(b.f))-Number(hasHouseholdPortion(a.f))||a.i-b.i).map(x=>x.f); }
 /** Foods newly added in this save, counting duplicates, compared with the previous version of the meal. */
 export function newlyAddedFoodIds(current:string[],previous:string[]) { const left=[...previous];return current.filter(id=>{const i=left.indexOf(id);if(i>=0){left.splice(i,1);return false;}return true;}); }
 export function foodPortions(food:Food):Portion[] {
- const portions=food.portions.filter(p=>p.grams>0).map((p,i)=>({p,i})).sort((a,b)=>portionPreference(a.p.unit)-portionPreference(b.p.unit)||a.i-b.i).map(x=>x.p);
+ const portions=sortPortions(food.portions.filter(p=>p.grams>0));
  return [...portions,...(portions.some(p=>p.unit==='g')?[]:[{unit:'g',grams:1}]),...(portions.some(p=>p.unit==='oz')?[]:[{unit:'oz',grams:28.349523125}])];
 }
 export function foodSearchLine(food:Food) {
@@ -56,5 +62,5 @@ export function stripNutrition<T>(value: T): T {
 }
 export function mealForViewer<T>(value:T, under18:boolean):T { return under18 ? stripNutrition(value) : value; }
 export function mealCopyCredit(previous:MealSnapshot, next:MealSnapshot, name:string|null) { return JSON.stringify(previous.foods)!==JSON.stringify(next.foods) ? null : name; }
-export function defaultPortion(food:Food, region:string):Portion { const usual=[...food.portions].filter(p=>p.grams>0).sort((a,b)=>portionPreference(a.unit)-portionPreference(b.unit))[0]; if(usual && !['g','oz'].includes(usual.unit)) return usual; const imperial=/^(?:en-US|en-LR|en-MM)(?:$|-)/i.test(region); return food.portions.find(p=>p.unit===(imperial?'oz':'g')) ?? usual ?? {unit:'g',grams:1}; }
+export function defaultPortion(food:Food, region:string):Portion { const usual=sortPortions(food.portions.filter(p=>p.grams>0))[0]; if(usual && !['g','oz'].includes(usual.unit)) return usual; const imperial=/^(?:en-US|en-LR|en-MM)(?:$|-)/i.test(region); return food.portions.find(p=>p.unit===(imperial?'oz':'g')) ?? usual ?? {unit:'g',grams:1}; }
 export function initialAmount(portion:Portion,food:Food) { return portion.unit==='g' && food.portions.every(p=>['g','oz'].includes(p.unit)) ? 100 : 1; }
