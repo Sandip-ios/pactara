@@ -766,3 +766,14 @@ body [class*="min-h-[100dvh]"] {
 .p51-error p { font-size: 13px; color: var(--new-muted); margin-top: 2px; }
 .p51-error .p51-btn { flex: none; height: 40px; }
 .p51-bone { background: var(--new-header-border); border-radius: 999px; display: block; }
+.p51-setup { background: var(--new-white); padding: 4px 0 16px; }
+.p51-setup-head { display: flex; justify-content: space-between; align-items: baseline; padding: 0 20px 10px; }
+.p51-setup-head h2 { font-size: 15px; font-weight: 800; }
+.p51-setup-head span { font-size: 13px; color: var(--new-muted); font-weight: 600; }
+.p51-setup-row { display: flex; gap: 10px; overflow-x: auto; padding: 0 20px; scrollbar-width: none; }
+.p51-setup-card { flex: 0 0 132px; border-radius: 16px; background: var(--new-profile-surface); padding: 14px 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.p51-setup-card .ic { width: 44px; height: 44px; border-radius: 50%; background: var(--new-soft); color: var(--new-purple); display: flex; align-items: center; justify-content: center; }
+.p51-setup-card.is-done .ic { background: var(--new-green-soft); color: var(--new-green); }
+.p51-setup-card strong { font-size: 14px; font-weight: 700; }
+.p51-setup-card .act { height: 32px; min-width: 84px; border-radius: 16px; background: var(--new-purple); color: var(--new-white); font-size: 13px; font-weight: 700; padding: 0 12px; display: inline-flex; align-items: center; justify-content: center; }
+.p51-setup-card.is-done .act { background: transparent; color: var(--new-green); }

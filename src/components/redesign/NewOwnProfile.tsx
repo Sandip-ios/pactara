@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { Bookmark, ChevronRight, Lock, Menu, Settings, ShieldBan, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ownInfoLine } from '@/lib/profile-state';
+import { completeProfileSteps, ownInfoLine } from '@/lib/profile-state';
+import { useAvatarPicker } from '@/components/profile/use-avatar-picker';
+import { Camera, Check, FileText, UserPlus } from 'lucide-react';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
@@ -47,6 +49,7 @@ export function NewOwnProfile({ tab, onTab }: { tab: ProfileTab; onTab: (t: Prof
       </div>
       {profile.plan && <Link to="/plans/$slug" params={{ slug: profile.plan.slug }} className="p51-plan"><span className="p51-plan-cover">{profile.plan.coverUrl && <img src={profile.plan.coverUrl} alt="" />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks} · others can view and start it</small></span><ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" /></Link>}
     </section>
+    <CompleteProfile bio={profile.bio} following={profile.following} posts={posts?.length ?? null} hasPhoto={!!profile.avatarUrl} />
     <P51Tabs tab={tab} onTab={onTab} />
     {tab === 'posts' && <P51PostsGrid tiles={posts ? profileGridTiles(posts, 'Your post') : undefined} emptyBody="Your workouts, meals and photos show up here." />}
     {tab === 'workouts' && <OwnWorkoutsTab />}
@@ -61,4 +64,28 @@ export function NewOwnProfile({ tab, onTab }: { tab: ProfileTab; onTab: (t: Prof
       <NewSheetRow simple title="Settings" leading={<Settings />} trailing={<NewSheetChevron />} onClick={() => go('/account-settings')} />
     </NewSheet>
   </div>;
+}
+
+const STEP_ICON = { bio: FileText, friends: UserPlus, post: Camera, photo: Camera } as const;
+
+/** Board 15: shown between the buttons and the tabs until all four steps are done. */
+function CompleteProfile({ bio, following, posts, hasPhoto }: { bio: string | null; following: number; posts: number | null; hasPhoto: boolean }) {
+  const qc = useQueryClient();
+  const avatar = useAvatarPicker();
+  if (posts === null) return null;
+  const setup = completeProfileSteps({ bio, following, posts, hasPhoto });
+  if (!setup) return null;
+  const onPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => { await avatar.onChange(e); void qc.invalidateQueries({ queryKey: ['new-own-profile'] }); };
+  return <section className="p51-setup" aria-label="Complete your profile">
+    <div className="p51-setup-head"><h2>Complete your profile</h2><span>{setup.done} of 4 done</span></div>
+    <div className="p51-setup-row">{setup.steps.map(s => { const Icon = STEP_ICON[s.key]; return <div key={s.key} className={`p51-setup-card${s.done ? ' is-done' : ''}`}>
+      <span className="ic">{s.done ? <Check size={22} strokeWidth={3} /> : <Icon size={20} />}</span><strong>{s.title}</strong>
+      {s.done ? <span className="act">Done</span>
+        : s.key === 'bio' ? <Link to="/profile/edit" className="act">{s.action}</Link>
+        : s.key === 'friends' ? <Link to="/groups" className="act">{s.action}</Link>
+        : s.key === 'post' ? <Link to="/post/new" className="act">{s.action}</Link>
+        : <button type="button" className="act" disabled={avatar.uploading} onClick={avatar.pick}>{s.action}</button>}
+    </div>; })}</div>
+    <input ref={avatar.input} type="file" accept="image/*" hidden onChange={e => void onPhoto(e)} />
+  </section>;
 }

@@ -67,3 +67,14 @@ describe('info lines', () => {
     expect(g.map(x => [x.muscle, x.items.length])).toEqual([['Back', 2], ['Legs', 1]]);
   });
 });
+
+import { completeProfileSteps } from '../profile-state';
+describe('completeProfileSteps', () => {
+  it('counts done steps', () => {
+    const r = completeProfileSteps({ bio: null, following: 0, posts: 0, hasPhoto: true });
+    expect(r?.done).toBe(1);
+    expect(r?.steps.map(s => s.done)).toEqual([false, false, false, true]);
+  });
+  it('blank bio is not done', () => expect(completeProfileSteps({ bio: '  ', following: 1, posts: 1, hasPhoto: true })?.done).toBe(3));
+  it('disappears when all 4 are done', () => expect(completeProfileSteps({ bio: 'Hi', following: 2, posts: 1, hasPhoto: true })).toBeNull());
+});
