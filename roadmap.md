@@ -4,6 +4,7 @@
 - [x] Replaced the new-version You're in screen and following celebration modal with one Posted screen, preserving classic completion and share paths.
 - [x] Recolored the launch wordmark for the Posted video and new-version share exports; classic share drawing remains unchanged.
 - [x] Captured six 390×844 states in public/qa/p5-1c-*.png from real draft check-ins; verified reduced motion, sound, manual play, Share, Close and Done. All 882 tests and typecheck pass; every temporary member, crew, post, subscription and media file was removed; unpublished.
+- [x] Matched the Posted header to New check-in with pt-new-top and recaptured badge/no-badge at 390×844 as p5-1c-fix-*.png, preserving the originals. All 882 tests and typecheck pass; unpublished.
 
 ## Toast clearance above pinned actions
 - [x] Registered the new-version plan, plan-day, quiz, pact, notification and done-screen primary actions with useToastAbove; shared classic surfaces opt in only for the new version. Existing tab, Resume, classic builder and Share your win offsets remain.

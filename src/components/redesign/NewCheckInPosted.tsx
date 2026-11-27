@@ -120,7 +120,7 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
   const avatars = (crew?.members ?? []).map((member) => ({ id: member.userId, name: member.name, avatarUrl: member.avatarUrl, avatarColor: member.avatarColor }));
 
   return <div role="dialog" aria-modal="true" aria-label="Posted" className="redesign-step3 fixed inset-0 z-40 flex flex-col bg-[var(--new-bg)] text-[var(--new-ink)]">
-    <header className="shrink-0 px-5" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <header className="shrink-0 px-5 pt-new-top">
       <div className="flex h-14 items-center justify-between">
         <span aria-label="Pactara" className="text-[26px] font-extrabold tracking-[-0.5px]"><span className="text-[var(--new-purple-text)]">P</span>actara</span>
         <button type="button" onClick={onDone} aria-label="Close" className="flex h-11 w-11 items-center justify-center rounded-full bg-[#F0EDE8] text-[var(--new-ink-deep)]"><X size={20} /></button>
