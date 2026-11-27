@@ -5,7 +5,7 @@ import { useNavigate, useRouter } from '@tanstack/react-router';
 import { Ban, Flag, MoreHorizontal } from 'lucide-react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 import * as Alert from '@radix-ui/react-alert-dialog';
-import { toast } from 'sonner';
+import { useVersionToast } from '@/components/redesign/new-toast';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { FeedAvatar } from '@/components/feed/FeedMedia';
@@ -25,6 +25,7 @@ export function useSafetyState() {
 }
 
 export function SafetyActions({ target, initialOpen = false, onClose }: { target: SafetyTarget; initialOpen?: boolean; onClose?: () => void }) {
+  const toast = useVersionToast();
   const [open, setOpen] = useState(initialOpen);
   const [mode, setMode] = useState<'menu' | 'report'>('menu');
   const [confirm, setConfirm] = useState(false);
@@ -134,6 +135,7 @@ export function SafetyActions({ target, initialOpen = false, onClose }: { target
 }
 
 export function UnblockButton({ userId, name, onUnblocked }: { userId: string; name: string; onUnblocked?: () => void }) {
+  const toast = useVersionToast();
   const [busy, setBusy] = useState(false);
   const unblock = useServerFn(setUserBlock);
   const qc = useQueryClient();

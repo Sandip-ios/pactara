@@ -15,6 +15,7 @@ import { SocialPostCard } from "./post/SocialPostCard";
 import { RedesignCheckInCard } from "./RedesignCheckInCard";
 import { FollowPill } from "./FollowPill";
 import { CrewAvatar } from "./CrewAvatars";
+import { suggestionDetail } from "@/lib/suggestion-detail";
 
 function EmptyFollowing() {
   const get = useServerFn(getNewHomeSuggestions);
@@ -49,7 +50,10 @@ function EmptyFollowing() {
                   className="flex min-w-0 flex-1 items-center gap-3"
                 >
                   <CrewAvatar member={person} size={40} />
-                  <span className="truncate text-[15px] font-bold">{person.name}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[15px] font-bold">{person.name}</span>
+                    <span className="mt-0.5 block truncate text-[13px] text-[#57534E]">{suggestionDetail(person.bioLine, person.followers)}</span>
+                  </span>
                 </Link>
                 <FollowPill userId={person.id} />
               </li>
@@ -119,12 +123,7 @@ export function HomeSocialFeed({ tab = "for-you" }: { tab?: HomeTab }) {
   const viewerToday = localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone, new Date());
   return (
     <section aria-label={tab === "following" ? "Following feed" : "For you feed"} role="tabpanel">
-      {feed.isPending && (
-        <div
-          className="mx-3 mt-3 h-44 animate-pulse rounded-[20px] bg-[var(--new-white)]"
-          aria-label="Loading posts"
-        />
-      )}
+      {feed.isPending && <FeedLoading />}
       {feed.isError && (
         <div className="p-6 text-center">
           <p className="text-[14px] text-[var(--new-muted)]">Couldn't load posts.</p>
@@ -172,5 +171,24 @@ export function HomeSocialFeed({ tab = "for-you" }: { tab?: HomeTab }) {
         <p className="py-4 text-center text-[13px] text-[var(--new-muted)]">Loading…</p>
       )}
     </section>
+  );
+}
+
+function FeedLoading() {
+  return (
+    <div aria-label="Loading posts" role="status">
+      {[0, 1].map((i) => (
+        <div key={i} className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] p-3.5" aria-hidden>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-[#EFEAE4]" />
+            <div className="min-w-0 flex-1">
+              <div className="h-3.5 w-1/2 animate-pulse rounded-full bg-[#EFEAE4]" />
+              <div className="mt-2 h-3 w-1/3 animate-pulse rounded-full bg-[#EFEAE4]" />
+            </div>
+          </div>
+          <div className="mt-3 h-[220px] animate-pulse rounded-[14px] bg-[#EFEAE4]" />
+        </div>
+      ))}
+    </div>
   );
 }

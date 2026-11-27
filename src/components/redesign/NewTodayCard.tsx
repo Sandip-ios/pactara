@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { ArrowRight, Check, ChevronDown, ChevronRight, ChevronUp, Moon, Snowflake, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { setTodayResumeVisible } from "@/lib/today-resume";
+import { ArrowRight, Check, ChevronDown, ChevronRight, ChevronUp, Dumbbell, Moon, Snowflake, Users } from "lucide-react";
 import type { TodayCrewInput, TodayPlanInput, TodaySelection } from "@/lib/home-today";
 import { coverThumb } from "@/lib/plan-filters";
 
@@ -34,14 +35,25 @@ export function NewTodayCard({
 }) {
   const [open, setOpen] = useState(false);
   const [starting, setStarting] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const resumeShown = selection.card === "ready" && selection.plan === "in-progress" && !!plan;
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!resumeShown || !el) { setTodayResumeVisible(false); return; }
+    const io = new IntersectionObserver(([e]) => setTodayResumeVisible(!!e?.isIntersecting));
+    io.observe(el);
+    return () => { io.disconnect(); setTodayResumeVisible(false); };
+  }, [resumeShown]);
 
   if (selection.card === "loading") return <TodayLoading />;
   if (selection.card === "error") {
     return (
-      <section aria-label="Today" className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] p-[18px]">
-        <h2 className="text-[15px] font-bold">Couldn't load today</h2>
-        <p className="mt-1 text-[12px] text-[var(--new-muted)]">Check your connection and try again.</p>
-        <button type="button" onClick={onRetry} className="mt-3 h-10 rounded-full border border-[#D6D3D1] px-4 text-[14px] font-bold">Try again</button>
+      <section aria-label="Today" className="mx-3 mt-3 flex items-center gap-3 rounded-[20px] bg-[var(--new-white)] p-[18px]">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-[15px] font-bold">Couldn't load today</h2>
+          <p className="mt-1 text-[12px] text-[var(--new-muted)]">Check your connection and try again.</p>
+        </div>
+        <button type="button" onClick={onRetry} className="h-10 shrink-0 rounded-full border border-[#D6D3D1] px-4 text-[14px] font-bold">Try again</button>
       </section>
     );
   }
@@ -112,6 +124,7 @@ export function NewTodayCard({
       : <Check size={17} strokeWidth={3} color={GREEN} />;
     const iconBackground = selection.cover && (selection.crew === "single-covered" || selection.crew === "multi-covered") ? "#E0F2FE" : "#DCFCE7";
     const opensCrew = single;
+    const pill = selection.crew === "multi-partial" && selection.missingCrewIds.length > 0;
     crewPart = (
       <div className="flex min-h-[60px] items-center gap-2 px-3.5 py-3">
         <button
@@ -122,22 +135,28 @@ export function NewTodayCard({
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ background: iconBackground }}>{icon}</span>
           <span className="min-w-0 flex-1 text-[14px] font-semibold leading-[1.3]">{line}</span>
-          {expandable && (open ? <ChevronUp size={16} color={CHEVRON} /> : <ChevronDown size={16} color={CHEVRON} />)}
+          {!pill && expandable && (open ? <ChevronUp size={16} color={CHEVRON} /> : <ChevronDown size={16} color={CHEVRON} />)}
           {single && <ChevronRight size={16} color={CHEVRON} />}
         </button>
-        {selection.crew === "multi-partial" && selection.missingCrewIds.length > 0 && checkInButton(true)}
+        {pill && checkInButton(true)}
+        {pill && (
+          <button type="button" aria-label={open ? "Hide crews" : "Show crews"} aria-expanded={open} onClick={() => setOpen((value) => !value)} className="-mr-1 flex h-8 w-7 shrink-0 items-center justify-center">
+            {open ? <ChevronUp size={16} color={CHEVRON} /> : <ChevronDown size={16} color={CHEVRON} />}
+          </button>
+        )}
       </div>
     );
   }
 
   return (
-    <section aria-label="Today" className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)]">
+    <section ref={sectionRef} aria-label="Today" className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)]">
       {crewPart}
       {showCrewList && (
-        <div className="mx-3 mb-3 rounded-[14px] bg-[#F7F5F2] px-3">
+        <div className="px-3 pb-3">
+        <div className="rounded-[14px] bg-[#F7F5F2] px-3">
           <ul>
             {crews.map((crew) => {
-              const missing = selection.missingCrewIds.includes(crew.id);
+              const missing = selection.crew === "multi-partial" && selection.missingCrewIds.includes(crew.id);
               return (
                 <li key={crew.id} className="border-b border-[#EAE6E1] last:border-0">
                   <button type="button" onClick={() => onOpenCrew(crew.id)} className="flex min-h-11 w-full items-center gap-2 py-2 text-left">
@@ -151,8 +170,9 @@ export function NewTodayCard({
               );
             })}
           </ul>
+        </div>
           {(selection.crew === "multi-covered") && (
-            <div className="flex items-center justify-between gap-2 border-t border-[#EAE6E1] py-3">
+            <div className="flex items-center justify-between gap-2 px-0.5 pt-3">
               <span className="min-w-0 flex-1 text-[12px] text-[var(--new-muted)]">People resting today aren't counted.</span>
               <button type="button" onClick={() => onCheckInAnyway(crews.map((crew) => crew.id))} className="h-8 shrink-0 rounded-full bg-[#EDE4FF] px-3 text-[12px] font-bold text-[#7C3AED]">Check in anyway</button>
             </div>
@@ -161,9 +181,13 @@ export function NewTodayCard({
       )}
       {selection.plan !== "none" && selection.plan !== "checked-in" && plan && (
         <div className="mx-3.5 flex min-h-[74px] items-center gap-3 border-t border-[#F0EDE9] py-3">
-          <span className="h-12 w-12 shrink-0 overflow-hidden rounded-[12px] bg-[var(--new-soft)]">
-            {coverThumb(plan.coverUrl) && <img src={coverThumb(plan.coverUrl)!} alt="" className="h-full w-full object-cover" />}
-          </span>
+          {coverThumb(plan.coverUrl) ? (
+            <span className="h-11 w-11 shrink-0 overflow-hidden rounded-[12px] bg-[#EDE4FF]">
+              <img src={coverThumb(plan.coverUrl)!} alt="" className="h-full w-full object-cover" />
+            </span>
+          ) : (
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] bg-[#EDE4FF]"><Dumbbell size={20} color="#7C3AED" /></span>
+          )}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-bold">{plan.name}</p>
             {selection.plan === "in-progress" ? (

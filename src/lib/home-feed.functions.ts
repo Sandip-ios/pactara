@@ -69,6 +69,8 @@ export const getNewHomeSuggestions = createServerFn({ method: "GET" })
       name: string | null;
       avatar_url: string | null;
       avatar_color: string | null;
+      bio_line: string | null;
+      followers: number | null;
     }[];
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const avatars = await signAvatarThumbs(
@@ -84,6 +86,8 @@ export const getNewHomeSuggestions = createServerFn({ method: "GET" })
           : (avatars.get(p.avatar_url) ?? null)
         : null,
       avatarColor: p.avatar_color ?? "#7C3AED",
+      bioLine: p.bio_line ?? null,
+      followers: p.followers ?? 0,
     }));
   });
 

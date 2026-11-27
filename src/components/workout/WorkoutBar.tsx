@@ -4,6 +4,7 @@ import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { fmtClock } from "@/lib/lift-rules";
 import { getActiveWorkout, updateActiveWorkout, useActiveWorkout } from "@/lib/active-workout";
 import { restEnded } from "./RestAlarm";
+import { useTodayResumeVisible } from "@/lib/today-resume";
 
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -36,16 +37,27 @@ export function WorkoutBar({ tabsVisible }: { tabsVisible: boolean }) {
   }, [w?.rest, now]);
 
   useEffect(() => {
-    if (!tabsVisible) return;
-    const el = document.querySelector("[data-bottom-tabs]") as HTMLElement | null;
-    if (!el) return;
-    const ro = new ResizeObserver(() => setTabsH(el.offsetHeight));
-    ro.observe(el);
-    setTabsH(el.offsetHeight);
-    return () => ro.disconnect();
+    if (!tabsVisible || !w) return;
+    // The tabs can mount after the bar, and a hidden nav measures 0: keep re-measuring.
+    let ro: ResizeObserver | null = null;
+    let seen: HTMLElement | null = null;
+    const measure = () => {
+      const el = document.querySelector("[data-bottom-tabs]") as HTMLElement | null;
+      if (el && el !== seen) {
+        ro?.disconnect();
+        seen = el;
+        ro = new ResizeObserver(() => { if (el.offsetHeight > 0) setTabsH(el.offsetHeight); });
+        ro.observe(el);
+      }
+      if (el && el.offsetHeight > 0) setTabsH(el.offsetHeight);
+    };
+    measure();
+    const t = window.setInterval(measure, 500);
+    return () => { window.clearInterval(t); ro?.disconnect(); };
   }, [tabsVisible, w?.id]);
+  const todayResume = useTodayResumeVisible();
 
-  const hidden = !w || fromLogger || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera");
+  const hidden = !w || fromLogger || (todayResume && pathname.startsWith("/home")) || pathname.startsWith("/workout/log") || pathname.startsWith("/check-in/camera");
   const barRef = useRef<HTMLButtonElement>(null);
   useToastAbove(barRef, !hidden);
   // Full-screen pages (no tabs) pad their bottom by this so nothing hides behind the bar.
