@@ -6,6 +6,7 @@ import { skipsDiscover } from "./post-composer";
 import type { PickedItem } from "./post-draft";
 import type { PostAudience } from "./post-audience";
 import type { PostItemInput, PostWorkoutChoice } from "./social-post-types";
+import { postItemCrop } from "./post-video-layout";
 
 const extOf = (blob: Blob, name: string, kind: "photo" | "video") => {
   const fromName = name.split(".").pop()?.toLowerCase();
@@ -25,6 +26,7 @@ export async function submitPost(input: {
   const files: QueueFile[] = [];
   const items: PostItemInput[] = [];
   let thumb: Blob | null = null;
+  let thumbKind: "photo" | "video" = "photo";
   for (const [i, { media, edit }] of input.picked.entries()) {
     const path = `${uid}/${stamp}-${i}.${extOf(media.file, media.name, media.kind)}`;
     files.push({ path, blob: media.file, contentType: media.file.type || (media.kind === "video" ? "video/mp4" : "image/jpeg"), done: false });
@@ -34,19 +36,19 @@ export async function submitPost(input: {
       if (poster) {
         posterPath = `${path}.poster.jpg`;
         files.push({ path: posterPath, blob: poster, contentType: "image/jpeg", done: false });
-        thumb ??= poster;
+        if (!thumb) { thumb = poster; thumbKind = "video"; }
       }
     } else thumb ??= media.file;
     items.push({
       kind: media.kind, path, posterPath, duration: media.duration,
       trimStart: media.kind === "video" ? edit.trimStart : null, trimEnd: media.kind === "video" ? edit.trimEnd : null,
-      muted: edit.muted, cover: media.kind === "video" ? edit.cover : null, crop: edit.crop,
+      muted: edit.muted, cover: media.kind === "video" ? edit.cover : null, crop: postItemCrop(media.kind, edit.crop),
     });
   }
   const { id } = await createSocialPost({ data: {
     caption: input.caption, audience: input.audience.kind, crewIds: input.audience.crewIds, items, workout: input.workout,
     commentsOn: input.audience.kind !== "only_me" && input.commentsOn, tags: input.audience.kind === "only_me" ? [] : input.tags, skipDiscover: skipsDiscover(input.picked.map((p) => p.edit)),
   } });
-  if (files.length) await enqueuePost({ postId: id, label: "Posting...", thumb, files, failed: false });
+  if (files.length) await enqueuePost({ postId: id, label: "Posting...", thumb, thumbKind, files, failed: false });
   return { id, uploading: files.length > 0 };
 }

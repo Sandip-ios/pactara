@@ -7,8 +7,8 @@ import { finalizeSocialPost } from "./posts.functions";
  * upload interrupted by the app going to the background resumes on return.
  */
 export type QueueFile = { path: string; blob: Blob; contentType: string; done: boolean };
-export type PostJob = { postId: string; label: string; thumb: Blob | null; files: QueueFile[]; failed: boolean };
-export type StripState = { postId: string; label: string; thumbUrl: string | null; progress: number; failed: boolean } | null;
+export type PostJob = { postId: string; label: string; thumb: Blob | null; thumbKind?: "photo" | "video"; files: QueueFile[]; failed: boolean };
+export type StripState = { postId: string; label: string; thumbUrl: string | null; thumbKind?: "photo" | "video"; progress: number; failed: boolean } | null;
 
 /** Overall percent from bytes done across files. */
 export function jobProgress(files: { size: number; done: boolean }[], currentIndex: number, currentFraction: number): number {
@@ -71,7 +71,7 @@ async function run(job: PostJob) {
   running = job.postId;
   const thumbUrl = job.thumb ? URL.createObjectURL(job.thumb) : null;
   const sizes = job.files.map((f) => ({ size: f.blob.size, done: f.done }));
-  set({ postId: job.postId, label: job.label, thumbUrl, progress: jobProgress(sizes, -1, 0), failed: false });
+  set({ postId: job.postId, label: job.label, thumbUrl, thumbKind: job.thumbKind ?? "photo", progress: jobProgress(sizes, -1, 0), failed: false });
   try {
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
@@ -99,7 +99,7 @@ async function run(job: PostJob) {
     console.error("[posting] failed", e);
     job.failed = true;
     await idb("readwrite", (s) => s.put(job));
-    set({ ...(strip ?? { postId: job.postId, label: job.label, thumbUrl, progress: 0 }), failed: true });
+    set({ ...(strip ?? { postId: job.postId, label: job.label, thumbUrl, thumbKind: job.thumbKind ?? "photo", progress: 0 }), failed: true });
   } finally {
     running = null;
   }
@@ -123,5 +123,5 @@ export async function resumePendingPosts() {
   const next = jobs.find((j) => !j.failed);
   const failed = jobs.find((j) => j.failed);
   if (next) void run(next);
-  else if (failed && !strip) set({ postId: failed.postId, label: failed.label, thumbUrl: failed.thumb ? URL.createObjectURL(failed.thumb) : null, progress: 0, failed: true });
+  else if (failed && !strip) set({ postId: failed.postId, label: failed.label, thumbUrl: failed.thumb ? URL.createObjectURL(failed.thumb) : null, thumbKind: failed.thumbKind ?? "photo", progress: 0, failed: true });
 }

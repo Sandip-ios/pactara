@@ -1,5 +1,10 @@
 # Roadmap
 
+## Library videos, never cropped
+- [x] Whole-video editor, uncropped native-shape feed/own post/strip, decoded trim thumbnails; photos, check-ins and classic unchanged.
+- [x] Real 1080×1920 clip selected through mocked iOS PhotoLibrary bridge at 390px, posted and read back in crew Posts and own-post view; saved 4:5 crops ignored; all ten decoded frames load. Requested captures delivered outside public/qa. All 960 tests pass and typecheck clean; temporary member, crew, posts, day fixture, subscription checks and two storage files cleaned up; unpublished.
+- Physical iPhone verification remains for José's next device check; browser native-shell mocks emit unrelated Firebase initialization errors, but the complete video flow succeeds.
+
 ## Phase 5.2 native picker hotfix
 - [x] New-only runtime-checked Library/preview and photo/video camera fallbacks; local PactaraPhotoLibrary bridge loads permission-aware newest-first Recents and preselects one item. Native iOS shell mocks at 390×844 verified absent/present/denied/limited, photo/video, multiple picks, Next and Edit return. Requested captures delivered outside public/qa; full suite 953 passed and typecheck clean. Temporary member removed; unpublished. Swift/PhotoKit compilation and physical iPhone checks require the next native build on José's Mac.
 

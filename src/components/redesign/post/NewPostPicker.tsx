@@ -198,7 +198,7 @@ export function NewPostPicker() {
             const id = imported.current.get(asset.id);
             const n = id ? selectionNumber(draft.selected, id) : null;
             return <button key={asset.id} type="button" onClick={() => void pickRecent(asset)} aria-label={`${asset.kind === "video" ? "Video" : "Photo"}${n ? `, selected ${n}` : ""}`} className="relative aspect-square overflow-hidden bg-[var(--new-control)]">
-              {asset.thumbnail ? <img src={asset.thumbnail} alt="" className="h-full w-full object-cover" /> : <Images className="mx-auto text-[var(--new-muted)]" aria-hidden />}
+              {asset.thumbnail ? <img src={asset.thumbnail} alt="" className={`h-full w-full ${asset.kind === "video" ? "bg-[var(--new-library-video)] object-contain" : "object-cover"}`} /> : <Images className="mx-auto text-[var(--new-muted)]" aria-hidden />}
               {asset.kind === "video" && <span className="absolute bottom-1 right-1.5 text-[12px] font-bold text-[var(--new-white)]">{formatClock(asset.duration ?? 0)}</span>}
               <span className={`absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[var(--new-white)] text-[12px] font-extrabold text-[var(--new-white)] ${n ? "bg-[var(--new-purple)]" : "bg-transparent"}`}>{n ?? ""}</span>
             </button>;
@@ -207,7 +207,7 @@ export function NewPostPicker() {
             const n = selectionNumber(draft.selected, m.id);
             return (
               <button key={m.id} type="button" onClick={() => pick(m.id)} aria-label={`${m.kind === "video" ? "Video" : "Photo"}${n ? `, selected ${n}` : ""}`} className="relative aspect-square overflow-hidden bg-neutral-200">
-                {m.kind === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={m.url} alt="" className="h-full w-full object-cover" />}
+                {m.kind === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full bg-[var(--new-library-video)] object-contain" /> : <img src={m.url} alt="" className="h-full w-full object-cover" />}
                 {m.kind === "video" && m.duration != null && <span className="absolute bottom-1 right-1.5 text-[12px] font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,.6)]">{formatClock(m.duration)}</span>}
                 {current === m.id && <span className="absolute inset-0" style={{ background: "rgba(255,255,255,0.35)" }} />}
                 <span className="absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-extrabold text-white shadow-[0_1px_4px_rgba(0,0,0,0.28)]" style={n ? { background: PURPLE, border: "2px solid #FFFFFF" } : { border: "2px solid #FFFFFF", background: "transparent" }}>

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import type { PostWorkout, SocialPostItem } from "@/lib/social-post-types";
 import { workoutCardLine, type AttachedCard } from "@/lib/redesign-feed-view";
 import { RedesignWorkoutSheet, type SheetAuthor } from "../RedesignCheckInSheets";
+import { postVideoRatio } from "@/lib/post-video-layout";
 
 export const INK = "#1C1917";
 export const MUTED = "#57534E";
@@ -57,8 +58,8 @@ export function AudienceChip({ label, on, onClick, disabled }: { label: string; 
 }
 
 /** Muted loop inside the trim window, with a progress bar and the sound button. */
-export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoster, className = "h-full w-full", objectPosition }: {
-  src: string; poster?: string | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean; className?: string; objectPosition?: string;
+export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoster, className = "h-full w-full", onDimensions }: {
+  src: string; poster?: string | null; trimStart?: number | null; trimEnd?: number | null; muted?: boolean; className?: string; onDimensions?: (width: number, height: number) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true);
@@ -75,7 +76,8 @@ export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoste
     return () => io.disconnect();
   }, []);
   return (
-    <div className={`relative overflow-hidden bg-neutral-900 ${className}`}>
+    <div className={`relative overflow-hidden bg-[var(--new-library-video)] ${className}`}>
+      {poster && <img src={poster} alt="" aria-hidden className="pointer-events-none absolute inset-0 h-full w-full object-contain" onLoad={(e) => onDimensions?.(e.currentTarget.naturalWidth, e.currentTarget.naturalHeight)} />}
       <video
         ref={ref}
         src={src}
@@ -83,7 +85,10 @@ export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoste
         muted={muted || mutedByPoster}
         playsInline
         preload="metadata"
-        onLoadedMetadata={(e) => { if (start > 0) e.currentTarget.currentTime = start; }}
+        onLoadedMetadata={(e) => {
+          onDimensions?.(e.currentTarget.videoWidth, e.currentTarget.videoHeight);
+          if (start > 0) e.currentTarget.currentTime = start;
+        }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
           const end = trimEnd ?? v.duration;
@@ -92,8 +97,7 @@ export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoste
           setProgress(len > 0 ? Math.min(1, Math.max(0, (v.currentTime - start) / len)) : 0);
         }}
         onEnded={(e) => { e.currentTarget.currentTime = start; void e.currentTarget.play().catch(() => {}); }}
-        className="h-full w-full object-cover"
-        style={objectPosition ? { objectPosition } : undefined}
+        className="relative h-full w-full object-contain object-center"
       />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[3px]" style={{ background: "rgba(255,255,255,0.3)" }}>
         <div className="h-full" style={{ width: `${progress * 100}%`, background: "#FFFFFF" }} />
@@ -117,21 +121,28 @@ export function PostVideo({ src, poster, trimStart, trimEnd, muted: mutedByPoste
 /** Swipeable media with a "1/3" counter and dots. */
 export function PostCarousel({ items, height = 420, aspectRatio }: { items: SocialPostItem[]; height?: number; aspectRatio?: "4 / 5" }) {
   const [index, setIndex] = useState(0);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
   const ref = useRef<HTMLDivElement>(null);
   if (!items.length) return null;
+  const active = items[index] ?? items[0];
+  const activeRatio = active?.kind === "video" ? (ratios[active.id] ?? 9 / 16) : aspectRatio;
   return (
     <div className="relative w-full">
       <div
         ref={ref}
         onScroll={(e) => { const el = e.currentTarget; setIndex(Math.round(el.scrollLeft / Math.max(1, el.clientWidth))); }}
         className="flex w-full snap-x snap-mandatory overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        style={activeRatio ? { aspectRatio: activeRatio } : { height }}
       >
         {items.map((m) => {
           const pos = m.crop?.aspect === "4:5" ? `50% ${Math.round((m.crop.y ?? 0.5) * 100)}%` : undefined;
           return (
-            <div key={m.id} className="w-full shrink-0 snap-center" style={aspectRatio ? { aspectRatio } : { height }}>
+            <div key={m.id} className="h-full w-full shrink-0 snap-center">
               {!m.url ? <div className="h-full w-full bg-neutral-200" /> : m.kind === "video" ? (
-                <PostVideo src={m.url} poster={m.posterUrl} trimStart={m.trimStart} trimEnd={m.trimEnd} muted={m.muted} objectPosition={pos} />
+                <PostVideo src={m.url} poster={m.posterUrl} trimStart={m.trimStart} trimEnd={m.trimEnd} muted={m.muted} onDimensions={(width, height) => {
+                  const ratio = postVideoRatio(width, height);
+                  setRatios((old) => old[m.id] === ratio ? old : { ...old, [m.id]: ratio });
+                }} />
               ) : (
                 <img src={m.url} alt="" className="h-full w-full object-cover" style={pos || aspectRatio ? { objectPosition: pos, objectFit: "cover" } : { objectFit: "contain", background: "#0C0A09" }} />
               )}

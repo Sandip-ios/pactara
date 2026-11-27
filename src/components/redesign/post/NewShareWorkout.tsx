@@ -65,7 +65,7 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
           <div className="flex max-w-[196px] shrink-0 gap-2 overflow-x-auto [scrollbar-width:none]">
             {picked.map(({ media, edit }) => (
               <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
-                {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
+                {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full bg-[var(--new-library-video)] object-contain" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
                 {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
                 <button type="button" aria-label="Remove" onClick={() => setDraft((d) => ({ selected: d.selected.filter((x) => x !== media.id) }))} className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></span>
