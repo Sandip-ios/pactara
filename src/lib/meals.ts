@@ -20,7 +20,24 @@ export function missingCalorieWarning(foods: MealFood[]): string { const n = foo
 export function switchFoodUnit(amount: number, fromGrams: number, toGrams: number) { return amount * fromGrams / toGrams; }
 export function totalsWarning(override: Nutrition | null, changedFood: string | null) { return override && changedFood ? `Your totals don't include the ${changedFood} you just added. Reset to use your foods' numbers.` : ''; }
 export function effectiveTotals(foods: MealFood[], override: Nutrition | null): Nutrition { return override ? { ...override } : mealTotals(foods); }
-export function foodAmount(amount: number, unit: string) { return `${roundNutrition(amount)} ${unit}`; }
+export function foodAmount(amount: number, unit: string) {
+ const rounded=roundNutrition(amount);const plural:Record<string,string>={cup:'cups',scoop:'scoops',piece:'pieces',serving:'servings',slice:'slices',tablespoon:'tablespoons',teaspoon:'teaspoons'};
+ return `${rounded} ${rounded===1?unit:plural[unit]??unit}`;
+}
+export function foodPortions(food:Food):Portion[] {
+ const portions=food.portions.filter(p=>p.grams>0);
+ return [...portions,...(portions.some(p=>p.unit==='g')?[]:[{unit:'g',grams:1}]),...(portions.some(p=>p.unit==='oz')?[]:[{unit:'oz',grams:28.349523125}])];
+}
+export function foodSearchLine(food:Food) {
+ const p=defaultPortion({...food,portions:foodPortions(food)},'en-GB');const amount=initialAmount(p,food);const n=food.nutrition?foodNutrition(food.nutrition,p.grams*amount):null;
+ const portion=p.unit==='serving'?`${roundNutrition(p.grams)} g`:foodAmount(amount,p.unit);
+ return [portion,n?.calories!=null?`${Math.round(n.calories)} cal`:food.nutrition?'No calories':null,n?.protein!=null?`${Math.round(n.protein)} g protein`:null].filter(Boolean).join(' · ');
+}
+export function uniqueFoodResults(foods:Food[]):Food[] {
+ const seen=new Set<string>();return foods.filter(f=>{const p=defaultPortion(f,'en-GB');const n=f.nutrition?foodNutrition(f.nutrition,p.grams*initialAmount(p,f)):null;const key=JSON.stringify([f.name.toLowerCase(),n?keys.map(k=>n[k]===null?null:Math.round(n[k]??0)):null,p.unit]);if(seen.has(key))return false;seen.add(key);return true;});
+}
+export function mealItems(snapshot:MealSnapshot) { return snapshot.items.map((item,i)=>{const food=snapshot.foods?.[i];return {...item,amount:food&&food.grams>0?foodAmount(food.amount,food.unit):item.amount.replace(/^(\d+(?:\.\d+)?) (cup|scoop|piece|serving)$/,(_,n:string,u:string)=>foodAmount(Number(n),u))};}); }
+export function mealsCountLine(count:number,type:string) { const noun=type==='All'?'meal':type.toLowerCase().replace(/s$/,'');return `${count} ${noun}${count===1?'':'s'}, most added first`; }
 export function buildSnapshot(title: string, type: MealType | null, foods: MealFood[], override: Nutrition | null): MealSnapshot { const totals = effectiveTotals(foods,override); return { title, type, foods, items: foods.map(f => ({ name:f.name, amount:foodAmount(f.amount,f.unit) })), totals, override, ...totals, missingCalories: foods.filter(f => f.nutrition?.calories == null).length }; }
 export function mealNumbers(m: MealSnapshot) { return m.totals ?? { calories:m.calories ?? null, protein:m.protein ?? null, carbs:m.carbs ?? null, fat:m.fat ?? null }; }
 export function hasMealNutrition(m: MealSnapshot) { return !!m.totals || keys.some(k => Object.prototype.hasOwnProperty.call(m,k)); }

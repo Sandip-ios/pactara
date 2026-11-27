@@ -65,7 +65,7 @@ export function NewBottomTabs() {
       <NewSheet open={createOpen} onOpenChange={setCreateOpen} title="Create" description="Pick what to create">
         <div>
           <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
-          <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
+          <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
           <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
           <CreateRow icon={<Utensils size={20} />} title="Build a meal" subtitle="One meal people can save and eat" tone="meal" onClick={() => { setCreateOpen(false); navigate({ to: "/meals/new", search: { forPost: false } }); }} />
         </div>

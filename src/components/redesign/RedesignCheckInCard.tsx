@@ -23,6 +23,7 @@ import { CrewAvatar } from "./CrewAvatars";
 import { RedesignHealthSheet, RedesignWorkoutSheet, type SheetAuthor } from "./RedesignCheckInSheets";
 import { PostWorkoutCard } from "./post/PostSections";
 import { checkInPostWorkout } from "@/lib/post-sections";
+import { getMealAttachment } from "@/lib/meals.functions";
 import { getCheckInWorkout } from "@/lib/checkin-workout.functions";
 
 const INK = "#141218";
@@ -83,7 +84,8 @@ export function RedesignCheckInCard({
   const workoutFn = useServerFn(getCheckInWorkout);
   const workout = useQuery({ queryKey: ["checkin-workout", rawId], queryFn: () => workoutFn({ data: { postId: rawId, kind: "workout" } }), enabled: !!card && card.kind !== "health", staleTime: 30_000 });
   const hasWorkout = !!card && card.kind !== "health";
-  const meta = checkInSubline({ crew: homeFeed ? homeCrewName ?? workout.data?.crewName ?? null : null, time: clock(checkIn.at), localDate: item.localDate, viewerToday, tag, hasCard: !!card, crewPage: !homeFeed });
+  const meal = useQuery({ queryKey: ["meal-attachment", "checkin", rawId], queryFn: () => getMealAttachment({ data: { id: rawId, kind: "checkin" } }), staleTime: 60_000 });
+  const meta = checkInSubline({ crew: homeFeed ? homeCrewName ?? workout.data?.crewName ?? null : null, time: clock(checkIn.at), localDate: item.localDate, viewerToday, tag, hasCard: !!card || !!meal.data, crewPage: !homeFeed });
   const cheered = !!cheers.myEmoji;
   const cheerLine = cheeredByLine(cheers.reactors);
   const firstName = (item.name || "").split(" ")[0] || "Member";

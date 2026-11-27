@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { isUnder18 } from './redesign-profile';
-import { mealForViewer, mealCopyCredit, buildSnapshot, type Meal, type Food, type MealInput, type MealFood, type MealSnapshot, type Nutrition } from './meals';
+import { foodPortions, mealForViewer, mealCopyCredit, buildSnapshot, type Meal, type Food, type MealInput, type MealFood, type MealSnapshot, type Nutrition } from './meals';
 type Context={supabase:SupabaseClient;userId:string};
 export async function mealAccess(context:Context) {
  const {data:prefs,error}=await context.supabase.rpc('get_my_app_prefs'); if(error) throw new Error('Could not load your settings');
@@ -45,7 +45,7 @@ export async function saveMealServer(context:Context,input:MealInput) {
  const foods:MealFood[]=input.foods.map(item=>{const row=(rows??[]).find(f=>f.id===item.foodId);const past=previous?.foods.find(f=>f.foodId===item.foodId);
  if(!row && past?.foodId.startsWith('legacy-')) return {...past,key:item.key,amount:item.amount,unit:item.unit,note:item.note};
  if(!row || row.owner_id&&row.owner_id!==context.userId&&!past) throw new Error('Food unavailable');
- const portion=(row.portions as unknown as Food['portions']).find(p=>p.unit===item.unit);if(!portion||!Number.isFinite(portion.grams)||portion.grams<=0) throw new Error('Invalid portion');
+ const portion=foodPortions({id:row.id,name:row.name,yours:!!row.owner_id,portions:row.portions as unknown as Food['portions']}).find(p=>p.unit===item.unit);if(!portion||!Number.isFinite(portion.grams)||portion.grams<=0) throw new Error('Invalid portion');
  return {key:item.key,foodId:row.id,name:row.name,amount:item.amount,unit:item.unit,grams:item.amount*portion.grams,note:item.note,portions:row.portions as unknown as Food['portions'],nutrition:row.nutrition as unknown as Nutrition}; });
  const snapshot=buildSnapshot(input.name,input.type,foods,under18?previous?.override??null:input.override);
  const fromName=previous?mealCopyCredit(previous,snapshot,old?.source_name??null):null;

@@ -1,7 +1,7 @@
 import { createServerFn } from '@tanstack/react-start';
 import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
-import { mealInputSchema, mealForViewer, nutritionSchema, type Food, type MealSnapshot } from './meals';
+import { mealInputSchema, mealForViewer, nutritionSchema, uniqueFoodResults, type Food, type MealSnapshot } from './meals';
 import { mealAccess, loadMeals, visibleMealOwner, saveMealServer, attachmentSnapshot } from './meals.server';
 const idSchema=z.object({id:z.string().uuid()});
 export const getMeals=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({target:z.string().uuid().nullable().default(null),q:z.string().max(80).default(''),type:z.string().nullable().default(null),discover:z.boolean().default(false)}).parse(i)).handler(({context,data})=>loadMeals(context,data.target,data.q,data.type,data.discover));
@@ -12,7 +12,7 @@ export const copyMeal=createServerFn({method:'POST'}).middleware([requireSupabas
  const {admin}=await mealAccess(context);const {data:row}=await admin.from('meals').select('*').eq('id',data.id).maybeSingle();if(!row||row.user_id===context.userId||!await visibleMealOwner(context,row.user_id)) throw new Error('Meal unavailable');
  const {data:name}=await admin.from('profiles').select('name').eq('id',row.user_id).maybeSingle();
  const {data:existing}=await admin.from('meals').select('id').eq('source_meal_id',row.id).eq('user_id',context.userId).maybeSingle();if(existing) return {id:existing.id};
- const {data:copy,error}=await admin.from('meals').insert({user_id:context.userId,name:row.name,snapshot:row.snapshot,source_meal_id:row.id,source_user_id:row.user_id,source_name:(name?.name??'Member').trim().split(/\s+/)[0]}).select('id').maybeSingle();
+ const {data:copy,error}=await admin.from('meals').insert({user_id:context.userId,name:row.name,snapshot:row.snapshot,source_meal_id:row.id,source_user_id:row.user_id,source_name:(name?.name??'Member').trim()}).select('id').maybeSingle();
  if(error) {const {data:retry}=await admin.from('meals').select('id').eq('source_meal_id',row.id).eq('user_id',context.userId).maybeSingle();if(retry) return {id:retry.id};throw new Error('Could not add meal');}return {id:copy?.id??null};
 });
 export const getMealAttachment=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>idSchema.extend({kind:z.enum(['post','checkin'])}).parse(i)).handler(({context,data})=>attachmentSnapshot(context,data.kind,data.id));
@@ -20,7 +20,7 @@ export const copyMealAttachment=createServerFn({method:'POST'}).middleware([requ
  const visible=await attachmentSnapshot(context,data.kind,data.id);if(!visible) throw new Error('Meal unavailable');const {admin}=await mealAccess(context);const {data:row}=await admin.from('meal_attachments').select('*').eq('kind',data.kind).eq('content_id',data.id).single();if(!row||row.owner_id===context.userId) throw new Error('Meal unavailable');
  const snap=row.snapshot as unknown as MealSnapshot;const source=snap.mealId??data.id;
  const {data:existing}=await admin.from('meals').select('id').eq('source_meal_id',source).eq('user_id',context.userId).maybeSingle();if(existing)return {id:existing.id};
- const {data:profile}=await admin.from('profiles').select('name').eq('id',row.owner_id).maybeSingle();const {data:copy,error}=await admin.from('meals').insert({user_id:context.userId,name:snap.title,snapshot:row.snapshot,source_meal_id:source,source_user_id:row.owner_id,source_name:(profile?.name??'Member').trim().split(/\s+/)[0],...(data.kind==='post'?{source_post_id:data.id}:{})}).select('id').single();if(error) throw new Error('Could not add meal');return {id:copy.id};
+ const {data:profile}=await admin.from('profiles').select('name').eq('id',row.owner_id).maybeSingle();const {data:copy,error}=await admin.from('meals').insert({user_id:context.userId,name:snap.title,snapshot:row.snapshot,source_meal_id:source,source_user_id:row.owner_id,source_name:(profile?.name??'Member').trim(),...(data.kind==='post'?{source_post_id:data.id}:{})}).select('id').single();if(error) throw new Error('Could not add meal');return {id:copy.id};
 });
 export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({q:z.string().trim().max(80)}).parse(i)).handler(async({context,data})=>{
  const {admin,under18}=await mealAccess(context);
@@ -29,20 +29,38 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  let foods:Food[]=[];let error=false;
  if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));}
  else {
- const key=data.q.toLowerCase();const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
- if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=(rows??[]).map(r=>toFood(r as unknown as Record<string,unknown>));}
- else {try {const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed) throw new Error('Search busy');const {fetchUsda,normalizeUsdaFood}=await import('./usda-foods.server');const response=await fetchUsda('foods/search',{query:data.q,pageSize:12,dataType:['Foundation','SR Legacy','Survey (FNDDS)','Branded']});
- // Details supply actual food portions and per-100g nutrients. One batch request, not one request per food.
- const raw=(response['foods']??[]) as Record<string,unknown>[];const ids=raw.map(r=>`usda:${r['fdcId']}`);const {data:cachedFoods}=ids.length?await admin.from('meal_foods').select('*').in('id',ids).is('owner_id',null):{data:[]};const known=new Set((cachedFoods??[]).map(f=>f.id));const missing=raw.filter(r=>!known.has(`usda:${r['fdcId']}`));let detailed=missing;
- if(missing.length){const {data:detailClaim}=await admin.rpc('claim_meal_usda_request');if(!detailClaim)throw new Error('Search busy');const details=await fetchUsda('foods',{fdcIds:missing.map(r=>r['fdcId']),format:'full'});detailed=Array.isArray(details)?details as Record<string,unknown>[]:missing;}
- foods=detailed.map(normalizeUsdaFood);if(foods.length){const {error:saveError}=await admin.from('meal_foods').upsert(foods.map(f=>({id:f.id,owner_id:null,name:f.name,portions:JSON.parse(JSON.stringify(f.portions)),nutrition:JSON.parse(JSON.stringify(f.nutrition))})));if(saveError)throw new Error('Could not cache');}
- foods=[...(cachedFoods??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),...foods];
+ // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
+ const key=`v3:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
+ if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=cache.food_ids.flatMap(id=>{const row=rows?.find(r=>r.id===id);return row?[toFood(row as unknown as Record<string,unknown>)]:[];});}
+ else {try {
+ const {fetchUsda,normalizeUsdaFood,rankUsdaRows}=await import('./usda-foods.server');
+ const responses=[];
+ for(const dataType of [['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']]) {
+  const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
+  responses.push(await fetchUsda('foods/search',{query:data.q.toLowerCase()==='rice'&&dataType[0]!=='Branded'?'rice cooked':data.q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:12,dataType}));
+ }
+ if(data.q.toLowerCase()==='rice'){
+  const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
+  responses.unshift(await fetchUsda('foods/search',{query:'rice white long grain regular enriched cooked',requireAllWords:true,pageSize:12,dataType:['SR Legacy']}));
+ }
+ const raw=rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q);
+ if(raw.length){
+  const details:Record<string,unknown>[]=[];
+  for(let i=0;i<raw.length;i+=20){
+   const {data:detailClaim}=await admin.rpc('claim_meal_usda_request');if(!detailClaim)throw new Error('Search busy');
+   const response=await fetchUsda('foods',{fdcIds:raw.slice(i,i+20).map(r=>r['fdcId']),format:'full'});
+   if(Array.isArray(response))details.push(...response as Record<string,unknown>[]);
+  }
+  foods=uniqueFoodResults(raw.map(r=>normalizeUsdaFood({...r,...details.find(d=>d['fdcId']===r['fdcId'])})));
+  const {error:saveError}=await admin.from('meal_foods').upsert(foods.map(f=>({id:f.id,owner_id:null,name:f.name,portions:JSON.parse(JSON.stringify(f.portions)),nutrition:JSON.parse(JSON.stringify(f.nutrition))})));
+  if(saveError)throw new Error('Could not cache');
+ }
  await admin.from('meal_food_searches').upsert({query:key,food_ids:foods.map(f=>f.id)});
  }catch(e){console.error('[meals] Food search unavailable:', e instanceof Error ? e.message : 'Request failed');error=true;}}
  }
- return mealForViewer({under18,foods,own:(own??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),error},under18);
+ return mealForViewer({under18,foods:uniqueFoodResults(foods),own:(own??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),error},under18);
 });
-export const createOwnFood=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({name:z.string().trim().min(1).max(200),amount:z.number().positive().max(100000),unit:z.enum(['g','oz','cup','tbsp','tsp','piece']),nutrition:nutritionSchema}).parse(i)).handler(async({context,data})=>{
+export const createOwnFood=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({name:z.string().trim().min(1).max(200),amount:z.number().positive().max(100000),unit:z.enum(['g','oz','cup','tbsp','tsp','piece','scoop']),nutrition:nutritionSchema}).parse(i)).handler(async({context,data})=>{
  const {admin,under18}=await mealAccess(context);const gramsPerUnit=data.unit==='oz'?28.349523125:data.unit==='g'?1:1;
  // Volume and piece customs retain the member's declared serving, not an invented density.
  const nutrition=Object.fromEntries(Object.entries(data.nutrition).map(([k,v])=>[k,under18||v===null?null:v*100/(data.amount*gramsPerUnit)]));
