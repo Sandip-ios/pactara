@@ -54,6 +54,13 @@ export function checkInCardMeta(input: { time: string; localDate: string; viewer
   return input.tag ? `${when} · ${input.tag}` : when;
 }
 
+/** Workout names belong in the attachment; unaccompanied check-ins keep their existing tag/date wording. */
+export function checkInSubline(input: { crew: string | null; time: string; localDate: string; viewerToday: string; tag: string | null; hasWorkout: boolean }): string {
+  if (input.hasWorkout) return [input.crew, input.time].filter(Boolean).join(" · ");
+  if (input.crew) return `${input.crew} · ${input.time}${input.tag ? ` · ${input.tag}` : ""}`;
+  return checkInCardMeta(input);
+}
+
 export type CardHealth = { type: string; duration: number; distance: number | null; calories: number | null };
 export type CardWorkout = { title: string | null; exercises: number; sets: number; minutes: number; prCount: number };
 export type CardPlan = { name: string; slug: string; week: number; day: number; dayName?: string | null };

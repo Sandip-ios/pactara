@@ -61,7 +61,7 @@ function RetryBlock({ label, onRetry }: { label: string; onRetry: () => void }) 
  * viewport, poster frame first. Shows a blurred "Processing video…" state
  * instead of a black box, and a retry when loading fails.
  */
-export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: string; poster?: string | null; onOpen: () => void; variant?: "classic" | "redesign" }) {
+export function FeedVideo({ src, poster, onOpen, variant = "classic", postFrame = false }: { src: string; poster?: string | null; onOpen: () => void; variant?: "classic" | "redesign"; postFrame?: boolean }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [near, setNear] = useState(false);
   const [ready, setReady] = useState(false);
@@ -139,7 +139,7 @@ export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: s
           onOpen();
         }
       }}
-      className={`relative ${variant === "redesign" ? "h-[300px]" : "aspect-square"} w-full overflow-hidden bg-neutral-800`}
+      className={`relative ${postFrame ? "aspect-[3/4]" : variant === "redesign" ? "h-[300px]" : "aspect-square"} w-full overflow-hidden bg-neutral-800`}
     >
       <video
         key={attempt}

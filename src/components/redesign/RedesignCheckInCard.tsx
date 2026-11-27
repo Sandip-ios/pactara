@@ -12,7 +12,7 @@ import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode } from "@/lib/feed-days";
 import { activityMeta } from "@/lib/feed-view";
 import { healthDistanceUnit, healthWorkoutName } from "@/lib/health-workouts";
-import { attachedCard, cheeredByLine, checkInCardMeta, checkInTag, showCheckedInPill, showPrChip } from "@/lib/redesign-feed-view";
+import { attachedCard, cheeredByLine, checkInCardMeta, checkInSubline, checkInTag, showCheckedInPill, showPrChip } from "@/lib/redesign-feed-view";
 import { clock, OwnPostMenu, useCheers } from "@/components/TimelineCard";
 import { useCommentsSheet } from "@/components/feed/CommentsSheet";
 import { FeedImage, FeedVideo, isVideoUrl } from "@/components/feed/FeedMedia";
@@ -21,6 +21,9 @@ import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { SafetyActions } from "@/components/safety/SafetyActions";
 import { CrewAvatar } from "./CrewAvatars";
 import { RedesignHealthSheet, RedesignWorkoutSheet, type SheetAuthor } from "./RedesignCheckInSheets";
+import { PostWorkoutCard } from "./post/PostSections";
+import { checkInPostWorkout } from "@/lib/post-sections";
+import { getCheckInWorkout } from "@/lib/checkin-workout.functions";
 
 const INK = "#141218";
 const MUTED = "#57534E";
@@ -76,8 +79,11 @@ export function RedesignCheckInCard({
   }, [autoOpenComments]);
 
   const tag = checkInTag(checkIn, healthWorkoutName, activityMeta);
-  const meta = checkInCardMeta({ time: clock(checkIn.at), localDate: item.localDate, viewerToday, tag });
   const card = attachedCard(checkIn, unit, healthWorkoutName);
+  const workoutFn = useServerFn(getCheckInWorkout);
+  const workout = useQuery({ queryKey: ["checkin-workout", rawId], queryFn: () => workoutFn({ data: { postId: rawId, kind: "workout" } }), enabled: !!card && card.kind !== "health", staleTime: 30_000 });
+  const hasWorkout = !!card && card.kind !== "health";
+  const meta = checkInSubline({ crew: homeCrewName ?? workout.data?.crewName ?? null, time: clock(checkIn.at), localDate: item.localDate, viewerToday, tag, hasWorkout });
   const cheered = !!cheers.myEmoji;
   const cheerLine = cheeredByLine(cheers.reactors);
   const firstName = (item.name || "").split(" ")[0] || "Member";
@@ -97,7 +103,7 @@ export function RedesignCheckInCard({
         </MemberProfileLink>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-bold leading-tight">{item.isMe ? "You" : item.name}</div>
-          <div className="truncate text-[12px]" style={{ color: MUTED }}>{homeCrewName ? `${homeCrewName} · ${clock(checkIn.at)}${checkIn.workout?.title ? ` · ${checkIn.workout.title}` : tag ? ` · ${tag}` : ""}` : meta}</div>
+          <div className="truncate text-[12px]" style={{ color: MUTED }}>{meta}</div>
         </div>
         {showFollow && !item.isMe && <FollowPill userId={item.userId} />}
         {!homeFeed && showCheckedInPill("check_in") && (
@@ -117,9 +123,9 @@ export function RedesignCheckInCard({
 
       {checkIn.photoUrl && (
         isVideoUrl(checkIn.photoUrl) ? (
-          <FeedVideo src={checkIn.photoUrl} poster={checkIn.posterUrl} variant="redesign" onOpen={() => checkIn.photoUrl && setLightbox({ src: checkIn.photoUrl, kind: "video" })} />
+          <FeedVideo src={checkIn.photoUrl} poster={checkIn.posterUrl} variant="redesign" postFrame onOpen={() => checkIn.photoUrl && setLightbox({ src: checkIn.photoUrl, kind: "video" })} />
         ) : (
-          <div className="h-[300px] overflow-hidden [&>div]:h-full [&>div]:aspect-auto">
+          <div className="aspect-[3/4] overflow-hidden [&>div]:h-full [&>div]:aspect-auto">
             <FeedImage src={checkIn.photoUrl} onOpen={() => checkIn.photoUrl && setLightbox({ src: checkIn.photoUrl, kind: "image" })} />
           </div>
         )
@@ -127,7 +133,11 @@ export function RedesignCheckInCard({
 
       {checkIn.note && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{checkIn.note}</p>}
 
-      {card && (homeFeed ? (
+      {card && hasWorkout && workout.data ? (
+        <PostWorkoutCard workout={checkInPostWorkout(workout.data, card.title)} isMine={item.isMe} author={author} postId={rawId} checkIn={{ card, planSlug: checkIn.plan?.slug ?? null, detail: workout.data }} />
+      ) : card && hasWorkout && workout.isPending ? (
+        <div className="mx-3 mt-2.5 h-32 animate-pulse rounded-[16px] bg-[var(--new-profile-surface)]" aria-label="Loading workout" />
+      ) : card && (homeFeed ? (
         <Button variant="ghost" onClick={() => setSheetOpen(true)} className="mx-3 mt-2.5 flex h-10 w-[calc(100%-24px)] justify-start gap-2 rounded-[16px] bg-[var(--new-profile-surface)] px-3.5 text-[var(--new-muted)]" aria-label={`${card.label}: ${card.title}. ${card.line}. Show details`}>
           {card.kind === "health" ? <Heart className="!size-4 shrink-0" /> : <Dumbbell className="!size-4 shrink-0" />}
           <span className="min-w-0 flex-1 truncate text-left text-[12px] font-semibold">{card.line || card.title}</span>

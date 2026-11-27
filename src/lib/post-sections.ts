@@ -40,6 +40,20 @@ export function mealMacroLine(meal: PostMeal): string {
 export function postSectionCanSave(isMine: boolean) {
   return !isMine;
 }
+/** Reuse the post section without carrying check-in weights into its public snapshot. */
+export function checkInPostWorkout(detail: WorkoutDetail, fallbackTitle: string): PostWorkout {
+  return {
+    source: "session",
+    title: detail.title || fallbackTitle,
+    minutes: detail.summary?.minutes ?? 0,
+    sets: detail.summary?.sets ?? detail.exercises.reduce((n, e) => n + e.sets.length, 0),
+    prCount: detail.exercises.reduce((n, e) => n + e.sets.filter((s) => s.isPr).length, 0),
+    moves: detail.exercises.map((e) => ({
+      exerciseId: e.exerciseId, name: e.name, imageStart: e.imageStart, logType: e.logType,
+      sets: e.sets.map((s) => ({ reps: s.reps, seconds: s.seconds, isPr: s.isPr })),
+    })),
+  };
+}
 export function postWorkoutDetail(w: PostWorkout, isMine: boolean): WorkoutDetail {
   return {
     title: w.title,

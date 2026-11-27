@@ -13,22 +13,26 @@ import { ExerciseThumb } from "@/components/workout/WorkoutBits";
 import { RedesignWorkoutSheet, type SheetAuthor } from "../RedesignCheckInSheets";
 import { NewSheet } from "../NewSheet";
 import { PostAttachmentSave } from "./PostAttachmentSave";
+import type { AttachedCard } from "@/lib/redesign-feed-view";
+import type { WorkoutDetail } from "@/lib/lifts.functions";
 export function PostWorkoutCard({
   workout,
   isMine,
   author,
   postId,
+  checkIn,
 }: {
   workout: PostWorkout;
   isMine: boolean;
   author: SheetAuthor | null;
   postId: string;
+  checkIn?: { card: AttachedCard; planSlug: string | null; detail: WorkoutDetail };
 }) {
   const [open, setOpen] = useState(false);
   const preview = sectionPreview(workout.moves);
-  const line = `${workout.moves.length} exercises · ${workout.sets} sets${workout.minutes > 0 ? ` · ${workout.minutes} min` : ""}`;
+  const line = checkIn?.card.line || `${workout.moves.length} exercises · ${workout.sets} sets${workout.minutes > 0 ? ` · ${workout.minutes} min` : ""}`;
   const action = postSectionCanSave(isMine) ? (
-    <PostAttachmentSave postId={postId} kind="workout" />
+    <PostAttachmentSave postId={postId} kind="workout" checkIn={!!checkIn} />
   ) : null;
   return (
     <>
@@ -39,6 +43,7 @@ export function PostWorkoutCard({
       >
         <Button variant="ghost" className="new-post-section-heading" onClick={() => setOpen(true)}>
           <span className="new-post-section-label">WORKOUT</span>
+          {checkIn?.card.kind === "plan" && <span className="new-post-section-meta">{checkIn.card.label} · {checkIn.card.title}</span>}
           <span className="new-post-section-title">{workout.title}</span>
           <span className="new-post-section-meta">{line}</span>
         </Button>
@@ -69,16 +74,17 @@ export function PostWorkoutCard({
           </Button>
         )}
         {action}
+        {checkIn?.card.pr && <span className="mt-1.5 inline-flex h-[22px] items-center rounded-full bg-[var(--new-warning-soft)] px-2 text-[11px] font-extrabold text-[var(--new-warning-ink)]">🏆 New PR</span>}
       </section>
       <RedesignWorkoutSheet
         open={open}
         onOpenChange={setOpen}
-        checkInId={`post-${postId}`}
-        card={{ kind: "workout", label: "WORKOUT", title: workout.title, line, pr: false }}
+        checkInId={checkIn ? postId : `post-${postId}`}
+        card={checkIn?.card ?? { kind: "workout", label: "WORKOUT", title: workout.title, line, pr: false }}
         author={author}
         isMine={isMine}
-        planSlug={null}
-        detail={postWorkoutDetail(workout, isMine)}
+        planSlug={checkIn?.planSlug ?? null}
+        detail={checkIn?.detail ?? postWorkoutDetail(workout, isMine)}
         attachmentAction={action}
       />
     </>
