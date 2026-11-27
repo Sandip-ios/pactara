@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Camera, ChevronDown, Copy, Images, Info, Layers, Play, X } from "lucide-react";
+import { Camera, ChevronDown, Image, Images, Layers, Play, X, Zap } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,7 +115,7 @@ export function NewPostPicker() {
           className="flex h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-semibold"
           style={pickedMultiple ? { background: PURPLE, color: "#FFFFFF", border: `1px solid ${PURPLE}` } : multi ? { background: "var(--new-soft)", color: "var(--new-purple-text)", border: `1px solid ${PURPLE}` } : { background: "var(--new-control)", color: INK, border: "1px solid transparent" }}
         >
-          {pickedMultiple ? <Layers size={15} aria-hidden /> : <Copy size={15} aria-hidden />} {pickedMultiple ? `${draft.selected.length} selected` : "Select multiple"}
+          {pickedMultiple ? <Layers size={15} aria-hidden /> : <Image size={15} aria-hidden />} {pickedMultiple ? `${draft.selected.length} selected` : "Select multiple"}
         </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(16px+env(safe-area-inset-bottom))]">
@@ -131,11 +131,9 @@ export function NewPostPicker() {
                 {m.kind === "video" ? <video src={`${m.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={m.url} alt="" className="h-full w-full object-cover" />}
                 {m.kind === "video" && m.duration != null && <span className="absolute bottom-1 right-1.5 text-[12px] font-bold text-white [text-shadow:0_1px_2px_rgba(0,0,0,.6)]">{formatClock(m.duration)}</span>}
                 {current === m.id && <span className="absolute inset-0" style={{ background: "rgba(255,255,255,0.35)" }} />}
-                {multi && (
-                  <span className="absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-extrabold text-white shadow-[0_1px_4px_rgba(0,0,0,0.28)]" style={n ? { background: PURPLE, border: "2px solid #FFFFFF" } : { border: "2px solid #FFFFFF", background: "transparent" }}>
-                    {n ?? ""}
-                  </span>
-                )}
+                <span className="absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full text-[12px] font-extrabold text-white shadow-[0_1px_4px_rgba(0,0,0,0.28)]" style={n ? { background: PURPLE, border: "2px solid #FFFFFF" } : { border: "2px solid #FFFFFF", background: "transparent" }}>
+                  {n ?? ""}
+                </span>
               </button>
             );
           })}
@@ -148,7 +146,7 @@ export function NewPostPicker() {
       </div>
       {note && (
         <div className="absolute inset-x-3 flex items-start gap-2.5 rounded-[16px] px-3.5 py-3 text-white" style={{ bottom: "calc(16px + env(safe-area-inset-bottom))", background: "#1C1917" }} role="status">
-          <Info size={18} className="mt-0.5 shrink-0" aria-hidden />
+          <Zap size={16} className="mt-0.5 shrink-0 text-[var(--new-library-note-icon)]" aria-hidden />
           <p className="min-w-0 flex-1 text-[13px] leading-[1.4]">Posts from your library don't count as check-ins. To check in, use the live camera.</p>
           <button type="button" aria-label="Got it" onClick={dismissNote} className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center"><X size={16} /></button>
         </div>

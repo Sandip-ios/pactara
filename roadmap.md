@@ -227,6 +227,7 @@
 - [x] Matched the Compose and Share workout canvas values, including headers, 92×116 media, cards, audience rows, icons, sheets, steppers, chips and dividers; recaptured and compared 22 p5-2-fix images at 390×844 with zero page errors. The specified 1.5px Add exercise border is inline, while Chromium reports it as 1px. All 939 tests and typecheck pass, build OK, temporary draft data removed; unpublished
 
 ## Phase 5.2 Round 3
+- [x] Picker follow-up: picture icon before selection, numbered/empty rings in single mode, yellow lightning note; verified selected 1 plus five empty rings and multi stack, refreshed six p5-2-fix4 captures at 390×844 including Home with/without posting strip and three card-action states. 945 tests/typecheck pass, temporary draft accounts and related data/media removed; classic unchanged, unpublished.
 - [x] Matched Share workout card/credit, auto-sized caption, posting border and single-star banner; captured eight p5-2-fix3 states at 390×844 with real library drawings, six picker items and first-open note. Verified values and successful post/media readback; temporary accounts, crews, workouts, library examples and media removed; 940 tests and typecheck pass; unpublished.
 
 ## Round 3 Home Today card
