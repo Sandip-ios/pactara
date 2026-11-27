@@ -1,9 +1,10 @@
 import { describe,it,expect } from 'vitest';
-import { buildSnapshot,mealTotals,foodNutrition,switchFoodUnit,effectiveTotals,totalsWarning,missingCalorieWarning,mealForViewer,mealCopyCredit,mealInputSchema,defaultPortion,initialAmount,type MealFood,type Nutrition } from '../meals';
+import { buildSnapshot,mealTotals,foodNutrition,switchFoodUnit,effectiveTotals,totalsWarning,missingCalorieWarning,mealForViewer,mealCopyCredit,mealInputSchema,defaultPortion,initialAmount,hasMealNutrition,fullMealLine,type MealFood,type Nutrition } from '../meals';
 const rice:MealFood={key:'rice-1',foodId:'rice',name:'White rice',amount:1,unit:'cup',grams:158,note:'',nutrition:{calories:129.7468,protein:2.5316,carbs:28.481,fat:0}};
 const chicken:MealFood={key:'chicken-1',foodId:'chicken',name:'Chicken',amount:8,unit:'oz',grams:226.796185,note:'',nutrition:{calories:165,protein:31,carbs:0,fat:3.6}};
 const custom:Nutrition={calories:640,protein:62,carbs:70,fat:12};
 describe('Meals rules',()=>{
+ it('distinguishes unknown adult calories from nutrition removed for under-18 members',()=>{const unknown=buildSnapshot('Legacy meal',null,[{...rice,nutrition:{calories:null,protein:null,carbs:null,fat:null}}],null);expect(hasMealNutrition(unknown)).toBe(true);expect(mealTotals(unknown.foods).calories).toBeNull();const teen=mealForViewer(unknown,true);expect(hasMealNutrition(teen)).toBe(false);expect(fullMealLine(teen)).toBe('');expect(fullMealLine(buildSnapshot('Zero',null,[{...rice,nutrition:{calories:0,protein:0,carbs:0,fat:0}}],null))).toContain('0 cal');});
  it('adds per-100g nutrients before rounding',()=>{expect(mealTotals([rice,chicken])).toEqual({calories:579.2,protein:74.3,carbs:45,fat:8.2});});
  it('rounds a portion to one decimal without converting missing calories to zero',()=>{expect(foodNutrition({calories:null,protein:1.25,carbs:0,fat:0},100)).toEqual({calories:null,protein:1.3,carbs:0,fat:0});});
  it('keeps food quantity when switching 1 cup to 158 grams and back',()=>{expect(switchFoodUnit(1,158,1)).toBe(158);expect(switchFoodUnit(158,1,158)).toBe(1);});

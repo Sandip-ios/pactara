@@ -23,7 +23,8 @@ export function effectiveTotals(foods: MealFood[], override: Nutrition | null): 
 export function foodAmount(amount: number, unit: string) { return `${roundNutrition(amount)} ${unit}`; }
 export function buildSnapshot(title: string, type: MealType | null, foods: MealFood[], override: Nutrition | null): MealSnapshot { const totals = effectiveTotals(foods,override); return { title, type, foods, items: foods.map(f => ({ name:f.name, amount:foodAmount(f.amount,f.unit) })), totals, override, ...totals, missingCalories: foods.filter(f => f.nutrition?.calories == null).length }; }
 export function mealNumbers(m: MealSnapshot) { return m.totals ?? { calories:m.calories ?? null, protein:m.protein ?? null, carbs:m.carbs ?? null, fat:m.fat ?? null }; }
-export function fullMealLine(m: MealSnapshot) { const n=mealNumbers(m); const parts=keys.filter(k => n[k]!=null).map(k=> `${Math.round(n[k] ?? 0)}${k==='calories' ? ' cal' : ` g ${k}`}`); return parts.length ? `About ${parts.join(' · ')}` : ''; }
+export function hasMealNutrition(m: MealSnapshot) { return !!m.totals || keys.some(k => Object.prototype.hasOwnProperty.call(m,k)); }
+export function fullMealLine(m: MealSnapshot) { const n=mealNumbers(m); const parts=keys.filter(k => n[k]!=null).map(k=> `${Math.round(n[k] ?? 0)}${k==='calories' ? ' cal' : ` g ${k}`}`); return parts.length ? `${n.calories===null&&hasMealNutrition(m)?'No calories · ':''}About ${parts.join(' · ')}` : hasMealNutrition(m)?'No calories':''; }
 export function stripNutrition<T>(value: T): T {
  if(Array.isArray(value)) return value.map(stripNutrition) as T;
  if(value && typeof value==='object') return Object.fromEntries(Object.entries(value).filter(([k]) => ![...keys,'nutrition','totals','override','missingCalories'].includes(k)).map(([k,v])=>[k,stripNutrition(v)])) as T;
