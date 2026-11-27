@@ -51,12 +51,14 @@ export function ExerciseThumb({
   image,
   size = 48,
   radius = 14,
+  zoom = 1.4,
 }: {
   name: string;
   primary: readonly string[];
   image: string | null;
   size?: number;
   radius?: number;
+  zoom?: number;
 }) {
   const t = tintFor(primary);
   const [failed, setFailed] = useState(false);
@@ -74,7 +76,7 @@ export function ExerciseThumb({
           loading="lazy"
           decoding="async"
           className="h-full w-full object-cover"
-          style={{ transform: "scale(1.4)", transformOrigin: "center" }}
+          style={{ transform: `scale(${zoom})`, transformOrigin: "center" }}
           onError={() => setFailed(true)}
         />
       ) : (

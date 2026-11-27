@@ -5,13 +5,13 @@ import { ImagePlus, X } from "lucide-react";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { getShareWorkoutPreview } from "@/lib/posts.functions";
 import { audienceIsValid } from "@/lib/post-audience";
-import { creditLine, MAX_POST_ITEMS, shareWorkoutStats, videoLengthError } from "@/lib/post-composer";
+import { creditLine, formatClock, MAX_POST_ITEMS, shareWorkoutStats, trimmedLength, videoLengthError } from "@/lib/post-composer";
 import { addFiles, pickedItems, resetDraft, setDraft, usePostDraft } from "@/lib/post-draft";
 import { pickFromNativeLibrary } from "@/lib/media-picker";
 import { submitPost } from "@/lib/post-submit";
 import { newToast } from "../new-toast";
 import { PostOptionRows, WhoSeesIt, useAudience, useComposeContext } from "./ComposeParts";
-import { INK, MUTED, PURPLE, PostTopBar, TextAction } from "./PostBits";
+import { INK, MUTED, PostTopBar, TextAction } from "./PostBits";
 
 /** Share workout: optional media, caption, the attached workout card and who sees it. */
 export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | null; sessionId: string | null }) {
@@ -60,37 +60,39 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
 
   return (
     <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
-      <PostTopBar title="Share workout" left={<TextAction onClick={cancel}>Cancel</TextAction>} right={<TextAction tone="purple" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
-      <div className="bg-[var(--new-white)] pb-4">
-      <div className="flex gap-2 overflow-x-auto px-4 pt-2 [scrollbar-width:none]">
-        {picked.map(({ media }) => (
-          <span key={media.id} className="relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
-            {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
-            <button type="button" aria-label="Remove" onClick={() => setDraft((d) => ({ selected: d.selected.filter((x) => x !== media.id) }))} className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></span>
+      <PostTopBar compose title="Share workout" left={<TextAction tone="muted" className="w-full min-w-0 justify-start px-0 font-semibold" onClick={cancel}>Cancel</TextAction>} right={<TextAction tone="purple" className="w-full min-w-0 justify-end px-0" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
+      <section className="bg-[var(--new-white)] px-4 pb-1.5 pt-3.5">
+        <div className="flex gap-2 overflow-hidden">
+          {picked.map(({ media, edit }) => (
+            <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
+              {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
+              {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
+              <button type="button" aria-label="Remove" onClick={() => setDraft((d) => ({ selected: d.selected.filter((x) => x !== media.id) }))} className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"><X size={12} /></span>
+              </button>
+            </span>
+          ))}
+          {picked.length < MAX_POST_ITEMS && (
+            <button type="button" onClick={() => void openLibrary()} className="flex h-[116px] shrink-0 flex-col items-center justify-center gap-1 rounded-[12px] px-3" style={{ width: picked.length ? 92 : "100%", border: "2px dashed #D6D3D1", background: "var(--new-bg)", color: MUTED }}>
+              <ImagePlus size={22} aria-hidden />
+              <span className="text-[13px] font-semibold">Add photo or video</span>
             </button>
-          </span>
-        ))}
-        {picked.length < MAX_POST_ITEMS && (
-          <button type="button" onClick={() => void openLibrary()} className="flex h-[96px] shrink-0 flex-col items-center justify-center gap-1 rounded-[12px] px-3" style={{ width: picked.length ? 78 : "100%", border: "2px dashed #D6D3D1", background: "var(--new-bg)", color: MUTED }}>
-            <ImagePlus size={22} aria-hidden />
-            <span className="text-[13px] font-semibold">Add photo or video</span>
-          </button>
-        )}
-      </div>
-      <textarea value={draft.caption} onChange={(e) => setDraft({ caption: e.target.value })} maxLength={2200} rows={3} placeholder="Say something about it (optional)" aria-label="Caption"
-        className="mx-4 mt-3 block w-[calc(100%-32px)] resize-none bg-transparent text-[16px] outline-none placeholder:text-[#A8A29E]" />
-
-      </div>
-      <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] p-3.5">
-        <div className="text-[11px] font-extrabold" style={{ letterSpacing: "0.6px", color: PURPLE }}>WORKOUT ATTACHED</div>
-        {preview.data ? (
-          <>
-            <div className="mt-0.5 truncate text-[17px] font-extrabold">{preview.data.title}</div>
-            <div className="text-[13px]" style={{ color: MUTED }}>{shareWorkoutStats(preview.data)}</div>
-            {preview.data.credit && <div className="pt-1.5 text-[13px] font-semibold" style={{ color: "var(--new-purple-text)" }}>{audience.kind === "only_me" ? `Credits ${preview.data.credit}.` : creditLine(preview.data.credit)}</div>}
-          </>
-        ) : <div className="mt-1 h-10 animate-pulse rounded bg-white" />}
+          )}
+        </div>
+        <textarea value={draft.caption} onChange={(e) => setDraft({ caption: e.target.value })} maxLength={2200} rows={3} placeholder="Say something about it (optional)" aria-label="Caption"
+          className="block w-full resize-none bg-transparent pb-3.5 pt-2.5 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]" />
+      </section>
+      <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] px-4">
+        <div className="py-2.5"><div className="rounded-[14px] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-3">
+          <div className="text-[11px] font-extrabold tracking-[0.6px] text-[var(--new-purple)]">WORKOUT</div>
+          {preview.data ? (
+            <>
+              <div className="truncate text-[16px] font-extrabold">{preview.data.title}</div>
+              <div className="text-[12px]" style={{ color: MUTED }}>{shareWorkoutStats(preview.data)}</div>
+              {preview.data.credit && <div className="pt-1.5 text-[12px] font-semibold" style={{ color: "var(--new-purple-text)" }}>{audience.kind === "only_me" ? `Credits ${preview.data.credit}.` : creditLine(preview.data.credit)}</div>}
+            </>
+          ) : <div className="mt-1 h-10 animate-pulse rounded bg-white" />}
+        </div></div>
       </section>
 
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}

@@ -9,6 +9,26 @@
       "url": "/qa/p5-2-fix-add-workout-sheet.png"
     },
     {
+      "file": "p5-2-fix-audience-soft-everyone.png",
+      "url": "/qa/p5-2-fix-audience-soft-everyone.png"
+    },
+    {
+      "file": "p5-2-fix-audience-soft-only-me.png",
+      "url": "/qa/p5-2-fix-audience-soft-only-me.png"
+    },
+    {
+      "file": "p5-2-fix-audience-soft-private.png",
+      "url": "/qa/p5-2-fix-audience-soft-private.png"
+    },
+    {
+      "file": "p5-2-fix-audience-soft-share-workout.png",
+      "url": "/qa/p5-2-fix-audience-soft-share-workout.png"
+    },
+    {
+      "file": "p5-2-fix-audience-soft-teen-no-crews.png",
+      "url": "/qa/p5-2-fix-audience-soft-teen-no-crews.png"
+    },
+    {
       "file": "p5-2-fix-compose-caption-attached.png",
       "url": "/qa/p5-2-fix-compose-caption-attached.png"
     },
@@ -78,7 +98,12 @@
     "onlyMeProfileLock": true,
     "everyoneOwnMenu": true,
     "crewPostNextToGreenCheckinTag": true,
+    "canvasComputedStylesChecked": true,
+    "canvasScreenshotsCompared": true,
     "temporaryDataRemoved": true,
-    "pageErrors": []
+    "pageErrors": [],
+    "browserLimitations": [
+      "Add exercise retains the specified 1.5px inline border; headless Chromium reports the computed width as 1px."
+    ]
   }
 }

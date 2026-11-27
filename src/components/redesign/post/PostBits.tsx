@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ChevronRight, Volume2, VolumeX } from "lucide-react";
 import type { WorkoutDetail } from "@/lib/lifts.functions";
+import { cn } from "@/lib/utils";
 import type { PostWorkout, SocialPostItem } from "@/lib/social-post-types";
 import { workoutCardLine, type AttachedCard } from "@/lib/redesign-feed-view";
 import { RedesignWorkoutSheet, type SheetAuthor } from "../RedesignCheckInSheets";
@@ -11,7 +12,14 @@ export const PURPLE = "#7C3AED";
 export const LINE = "#EFEAE4";
 
 /** Full-screen header: left action, centered title, right action. */
-export function PostTopBar({ title, left, right, dark = false }: { title: string; left: ReactNode; right?: ReactNode; dark?: boolean }) {
+export function PostTopBar({ title, left, right, dark = false, compose = false }: { title: string; left: ReactNode; right?: ReactNode; dark?: boolean; compose?: boolean }) {
+  if (compose) return (
+    <header className="pt-new-top sticky top-0 z-10 grid grid-cols-[70px_1fr_70px] items-center border-b border-[var(--new-profile-track)] bg-[var(--new-white)] px-4 pb-3">
+      {left}
+      <h1 className="m-0 text-center text-[17px] font-bold text-[var(--new-ink-deep)]">{title}</h1>
+      {right}
+    </header>
+  );
   return (
     <header className="pt-new-top sticky top-0 z-10" style={{ background: dark ? "#0C0A09" : "var(--new-white)" }}>
       <div className="grid h-12 grid-cols-[88px_1fr_88px] items-center px-2">
@@ -23,10 +31,10 @@ export function PostTopBar({ title, left, right, dark = false }: { title: string
   );
 }
 
-export function TextAction({ children, onClick, disabled, tone = "ink", dark = false }: { children: ReactNode; onClick: () => void; disabled?: boolean; tone?: "ink" | "purple"; dark?: boolean }) {
-  const color = disabled ? (dark ? "#57534E" : "#A8A29E") : tone === "purple" ? (dark ? "#C4B5FD" : PURPLE) : dark ? "#FFFFFF" : INK;
+export function TextAction({ children, onClick, disabled, tone = "ink", dark = false, className }: { children: ReactNode; onClick: () => void; disabled?: boolean; tone?: "ink" | "purple" | "muted"; dark?: boolean; className?: string }) {
+  const color = disabled ? (dark ? "#57534E" : "#A8A29E") : tone === "purple" ? (dark ? "#C4B5FD" : PURPLE) : tone === "muted" ? MUTED : dark ? "#FFFFFF" : INK;
   return (
-    <button type="button" onClick={onClick} disabled={disabled} className="flex h-11 min-w-11 items-center justify-center px-2 text-[16px] font-bold" style={{ color }}>
+    <button type="button" onClick={onClick} disabled={disabled} className={cn("flex h-11 min-w-11 items-center justify-center px-2 text-[16px] font-bold", className)} style={{ color }}>
       {children}
     </button>
   );

@@ -24,7 +24,9 @@
   --new-orange-icon: #EA580C;
   --new-soft: #EDE4FF;
   --new-post-attachment: #F5F0FF;
+  --new-post-banner-border: #E4D8FD;
   --new-post-radio-off: #D6D0C9;
+  --new-post-remove: #8A847E;
   --new-purple: #7C3AED;
   --new-purple-text: #6D28D9;
   --new-deep: #5B21B6;
@@ -56,7 +58,6 @@
   --new-ink-deep: #141218;
   font-family: Inter, system-ui, sans-serif;
 }
-.new-post-compose-page { --new-bg: #F4F1EC; }
 .redesign-step3 .new-plan-tile { background: linear-gradient(135deg, var(--new-purple), var(--new-deep)); }
 
 .new-avatar-fallback {

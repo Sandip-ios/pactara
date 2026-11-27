@@ -5,14 +5,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { matchCaptionWorkout } from "@/lib/posts.functions";
 import { audienceIsValid } from "@/lib/post-audience";
-import { composerIsDirty, videoLengthError } from "@/lib/post-composer";
+import { composerIsDirty, formatClock, trimmedLength, videoLengthError } from "@/lib/post-composer";
 import { pickedItems, resetDraft, setDraft, usePostDraft } from "@/lib/post-draft";
 import { submitPost } from "@/lib/post-submit";
 import type { PostWorkoutChoice } from "@/lib/social-post-types";
 import { WorkoutAttachment } from "./WorkoutAttachment";
 import { NewConfirm } from "../NewConfirm";
 import { PostOptionRows, WhoSeesIt, useAudience, useComposeContext } from "./ComposeParts";
-import { INK, MUTED, PURPLE, PostTopBar, TextAction } from "./PostBits";
+import { INK, PostTopBar, TextAction } from "./PostBits";
 
 type Move = { exerciseId: string; name: string; imageStart: string | null; sets: number; reps: number };
 
@@ -68,26 +68,26 @@ export function NewPostCompose() {
 
   return (
     <div className="redesign-step3 new-post-compose-page fixed inset-0 overflow-y-auto bg-[var(--new-bg)] pb-[calc(32px+env(safe-area-inset-bottom))]" style={{ color: INK }} data-scroll-root>
-      <PostTopBar title="New post" left={<TextAction onClick={back}>Back</TextAction>} right={<TextAction tone="purple" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
-      <div className="bg-[var(--new-white)] pb-4">
-      <div className="flex gap-2 overflow-x-auto px-4 pt-2 [scrollbar-width:none]">
-        {picked.map(({ media }) => (
-          <span key={media.id} className="h-[72px] w-[58px] shrink-0 overflow-hidden rounded-[10px] bg-neutral-200">
-            {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
-          </span>
-        ))}
-      </div>
-      <textarea
-        value={draft.caption}
-        onChange={(e) => setDraft({ caption: e.target.value })}
-        maxLength={2200}
-        rows={3}
-        placeholder="Write a caption..."
-        aria-label="Caption"
-        className="mx-4 mt-3 block w-[calc(100%-32px)] resize-none bg-transparent text-[16px] outline-none placeholder:text-[#A8A29E]"
-      />
-
-      </div>
+      <PostTopBar compose title="New post" left={<TextAction tone="muted" className="w-full min-w-0 justify-start px-0 font-semibold" onClick={back}>Back</TextAction>} right={<TextAction tone="purple" className="w-full min-w-0 justify-end px-0" disabled={!valid || busy} onClick={() => void share()}>Share</TextAction>} />
+      <section className="bg-[var(--new-white)] px-4 pb-1.5 pt-3.5">
+        <div className="flex gap-2 overflow-hidden">
+          {picked.map(({ media, edit }) => (
+            <span key={media.id} className="relative h-[116px] w-[92px] shrink-0 overflow-hidden rounded-[12px] bg-neutral-200">
+              {media.kind === "video" ? <video src={`${media.url}#t=0.1`} muted playsInline preload="metadata" className="h-full w-full object-cover" /> : <img src={media.url} alt="" className="h-full w-full object-cover" />}
+              {media.kind === "video" && media.duration != null && <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center rounded-[10px] px-1.5 text-[11px] font-bold text-[var(--new-white)]" style={{ background: "rgba(0,0,0,0.55)" }}>{formatClock(trimmedLength(edit))}</span>}
+            </span>
+          ))}
+        </div>
+        <textarea
+          value={draft.caption}
+          onChange={(e) => setDraft({ caption: e.target.value })}
+          maxLength={2200}
+          rows={3}
+          placeholder="Write a caption..."
+          aria-label="Caption"
+          className="block w-full resize-none bg-transparent pb-3.5 pt-2.5 text-[15px] leading-[1.45] text-[var(--new-ink-deep)] outline-none placeholder:text-[var(--new-chevron)]"
+        />
+      </section>
       <WorkoutAttachment ctx={ctx.data} suggestions={moves} workout={workout} onChange={setWorkout} />
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
       {audience.kind !== "only_me" && <PostOptionRows tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}

@@ -112,7 +112,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
         <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2200} rows={4} aria-label="Caption" className="w-full resize-none rounded-[14px] bg-[var(--new-control)] p-3 text-[16px] outline-none" />
         <NewSheetButton disabled={busy} onClick={() => void saveCaption()}>Save</NewSheetButton>
       </NewSheet>
-      <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle>
+      <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle compose>
         <SheetActions title="Who sees it" cancel={() => setAudienceOpen(false)} disabled={busy || !ctx.data} done={() => void saveAudience()} />
         {ctx.data && <WhoSeesIt ctx={ctx.data} audience={nextAudience} onChange={setNextAudience} showTitle={false} />}
       </NewSheet>
