@@ -25,13 +25,13 @@ import { healthWorkoutSchema, healthWorkoutName, healthStats, type HealthWorkout
 import { HealthPostedStats } from '@/components/health/HealthUI';
 import { HealthPrompt } from '@/components/health/HealthPrompt';
 import { useAppVersion } from "@/hooks/use-app-version";
-import { NewCheckInDone } from "@/components/redesign/NewCheckInDone";
+import { NewCheckInPosted } from "@/components/redesign/NewCheckInPosted";
+import { postedCrew } from "@/lib/new-posted";
 import { clearNewCheckIn, readNewCheckIn, writeNewCheckIn } from "@/lib/redesign-checkin";
 import { NewCheckInCompose, type ComposeCrewChip } from "@/components/redesign/NewCheckInCompose";
 import { restoreCrewSelection, shouldConfirmClipDiscard } from "@/lib/new-checkin-form";
 import { NewSheet, NewSheetButton, NewSheetRow } from "@/components/redesign/NewSheet";
 import { getGroupsToday, type GroupToday } from "@/lib/group-today.functions";
-import { Button } from "@/components/ui/button";
 
 const SHARE_HIDE_KEY = "checkin-share-hide";
 const PURPLE = "#7C3AED";
@@ -149,8 +149,7 @@ function NotesPage() {
   const [selected, setSelectedState] = useState<string[] | null>(null);
   const [followers, setFollowers] = useState(false);
   const draftGroupIds = useRef<string[] | null>(null);
-  const noteAfterDone = useRef(false);
-  const [newDoneOpen, setNewDoneOpen] = useState(true);
+  const [postedExit, setPostedExit] = useState(false);
   const [doneGroups, setDoneGroups] = useState<GroupToday[]>([]);
   const [note, setNote] = useState("");
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -274,6 +273,9 @@ function NotesPage() {
     /** The one streak number the badge, the card and the share card all show. */
     streak: number;
     activity: string | null;
+    countedByGroup: Record<string, boolean>;
+    streakByGroup: Record<string, number>;
+    badgesByGroup: Record<string, number[]>;
   };
   const [shareData, setShareData] = useState<ShareState | null>(null);
   const [shareScreenOpen, setShareScreenOpen] = useState(false);
@@ -296,11 +298,6 @@ function NotesPage() {
     queryClient.invalidateQueries({ queryKey: ["home-crew"] });
     if (version === "new") {
       queryClient.invalidateQueries({ queryKey: ["groups-today"] });
-      const noteCrew = newSession?.groupIds[0] ?? getActiveGroupId();
-      if (noteAfterDone.current && noteCrew) {
-        navigate({ to: "/crews/$groupId", params: { groupId: noteCrew }, search: { crewTab: "chat", compose: true } });
-        return;
-      }
     }
     // Finishing the last day of a plan lands on the "Plan complete" celebration.
     if (plan?.completed) {
@@ -399,17 +396,24 @@ function NotesPage() {
       queryClient.invalidateQueries({ queryKey: ["rest-day-info"] });
       queryClient.invalidateQueries({ queryKey: ["home-crew"] });
       queryClient.invalidateQueries({ queryKey: ["my-badges"] });
+      let postedGroups: GroupToday[] = [];
       if (version === "new") {
         await queryClient.invalidateQueries({ queryKey: ["groups-today"] });
         const fresh = await queryClient.fetchQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 0 }).catch(() => null);
         const ids = newSelection?.length ? newSelection : activeGroupId ? [activeGroupId] : [];
-        if (fresh) setDoneGroups(ids.flatMap((id) => fresh.groups.filter((g) => g.id === id)));
+        if (fresh) postedGroups = ids.flatMap((id) => fresh.groups.filter((g) => g.id === id));
+        setDoneGroups(postedGroups);
       }
 
-      // Stash any new badges so /home can also announce them — safety net in case
-      // the user dismisses fast or the local modal never mounts.
-      if (newBadges.length > 0 && typeof sessionStorage !== "undefined") {
-        sessionStorage.setItem("pending-badge-announce", JSON.stringify(newBadges));
+      const posted = result as { streakByGroup?: Record<string, number>; badgesByGroup?: Record<string, number[]>; countedByGroup?: Record<string, boolean> } | undefined;
+      const shownCrew = version === "new" ? postedCrew(postedGroups, posted?.countedByGroup ?? {}) : null;
+      const celebrationGroupId = shownCrew?.id ?? activeGroupId;
+      const shownBadges = shownCrew ? posted?.badgesByGroup?.[shownCrew.id] ?? [] : [];
+      // Home announces only badges the Posted screen did not already show.
+      const pendingBadges = version === "new" ? newBadges.filter((badge) => !shownBadges.includes(badge)) : newBadges;
+      if (typeof sessionStorage !== "undefined") {
+        if (pendingBadges.length > 0) sessionStorage.setItem("pending-badge-announce", JSON.stringify(pendingBadges));
+        else if (version === "new") sessionStorage.removeItem("pending-badge-announce");
       }
 
       // Posted — any saved draft for this check-in is no longer needed.
@@ -422,14 +426,13 @@ function NotesPage() {
       }
       const photoForShare = photo ? URL.createObjectURL(photo.blob) : null;
       const celebration: CelebrationData = await withTimeout(
-        getCelebrationFn({ data: { groupId: activeGroupId, workoutSessionId: workout?.sessionId ?? null } }),
+        getCelebrationFn({ data: { groupId: celebrationGroupId, workoutSessionId: workout?.sessionId ?? null } }),
         CELEBRATION_TIMEOUT_MS,
         "Celebration loading timed out",
-      ).catch(() => ({ groupId: activeGroupId, streakCount: 1, groupName: "Your crew", teammates: [] }));
+      ).catch(() => ({ groupId: celebrationGroupId, streakCount: 1, groupName: "Your crew", teammates: [] }));
       // One streak value everywhere: the number the badges were awarded on
       // for the celebrated group (same rule as the celebration data).
-      const posted = result as { streakByGroup?: Record<string, number>; badgesByGroup?: Record<string, number[]> } | undefined;
-      const celebratedGroup = celebration.groupId ?? activeGroupId;
+      const celebratedGroup = celebration.groupId ?? celebrationGroupId;
       const streak = (celebratedGroup && posted?.streakByGroup?.[celebratedGroup]) || celebration.streakCount;
       const groupBadges = celebratedGroup ? posted?.badgesByGroup?.[celebratedGroup] : undefined;
       setShareData({
@@ -439,6 +442,9 @@ function NotesPage() {
         newBadges: groupBadges ?? newBadges,
         streak,
         activity: activity ?? null,
+        countedByGroup: posted?.countedByGroup ?? {},
+        streakByGroup: posted?.streakByGroup ?? {},
+        badgesByGroup: posted?.badgesByGroup ?? {},
       });
     } catch (err) {
       console.error("check-in submit failed", err);
@@ -511,7 +517,7 @@ function NotesPage() {
     const relation = relationForGroup(c.groupId ?? getActiveGroupId(), partnerState);
     return {
       streak: shareData.streak,
-      crewName: celebrationGroupName ?? c.groupName,
+      crewName: version === "new" ? c.groupName : celebrationGroupName ?? c.groupName,
       relation: relation?.kind === "partner" ? "partner" : relation?.kind === "solo" ? "solo" : "crew",
       activityLabel: ACTIVITIES.find((a) => a.id === shareData.activity)?.label ?? null,
       week: c.week ?? null,
@@ -540,13 +546,12 @@ function NotesPage() {
     await navigate({ to: "/check-in/camera", replace: true });
   };
 
-  const finishNewDone = (addNote = false) => {
-    noteAfterDone.current = addNote;
-    if (addNote) { handleShareClose(); return; }
-    let hide = false;
-    try { hide = localStorage.getItem(SHARE_HIDE_KEY) === "1"; } catch { /* private mode */ }
-    if (hide && !shareData?.newBadges.length && !(firstCheckIn && isAppleHealthPlatform())) handleShareClose();
-    else setNewDoneOpen(false);
+  const finishPosted = () => {
+    if (firstCheckIn && isAppleHealthPlatform() && !postedExit) {
+      setPostedExit(true);
+      return;
+    }
+    handleShareClose();
   };
 
   return (
@@ -716,8 +721,19 @@ function NotesPage() {
         <NewSheetButton secondary onClick={() => blocker.reset?.()}>Keep editing</NewSheetButton>
       </NewSheet>}
 
-      {version === "new" && shareData && newDoneOpen && <NewCheckInDone groups={doneGroups} streak={shareData.streak} onDone={() => finishNewDone()} onNote={() => finishNewDone(true)} />}
-      {shareData && (version === "classic" || !newDoneOpen) && (
+      {version === "new" && shareData && <NewCheckInPosted
+        groups={doneGroups}
+        countedByGroup={shareData.countedByGroup}
+        streakByGroup={shareData.streakByGroup}
+        badgesByGroup={shareData.badgesByGroup}
+        streak={shareData.streak}
+        mediaUrl={shareData.photoUrl}
+        isVideo={!!shareData.media?.type.startsWith("video/")}
+        description={note}
+        {...(shareData.media ? { onShare: handleShareWin } : {})}
+        onDone={finishPosted}
+      />}
+      {version === "classic" && shareData && (
         <CheckInCelebrationModal
           open
           userPhoto={shareData.photoUrl}
@@ -737,7 +753,8 @@ function NotesPage() {
           onClose={() => setShareScreenOpen(false)}
         />
       )}
-      {shareData && firstCheckIn && (version === "classic" || !newDoneOpen) && <HealthPrompt firstCheckIn />}
+      {shareData && firstCheckIn && version === "classic" && <HealthPrompt firstCheckIn />}
+      {shareData && firstCheckIn && version === "new" && postedExit && <HealthPrompt firstCheckIn onFinish={handleShareClose} />}
     </div>
   );
 }

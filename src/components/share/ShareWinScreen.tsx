@@ -89,9 +89,10 @@ export function ShareWinScreen({
   const [photo, setPhoto] = useState<ImageBitmap | null>(null);
   const [canRender, setCanRender] = useState<boolean | null>(null);
   const [fontsLoaded, setFontsLoaded] = useState(false);
+  const [wordmark, setWordmark] = useState<HTMLImageElement | null>(null);
 
   const isPhoto = media?.kind === "photo";
-  const ready = !!media && !!input;
+  const ready = !!media && !!input && (version === "classic" || !!wordmark);
   const kind = cardKind(input ?? { workout: null });
   const lines = useMemo(() => (input ? shareCardLines(input, prefs) : []), [input, prefs]);
   const toggles = useMemo(() => (input ? cardToggles(input) : []), [input]);
@@ -114,6 +115,15 @@ export function ShareWinScreen({
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (version === "classic") return;
+    let alive = true;
+    const image = new Image();
+    image.onload = () => { if (alive) setWordmark(image); };
+    image.src = "/brand/pactara-wordmark-video.png";
+    return () => { alive = false; };
+  }, [version]);
 
   useEffect(() => {
     if (!media) return;
@@ -175,8 +185,8 @@ export function ShareWinScreen({
     if (!c || !ctx) return;
     c.width = out.width;
     c.height = out.height;
-    drawCardOverlay(ctx, lines, out.width, out.height, { wordmark: true, gradient: true, block: true });
-  }, [lines, out.width, out.height, fontsLoaded, ready]);
+    drawCardOverlay(ctx, lines, out.width, out.height, { wordmark: true, gradient: true, block: true, wordmarkImage: wordmark });
+  }, [lines, out.width, out.height, fontsLoaded, ready, wordmark]);
 
   // ---- renders (cached per size + card) ----
   const cache = useRef(new Map<string, Promise<Blob>>());
@@ -193,10 +203,10 @@ export function ShareWinScreen({
   const prepared = useCallback(
     (variant: "full" | "background", onProgress: (p: number) => void): Promise<Blob> => {
       if (!media) return Promise.reject(new Error("not ready"));
-      const key = `${format}|${variant}|${JSON.stringify(lines)}`;
+      const key = `${format}|${variant}|${JSON.stringify(lines)}|${wordmark ? "image-wordmark" : "text-wordmark"}`;
       const hit = cache.current.get(key);
       if (hit) return hit;
-      const parts = { wordmark: true, gradient: true, block: variant === "full" };
+      const parts = { wordmark: true, gradient: true, block: variant === "full", wordmarkImage: wordmark };
       const overlay = (w: number, h: number) => overlayCanvas(lines as CardLine[], w, h, parts);
       const job =
         media.kind === "photo"
@@ -217,7 +227,7 @@ export function ShareWinScreen({
       cache.current.set(key, job);
       return job;
     },
-    [format, lines, media, photo],
+    [format, lines, media, photo, wordmark],
   );
 
   /** The file to hand out: the rendered file, or the original clip on phones that can't render video. */

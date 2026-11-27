@@ -13,7 +13,7 @@ const PAD_BOTTOM = 20;
 const FONT = "Inter, system-ui, -apple-system, sans-serif";
 const INK = "#FFFFFF";
 
-export type OverlayParts = { wordmark: boolean; gradient: boolean; block: boolean };
+export type OverlayParts = { wordmark: boolean; gradient: boolean; block: boolean; wordmarkImage?: HTMLImageElement | null };
 
 const TROPHY = [
   "M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978",
@@ -184,7 +184,18 @@ function drawBlock(ctx: Ctx, lines: CardLine[], x: number, y: number, s: number,
   noShadow(ctx);
 }
 
-function drawWordmark(ctx: Ctx, s: number) {
+function drawWordmark(ctx: Ctx, s: number, image?: HTMLImageElement | null) {
+  if (image) {
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+    if (width && height) {
+      shadow(ctx, s, false);
+      const h = 17 * s;
+      ctx.drawImage(image, PAD_X * s, 14 * s, h * (width / height), h);
+      noShadow(ctx);
+    }
+    return;
+  }
   ctx.font = `900 ${18 * s}px ${FONT}`;
   ctx.textBaseline = "alphabetic";
   ctx.textAlign = "left";
@@ -211,7 +222,7 @@ export function drawCardOverlay(ctx: Ctx, lines: CardLine[], width: number, heig
     ctx.fillStyle = g;
     ctx.fillRect(0, top, width, height - top);
   }
-  if (parts.wordmark) drawWordmark(ctx, s);
+  if (parts.wordmark) drawWordmark(ctx, s, parts.wordmarkImage);
   if (parts.block && lines.length) {
     const h = blockHeight(lines) * s;
     drawBlock(ctx, lines, PAD_X * s, height - PAD_BOTTOM * s - h, s, width - PAD_X * 2 * s, false);
