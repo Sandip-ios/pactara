@@ -32,6 +32,7 @@
   --new-purple: #7C3AED;
   --new-purple-text: #6D28D9;
   --new-deep: #5B21B6;
+  --new-home-plan-end: #4C1D95;
   --new-green-soft: #DCFCE7;
   --new-green: #15803D;
   --new-orange-soft: #FFEDE0;
@@ -60,7 +61,7 @@
   --new-ink-deep: #141218;
   font-family: Inter, system-ui, sans-serif;
 }
-.redesign-step3 .new-plan-tile { background: linear-gradient(135deg, var(--new-purple), var(--new-deep)); }
+.redesign-step3 .new-plan-tile { background: linear-gradient(135deg, var(--new-purple), var(--new-home-plan-end)); }
 
 .new-avatar-fallback {
   --new-profile-avatar-bg: #E4DAFB;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Check, Search, Sparkles, Users, X } from "lucide-react";
+import { Bell, Check, Search, Sparkle, Users, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getGroupsToday } from "@/lib/group-today.functions";
 import { crewPageCounts } from "@/lib/group-today-view";
@@ -47,25 +47,25 @@ export function NewHome() {
       </header>
       <PostingStrip />
       {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}
-      <div className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-4 py-1">
+      <section aria-label="Today" className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-3.5 py-1.5">
         {isLoading ? <div className="h-24 animate-pulse" aria-label="Loading crews" /> : data?.groups.length ? data.groups.map((group) => {
           const counts = crewPageCounts(group.members);
           const done = group.members.find((m) => m.isYou)?.status === "done";
-          return <div key={group.id} className="flex items-center gap-2 border-b border-[var(--new-divider)] py-4 last:border-0">
+          return <div key={group.id} className="flex items-center gap-3 border-b border-[var(--new-divider)] py-2.5 last:border-0">
             <Button variant="ghost" onClick={() => navigate({ to: "/crews/$groupId", params: { groupId: group.id } })} className="h-auto min-w-0 flex-1 justify-start gap-3 whitespace-normal p-0 text-left hover:bg-transparent">
               <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--new-soft)] text-[var(--new-purple)]"><Users className="!size-5" /></span>
-              <span className="min-w-0"><span className="block text-[17px] font-extrabold leading-snug">{group.name} · day {group.dayNumber}</span><span className="mt-0.5 block text-[13px] font-normal text-[var(--new-muted)]">{counts.done} of {counts.due} in today</span></span>
+              <span className="min-w-0"><span className="block text-[15px] font-bold">{group.name} · day {group.dayNumber}</span><span className="block text-[12px] font-normal text-[var(--new-muted)]">{counts.done} of {counts.due} in today</span></span>
             </Button>
-            {done ? <span className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-[var(--new-green-soft)] px-3 text-[14px] font-bold text-[var(--new-green)]"><Check size={15} />You're in</span> : <Button variant="ghost" className="h-10 shrink-0 rounded-full bg-[var(--new-purple)] px-3 text-[15px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]" onClick={() => { beginNewCheckIn(group.id, null); navigate({ to: "/check-in" }); }}>Check in</Button>}
+            {done ? <span className="flex h-9 shrink-0 items-center gap-1 whitespace-nowrap rounded-[18px] bg-[var(--new-green-soft)] px-3 text-[13px] font-bold text-[var(--new-green)]"><Check size={15} />You're in</span> : <Button variant="ghost" className="h-9 shrink-0 rounded-[18px] bg-[var(--new-purple)] px-3 text-[13px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]" onClick={() => { beginNewCheckIn(group.id, null); navigate({ to: "/check-in" }); }}>Check in</Button>}
           </div>;
         }) : <div className="flex items-center justify-between gap-2 py-4"><span className="text-[17px] font-extrabold">Start or join a crew</span><Button variant="ghost" className="h-10 rounded-full bg-[var(--new-soft)] text-[var(--new-purple-text)]" onClick={() => navigate({ to: "/new-pactara" })}>Start</Button></div>}
-        {plans.isSuccess && !plans.data?.active && !hidePlan && <div className="relative flex items-center gap-2 border-t border-[var(--new-divider)] py-4">
-          <span className="new-plan-tile flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[var(--new-white)]"><Sparkles size={21} /></span>
-          <div className="min-w-0 flex-1"><p className="text-[17px] font-extrabold leading-snug">Want a plan to follow?</p><p className="mt-0.5 text-[13px] text-[var(--new-muted)]">4 quick questions, or browse plans</p></div>
-          <Button variant="ghost" className="h-10 shrink-0 rounded-full bg-[var(--new-soft)] px-3 text-[14px] font-bold text-[var(--new-purple-text)]" onClick={() => navigate({ to: "/find-plan" })}>Find one</Button>
-          <Button variant="ghost" size="icon" className="absolute -right-3 -top-1 h-6 w-6 rounded-full text-[var(--new-muted)]" aria-label="Hide plan suggestion" onClick={hidePlanRow}><X className="!size-3" /></Button>
+        {plans.isSuccess && !plans.data?.active && !hidePlan && <div className="flex items-center gap-3 border-t border-[var(--new-divider)] py-2.5">
+          <span className="new-plan-tile flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] text-[var(--new-white)]"><Sparkle size={20} /></span>
+          <div className="min-w-0 flex-1"><p className="text-[15px] font-bold">Want a plan to follow?</p><p className="text-[12px] text-[var(--new-muted)]">4 quick questions, or browse plans</p></div>
+          <Button variant="ghost" className="h-9 shrink-0 rounded-[18px] bg-[var(--new-soft)] px-3 text-[13px] font-bold text-[var(--new-purple)]" onClick={() => navigate({ to: "/find-plan" })}>Find one</Button>
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-[var(--new-chevron)]" aria-label="Dismiss" onClick={hidePlanRow}><X className="!size-4" /></Button>
         </div>}
-      </div>
+      </section>
     </div>
   );
 }

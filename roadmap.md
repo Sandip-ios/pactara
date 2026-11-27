@@ -228,3 +228,6 @@
 
 ## Phase 5.2 Round 3
 - [x] Matched Share workout card/credit, auto-sized caption, posting border and single-star banner; captured eight p5-2-fix3 states at 390×844 with real library drawings, six picker items and first-open note. Verified values and successful post/media readback; temporary accounts, crews, workouts, library examples and media removed; 940 tests and typecheck pass; unpublished.
+
+## Round 3 Home Today card
+- [x] Matched Today card dimensions, type, icons, gradient and inline X; verified account-scoped dismissal after reload; captured Home with/without posting strip at 390×844, verified a real post goes live, removed all temporary draft data. All 940 tests/typecheck pass; classic Home unchanged; unpublished. Exact widths leave the plan title/subtitle wrapped at 390px, without clipping.
