@@ -67,10 +67,13 @@ export function RedesignWorkoutSheet({
   author,
   isMine,
   planSlug,
+  detail,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   checkInId: string;
+  /** Camera-roll posts pass their own sets-and-reps snapshot instead of a check-in. */
+  detail?: WorkoutDetail;
   card: AttachedCard;
   author: SheetAuthor | null;
   isMine: boolean;
@@ -81,11 +84,13 @@ export function RedesignWorkoutSheet({
   const qc = useQueryClient();
   const navigate = useNavigate();
   const queryKey = ["workout-detail", checkInId];
-  const { data, isLoading } = useQuery({ queryKey, queryFn: () => fetchFn({ data: { checkInId } }), staleTime: 60_000, enabled: open });
+  const fetched = useQuery({ queryKey, queryFn: () => fetchFn({ data: { checkInId } }), staleTime: 60_000, enabled: open && !detail });
+  const data = detail ?? fetched.data;
+  const isLoading = !detail && fetched.isLoading;
   const [saving, setSaving] = useState(false);
   const saved = !!data?.savedWorkoutId;
   const exercises = data?.exercises ?? [];
-  const canSave = !isMine && card.kind === "workout" && !!data && !data.isMine && exercises.length > 0;
+  const canSave = !detail && !isMine && card.kind === "workout" && !!data && !data.isMine && exercises.length > 0;
   const summary = data?.summary;
   const prSource = "check_in" as const;
 

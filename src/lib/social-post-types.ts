@@ -1,0 +1,46 @@
+/** Shapes shared by camera-roll post screens and server functions. Never carries weights. */
+export type PostWorkoutSet = { reps: number | null; seconds: number | null; isPr: boolean };
+export type PostWorkoutMove = { exerciseId: string; name: string; imageStart: string | null; logType: "reps" | "timed"; sets: PostWorkoutSet[] };
+export type PostWorkout = { source: "caption" | "session" | "saved"; title: string; minutes: number; sets: number; prCount: number; moves: PostWorkoutMove[] };
+
+export type PostItemInput = {
+  kind: "photo" | "video";
+  path: string;
+  posterPath: string | null;
+  duration: number | null;
+  trimStart: number | null;
+  trimEnd: number | null;
+  muted: boolean;
+  cover: number | null;
+  crop: { aspect: "4:5" | "original"; y: number } | null;
+};
+
+export type PostWorkoutChoice =
+  | { source: "caption"; moves: { exerciseId: string; name: string; imageStart: string | null; sets: number; reps: number }[] }
+  | { source: "session"; id: string }
+  | { source: "saved"; id: string }
+  | null;
+
+export type SocialPostItem = {
+  id: string; kind: "photo" | "video"; url: string | null; posterUrl: string | null;
+  trimStart: number | null; trimEnd: number | null; muted: boolean; crop: { aspect: "4:5" | "original"; y: number } | null;
+};
+
+export type SocialPostView = {
+  id: string;
+  author: { id: string; name: string; avatarUrl: string | null; avatarColor: string | null };
+  isMine: boolean;
+  caption: string;
+  createdAt: string;
+  status: "uploading" | "live" | "failed";
+  everyone: boolean;
+  crewIds: string[];
+  commentsOn: boolean;
+  items: SocialPostItem[];
+  workout: PostWorkout | null;
+  cheers: number;
+  cheeredByMe: boolean;
+  comments: number;
+  saves: number;
+  savedByMe: boolean;
+};

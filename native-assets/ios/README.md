@@ -13,7 +13,7 @@ On José's Mac:
    Run `npm install`, then `npx cap sync ios`, then `npx cap open ios`.
    The project already includes `@capgo/capacitor-health` 8.13.0, compatible
    with Capacitor 8. Keep the existing Capacitor configuration.
-   `npx cap sync ios` must report 10 plugins, including
+   `npx cap sync ios` must report 11 plugins (10 before the photo library picker), including
    `@capgo/capacitor-health`. If it reports 9, or the Health plugin is missing,
    then `includePlugins` in `capacitor.config.ts` does not list it: add
    `"@capgo/capacitor-health"` to that array and run `npx cap sync ios` again.
@@ -261,3 +261,22 @@ In Xcode (open `ios/App/App.xcworkspace`):
      the old notification setup).
    - In **Settings → Notifications → Pactara**, make sure notifications are
      allowed and not set to "Deliver Quietly" or summary only.
+
+# Photo library posts (needs a native rebuild)
+
+New posts from the camera roll use `@capawesome/capacitor-file-picker`.
+
+1. `npx cap sync ios` must report 11 plugins, including
+   `@capawesome/capacitor-file-picker` and `@capgo/capacitor-health`.
+2. In `ios/App/App/Info.plist`, add (keep existing keys):
+   ```xml
+   <key>NSPhotoLibraryUsageDescription</key>
+   <string>Pactara opens your library so you can post photos and videos.</string>
+   <key>NSCameraUsageDescription</key>
+   <string>Pactara uses the camera for check-ins and new posts.</string>
+   <key>NSMicrophoneUsageDescription</key>
+   <string>Pactara records sound with your videos.</string>
+   ```
+   The camera and microphone keys likely exist already for check-ins.
+3. Until this build ships, older App Store builds fall back to the system
+   file picker, which also offers the photo library and camera.

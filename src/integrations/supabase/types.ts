@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -1714,6 +1709,244 @@ export type Database = {
         }
         Relationships: []
       }
+      social_post_cheers: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_cheers_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_crews: {
+        Row: {
+          group_id: string
+          post_id: string
+        }
+        Insert: {
+          group_id: string
+          post_id: string
+        }
+        Update: {
+          group_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_crews_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_post_crews_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_items: {
+        Row: {
+          cover_s: number | null
+          crop: Json | null
+          duration_s: number | null
+          id: string
+          kind: string
+          muted: boolean
+          path: string
+          position: number
+          post_id: string
+          poster_path: string | null
+          trim_end: number | null
+          trim_start: number | null
+        }
+        Insert: {
+          cover_s?: number | null
+          crop?: Json | null
+          duration_s?: number | null
+          id?: string
+          kind: string
+          muted?: boolean
+          path: string
+          position: number
+          post_id: string
+          poster_path?: string | null
+          trim_end?: number | null
+          trim_start?: number | null
+        }
+        Update: {
+          cover_s?: number | null
+          crop?: Json | null
+          duration_s?: number | null
+          id?: string
+          kind?: string
+          muted?: boolean
+          path?: string
+          position?: number
+          post_id?: string
+          poster_path?: string | null
+          trim_end?: number | null
+          trim_start?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_items_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_saves: {
+        Row: {
+          created_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_saves_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_post_tags: {
+        Row: {
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_tags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          audience_everyone: boolean
+          caption: string
+          comments_on: boolean
+          created_at: string
+          credit_user_id: string | null
+          id: string
+          skip_discover: boolean
+          status: string
+          updated_at: string
+          user_id: string
+          workout: Json | null
+          workout_id: string | null
+          workout_session_id: string | null
+        }
+        Insert: {
+          audience_everyone?: boolean
+          caption?: string
+          comments_on?: boolean
+          created_at?: string
+          credit_user_id?: string | null
+          id?: string
+          skip_discover?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+          workout?: Json | null
+          workout_id?: string | null
+          workout_session_id?: string | null
+        }
+        Update: {
+          audience_everyone?: boolean
+          caption?: string
+          comments_on?: boolean
+          created_at?: string
+          credit_user_id?: string | null
+          id?: string
+          skip_discover?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+          workout?: Json | null
+          workout_id?: string | null
+          workout_session_id?: string | null
+        }
+        Relationships: []
+      }
       streak_freezes_used: {
         Row: {
           created_at: string
@@ -2176,6 +2409,10 @@ export type Database = {
         Returns: boolean
       }
       can_read_follow_notifications: { Args: never; Returns: boolean }
+      can_see_social_post: {
+        Args: { _post_id: string; _viewer: string }
+        Returns: boolean
+      }
       cancel_crew_join_request: {
         Args: { _request_id: string }
         Returns: string
@@ -2208,6 +2445,22 @@ export type Database = {
       complete_crew_join_goal: {
         Args: { _goal?: string; _group_id: string }
         Returns: boolean
+      }
+      create_social_post: {
+        Args: {
+          _caption: string
+          _comments_on: boolean
+          _credit_user_id: string
+          _everyone: boolean
+          _group_ids: string[]
+          _items: Json
+          _skip_discover: boolean
+          _tags: string[]
+          _workout: Json
+          _workout_id: string
+          _workout_session_id: string
+        }
+        Returns: string
       }
       crew_active_plans: {
         Args: never
@@ -2617,3 +2870,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

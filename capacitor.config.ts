@@ -20,6 +20,7 @@ const config: CapacitorConfig = {
     "@revenuecat/purchases-capacitor",
     "@capacitor-community/in-app-review",
     "@capgo/capacitor-health",
+    "@capawesome/capacitor-file-picker",
   ],
   // This app is a TanStack Start (SSR + server functions) app, so `vite build`
   // intentionally produces a server bundle (dist/server) plus client assets
