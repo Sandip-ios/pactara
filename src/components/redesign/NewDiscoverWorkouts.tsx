@@ -398,7 +398,7 @@ export function WorkoutCards({
           data-workout-card
         >
           <Button variant="ghost" className="p5-result-main" onClick={() => onOpen(c)}>
-            <DiscoverImage url={c.coverUrl} className="h-16 w-16 rounded-[12px]" />
+            <DiscoverImage url={c.coverUrl} fallbackSize={24} className="h-16 w-16 rounded-[12px]" />
             <span className="min-w-0 flex-1">
               <strong className="line-clamp-2 text-[15px] font-bold">{c.name}</strong>
               <span className="p5-small block">{cardMeta(c)}</span>

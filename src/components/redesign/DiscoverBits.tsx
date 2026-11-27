@@ -5,15 +5,15 @@ import { useNavigate, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { coverThumb } from "@/lib/plan-filters";
 import "./discover-page.css";
-export function DiscoverImage({ url, className = "" }: { url: string | null; className?: string }) {
+export function DiscoverImage({ url, className = "", fallbackSize = 20 }: { url: string | null; className?: string; fallbackSize?: 20 | 24 | 32 }) {
   const [failed, setFailed] = useState(false);
   const src = coverThumb(url, 780);
   return (
-    <span className={`p5-image ${className}`}>
+    <span className={`p5-image ${className} ${fallbackSize === 32 ? "[&>svg]:size-8!" : fallbackSize === 24 ? "[&>svg]:size-6!" : "[&>svg]:size-5!"}`}>
       {src && !failed ? (
         <img src={src} alt="" loading="lazy" onError={() => setFailed(true)} />
       ) : (
-        <FlatDumbbell size={28} />
+        <FlatDumbbell size={fallbackSize} />
       )}
     </span>
   );

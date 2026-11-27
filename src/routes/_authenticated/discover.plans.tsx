@@ -107,7 +107,7 @@ function NewPlansList() {
               className="p5-card p5-plan-row w-full rounded-[16px] p-3 gap-3"
               onClick={() => void navigate({ to: "/plans/$slug", params: { slug: p.slug } })}
             >
-              <DiscoverImage url={p.coverUrl} className="h-[84px] w-[84px] rounded-[12px]" />
+              <DiscoverImage url={p.coverUrl} fallbackSize={24} className="h-[84px] w-[84px] rounded-[12px]" />
               <span className="min-w-0 flex-1">
                 {active?.slug === p.slug && (
                   <span className="p5-soft inline-block rounded-full px-2 py-0.5 text-[11px] font-extrabold">

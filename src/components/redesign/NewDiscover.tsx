@@ -3,7 +3,6 @@ import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronRight, Search, Sparkle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { coverThumb } from "@/lib/plan-filters";
 import type { Plan } from "@/lib/workout-plans";
 import { matchPlans } from "@/lib/plan-quiz";
 import { listMyGroups } from "@/lib/groups.functions";
@@ -160,7 +159,7 @@ export function NewDiscover() {
                           className="p5-card p5-plan-card"
                           onClick={() => openPlan(p.slug)}
                         >
-                          <DiscoverImage url={p.coverUrl} className="h-[150px] w-full" />
+                          <DiscoverImage url={p.coverUrl} fallbackSize={32} className="h-[150px] w-full" />
                           {p.id === mostStarted?.id && (starts.data?.[p.id] ?? 0) > 0 && (
                             <span className="p5-white absolute left-3 top-3 rounded-full px-2 py-1 text-[10px] font-extrabold">
                               POPULAR
@@ -205,7 +204,7 @@ export function NewDiscover() {
                           className="p5-card p5-workout-card"
                           onClick={() => setOpened(c)}
                         >
-                          <DiscoverImage url={c.coverUrl} className="h-[124px] w-full" />
+                          <DiscoverImage url={c.coverUrl} fallbackSize={32} className="h-[124px] w-full" />
                           <span className="p5-card-body block p-3">
                             <span className="p5-title text-[15px] line-clamp-2">{c.name}</span>
                             <span className="p5-small block">
@@ -311,18 +310,7 @@ export function MatchCard({
         </button>
       </span>
       <button type="button" onClick={open} className="flex w-full items-center gap-3 text-left">
-        <span
-          className="block h-14 w-14 shrink-0 overflow-hidden rounded-[12px]"
-          style={{ background: "var(--new-header-border)" }}
-        >
-          {coverThumb(bp.coverUrl, 192) && (
-            <img
-              src={coverThumb(bp.coverUrl, 192) ?? undefined}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          )}
-        </span>
+        <DiscoverImage url={bp.coverUrl} className="h-14 w-14 rounded-[12px]" />
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] font-extrabold leading-tight">{bp.name}</span>
           <span className="text-[13px]" style={{ color: "var(--new-muted)" }}>

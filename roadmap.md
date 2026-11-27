@@ -260,6 +260,7 @@
 - [x] Full suite: 1032 tests across 110 files passed on first run, no failures; typecheck passed; unpublished.
 
 ## Phase 5 Discover one page and search
+- [x] Remaining new-only Discover thumbnails: match uses the shared flat dumbbell on the soft-purple token; fallback icons measured at 32px on covers, 24px on list thumbnails and 20px on search/active/match thumbnails. Refreshed 01/02/03/05/06/07/07b/08/15 at 390×844/2× without toasts; 07 shows genuinely empty Mobility and 07b keeps active Run. Original example fields and account version choices restored; temporary member removed. Full suite 1055 passed across 112 files, no failures; typecheck clean, unpublished.
 - [x] New-only Discover corrections: shared flat icons, sentence case, active-plan goal filtering/progress, 12px chip spacing, inline errors, hidden zero saves/count on errors, persistent search ring and detailed skeletons. All 18 named captures retaken at 390×844/2× without toasts; 05 scrolled above the bottom bar and 07 shows active Dawn Run Base. Real plan/filter/retry/save/follow flows verified; original accounts and example fields restored, all four temporary accounts removed. Full suite 1055 passed across 112 files with no failures on any run; typecheck clean, unpublished.
 - [x] New-only Discover top states, horizontal plans/workouts, all-plans and workouts lists
 - [x] Authenticated search, privacy, follow actions, phone-only history and suggestions
