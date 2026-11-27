@@ -13,7 +13,7 @@ On José's Mac:
    Run `npm install`, then `npx cap sync ios`, then `npx cap open ios`.
    The project already includes `@capgo/capacitor-health` 8.13.0, compatible
    with Capacitor 8. Keep the existing Capacitor configuration.
-   `npx cap sync ios` must report 11 plugins (10 before the photo library picker), including
+   `npx cap sync ios` must report 12 plugins (11 before the Recents bridge), including
    `@capgo/capacitor-health`. If it reports 9, or the Health plugin is missing,
    then `includePlugins` in `capacitor.config.ts` does not list it: add
    `"@capgo/capacitor-health"` to that array and run `npx cap sync ios` again.
@@ -264,10 +264,12 @@ In Xcode (open `ios/App/App.xcworkspace`):
 
 # Photo library posts (needs a native rebuild)
 
-New posts from the camera roll use `@capawesome/capacitor-file-picker`.
+New posts use the local `@pactara/photo-library` Capacitor plugin for Recents and a separate photo/video camera. `@capawesome/capacitor-file-picker` alone cannot list the camera roll.
 
-1. `npx cap sync ios` must report 11 plugins, including
-   `@capawesome/capacitor-file-picker` and `@capgo/capacitor-health`.
+1. Run `npm install`, then `npx cap sync ios`. It must report 12 plugins, including
+   `@pactara/photo-library`, `@capawesome/capacitor-file-picker` and `@capgo/capacitor-health`.
+   Keep `native-plugins/pactara-photo-library` in the downloaded source. The local package
+   ships its Swift Package and podspec; Capacitor sync registers `PactaraPhotoLibrary`.
 2. In `ios/App/App/Info.plist`, add (keep existing keys):
    ```xml
    <key>NSPhotoLibraryUsageDescription</key>
@@ -280,3 +282,14 @@ New posts from the camera roll use `@capawesome/capacitor-file-picker`.
    The camera and microphone keys likely exist already for check-ins.
 3. Until this build ships, older App Store builds fall back to the system
    file picker, which also offers the photo library and camera.
+
+4. Build on an iPhone and open New post. Full permission loads the 60 newest
+   photos/videos, selects the newest with badge 1 and enables Next. Limited or
+   denied permission shows “Allow access to your photos”, Settings and Library.
+   Camera offers photo/video capture, independent of the check-in camera.
+5. Current App Store builds without `PactaraPhotoLibrary` always show Camera
+   then Library. Library and the empty preview synchronously open the file input
+   photo picker (multiple only in Select multiple mode); Camera uses capture.
+   A web publish can fix this fallback, but Recents requires this native rebuild.
+   Confirm permissions, limited access, video export and camera on a real iPhone;
+   the Linux sandbox can verify JS native-bridge mocks, not compile UIKit/PhotoKit.

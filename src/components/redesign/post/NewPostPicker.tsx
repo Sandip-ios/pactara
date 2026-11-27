@@ -1,16 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Camera, ChevronDown, Image, Images, Layers, Play, X, Zap } from "lucide-react";
-import { Capacitor } from "@capacitor/core";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { formatClock, MAX_POST_ITEMS, selectionNumber, toggleSelection } from "@/lib/post-composer";
-import { addFiles, defaultEdit, setDraft, usePostDraft } from "@/lib/post-draft";
-import { pickFromNativeLibrary } from "@/lib/media-picker";
+import { addFiles, defaultEdit, getDraft, setDraft, usePostDraft } from "@/lib/post-draft";
+import { capturePostMedia, loadPostRecents, openPostPhotoSettings, postMediaCapabilities, readPostAsset, showLibraryFallback } from "@/lib/post-native-media";
+import type { LibraryAsset, LibraryPermission } from "@/lib/post-native-media";
+import { Button } from "@/components/ui/button";
 import { newToast } from "../new-toast";
 import { PostTopBar, TextAction, PURPLE, INK, MUTED } from "./PostBits";
 
 const NOTE_KEY = (uid: string) => `pactara:post-library-note:${uid}`;
+// Keep native identity when returning from Edit; resetDraft invalidates the mapped ids.
+const nativeImports = new Map<string, string>();
 
 /** "New post" picker: big preview, Recents, Select multiple, 3-column grid with Camera first. */
 export function NewPostPicker() {
@@ -23,6 +26,29 @@ export function NewPostPicker() {
   const [uid, setUid] = useState<string | null>(null);
   const libraryInput = useRef<HTMLInputElement>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
+  const [recents, setRecents] = useState<LibraryAsset[]>([]);
+  const [permission, setPermission] = useState<LibraryPermission | null>(null);
+  const [hasLibrary, setHasLibrary] = useState(false);
+  const [libraryFailed, setLibraryFailed] = useState(false);
+  const [loadingAsset, setLoadingAsset] = useState(false);
+  const imported = useRef(nativeImports);
+  const loadRun = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const initialRun = loadRun.current;
+    setHasLibrary(postMediaCapabilities().library);
+    void loadPostRecents().then(async (result) => {
+      if (cancelled || !result) return;
+      setPermission(result.permission);
+      setRecents(result.assets);
+      const first = result.assets[0];
+      if (first && !getDraft().selected.length && initialRun === loadRun.current) await pickRecent(first, true);
+    }).catch(() => {
+      if (!cancelled) { setLibraryFailed(true); newToast("Couldn't load your photos. Use Library to pick a photo or video."); }
+    });
+    return () => { cancelled = true; loadRun.current++; };
+  }, []);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -38,6 +64,8 @@ export function NewPostPicker() {
   };
 
   const pick = (id: string) => {
+    loadRun.current++;
+    setLoadingAsset(false);
     setCurrent(id);
     setDraft((d) => {
       const selected = multi ? toggleSelection(d.selected, id) : [id];
@@ -46,25 +74,57 @@ export function NewPostPicker() {
     });
   };
 
-  const added = async (files: { blob: Blob; name: string }[]) => {
+  const added = async (files: { blob: Blob; name: string }[], single = false) => {
     const ids = await addFiles(files, (m) => newToast(m));
-    if (!ids.length) return;
+    const first = ids[0];
+    if (!first) return null;
     setDraft((d) => {
       const lib = d.library;
       const edits = { ...d.edits };
       for (const id of ids) { const m = lib.find((x) => x.id === id); if (m && !edits[id]) edits[id] = defaultEdit(m); }
-      const selected = multi || ids.length > 1 ? [...d.selected, ...ids].slice(0, MAX_POST_ITEMS) : [ids[0]!];
+      const selected = !single && multi ? [...d.selected, ...ids].slice(0, MAX_POST_ITEMS) : [first];
       return { selected, edits };
     });
-    if (ids.length > 1) setMulti(true);
-    setCurrent(ids[0]!);
+    if (single) setMulti(false);
+    setCurrent(first);
+    return first;
   };
 
-  const openLibrary = async () => {
-    const native = await pickFromNativeLibrary(MAX_POST_ITEMS).catch(() => null);
-    if (native) { if (native.length) await added(native); return; }
+  const pickRecent = async (asset: LibraryAsset, single = false) => {
+    const existing = imported.current.get(asset.id);
+    if (existing && getDraft().library.some((m) => m.id === existing)) { pick(existing); return; }
+    const run = ++loadRun.current;
+    setLoadingAsset(true);
+    try {
+      const file = await readPostAsset(asset.id);
+      if (run !== loadRun.current) return;
+      if (!file) { setLibraryFailed(true); return; }
+      const id = await added([file], single);
+      if (id) imported.current.set(asset.id, id);
+    } catch {
+      if (run === loadRun.current) {
+        setLibraryFailed(true);
+        newToast("Couldn't load this photo or video. Choose it with Library.");
+      }
+    } finally { if (run === loadRun.current) setLoadingAsset(false); }
+  };
+
+  const openLibrary = () => {
+    // Synchronous tap preserves the user gesture for WKWebView's file picker.
     libraryInput.current?.click();
   };
+
+  const openCamera = () => {
+    if (!postMediaCapabilities().camera) { cameraInput.current?.click(); return; }
+    void capturePostMedia().then(async (files) => {
+      if (files === null) { cameraInput.current?.click(); return; }
+      if (files.length) await added(files);
+    }).catch(() => {
+      newToast("Camera unavailable. Tap Camera again to use your phone's camera.");
+      cameraFallback.current = true;
+    });
+  };
+  const cameraFallback = useRef(false);
 
   const toggleMulti = () => {
     setMulti((m) => {
@@ -74,8 +134,8 @@ export function NewPostPicker() {
   };
 
   const preview = draft.library.find((m) => m.id === current) ?? null;
-  const canNext = draft.selected.length > 0;
-  const native = Capacitor.isNativePlatform();
+  const canNext = draft.selected.length > 0 && !loadingAsset;
+  const libraryFallback = showLibraryFallback(hasLibrary, permission, libraryFailed);
   const pickedMultiple = multi && draft.selected.length > 0;
 
   return (
@@ -118,13 +178,32 @@ export function NewPostPicker() {
           {pickedMultiple ? <Layers size={15} aria-hidden /> : <Image size={15} aria-hidden />} {pickedMultiple ? `${draft.selected.length} selected` : "Select multiple"}
         </button>
       </div>
+      {(permission === "denied" || permission === "limited") && (
+        <div className="flex shrink-0 items-center justify-between gap-2 px-4 py-2 text-[13px] font-semibold text-[var(--new-muted)]">
+          <span>Allow access to your photos</span>
+          <Button variant="ghost" className="h-10 text-[var(--new-purple-text)]" onClick={() => void openPostPhotoSettings()}>Settings</Button>
+        </div>
+      )}
       <div className="min-h-0 flex-1 overflow-y-auto pb-[calc(16px+env(safe-area-inset-bottom))]">
         <div className="grid grid-cols-3 gap-[2px]">
-          <button type="button" aria-label="Camera" onClick={() => cameraInput.current?.click()} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
+          <button type="button" aria-label="Camera" onClick={() => cameraFallback.current ? cameraInput.current?.click() : openCamera()} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
             <Camera size={26} aria-hidden />
             <span className="text-[13px] font-semibold">Camera</span>
           </button>
-          {draft.library.map((m) => {
+          {libraryFallback && <button type="button" aria-label="Open your library" onClick={openLibrary} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
+            <Images size={26} aria-hidden />
+            <span className="text-[13px] font-semibold">Library</span>
+          </button>}
+          {recents.map((asset) => {
+            const id = imported.current.get(asset.id);
+            const n = id ? selectionNumber(draft.selected, id) : null;
+            return <button key={asset.id} type="button" onClick={() => void pickRecent(asset)} aria-label={`${asset.kind === "video" ? "Video" : "Photo"}${n ? `, selected ${n}` : ""}`} className="relative aspect-square overflow-hidden bg-[var(--new-control)]">
+              {asset.thumbnail ? <img src={asset.thumbnail} alt="" className="h-full w-full object-cover" /> : <Images className="mx-auto text-[var(--new-muted)]" aria-hidden />}
+              {asset.kind === "video" && <span className="absolute bottom-1 right-1.5 text-[12px] font-bold text-[var(--new-white)]">{formatClock(asset.duration ?? 0)}</span>}
+              <span className={`absolute right-1.5 top-1.5 flex h-[22px] w-[22px] items-center justify-center rounded-full border-2 border-[var(--new-white)] text-[12px] font-extrabold text-[var(--new-white)] ${n ? "bg-[var(--new-purple)]" : "bg-transparent"}`}>{n ?? ""}</span>
+            </button>;
+          })}
+          {draft.library.filter((m) => ![...imported.current.values()].includes(m.id)).map((m) => {
             const n = selectionNumber(draft.selected, m.id);
             return (
               <button key={m.id} type="button" onClick={() => pick(m.id)} aria-label={`${m.kind === "video" ? "Video" : "Photo"}${n ? `, selected ${n}` : ""}`} className="relative aspect-square overflow-hidden bg-neutral-200">
@@ -137,10 +216,6 @@ export function NewPostPicker() {
               </button>
             );
           })}
-          {!native && <button type="button" aria-label="Open your library" onClick={() => void openLibrary()} className="flex aspect-square flex-col items-center justify-center gap-1.5" style={{ background: "var(--new-control)", color: INK }}>
-            <Images size={26} aria-hidden />
-            <span className="text-[13px] font-semibold">Library</span>
-          </button>}
         </div>
         {multi && <p className="px-4 pt-2 text-[12px]" style={{ color: MUTED }}>Up to {MAX_POST_ITEMS} photos and videos</p>}
       </div>
@@ -151,7 +226,7 @@ export function NewPostPicker() {
           <button type="button" aria-label="Got it" onClick={dismissNote} className="-mr-1 -mt-1 flex h-8 w-8 shrink-0 items-center justify-center"><X size={16} /></button>
         </div>
       )}
-      <input ref={libraryInput} type="file" accept="image/*,video/*" multiple hidden onChange={(e) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void added(fs.map((f) => ({ blob: f, name: f.name }))); }} />
+      <input ref={libraryInput} type="file" accept="image/*,video/*" multiple={multi} hidden onChange={(e) => { loadRun.current++; setLoadingAsset(false); const fs = [...(e.target.files ?? [])]; e.target.value = ""; void added(fs.map((f) => ({ blob: f, name: f.name }))); }} />
       <input ref={cameraInput} type="file" accept="image/*,video/*" capture="environment" hidden onChange={(e) => { const fs = [...(e.target.files ?? [])]; e.target.value = ""; void added(fs.map((f) => ({ blob: f, name: f.name }))); }} />
     </div>
   );

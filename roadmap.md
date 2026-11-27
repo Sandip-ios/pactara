@@ -1,5 +1,8 @@
 # Roadmap
 
+## Phase 5.2 native picker hotfix
+- [x] New-only runtime-checked Library/preview and photo/video camera fallbacks; local PactaraPhotoLibrary bridge loads permission-aware newest-first Recents and preselects one item. Native iOS shell mocks at 390×844 verified absent/present/denied/limited, photo/video, multiple picks, Next and Edit return. Requested captures delivered outside public/qa; full suite 953 passed and typecheck clean. Temporary member removed; unpublished. Swift/PhotoKit compilation and physical iPhone checks require the next native build on José's Mac.
+
 ## Phase 5.1c: Posted screen
 - [x] Replaced the new-version You're in screen and following celebration modal with one Posted screen, preserving classic completion and share paths.
 - [x] Recolored the launch wordmark for the Posted video and new-version share exports; classic share drawing remains unchanged.

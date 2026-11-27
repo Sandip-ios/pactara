@@ -17,6 +17,7 @@ const PLUGIN_SCOPES = [
   "@capawesome/",
   "@capgo/",
   "@revenuecat/",
+  "@pactara/",
 ];
 
 // Tooling and runtime packages that are not native plugins.
@@ -71,6 +72,6 @@ describe("Capacitor includePlugins", () => {
   });
 
   it("matches the plugin count the iPhone README promises", () => {
-    expect(listed.size).toBe(11);
+    expect(listed.size).toBe(12);
   });
 });
