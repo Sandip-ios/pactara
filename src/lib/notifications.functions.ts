@@ -47,10 +47,16 @@ export function notificationTarget(input: {
   postPhoto: string | null;
 }): { checkInId: string | null; mediaPath: string | null } {
   if (!input.perCheckIn) return { checkInId: null, mediaPath: input.postPhoto };
-  const known = !!input.checkInId && input.scopedPhoto.has(input.checkInId);
-  return known
-    ? { checkInId: input.checkInId, mediaPath: input.scopedPhoto.get(input.checkInId!) ?? null }
-    : { checkInId: input.firstCheckInId, mediaPath: input.postPhoto };
+  if (input.checkInId && input.scopedPhoto.has(input.checkInId)) {
+    return { checkInId: input.checkInId, mediaPath: input.scopedPhoto.get(input.checkInId) ?? null };
+  }
+  return { checkInId: input.firstCheckInId, mediaPath: input.postPhoto };
+}
+
+/** Activity previews the replied-to check-in, never the reply's own attachment. */
+export function commentNotificationTarget(input: Parameters<typeof notificationTarget>[0] & { commentMedia: string | null }) {
+  const target = notificationTarget(input);
+  return { ...target, mediaPath: input.perCheckIn ? target.mediaPath : input.commentMedia ?? target.mediaPath };
 }
 
 const WINDOW_DAYS = 30;
@@ -221,6 +227,10 @@ async function collect(
       const mine = postAuthor.get(c.post_id) === userId;
       const replyToMe = c.parent_comment_id ? myCommentIds.has(c.parent_comment_id) : false;
       if (!mine && !replyToMe && !myThreads.has(c.post_id)) continue;
+      const commentTarget = commentNotificationTarget({
+        perCheckIn, checkInId: c.check_in_id, firstCheckInId: firstCheckIn.get(c.post_id) ?? null,
+        scopedPhoto, postPhoto: postPhoto.get(c.post_id) ?? null, commentMedia: c.media_url,
+      });
       items.push({
         key: `comment:${c.id}`,
         kind: replyToMe ? "reply" : "comment",
@@ -234,12 +244,12 @@ async function collect(
               ? "commented on your check-in"
               : "also commented on a check-in",
         createdAt: c.created_at,
-        mediaPath: c.media_url ?? target(c.post_id, c.check_in_id).mediaPath,
+        mediaPath: commentTarget.mediaPath,
         mediaKind: null,
         groupId,
         postId: c.post_id,
         commentId: c.id,
-        checkInId: target(c.post_id, c.check_in_id).checkInId,
+        checkInId: commentTarget.checkInId,
       });
     }
 

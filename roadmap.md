@@ -204,3 +204,8 @@
 - [x] One card per check-in, attached cards, 3 sheets, no weights
 - [x] Notifications/Activity use the cheered check-in's photo and link (new version only)
 - [x] QA: 10 screenshots p5-1d-, tests, typecheck, commit
+
+## Phase 5.1d screenshot review fixes
+- [x] Plain trailing menu, library drawing verification, exact comment thumbnails
+- [x] Recapture top feed, unsaved/saved sheet, isolated plan/Health cards and Activity; remove temporary draft rows
+- [x] Full tests including database tests, typecheck and commit; no publish

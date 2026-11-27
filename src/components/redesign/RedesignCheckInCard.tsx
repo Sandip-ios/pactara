@@ -72,7 +72,7 @@ export function RedesignCheckInCard({
 
   return (
     <article id={`checkin-${rawId}`} className="overflow-hidden rounded-[20px] bg-white" style={{ margin: "12px 12px 0", color: INK }}>
-      <header className="flex items-center gap-3" style={{ padding: "12px 14px" }}>
+      <header className="flex items-center gap-2" style={{ padding: "12px 14px" }}>
         <MemberProfileLink userId={item.userId} isYou={item.isMe} className="shrink-0">
           <span className="sr-only">{item.isMe ? "Your profile" : `${item.name}'s profile`}</span>
           <CrewAvatar member={{ id: item.userId, name: item.name, avatarUrl: item.avatarUrl, avatarColor: item.avatarColor }} size={40} />
@@ -81,20 +81,19 @@ export function RedesignCheckInCard({
           <div className="truncate text-[15px] font-bold leading-tight">{item.isMe ? "You" : item.name}</div>
           <div className="truncate text-[12px]" style={{ color: MUTED }}>{meta}</div>
         </div>
-        {item.isMe && <OwnPostMenu checkIn={checkIn} compact />}
-        {!item.isMe && (
-          <SafetyActions
-            target={{
-              userId: item.userId, name: item.name, avatarUrl: item.avatarUrl, avatarColor: item.avatarColor,
-              groupId: item.groupId, type: "post", targetId: rawId, update: false,
-            }}
-          />
-        )}
         {showCheckedInPill("check_in") && (
           <span className="flex h-[26px] shrink-0 items-center gap-1 rounded-[13px] px-2.5 text-[12px] font-extrabold" style={{ background: "#DCFCE7", color: "#15803D" }}>
             <Check size={12} strokeWidth={3} aria-hidden /> Checked in
           </span>
         )}
+        <span className="-mr-2 shrink-0 [&>button]:h-9 [&>button]:w-9 [&>button]:min-w-9 [&>button]:bg-transparent! [&>button]:p-0 [&>button]:text-[var(--new-muted)]! [&>button>svg]:size-5">
+          {item.isMe ? <OwnPostMenu checkIn={checkIn} /> : (
+            <SafetyActions target={{
+              userId: item.userId, name: item.name, avatarUrl: item.avatarUrl, avatarColor: item.avatarColor,
+              groupId: item.groupId, type: "post", targetId: rawId, update: false,
+            }} />
+          )}
+        </span>
       </header>
 
       {checkIn.photoUrl && (
