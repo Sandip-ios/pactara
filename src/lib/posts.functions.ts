@@ -222,13 +222,14 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
   if (!rows.length) return [];
   const ids = rows.map((r) => r["id"] as string);
   const authorIds = [...new Set(rows.map((r) => r["user_id"] as string))];
-  const [{ data: items }, { data: crews }, { data: cheers }, { data: comments }, { data: saves }, { data: authors }] = await Promise.all([
+  const [{ data: items }, { data: crews }, { data: cheers }, { data: comments }, { data: saves }, { data: authors }, { data: memberRows }] = await Promise.all([
     supabase.from("social_post_items").select("*").in("post_id", ids).order("position"),
     supabase.from("social_post_crews").select("post_id, group_id").in("post_id", ids),
     supabase.from("social_post_cheers").select("post_id, user_id").in("post_id", ids),
     supabase.from("social_post_comments").select("post_id").in("post_id", ids),
     supabase.from("social_post_saves").select("post_id, user_id").in("post_id", ids),
     supabase.from("profiles").select("id, name, avatar_url, avatar_color").in("id", authorIds),
+    supabase.from("group_members").select("group_id, groups!inner(name)").eq("user_id", userId),
   ]);
   const paths = ((items ?? []) as Row[]).flatMap((i) => [i["path"] as string, i["poster_path"] as string | null].filter((p): p is string => !!p));
   const signed = new Map<string, string>();
@@ -237,6 +238,7 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
     for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
   }
   const avatars = await signAvatarThumbs(supabase, ((authors ?? []) as Row[]).map((a) => a["avatar_url"] as string | null));
+  const myCrewNames = new Map(((memberRows ?? []) as unknown as { group_id: string; groups: { name: string } }[]).map((m) => [m.group_id, m.groups.name]));
   const authorById = new Map(((authors ?? []) as Row[]).map((a) => [a["id"] as string, a]));
   return rows.map((r) => {
     const id = r["id"] as string;
@@ -254,6 +256,7 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
       status: r["status"] as SocialPostView["status"],
       audience: r["audience"] as AudienceKind,
       crewIds: ((crews ?? []) as Row[]).filter((c) => c["post_id"] === id).map((c) => c["group_id"] as string),
+      viewerCrews: ((crews ?? []) as Row[]).filter((c) => c["post_id"] === id && myCrewNames.has(c["group_id"] as string)).map((c) => ({ id: c["group_id"] as string, name: myCrewNames.get(c["group_id"] as string)! })),
       commentsOn: r["comments_on"] !== false,
       items: ((items ?? []) as Row[]).filter((i) => i["post_id"] === id).map((i) => ({
         id: i["id"] as string, kind: i["kind"] as "photo" | "video",
@@ -380,7 +383,12 @@ export const toggleSocialPostCheer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; on: boolean }) => ({ id: String(input.id), on: !!input.on }))
   .handler(async ({ context, data }) => {
-    const t = sb(context.supabase).from("social_post_cheers");
+    const supabase = sb(context.supabase);
+    if (data.on) {
+      const { data: own } = await supabase.from("social_posts").select("user_id").eq("id", data.id).maybeSingle();
+      if (!own || own["user_id"] === context.userId) throw new Error("You can't cheer your own post");
+    }
+    const t = supabase.from("social_post_cheers");
     const { error } = data.on ? await t.upsert({ post_id: data.id, user_id: context.userId }) : await t.delete().eq("post_id", data.id).eq("user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };

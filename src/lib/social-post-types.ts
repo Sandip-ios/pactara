@@ -35,6 +35,8 @@ export type SocialPostView = {
   status: "uploading" | "live" | "failed";
   audience: import("./post-audience").AudienceKind;
   crewIds: string[];
+  /** Crews this post went to that the viewer is in (names for the header line). */
+  viewerCrews: { id: string; name: string }[];
   commentsOn: boolean;
   items: SocialPostItem[];
   workout: PostWorkout | null;
