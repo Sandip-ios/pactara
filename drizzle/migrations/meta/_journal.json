@@ -673,6 +673,13 @@
       "when": 1795737555931,
       "tag": "0095_counted_check_in",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1795740424155,
+      "tag": "0096_per_check_in_cheers_replies",
+      "breakpoints": true
     }
   ]
 }

@@ -14,6 +14,8 @@ export type ActivityDeepLinkInput = {
   commentId?: string | null;
   actorId?: string | null;
   requestId?: string | null;
+  /** New version: the exact check-in card a cheer or reply belongs to. */
+  checkInId?: string | null;
 };
 
 /** Indirect new-version links let a tap recheck that its target still exists. */
@@ -24,6 +26,7 @@ export function activityOpenUrl(input: ActivityDeepLinkInput): string {
   if (input.commentId) params.set("comment", input.commentId);
   if (input.actorId) params.set("actor", input.actorId);
   if (input.requestId) params.set("request", input.requestId);
+  if (input.checkInId) params.set("checkin", input.checkInId);
   return `/activity/open?${params.toString()}`;
 }
 
@@ -32,9 +35,11 @@ export function crewPostUrl(input: {
   groupId: string;
   postId: string;
   commentId?: string | null;
+  checkInId?: string | null;
   fromActivity?: boolean;
 }): string {
   const params = new URLSearchParams({ crewTab: "posts", post: input.postId });
+  if (input.checkInId) params.set("checkin", input.checkInId);
   if (input.commentId) {
     params.set("comments", "1");
     params.set("comment", input.commentId);

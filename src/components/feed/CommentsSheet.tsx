@@ -19,9 +19,12 @@ import { SafetyActions, type SafetyTarget } from '@/components/safety/SafetyActi
 
 const PURPLE = "#7C3AED";
 
-export const commentsQueryOptions = (postId: string) => ({
-  queryKey: ["post-comments", postId] as const,
-  queryFn: () => getPostComments({ data: { postId } }).then(stabilizeSignedUrls),
+/** New version: one check-in's thread; the day's first check-in also holds unscoped (older) rows. */
+export type CommentScope = { checkInId: string; includeUnscoped: boolean } | null;
+
+export const commentsQueryOptions = (postId: string, scope: CommentScope = null) => ({
+  queryKey: (scope ? ["post-comments", postId, scope.checkInId] : ["post-comments", postId]) as readonly string[],
+  queryFn: () => getPostComments({ data: scope ? { postId, ...scope } : { postId } }).then(stabilizeSignedUrls),
   staleTime: 30_000,
   gcTime: 5 * 60_000,
 });
@@ -79,7 +82,7 @@ export function QuickReplyChips({ onPick, disabled }: { onPick: (text: string) =
  * Open/close state for one post's comments sheet, plus its unread count.
  * Unread comments are remembered at open time so the sheet can mark them "New".
  */
-export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commentCount" | "name" | "isMe">, targetCommentId?: string | null) {
+export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commentCount" | "name" | "isMe">, targetCommentId?: string | null, scope: CommentScope = null) {
   const qc = useQueryClient();
   const { data: unreadMap } = useQuery(unreadCommentsQueryOptions());
   const [open, setOpen] = useState(false);
@@ -89,7 +92,7 @@ export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commen
   const unread = seenNow ? 0 : Math.min(item.commentCount, unreadMap?.[item.id] ?? 0);
 
   const prefetch = () => {
-    void qc.prefetchQuery(commentsQueryOptions(item.id));
+    void qc.prefetchQuery(commentsQueryOptions(item.id, scope));
   };
   const openSheet = () => {
     prefetch();
@@ -117,6 +120,7 @@ export function useCommentsSheet(item: Pick<FeedItem, "id" | "groupId" | "commen
       unreadAtOpen={unreadAtOpen}
       fallbackCount={item.commentCount}
       highlightCommentId={targetCommentId ?? null}
+      scope={scope}
     />
   );
   return { unread, openSheet, prefetch, sheet };
@@ -166,7 +170,9 @@ function CommentsSheet({
   unreadAtOpen,
   fallbackCount,
   highlightCommentId,
+  scope = null,
 }: {
+  scope?: CommentScope;
   open: boolean;
   onOpenChange: (o: boolean) => void;
   postId: string;
@@ -177,7 +183,7 @@ function CommentsSheet({
   fallbackCount: number;
   highlightCommentId: string | null;
 }) {
-  const { data } = useQuery({ ...commentsQueryOptions(postId), enabled: open });
+  const { data } = useQuery({ ...commentsQueryOptions(postId, scope), enabled: open });
   const [safetyTarget, setSafetyTarget] = useState<SafetyTarget | null>(null);
   const [safetyReady, setSafetyReady] = useState(false);
   const safetyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -195,6 +201,7 @@ function CommentsSheet({
         {open && (
           <CommentThread
             postId={postId}
+            scope={scope}
             groupId={groupId}
             authorFirstName={authorFirstName}
             ownPost={ownPost}
@@ -227,7 +234,9 @@ function CommentThread({
   selectedCommentId,
   highlightCommentId,
   onSafety,
+  scope = null,
 }: {
+  scope?: CommentScope;
   postId: string;
   groupId: string;
   authorFirstName: string;
@@ -254,7 +263,7 @@ function CommentThread({
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
   const [gifOpen, setGifOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading } = useQuery(commentsQueryOptions(postId));
+  const { data, isLoading } = useQuery(commentsQueryOptions(postId, scope));
   const { data: me } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus() });
 
   const clearPending = () => {
@@ -268,7 +277,7 @@ function CommentThread({
 
   const add = useMutation({
     mutationFn: (vars: { body: string; mediaUrl?: string | null; mediaType?: string | null; parentCommentId?: string | null }) =>
-      addPostComment({ data: { postId, ...vars } }),
+      addPostComment({ data: { postId, ...vars, ...(scope && !scope.includeUnscoped ? { checkInId: scope.checkInId } : {}) } }),
     onSuccess: (_res, vars) => {
       setText("");
       if (vars.parentCommentId) setExpanded((prev) => ({ ...prev, [vars.parentCommentId!]: true }));

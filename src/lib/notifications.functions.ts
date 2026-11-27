@@ -31,7 +31,27 @@ export type NotificationItem = {
   postId: string | null;
   /** Exact comment for the new-version Activity deep link; classic ignores it. */
   commentId: string | null;
+  /** New version only: the check-in a cheer or reply belongs to (falls back to the day's first). */
+  checkInId?: string | null;
 };
+
+/**
+ * Which check-in a cheer or reply row points at, and its thumbnail path.
+ * Classic always uses the day post's first check-in photo and no check-in id.
+ */
+export function notificationTarget(input: {
+  perCheckIn: boolean;
+  checkInId: string | null;
+  firstCheckInId: string | null;
+  scopedPhoto: Map<string, string | null>;
+  postPhoto: string | null;
+}): { checkInId: string | null; mediaPath: string | null } {
+  if (!input.perCheckIn) return { checkInId: null, mediaPath: input.postPhoto };
+  const known = !!input.checkInId && input.scopedPhoto.has(input.checkInId);
+  return known
+    ? { checkInId: input.checkInId, mediaPath: input.scopedPhoto.get(input.checkInId!) ?? null }
+    : { checkInId: input.firstCheckInId, mediaPath: input.postPhoto };
+}
 
 const WINDOW_DAYS = 30;
 
@@ -62,7 +82,7 @@ async function signMany(
 type RawItem = Omit<
   NotificationItem,
   "actorName" | "actorColor" | "actorAvatarUrl" | "read" | "mediaUrl" | "groupName" | "commentId"
-> & { mediaPath: string | null; commentId?: string | null };
+> & { mediaPath: string | null; commentId?: string | null; checkInId?: string | null };
 
 /** Collect raw notification rows for one group, newest first. */
 async function collect(
@@ -70,6 +90,7 @@ async function collect(
   userId: string,
   groupId: string,
   groupName: string,
+  perCheckIn = false,
 ): Promise<RawItem[]> {
   const { blockedPairs } = await import('./safety.server');
   const blocked = await blockedPairs(supabase, userId);
@@ -142,14 +163,14 @@ async function collect(
     const [{ data: comments }, { data: reactions }] = await Promise.all([
       supabase
         .from("post_comments")
-        .select("id, post_id, user_id, body, media_url, media_type, parent_comment_id, created_at")
+        .select("id, post_id, check_in_id, user_id, body, media_url, media_type, parent_comment_id, created_at")
         .in("post_id", postIds)
         .gte("created_at", from)
         .order("created_at", { ascending: false })
         .limit(100),
       supabase
         .from("post_reactions")
-        .select("id, post_id, user_id, emoji, created_at")
+        .select("id, post_id, check_in_id, user_id, emoji, created_at")
         .in("post_id", postIds)
         .gte("created_at", from)
         .order("created_at", { ascending: false })
@@ -165,7 +186,28 @@ async function collect(
       media_type: string | null;
       parent_comment_id: string | null;
       created_at: string;
+      check_in_id: string | null;
     }>;
+    const reactionRows = (reactions ?? []) as Array<{
+      id: string;
+      post_id: string;
+      check_in_id: string | null;
+      user_id: string;
+      emoji: string;
+      created_at: string;
+    }>;
+    // New version: a cheer or reply on a later check-in shows that check-in's photo.
+    const scopedPhoto = new Map<string, string | null>();
+    if (perCheckIn) {
+      const ids = Array.from(new Set([...commentRows, ...reactionRows].map((r) => r.check_in_id).filter((id): id is string => !!id)));
+      if (ids.length) {
+        const { data: cis } = await supabase.from("check_ins").select("id, photo_url").in("id", ids);
+        for (const c of (cis ?? []) as { id: string; photo_url: string | null }[]) scopedPhoto.set(c.id, c.photo_url);
+      }
+    }
+    const firstCheckIn = new Map(postRows.map((p) => [p.id, p.check_in_id]));
+    const target = (postId: string, checkInId: string | null) =>
+      notificationTarget({ perCheckIn, checkInId, firstCheckInId: firstCheckIn.get(postId) ?? null, scopedPhoto, postPhoto: postPhoto.get(postId) ?? null });
 
     const myCommentIds = new Set(
       commentRows.filter((c) => c.user_id === userId).map((c) => c.id),
@@ -192,21 +234,16 @@ async function collect(
               ? "commented on your check-in"
               : "also commented on a check-in",
         createdAt: c.created_at,
-        mediaPath: c.media_url ?? postPhoto.get(c.post_id) ?? null,
+        mediaPath: c.media_url ?? target(c.post_id, c.check_in_id).mediaPath,
         mediaKind: null,
         groupId,
         postId: c.post_id,
         commentId: c.id,
+        checkInId: target(c.post_id, c.check_in_id).checkInId,
       });
     }
 
-    for (const r of (reactions ?? []) as Array<{
-      id: string;
-      post_id: string;
-      user_id: string;
-      emoji: string;
-      created_at: string;
-    }>) {
+    for (const r of reactionRows) {
       if (r.user_id === userId) continue;
       if (postAuthor.get(r.post_id) !== userId) continue;
       items.push({
@@ -215,10 +252,11 @@ async function collect(
         actorId: r.user_id,
         text: `reacted ${r.emoji} to your check-in`,
         createdAt: r.created_at,
-        mediaPath: postPhoto.get(r.post_id) ?? null,
+        mediaPath: target(r.post_id, r.check_in_id).mediaPath,
         mediaKind: null,
         groupId,
         postId: r.post_id,
+        checkInId: target(r.post_id, r.check_in_id).checkInId,
       });
     }
 
@@ -435,7 +473,7 @@ export const getNotifications = createServerFn({ method: "GET" })
     );
 
     const lists = await Promise.all(
-      (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name)),
+      (groups ?? []).map((group) => collect(supabase, userId, group.id, group.name, Boolean(data.previewMedia))),
     );
     const raw = lists
       .flat()
@@ -491,6 +529,7 @@ export const getNotifications = createServerFn({ method: "GET" })
         groupName: nameById.get(r.groupId) ?? "",
         postId: r.postId,
         commentId: r.commentId ?? null,
+        ...(r.checkInId ? { checkInId: r.checkInId } : {}),
       };
     });
 

@@ -17,6 +17,7 @@ const input = z.object({
   commentId: z.string().uuid().nullish(),
   actorId: z.string().uuid().nullish(),
   requestId: z.string().uuid().nullish(),
+  checkInId: z.string().uuid().nullish(),
 });
 
 export type ResolvedActivityDestination = { href: string | null; checkInGroupId: string | null };
@@ -66,7 +67,14 @@ export const resolveActivityDeepLink = createServerFn({ method: "GET" })
             .select("id, post_id, user_id").eq("id", data.commentId).eq("post_id", data.postId).maybeSingle();
           if (commentError || !comment || await blockedPairs(comment.user_id)) return none;
         }
-        return { href: crewPostUrl({ groupId: data.groupId, postId: data.postId, commentId: wantsComment ? data.commentId : null }), checkInGroupId: null };
+        // A cheer or reply on a later check-in opens that check-in's card; a gone or foreign one falls back to the day post.
+        let checkInId: string | null = null;
+        if (data.checkInId) {
+          const { data: ci } = await supabase.from("check_ins").select("id")
+            .eq("id", data.checkInId).eq("group_id", data.groupId).eq("user_id", post.user_id).maybeSingle();
+          checkInId = ci?.id ?? null;
+        }
+        return { href: crewPostUrl({ groupId: data.groupId, postId: data.postId, commentId: wantsComment ? data.commentId : null, checkInId }), checkInGroupId: null };
       }
 
       if (data.kind === "nudge" || data.kind === "reminder") {

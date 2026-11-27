@@ -73,7 +73,7 @@ export function NewActivity() {
   const submitted = useRef(new Set<string>());
   const { user } = useRouteContext({ from: '/_authenticated' });
   const allRows: ActivityRow[] = [
-    ...data.crew.map(i => ({ key: i.key, kind: i.kind, actorId: i.actorId, name: i.actorName, avatar: i.actorAvatarUrl, text: i.text, createdAt: i.createdAt, read: i.read, groupId: i.groupId, groupName: i.groupName, postId: i.postId, commentId: i.commentId, targetId: null, media: i.mediaUrl, mediaKind: i.mediaKind, canFollow: false, canCheckIn: false, relationship: 'none' })),
+    ...data.crew.map(i => ({ key: i.key, kind: i.kind, actorId: i.actorId, name: i.actorName, avatar: i.actorAvatarUrl, text: i.text, createdAt: i.createdAt, read: i.read, groupId: i.groupId, groupName: i.groupName, postId: i.postId, commentId: i.commentId, checkInId: i.checkInId ?? null, targetId: null, media: i.mediaUrl, mediaKind: i.mediaKind, canFollow: false, canCheckIn: false, relationship: 'none' })),
     ...data.follows.map(i => ({ ...i, kind: i.kind as ActivityDeepLinkKind, name: i.actorName, groupId: null, groupName: '', postId: null, commentId: null, targetId: null, media: null, mediaKind: null, canCheckIn: false })),
     ...data.items.map(i => ({ ...i, name: i.actorName, postId: null, commentId: null, targetId: i.targetId ?? null, media: null, mediaKind: null, canFollow: false, relationship: 'none' })),
   ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -104,7 +104,7 @@ export function NewActivity() {
       }
       const destination = await resolve({ data: {
         kind, groupId: row.groupId, postId: row.postId, commentId: row.commentId,
-        actorId, requestId: row.targetId,
+        actorId, requestId: row.targetId, checkInId: row.checkInId ?? null,
       } });
       if (destination.checkInGroupId) {
         try { sessionStorage.setItem('activity-return-scroll', JSON.stringify({ index: activityIndex, top: scroll.current?.scrollTop ?? 0 })); } catch { /* private mode */ }

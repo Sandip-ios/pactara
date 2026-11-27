@@ -198,3 +198,9 @@
 - [x] Distinct-day profile totals; friendly Health reuse message
 - [x] DB: is_counted_check_in + index; delete trigger re-points day post
 - [x] Feed isCounted field (no UI); tests; DB QA
+
+## Phase 5.1d crew feed (new version)
+- [x] check_in_id on cheers/replies, per-check-in counts
+- [x] One card per check-in, attached cards, 3 sheets, no weights
+- [x] Notifications/Activity use the cheered check-in's photo and link (new version only)
+- [x] QA: 10 screenshots p5-1d-, tests, typecheck, commit

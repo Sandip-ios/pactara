@@ -5,6 +5,8 @@ export type ActivityRow = {
   key: string; kind: ActivityDeepLinkKind; actorId: string; name: string; avatar: string | null;
   text: string; createdAt: string; read: boolean; groupId: string | null; groupName: string;
   postId: string | null; commentId: string | null; targetId: string | null;
+  /** New version: the exact check-in a cheer or reply belongs to. */
+  checkInId?: string | null;
   media: string | null; mediaKind: string | null; canFollow: boolean; canCheckIn: boolean; relationship: string;
 };
 
@@ -41,7 +43,7 @@ function peopleBucket(row: ActivityRow, now: Date): string | null {
   const section = activitySection(row.createdAt, now);
   if (row.kind === 'follow') return `${section}:follow`;
   if (['checkin', 'join', 'pact_signed'].includes(row.kind) && row.groupId) return `${section}:${row.kind}:${row.groupId}:${localDay(row.createdAt)}`;
-  if ((row.kind === 'reaction' || row.kind === 'comment') && row.postId) return `${section}:${row.kind}:${row.postId}`;
+  if ((row.kind === 'reaction' || row.kind === 'comment') && row.postId) return `${section}:${row.kind}:${row.postId}${row.checkInId ? `:${row.checkInId}` : ''}`;
   return null;
 }
 

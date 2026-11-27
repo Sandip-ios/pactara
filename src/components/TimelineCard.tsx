@@ -277,7 +277,7 @@ function ActionRow({
 }
 
 /** One person, one cheer: optimistic emoji plus the server's list of who cheered. */
-export function useCheers(item: FeedItem) {
+export function useCheers(item: Pick<FeedItem, "id" | "reactors">, checkInId: string | null = null) {
   const queryClient = useQueryClient();
   const { me } = useFeedContext();
   const [override, setOverride] = useState<{ emoji: string | null } | null>(null);
@@ -296,11 +296,11 @@ export function useCheers(item: FeedItem) {
   const reactors = myEmoji ? [{ ...self, emoji: myEmoji }, ...others] : others;
   const settle = () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }).then(() => setOverride(null));
   const toggleM = useMutation({
-    mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji } }),
+    mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji, ...(checkInId ? { checkInId } : {}) } }),
     onSettled: settle,
   });
   const setM = useMutation({
-    mutationFn: (emoji: string) => setPostReaction({ data: { postId: item.id, emoji } }),
+    mutationFn: (emoji: string) => setPostReaction({ data: { postId: item.id, emoji, ...(checkInId ? { checkInId } : {}) } }),
     onSettled: settle,
   });
   return {

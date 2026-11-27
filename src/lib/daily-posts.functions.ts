@@ -450,13 +450,15 @@ export type TimelineNode =
       mood: string | null;
       activity: string | null;
       /** Set when the check-in finished a workout plan day. */
-      plan?: { name: string; slug: string; week: number; day: number } | null;
+      plan?: { name: string; slug: string; week: number; day: number; dayName?: string | null } | null;
       /** Set when the check-in was posted after logging a workout. */
       workout?: FeedWorkout | null;
       health?: HealthWorkout | null;
       note: string | null;
       /** First check-in of this local day in this crew (the one that counts). */
       isCounted?: boolean;
+      /** New version only: cheers and replies on this one check-in (unscoped rows sit on the day's first check-in). */
+      social?: { reactors: Reactor[]; commentCount: number };
       photoUrl: string | null;
       posterUrl?: string | null;
       at: string;
@@ -491,6 +493,8 @@ export type FeedWorkout = {
   /** The first personal best, for the gold chip: "Lateral raise 25 lb". */
   pr: string | null;
   prCount: number;
+  /** Exercises that set a personal best, names only (the new version never shows weights). */
+  prExercises?: string[];
 };
 
 export type ReactionSummary = { emoji: string; count: number; mine: boolean };
@@ -570,11 +574,42 @@ async function workoutsForCheckIns(supabase: SupabaseClient, checkInIds: string[
       minutes: s.minutes ?? 0,
       pr: first ? `${first.name} ${first.weight ? `${first.weight} ${first.unit}` : `${first.reps} ${first.reps === 1 ? "rep" : "reps"}`}` : null,
       prCount: s.prs?.length ?? 0,
+      prExercises: Array.from(new Set((s.prs ?? []).map((x) => x.name))),
     });
   }
   return out;
 }
 
+
+function dedupeReactors<T extends { user_id: string }>(rows: T[]): T[] {
+  const seen = new Set<string>();
+  return rows.filter((r) => (seen.has(r.user_id) ? false : (seen.add(r.user_id), true)));
+}
+
+/** Plan day titles ("Push") for plan-tagged check-ins, keyed by check-in id. */
+async function planDayNamesFor(
+  supabase: SupabaseClient,
+  tags: Map<string, { slug: string; week: number; day: number }>,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!tags.size) return out;
+  const slugs = Array.from(new Set([...tags.values()].map((t) => t.slug)));
+  const { data: plans } = await supabase.from("plans").select("id, slug").in("slug", slugs);
+  const idBySlug = new Map(((plans ?? []) as { id: string; slug: string }[]).map((p) => [p.slug, p.id]));
+  if (!idBySlug.size) return out;
+  const { data: days } = await supabase
+    .from("plan_days")
+    .select("plan_id, day_number, week_number, title")
+    .in("plan_id", [...idBySlug.values()]);
+  const rows = (days ?? []) as { plan_id: string; day_number: number; week_number: number | null; title: string }[];
+  for (const [checkInId, t] of tags) {
+    const pid = idBySlug.get(t.slug);
+    const match = rows.find((d) => d.plan_id === pid && d.day_number === t.day && d.week_number === t.week)
+      ?? rows.find((d) => d.plan_id === pid && d.day_number === t.day && d.week_number === null);
+    if (match) out.set(checkInId, match.title);
+  }
+  return out;
+}
 
 export type PostComment = {
   id: string;
@@ -716,14 +751,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       postIds.length
         ? (supabase as any)
             .from("post_reactions")
-            .select("post_id, user_id, emoji, created_at")
+            .select("post_id, check_in_id, user_id, emoji, created_at")
             .in("post_id", postIds)
             .order("created_at", { ascending: true })
         : noRows,
       postIds.length
         ? (supabase as any)
             .from("post_comments")
-            .select("id, post_id, user_id, body, media_url, media_type, created_at")
+            .select("id, post_id, check_in_id, user_id, body, media_url, media_type, created_at")
             .in("post_id", postIds)
         : noRows,
       // Rest days and streak freezes: those days are kept, never "missed".
@@ -766,12 +801,14 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       days_per_week: (groupRes.data?.days_per_week as number | null) ?? null,
     };
     const roster = (rosterRes.data ?? []) as { user_id: string; joined_at: string }[];
-    const rawReactions = visibleTo(((reactionsResult as any).data ?? []) as { post_id: string; user_id: string; emoji: string }[], blocked, r => r.user_id);
+    const rawReactions = visibleTo(((reactionsResult as any).data ?? []) as { post_id: string; check_in_id: string | null; user_id: string; emoji: string }[], blocked, r => r.user_id);
     const rawComments = visibleTo(((commentsResult as any).data ?? []) as {
-      id: string; post_id: string; user_id: string; body: string | null;
+      id: string; post_id: string; check_in_id: string | null; user_id: string; body: string | null;
       media_url: string | null; media_type: string | null; created_at: string;
     }[], blocked, r => r.user_id);
 
+    const commentsByPost = new Map<string, (string | null)[]>();
+    for (const c of rawComments) commentsByPost.set(c.post_id, [...(commentsByPost.get(c.post_id) ?? []), c.check_in_id ?? null]);
     const commentCountByPost = new Map<string, number>();
     const latestByPost = new Map<string, (typeof rawComments)[number]>();
     for (const c of rawComments) {
@@ -814,7 +851,9 @@ export const getGroupFeed = createServerFn({ method: "GET" })
 
     const reactionsByPost = new Map<string, ReactionSummary[]>();
     const reactorsByPost = new Map<string, { user_id: string; emoji: string }[]>();
+    const reactorsByPostCheckIn = new Map<string, { user_id: string; emoji: string; check_in_id: string | null }[]>();
     for (const r of rawReactions) {
+      reactorsByPostCheckIn.set(r.post_id, [...(reactorsByPostCheckIn.get(r.post_id) ?? []), r]);
       const list = reactionsByPost.get(r.post_id) ?? [];
       const existing = list.find((x) => x.emoji === r.emoji);
       if (existing) {
@@ -866,6 +905,19 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         ] as const),
     );
     const firstNameOf = (uid: string) => (profileMap.get(uid)?.name ?? "Member").split(" ")[0] || "Member";
+    const toReactor = (r: { user_id: string; emoji: string }): Reactor => {
+      const rp = profileMap.get(r.user_id);
+      return {
+        userId: r.user_id,
+        name: rp?.name ?? "Member",
+        firstName: firstNameOf(r.user_id),
+        avatarUrl: rp?.avatar_url ?? null,
+        avatarColor: rp?.avatar_color ?? "#22C55E",
+        emoji: r.emoji,
+        isMe: r.user_id === userId,
+      };
+    };
+    const planDayNames = await planDayNamesFor(supabase as SupabaseClient, planTags);
 
     const checkIns = rawCheckIns.map((ci) => ({
         ...ci,
@@ -916,17 +968,25 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .filter((c) => c.user_id === p.user_id && c.checkin_date === p.local_date)
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
       const countedId = countedCheckInId(myCheckIns);
+      const firstCheckInId = myCheckIns[0]?.id ?? null;
+      const scopeOf = (id: string | null) => id ?? firstCheckInId;
+      const postReactors = (reactorsByPostCheckIn.get(p.id) ?? []);
+      const postComments = commentsByPost.get(p.id) ?? [];
       for (const c of myCheckIns) {
         nodes.push({
           kind: "check_in",
           id: `c-${c.id}`,
           mood: c.mood,
           activity: c.activity,
-          plan: planTags.get(c.id) ?? null,
+          plan: planTags.has(c.id) ? { ...planTags.get(c.id)!, dayName: planDayNames.get(c.id) ?? null } : null,
           workout: workoutTags.get(c.id) ?? null,
           health: healthWorkoutSchema.safeParse(c.health_workout).success ? healthWorkoutSchema.parse(c.health_workout) : null,
           note: c.note,
           isCounted: c.id === countedId,
+          social: {
+            reactors: dedupeReactors(postReactors.filter((r) => scopeOf(r.check_in_id) === c.id)).map(toReactor),
+            commentCount: postComments.filter((x) => scopeOf(x) === c.id).length,
+          },
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,
           at: c.created_at,
@@ -1117,7 +1177,7 @@ export const deleteCheckIn = createServerFn({ method: "POST" })
 
 export const togglePostReaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { postId: string; emoji: string }) => data)
+  .inputValidator((data: { postId: string; emoji: string; checkInId?: string | null }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { requireInteraction } = await import('./safety.server');
@@ -1128,6 +1188,7 @@ export const togglePostReaction = createServerFn({ method: "POST" })
       .eq("post_id", data.postId)
       .eq("user_id", userId)
       .eq("emoji", data.emoji)
+      .filter("check_in_id", data.checkInId ? "eq" : "is", data.checkInId ?? null)
       .maybeSingle();
     if (existing?.id) {
       const { error } = await (supabase as any).from("post_reactions").delete().eq("id", existing.id);
@@ -1138,11 +1199,12 @@ export const togglePostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .delete()
       .eq("post_id", data.postId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .filter("check_in_id", data.checkInId ? "eq" : "is", data.checkInId ?? null);
     if (clearError) throw new Error(clearError.message);
     const { error } = await (supabase as any)
       .from("post_reactions")
-      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
+      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji, check_in_id: data.checkInId ?? null });
     if (error) throw new Error(error.message);
     await (async () => {
       try {
@@ -1151,7 +1213,7 @@ export const togglePostReaction = createServerFn({ method: "POST" })
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
           url: `/home?post=${data.postId}`,
-          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId }),
+          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId, checkInId: data.checkInId ?? null }),
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
@@ -1163,7 +1225,7 @@ export const togglePostReaction = createServerFn({ method: "POST" })
 
 export const setPostReaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { postId: string; emoji: string }) => data)
+  .inputValidator((data: { postId: string; emoji: string; checkInId?: string | null }) => data)
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { requireInteraction } = await import('./safety.server');
@@ -1172,11 +1234,12 @@ export const setPostReaction = createServerFn({ method: "POST" })
       .from("post_reactions")
       .delete()
       .eq("post_id", data.postId)
-      .eq("user_id", userId);
+      .eq("user_id", userId)
+      .filter("check_in_id", data.checkInId ? "eq" : "is", data.checkInId ?? null);
     if (clearError) throw new Error(clearError.message);
     const { error } = await (supabase as any)
       .from("post_reactions")
-      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji });
+      .insert({ post_id: data.postId, user_id: userId, emoji: data.emoji, check_in_id: data.checkInId ?? null });
     if (error) throw new Error(error.message);
     await (async () => {
       try {
@@ -1185,7 +1248,7 @@ export const setPostReaction = createServerFn({ method: "POST" })
           title: `${name} reacted ${data.emoji}`,
           body: "Someone reacted to your post",
           url: `/home?post=${data.postId}`,
-          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId }),
+          newUrl: activityOpenUrl({ kind: "reaction", postId: data.postId, checkInId: data.checkInId ?? null }),
         }));
       } catch (err) {
         console.warn("[reaction] push failed", err);
@@ -1204,6 +1267,7 @@ export const addPostComment = createServerFn({ method: "POST" })
       mediaUrl?: string | null;
       mediaType?: string | null;
       parentCommentId?: string | null;
+      checkInId?: string | null;
     }) => data,
   )
   .handler(async ({ data, context }) => {
@@ -1220,14 +1284,17 @@ export const addPostComment = createServerFn({ method: "POST" })
     // Instagram/Facebook style: one level of nesting. Replying to a reply
     // attaches to the same top-level thread.
     let parentId: string | null = null;
+    let checkInId: string | null = data.checkInId ?? null;
     if (data.parentCommentId) {
       const { data: parent } = await (supabase as any)
         .from("post_comments")
-        .select("id, parent_comment_id, post_id")
+        .select("id, parent_comment_id, post_id, check_in_id")
         .eq("id", data.parentCommentId)
         .maybeSingle();
       if (parent?.id && parent.post_id === data.postId) {
         parentId = parent.parent_comment_id ?? parent.id;
+        // A reply stays on the same check-in as its thread.
+        checkInId = parent.check_in_id ?? null;
       }
     }
 
@@ -1238,6 +1305,7 @@ export const addPostComment = createServerFn({ method: "POST" })
       media_url: mediaUrl,
       media_type: mediaType,
       parent_comment_id: parentId,
+      check_in_id: checkInId,
     }).select("id").single();
     if (error) throw new Error(error.message);
     try {
@@ -1246,7 +1314,7 @@ export const addPostComment = createServerFn({ method: "POST" })
       await notifyPostComment(data.postId, userId, (name) => ({
         ...commentPush(name, body, kind),
         url: `/home?post=${data.postId}&comments=1`,
-        newUrl: activityOpenUrl({ kind: "comment", postId: data.postId, commentId: insertedComment.id }),
+        newUrl: activityOpenUrl({ kind: "comment", postId: data.postId, commentId: insertedComment.id, checkInId }),
       }));
     } catch (err) {
       console.warn("[comment] push failed", err);
@@ -1281,7 +1349,7 @@ export const toggleCommentLike = createServerFn({ method: "POST" })
 
 export const getPostComments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { postId: string }) => data)
+  .inputValidator((data: { postId: string; checkInId?: string | null; includeUnscoped?: boolean }) => data)
   .handler(async ({ data, context }): Promise<{ comments: PostComment[] }> => {
     const { supabase, userId } = context;
     const { requireActivePost } = await import("./crew-lifecycle.server");
@@ -1290,11 +1358,15 @@ export const getPostComments = createServerFn({ method: "GET" })
     const blocked = await blockedPairs(supabase, userId);
     const { data: rawRows, error } = await (supabase as any)
       .from("post_comments")
-      .select("id, post_id, user_id, body, media_url, media_type, created_at, parent_comment_id")
+      .select("id, post_id, check_in_id, user_id, body, media_url, media_type, created_at, parent_comment_id")
       .eq("post_id", data.postId)
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
-    const rows = visibleTo((rawRows ?? []) as { id: string; user_id: string }[], blocked, r => r.user_id);
+    // New version: only this check-in's thread (unscoped rows belong to the day's first check-in).
+    const scoped = data.checkInId
+      ? ((rawRows ?? []) as { check_in_id: string | null }[]).filter((r) => r.check_in_id === data.checkInId || (data.includeUnscoped && !r.check_in_id))
+      : (rawRows ?? []);
+    const rows = visibleTo(scoped as unknown as { id: string; user_id: string }[], blocked, r => r.user_id);
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.user_id))) as string[];
     const { data: profs } = ids.length
       ? await supabase

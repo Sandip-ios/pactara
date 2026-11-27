@@ -8,6 +8,7 @@ import { buildFeedDays, type FeedEntry } from "@/lib/feed-days";
 import { localDateIn } from "@/lib/streak-rules";
 import { TimelineCard, TimelineCardSkeleton } from "@/components/TimelineCard";
 import { RedesignPostCard } from "@/components/redesign/RedesignPostCard";
+import { RedesignCheckInCard } from "@/components/redesign/RedesignCheckInCard";
 import { crewStreakKept, redesignDayLabel } from "@/lib/redesign-feed-view";
 import { FeedContext } from "@/components/feed/feed-context";
 import { MilestoneRow, MissedRow, NotYetRow, QuietDayRow, RestedRow } from "@/components/feed/QuietRows";
@@ -113,8 +114,8 @@ function StatusBarCover({ target, active }: { target: React.RefObject<HTMLElemen
   );
 }
 
-function Entry({ entry, groupId, autoOpen, commentId, redesign = false }: { entry: FeedEntry; groupId: string; autoOpen: boolean; commentId?: string | null; redesign?: boolean }) {
-  if (redesign && entry.kind === "checkins") return <RedesignPostCard kind="checkins" item={entry.item} checkIns={entry.checkIns} autoOpenComments={autoOpen} targetCommentId={commentId} />;
+function Entry({ entry, groupId, autoOpen, commentId, redesign = false, viewerToday }: { entry: FeedEntry; groupId: string; autoOpen: boolean; commentId?: string | null; redesign?: boolean; viewerToday?: string }) {
+  if (redesign && entry.kind === "checkins" && entry.checkIns[0]) return <RedesignCheckInCard item={entry.item} checkIn={entry.checkIns[0]} viewerToday={viewerToday ?? entry.item.localDate} autoOpenComments={autoOpen} targetCommentId={commentId} />;
   if (redesign && entry.kind === "update") return <RedesignPostCard kind="update" item={entry.item} node={entry.node} autoOpenComments={autoOpen} targetCommentId={commentId} />;
   switch (entry.kind) {
     case "checkins":
@@ -151,6 +152,7 @@ export function FeedList({
   deepLinkPost,
   deepLinkComments,
   deepLinkComment,
+  deepLinkCheckIn,
   onDeepLinkMissing,
   onInvite,
   solo = false,
@@ -171,6 +173,8 @@ export function FeedList({
   deepLinkPost?: string;
   deepLinkComments?: boolean;
   deepLinkComment?: string | null;
+  /** New version: the exact check-in card to land on (a cheer or reply on a later check-in). */
+  deepLinkCheckIn?: string | null;
   onDeepLinkMissing?: () => void;
   onInvite?: () => void;
   /** Solo crew or still waiting for a partner: the empty feed speaks to just you. */
@@ -184,7 +188,7 @@ export function FeedList({
   variant?: "classic" | "redesign";
 }) {
   const redesign = variant === "redesign";
-  const days = useMemo(() => buildFeedDays(items ?? [], meta, localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone)), [items, meta]);
+  const days = useMemo(() => buildFeedDays(items ?? [], meta, localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone), { split: variant === "redesign" }), [items, meta, variant]);
   const me = meta?.members.find((m) => m.isMe) ?? null;
   const hasPosts = days.some((d) => d.entries.some((e) => e.kind === "checkins" || e.kind === "update"));
   const viewerToday = meta?.viewerToday;
@@ -233,7 +237,7 @@ export function FeedList({
     let tries = 0;
     const timer = window.setInterval(() => {
       tries += 1;
-      const el = document.getElementById(`post-${deepLinkPost}`);
+      const el = (deepLinkCheckIn && document.getElementById(`checkin-${deepLinkCheckIn}`)) || document.getElementById(`post-${deepLinkPost}`);
       if (el) {
         window.clearInterval(timer);
         el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -242,7 +246,7 @@ export function FeedList({
       } else if (tries > 40) window.clearInterval(timer);
     }, 100);
     return () => window.clearInterval(timer);
-  }, [redesign, deepLinkPost, items, deepLinkMissing]);
+  }, [redesign, deepLinkPost, deepLinkCheckIn, items, deepLinkMissing]);
 
   useEffect(() => {
     if (!redesign || !deepLinkPost || !items || loading || !deepLinkMissing) return;
@@ -362,7 +366,11 @@ export function FeedList({
                 const first = pid && !anchored.has(pid);
                 if (pid) anchored.add(pid);
                 const canOpen = entry.kind === "checkins" || entry.kind === "update" || entry.kind === "missed";
-                const autoOpen = Boolean(first && deepLinkComments && deepLinkPost === pid);
+                const entryCheckIn = entry.kind === "checkins" ? entry.checkIns[0]?.id.replace(/^c-/, "") : null;
+                const isTarget = redesign && deepLinkCheckIn && entry.kind === "checkins"
+                  ? entryCheckIn === deepLinkCheckIn
+                  : Boolean(first);
+                const autoOpen = Boolean(isTarget && deepLinkComments && deepLinkPost === pid);
                 return (
                   <div key={entry.key} id={first ? `post-${pid}` : undefined}>
                     {entry.kind === "quiet" ? (
@@ -372,7 +380,7 @@ export function FeedList({
                         autoOpenItem={autoOpen ? entry.missedItems.find((i) => i.id === pid) : undefined}
                       />
                     ) : (
-                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} commentId={autoOpen ? deepLinkComment : null} redesign={redesign} />
+                      <Entry entry={entry} groupId={feedGroupId} autoOpen={autoOpen && canOpen} commentId={autoOpen ? deepLinkComment : null} redesign={redesign} viewerToday={viewerToday} />
                     )}
                   </div>
                 );

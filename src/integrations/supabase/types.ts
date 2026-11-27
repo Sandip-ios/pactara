@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -1332,6 +1327,7 @@ export type Database = {
       post_comments: {
         Row: {
           body: string
+          check_in_id: string | null
           created_at: string
           id: string
           media_type: string | null
@@ -1342,6 +1338,7 @@ export type Database = {
         }
         Insert: {
           body?: string
+          check_in_id?: string | null
           created_at?: string
           id?: string
           media_type?: string | null
@@ -1352,6 +1349,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          check_in_id?: string | null
           created_at?: string
           id?: string
           media_type?: string | null
@@ -1361,6 +1359,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_comments_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_comments_parent_comment_id_fkey"
             columns: ["parent_comment_id"]
@@ -1379,6 +1384,7 @@ export type Database = {
       }
       post_reactions: {
         Row: {
+          check_in_id: string | null
           created_at: string
           emoji: string
           id: string
@@ -1386,6 +1392,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          check_in_id?: string | null
           created_at?: string
           emoji: string
           id?: string
@@ -1393,6 +1400,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          check_in_id?: string | null
           created_at?: string
           emoji?: string
           id?: string
@@ -1400,6 +1408,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "post_reactions_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: false
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "post_reactions_post_id_fkey"
             columns: ["post_id"]
@@ -2160,6 +2175,10 @@ export type Database = {
         Args: { _request_id: string }
         Returns: string
       }
+      check_in_belongs_to_post: {
+        Args: { _check_in: string; _post: string }
+        Returns: boolean
+      }
       claim_evening_push: {
         Args: { _hour: number; _local_date: string; _user_id: string }
         Returns: boolean
@@ -2593,3 +2612,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

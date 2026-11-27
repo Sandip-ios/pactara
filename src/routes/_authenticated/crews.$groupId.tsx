@@ -9,6 +9,7 @@ export const Route = createFileRoute("/_authenticated/crews/$groupId")({
     ...(typeof search["post"] === "string" ? { post: search["post"] } : {}),
     ...(search["comments"] === "1" || search["comments"] === 1 ? { comments: "1" } : {}),
     ...(typeof search["comment"] === "string" ? { comment: search["comment"] } : {}),
+    ...(typeof search["checkin"] === "string" ? { checkin: search["checkin"] } : {}),
     ...(search["from"] === "activity" ? { from: "activity" } : {}),
   }),
   head: () => ({ meta: [

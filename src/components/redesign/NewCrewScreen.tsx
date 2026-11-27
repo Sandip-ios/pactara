@@ -60,11 +60,11 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   const searchStr = useRouterState({ select: state => state.location.searchStr });
   const scrollRef = useOpenAtTop<HTMLDivElement>();
   useStatusBarScrollToTop();
-  const [deepLink, setDeepLink] = useState<{ post: string; comments: boolean; comment: string | null } | null>(() => {
+  const [deepLink, setDeepLink] = useState<{ post: string; comments: boolean; comment: string | null; checkIn: string | null } | null>(() => {
     if (typeof window === "undefined") return null;
     const query = new URLSearchParams(window.location.search);
     const post = query.get("post");
-    return post ? { post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment") } : null;
+    return post ? { post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment"), checkIn: query.get("checkin") } : null;
   });
   const [fromActivity, setFromActivity] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("from") === "activity");
   const [tab, setTab] = useState<Tab>(() => {
@@ -80,7 +80,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
     if (requestedTab === "chat" || requestedTab === "posts") setTab(requestedTab);
     const post = query.get("post");
     if (!post) return;
-    setDeepLink({ post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment") });
+    setDeepLink({ post, comments: query.get("comments") === "1" || Boolean(query.get("comment")), comment: query.get("comment"), checkIn: query.get("checkin") });
     setFromActivity(query.get("from") === "activity");
     setTab("posts");
     void navigate({ to: "/crews/$groupId", params: { groupId }, search: { crewTab: "posts" }, replace: true });
@@ -259,6 +259,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               deepLinkPost={deepLink?.post}
               deepLinkComments={deepLink?.comments}
               deepLinkComment={deepLink?.comment}
+              deepLinkCheckIn={deepLink?.checkIn}
               onDeepLinkMissing={() => {
                 toast.error(ACTIVITY_UNAVAILABLE);
                 void navigate({ to: "/activity", replace: true });

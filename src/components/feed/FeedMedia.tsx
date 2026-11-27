@@ -139,7 +139,7 @@ export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: s
           onOpen();
         }
       }}
-      className={`relative ${variant === "redesign" ? "aspect-[4/3]" : "aspect-square"} w-full overflow-hidden bg-neutral-800`}
+      className={`relative ${variant === "redesign" ? "h-[300px]" : "aspect-square"} w-full overflow-hidden bg-neutral-800`}
     >
       <video
         key={attempt}
@@ -225,7 +225,7 @@ export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: s
               if (!next) void v.play().catch(() => {});
             }
           }}
-          className="absolute bottom-1 left-1 flex h-11 w-11 items-center justify-center"
+          className={`absolute bottom-1 ${variant === "redesign" ? "right-1" : "left-1"} flex h-11 w-11 items-center justify-center`}
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white">
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
@@ -233,8 +233,8 @@ export function FeedVideo({ src, poster, onOpen, variant = "classic" }: { src: s
         </button>
       )}
       {!failed && duration !== null && variant === "redesign" && (
-        <span className="pointer-events-none absolute bottom-3 left-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-bold text-white" style={{ background: "rgba(0,0,0,.6)" }}>
-          <Play size={11} fill="currentColor" aria-hidden /> {formatDuration(duration)}
+        <span className="pointer-events-none absolute bottom-3 left-3 flex h-6 items-center gap-1 rounded-[12px] px-2 text-[11px] font-bold text-white" style={{ background: "rgba(0,0,0,0.55)" }}>
+          <Play size={10} fill="currentColor" aria-hidden /> {formatDuration(duration)}
         </span>
       )}
       {!failed && duration !== null && variant === "classic" && (

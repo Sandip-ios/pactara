@@ -52,7 +52,8 @@ const memberFromItem = (item: FeedItem): FeedMember => ({
 const orderPeople = (people: FeedMember[]) =>
   [...people].sort((a, b) => Number(a.isMe) - Number(b.isMe) || a.firstName.localeCompare(b.firstName));
 
-export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefined, fallbackToday: string): FeedDay[] {
+/** `split`: the new version gives every check-in its own card. Classic keeps one card per member per day. */
+export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefined, fallbackToday: string, opts: { split?: boolean } = {}): FeedDay[] {
   const viewerToday = meta?.viewerToday ?? fallbackToday;
   const members = new Map((meta?.members ?? []).map((m) => [m.userId, m]));
   // Today's rest rows, one per person, from their post or from the crew's rest days.
@@ -74,7 +75,9 @@ export function buildFeedDays(items: FeedItem[], meta: FeedMeta | null | undefin
     const day = dayFor(item.localDate);
     const isPast = feedDayKey(item.localDate, viewerToday) < viewerToday;
     const checkIns = item.nodes.filter((n): n is CheckInNode => n.kind === "check_in");
-    if (checkIns.length) {
+    if (checkIns.length && opts.split) {
+      for (const c of checkIns) day.entries.push({ kind: "checkins", key: `ci-${c.id}`, item, checkIns: [c], sortAt: at(c.at) });
+    } else if (checkIns.length) {
       day.entries.push({
         kind: "checkins",
         key: `ci-${item.id}`,

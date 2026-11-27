@@ -15,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/activity/open")({
     commentId: typeof search.comment === "string" ? search.comment : undefined,
     actorId: typeof search.actor === "string" ? search.actor : undefined,
     requestId: typeof search.request === "string" ? search.request : undefined,
+    checkInId: typeof search.checkin === "string" ? search.checkin : undefined,
   }),
   head: () => ({ meta: [
     { title: "Open Activity · Pactara" },
@@ -46,6 +47,7 @@ function ActivityOpenRoute() {
       commentId: search.commentId,
       actorId: search.actorId,
       requestId: search.requestId,
+      checkInId: search.checkInId,
     } }).then(destination => {
       if (!current) return;
       if (destination.checkInGroupId) {
