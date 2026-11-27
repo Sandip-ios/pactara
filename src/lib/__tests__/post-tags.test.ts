@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canTag, canRemoveMe, pruneTags, removeMe, tagPushAllowed, tagRowLabel, tagSections, tagsToNotify, withLineText, type TagCandidate, type TaggablePerson } from "../post-tags";
+import { tagPushText, canTag, canRemoveMe, pruneTags, removeMe, tagPushAllowed, tagRowLabel, tagSections, tagsToNotify, withLineText, type TagCandidate, type TaggablePerson } from "../post-tags";
 
 const author = { id: "me", under18: false, isPrivate: false };
 const base: TagCandidate = { id: "x", sharedCrewIds: [], authorFollows: false, followsAuthor: false, under18: false, blockedEitherWay: false, newVersion: true };
@@ -87,5 +87,13 @@ describe("with ... text", () => {
   it("composer row label", () => {
     expect(tagRowLabel(["Kemi Adebayo", "Chris Adeyemi"])).toBe("Kemi, Chris");
     expect(tagRowLabel(["Kemi Adebayo", "Chris Adeyemi", "Dani Ruiz"])).toBe("Kemi, Chris +1");
+  });
+});
+
+describe("tag push text", () => {
+  it("title is the full name, body the caption, truncated", () => {
+    const t = tagPushText("Maya Lindqvist", "Rows felt strong today.");
+    expect(t).toEqual({ title: "Maya Lindqvist tagged you", body: "Rows felt strong today." });
+    expect(tagPushText("Maya", "x".repeat(200)).body.length).toBe(120);
   });
 });
