@@ -3,7 +3,6 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { Users } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { getNewHomeFeed, getNewHomeSuggestions } from "@/lib/home-feed.functions";
 import { getSocialPost } from "@/lib/posts.functions";
 import { mergeHomeEntries, type HomeCursor, type HomeTab } from "@/lib/home-feed";
@@ -125,15 +124,12 @@ export function HomeSocialFeed({ tab = "for-you" }: { tab?: HomeTab }) {
     <section aria-label={tab === "following" ? "Following feed" : "For you feed"} role="tabpanel">
       {feed.isPending && <FeedLoading />}
       {feed.isError && (
-        <div className="p-6 text-center">
-          <p className="text-[14px] text-[var(--new-muted)]">Couldn't load posts.</p>
-          <Button
-            variant="ghost"
-            onClick={() => void feed.refetch()}
-            className="text-[var(--new-purple)]"
-          >
-            Try again
-          </Button>
+        <div className="mx-3 mt-3 flex items-center gap-3 rounded-[20px] bg-[var(--new-white)] p-[18px]" role="alert">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[15px] font-bold">Couldn't load posts</h2>
+            <p className="mt-1 text-[12px] text-[var(--new-muted)]">Check your connection and try again.</p>
+          </div>
+          <button type="button" onClick={() => void feed.refetch()} className="h-10 shrink-0 rounded-full border border-[#D6D3D1] px-4 text-[14px] font-bold">Try again</button>
         </div>
       )}
       {!feed.isPending &&
