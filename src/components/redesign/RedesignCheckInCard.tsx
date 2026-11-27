@@ -1,5 +1,6 @@
+import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
 import { useEffect, useState } from "react";
-import { Check, ChevronRight, Flame, MessageCircle } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode } from "@/lib/feed-days";
 import { activityMeta } from "@/lib/feed-view";
@@ -39,6 +40,7 @@ export function RedesignCheckInCard({
   const rawId = checkIn.id.replace(/^c-/, "");
   const firstId = item.nodes.find((n) => n.kind === "check_in")?.id ?? checkIn.id;
   const isFirst = firstId === checkIn.id;
+  const preview = useCheckInFirstComment(item.id, checkIn.social?.commentCount ?? item.commentCount, { checkInId: rawId, includeUnscoped: isFirst });
   const social = checkIn.social ?? { reactors: item.reactors, commentCount: item.commentCount };
   const scoped = { id: item.id, reactors: social.reactors };
   const cheers = useCheers(scoped, isFirst ? null : rawId);
@@ -128,24 +130,7 @@ export function RedesignCheckInCard({
         </button>
       )}
 
-      <div className="flex items-center gap-4" style={{ padding: "10px 14px 12px" }}>
-        {!item.isMe && (
-          <button type="button" onClick={cheers.toggle} aria-pressed={cheered} className="flex h-9 items-center gap-1.5 text-[13px] font-bold active:scale-95" style={{ color: cheered ? "#C2410C" : INK }}>
-            <Flame size={18} fill={cheered ? "#EA580C" : "none"} style={{ color: cheered ? "#EA580C" : INK }} aria-hidden /> Cheer
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={comments.openSheet}
-          onPointerDown={comments.prefetch}
-          aria-label={social.commentCount > 0 ? `Reply, ${social.commentCount} comments` : "Reply"}
-          className="flex h-9 items-center gap-1.5 text-[13px] font-bold active:scale-95"
-          style={{ color: INK }}
-        >
-          <MessageCircle size={18} aria-hidden /> Reply{social.commentCount > 0 ? ` · ${social.commentCount}` : ""}
-        </button>
-        {cheerLine && <span className="ml-auto min-w-0 truncate text-[13px]" style={{ color: MUTED }}>{cheerLine}</span>}
-      </div>
+      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} />
       {comments.sheet}
       {card && card.kind !== "health" && (
         <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} />

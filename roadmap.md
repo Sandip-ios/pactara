@@ -231,3 +231,7 @@
 
 ## Round 3 Home Today card
 - [x] Matched Today card dimensions, type, icons, gradient and inline X; verified account-scoped dismissal after reload; captured Home with/without posting strip at 390×844, verified a real post goes live, removed all temporary draft data. All 940 tests/typecheck pass; classic Home unchanged; unpublished. Exact widths leave the plan title/subtitle wrapped at 390px, without clipping.
+
+## Round 3 feed card actions
+- [x] All existing new-version feed layouts share icon/count actions with 44px targets, cheered flame, optional right-side cheer text and the earliest visible comment. Three 390×844 captures verified; comment icon/count/preview open threads and a comment saves/readbacks. Block-filtered library reads repaired with narrow migration; 945 tests/typecheck pass, temporary data removed; classic unchanged, unpublished.
+- [ ] Following feed application: blocked because this draft has no Following feed screen or read path yet; shared new-only actions are ready for it, no new feed built in this visual pass.

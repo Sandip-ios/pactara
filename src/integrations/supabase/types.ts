@@ -2418,6 +2418,10 @@ export type Database = {
         Returns: boolean
       }
       can_read_follow_notifications: { Args: never; Returns: boolean }
+      can_read_library_comment: {
+        Args: { _author_id: string; _post_id: string }
+        Returns: boolean
+      }
       can_see_social_post: {
         Args: { _post_id: string; _viewer: string }
         Returns: boolean

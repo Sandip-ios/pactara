@@ -1,5 +1,6 @@
+import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
 import { useEffect, useState } from "react";
-import { Check, Flame, MessageCircle } from "lucide-react";
+import { Check } from "lucide-react";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode, UpdateNode } from "@/lib/feed-days";
 import { activityMeta } from "@/lib/feed-view";
@@ -25,6 +26,7 @@ export function RedesignPostCard(props: Props) {
   const { item } = props;
   const comments = useCommentsSheet(item, props.targetCommentId);
   const cheers = useCheers(item);
+  const preview = useCheckInFirstComment(item.id, item.commentCount);
   const [lightbox, setLightbox] = useState<{ src: string; kind: "image" | "video" } | null>(null);
 
   useEffect(() => {
@@ -100,29 +102,7 @@ export function RedesignPostCard(props: Props) {
 
       {caption && <p className="whitespace-pre-wrap break-words text-[15px]" style={{ padding: "10px 14px 0" }}>{caption}</p>}
 
-      <div className="flex items-center gap-4" style={{ padding: "10px 14px 12px" }}>
-        {!item.isMe && (
-          <button
-            type="button"
-            onClick={cheers.toggle}
-            aria-pressed={cheered}
-            className="flex h-9 items-center gap-1.5 text-[15px] font-bold active:scale-95"
-            style={{ color: cheered ? "#C2410C" : INK }}
-          >
-            <Flame size={19} fill={cheered ? "#EA580C" : "none"} style={{ color: cheered ? "#EA580C" : INK }} aria-hidden /> Cheer
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={comments.openSheet}
-          onPointerDown={comments.prefetch}
-          aria-label={item.commentCount > 0 ? `Reply, ${item.commentCount} comments` : "Reply"}
-          className="flex h-9 items-center gap-1.5 text-[15px] font-bold active:scale-95"
-        >
-          <MessageCircle size={19} aria-hidden /> Reply{item.commentCount > 0 ? ` · ${item.commentCount}` : ""}
-        </button>
-        {cheerLine && <span className="ml-auto min-w-0 truncate text-[13px]" style={{ color: MUTED }}>{cheerLine}</span>}
-      </div>
+      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={item.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} />
       {comments.sheet}
       {lightbox && <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />}
     </article>

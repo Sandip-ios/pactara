@@ -1,8 +1,8 @@
+import { FeedCardActions, useLibraryFirstComment } from "../FeedCardActions";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
-import { Flame, MessageCircle } from "lucide-react";
 import type { SocialPostView } from "@/lib/social-post-types";
 import { toggleSocialPostCheer } from "@/lib/posts.functions";
 import { clock } from "@/components/TimelineCard";
@@ -18,6 +18,8 @@ export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupI
   const cheerFn = useServerFn(toggleSocialPostCheer);
   const [cheered, setCheered] = useState(post.cheeredByMe);
   const [comments, setComments] = useState(false);
+  const canComment = post.commentsOn && post.audience !== "only_me";
+  const preview = useLibraryFirstComment(post.id, post.comments, canComment);
   const firstName = post.author.name.split(" ")[0] || "Member";
   const cheer = async () => {
     const next = !cheered;
@@ -44,18 +46,7 @@ export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupI
       {post.isMine ? <Link to="/post/$postId" params={{ postId: post.id }} className="block w-full"><PostCarousel items={post.items} aspectRatio="4 / 5" /></Link> : <PostCarousel items={post.items} aspectRatio="4 / 5" />}
       {post.caption && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={post.isMine ? null : { ...post.author, firstName, when: clock(post.createdAt) }} />}
-      <div className="flex items-center gap-4" style={{ padding: "10px 14px 12px" }}>
-        {!post.isMine && (
-          <button type="button" onClick={() => void cheer()} aria-pressed={cheered} className="flex h-9 items-center gap-1.5 text-[13px] font-bold active:scale-95" style={{ color: cheered ? "#C2410C" : INK }}>
-            <Flame size={18} fill={cheered ? "#EA580C" : "none"} style={{ color: cheered ? "#EA580C" : INK }} aria-hidden /> Cheer
-          </button>
-        )}
-        {post.commentsOn && (
-          <button type="button" onClick={() => setComments(true)} className="flex h-9 items-center gap-1.5 text-[13px] font-bold active:scale-95" style={{ color: INK }}>
-            <MessageCircle size={18} aria-hidden /> Reply{post.comments > 0 ? ` · ${post.comments}` : ""}
-          </button>
-        )}
-      </div>
+      <FeedCardActions cheer={post.isMine ? undefined : () => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment} />
       <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />
     </article>
   );
