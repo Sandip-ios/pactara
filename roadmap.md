@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Home feed of visible posts under the Today card (new version): 390px captures p5-home-feed.png / p5-home-after-post.png
 
 ## Library videos, never cropped
 - [x] Whole-video editor, uncropped native-shape feed/own post/strip, decoded trim thumbnails; photos, check-ins and classic unchanged.

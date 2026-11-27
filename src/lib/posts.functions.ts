@@ -307,6 +307,33 @@ export const getCrewSocialPosts = createServerFn({ method: "GET" })
     return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (rows ?? []) as Row[]));
   });
 
+/** Home feed: your own posts plus live posts shared to any of your crews, newest first, 20 a page. */
+export const getHomeSocialPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { before?: string | null }) => ({ before: input?.before ? String(input.before) : null }))
+  .handler(async ({ context, data }) => {
+    const supabase = sb(context.supabase);
+    const { data: members } = await supabase.from("group_members").select("group_id").eq("user_id", context.userId);
+    const groupIds = ((members ?? []) as Row[]).map((m) => m["group_id"] as string);
+    const { data: links } = groupIds.length ? await supabase.from("social_post_crews").select("post_id").in("group_id", groupIds).limit(1000) : { data: [] };
+    const crewIds = [...new Set(((links ?? []) as Row[]).map((l) => l["post_id"] as string))];
+    let own = supabase.from("social_posts").select("*").eq("user_id", context.userId).neq("status", "failed");
+    if (data.before) own = own.lt("created_at", data.before);
+    const ownReq = own.order("created_at", { ascending: false }).limit(20);
+    let crewReq = null as null | PromiseLike<{ data: unknown[] | null }>;
+    if (crewIds.length) {
+      let q = supabase.from("social_posts").select("*").in("id", crewIds).eq("status", "live").neq("audience", "only_me");
+      if (data.before) q = q.lt("created_at", data.before);
+      crewReq = q.order("created_at", { ascending: false }).limit(20);
+    }
+    const [{ data: mine }, crew] = await Promise.all([ownReq, crewReq ?? Promise.resolve({ data: [] as unknown[] })]);
+    const byId = new Map<string, Row>();
+    for (const r of [...((mine ?? []) as Row[]), ...((crew.data ?? []) as Row[])]) byId.set(r["id"] as string, r);
+    const rows = [...byId.values()].sort((a, b) => String(b["created_at"]).localeCompare(String(a["created_at"]))).slice(0, 20);
+    const posts = stabilizeSignedUrls(await loadPosts(supabase, context.userId, rows));
+    return { posts, next: rows.length === 20 ? (rows[19]!["created_at"] as string) : null };
+  });
+
 export const updateSocialPostCaption = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string; caption: string }) => ({ id: String(input.id), caption: String(input.caption ?? "").slice(0, 2200) }))

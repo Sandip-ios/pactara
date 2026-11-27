@@ -16,6 +16,7 @@ export function PostingStrip() {
     const off = onPostLive(() => {
       void qc.invalidateQueries({ queryKey: ["my-social-posts"] });
       void qc.invalidateQueries({ queryKey: ["crew-social-posts"] });
+      void qc.invalidateQueries({ queryKey: ["home-social-posts"] });
     });
     return () => { document.removeEventListener("visibilitychange", onVis); off(); };
   }, [qc]);

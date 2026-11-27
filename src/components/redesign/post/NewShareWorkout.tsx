@@ -47,7 +47,7 @@ export function NewShareWorkout({ workoutId, sessionId }: { workoutId: string | 
     setErr(null);
     try {
       await submitPost({ picked, caption: draft.caption, audience, workout: sessionId ? { source: "session", id: sessionId } : workoutId ? { source: "saved", id: workoutId } : null, commentsOn: true, tags: [] });
-      await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] })]);
+      await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] }), qc.invalidateQueries({ queryKey: ["home-social-posts"] })]);
       await navigate({ to: "/home" });
       resetDraft();
     } catch (e) {

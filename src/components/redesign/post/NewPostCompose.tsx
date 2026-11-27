@@ -63,7 +63,7 @@ export function NewPostCompose() {
     setErr(null);
     try {
       await submitPost({ picked, caption: draft.caption, audience, workout, commentsOn, tags });
-      await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] })]);
+      await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] }), qc.invalidateQueries({ queryKey: ["home-social-posts"] })]);
       await navigate({ to: "/home" });
       resetDraft();
     } catch (e) {

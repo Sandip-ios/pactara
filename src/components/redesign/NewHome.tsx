@@ -15,6 +15,7 @@ import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
 import { NewNotifBanner } from "./NewNotifBanner";
 
 import { PostingStrip } from "./post/PostingStrip";
+import { HomeSocialFeed } from "./HomeSocialFeed";
 
 export function NewHome() {
   const navigate = useNavigate();
@@ -66,6 +67,7 @@ export function NewHome() {
           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-[var(--new-chevron)]" aria-label="Dismiss" onClick={hidePlanRow}><X className="!size-4" /></Button>
         </div>}
       </section>
+      <HomeSocialFeed />
     </div>
   );
 }
