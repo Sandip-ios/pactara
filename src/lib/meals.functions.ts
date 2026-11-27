@@ -30,28 +30,24 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));}
  else {
  // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
- const key=`v3:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
+ const key=`v4:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
  if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=cache.food_ids.flatMap(id=>{const row=rows?.find(r=>r.id===id);return row?[toFood(row as unknown as Record<string,unknown>)]:[];});}
  else {try {
- const {fetchUsda,normalizeUsdaFood,rankUsdaRows}=await import('./usda-foods.server');
+ const {fetchUsda,normalizeUsdaFood,rankUsdaRows,distinctFoodNames}=await import('./usda-foods.server');
  const responses=[];
  for(const dataType of [['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']]) {
   const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
-  responses.push(await fetchUsda('foods/search',{query:data.q.toLowerCase()==='rice'&&dataType[0]!=='Branded'?'rice cooked':data.q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:12,dataType}));
+  responses.push(await fetchUsda('foods/search',{query:data.q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:200,dataType}));
  }
- if(data.q.toLowerCase()==='rice'){
-  const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
-  responses.unshift(await fetchUsda('foods/search',{query:'rice white long grain regular enriched cooked',requireAllWords:true,pageSize:12,dataType:['SR Legacy']}));
- }
- const raw=rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q);
+ const raw=rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q).filter((r,i,all)=>r['dataType']==='Branded'||all.slice(0,i).filter(x=>x['dataType']===r['dataType']).length<12);
  if(raw.length){
   const details:Record<string,unknown>[]=[];
   for(let i=0;i<raw.length;i+=20){
    const {data:detailClaim}=await admin.rpc('claim_meal_usda_request');if(!detailClaim)throw new Error('Search busy');
-   const response=await fetchUsda('foods',{fdcIds:raw.slice(i,i+20).map(r=>r['fdcId']),format:'full'});
+   const response=await fetchUsda('foods',{fdcIds:raw.slice(i,i+20).map(r=>r['fdcId']),format:'full',nutrients:[203,204,205,208,957,958]});
    if(Array.isArray(response))details.push(...response as Record<string,unknown>[]);
   }
-  foods=uniqueFoodResults(raw.map(r=>normalizeUsdaFood({...r,...details.find(d=>d['fdcId']===r['fdcId'])})));
+  foods=uniqueFoodResults(distinctFoodNames(raw.map(r=>{const row={...r,...details.find(d=>d['fdcId']===r['fdcId'])};return {row,food:normalizeUsdaFood(row)};})));
   const {error:saveError}=await admin.from('meal_foods').upsert(foods.map(f=>({id:f.id,owner_id:null,name:f.name,portions:JSON.parse(JSON.stringify(f.portions)),nutrition:JSON.parse(JSON.stringify(f.nutrition))})));
   if(saveError)throw new Error('Could not cache');
  }

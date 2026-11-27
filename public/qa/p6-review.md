@@ -42,3 +42,9 @@ Verified live USDA search, branded results ordered after generics, complete rice
 Full suite ran twice: 1,115 tests passed in 119 files, no failures or skips on either run. Typecheck passed. No test failed during this correction request. Capture automation retries: three catalog attempts could not select generic cooked rice from USDA's initial ranking, a teen-profile selector matched both the meal and Added button, and a stale workout picker did not show the newly created workout until fresh navigation. These were corrected; they are not test-suite failures. The captured catalog names and portion variants are real USDA values, not exact mockup example text. Some Discover meal content extends below the viewport because those real food names are longer than the board examples.
 
 Cleanup verified: both temporary members restored then deleted; crew, meals/copies, private foods/recent foods, workout/shares, check-in and attachment snapshots, synthetic no-result searches, and the one uploaded storage photo removed. Zero subscriptions and owned rows remained. Ordinary fetched USDA caches remain. No repository example-data script changed. Nothing published.
+
+## Search names follow-up (Nov 27)
+- Rice-only search rewrites, the extra long-grain request, the fixed food ranking and the rice name rule are gone. Every food ranks Foundation, SR Legacy, Survey, then Branded; inside a tier, foods named for the search come first and rows that never mention it are dropped.
+- Generic USDA names are cleaned the same way for every food (for example "White rice, medium-grain, cooked", "Chicken breast, cooked, braised"). Foods that would share a name but differ in numbers get a fuller name or a source note; identical ones collapse.
+- "1 food" singular on meal rows. Search cache cleared so Recent and meal cards use the cleaned names.
+- Retaken: 76c, 76m, 75m, 75n. Full suite 1,126 passed, typecheck clean.
