@@ -17,8 +17,11 @@ export function clearNewCheckIn() {
   try { sessionStorage.removeItem(KEY); } catch { /* private mode */ }
 }
 export function beginNewCheckIn(groupId: string, returnCrewId: string | null, returnToActivity = false) {
-  try { localStorage.setItem("active-group-id", groupId); } catch { /* private mode */ }
-  writeNewCheckIn({ groupIds: [], returnCrewId, returnToActivity });
+  beginNewCheckInForGroups([], groupId, returnCrewId, returnToActivity);
+}
+export function beginNewCheckInForGroups(groupIds: string[], activeGroupId: string, returnCrewId: string | null, returnToActivity = false) {
+  try { localStorage.setItem("active-group-id", activeGroupId); } catch { /* private mode */ }
+  writeNewCheckIn({ groupIds, returnCrewId, returnToActivity });
 }
 export function eligibleCrewIds(groups: GroupToday[]): string[] {
   return groups.filter((g) => g.members.find((m) => m.isYou)?.status !== "done").map((g) => g.id);

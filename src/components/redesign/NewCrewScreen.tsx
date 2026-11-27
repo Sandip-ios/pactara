@@ -205,7 +205,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
           <main>
             {pact && <NewPactBanner groupId={groupId} crewName={displayName} ownerName={(group.members.find((m) => m.userId === pact.ownerId)?.name ?? "The owner").trim().split(/\s+/)[0] ?? "The owner"} status={pact} />}
             <section className="m-4 rounded-[20px] bg-white p-4">
-              <h2 className="text-[28px] font-extrabold leading-tight">{counts.done} of {counts.due} showed up</h2>
+              <h2 className="text-[28px] font-extrabold leading-tight">{counts.done} of {counts.due} checked in</h2>
               <p className="mt-2 text-[15px] leading-[1.45]" style={{ color: MUTED }}>{crewShowedUpLine(counts.done, counts.due, viewerDone)}</p>
               <button type="button" onClick={() => setStreakOpen(true)} className="mt-4 flex min-h-9 items-center gap-1.5 rounded-full px-3 text-[14px] font-extrabold" style={{ background: "#FFEDE0", color: "#9A3412" }}>
                 <Flame size={16} style={{ color: "#EA580C" }} fill="#EA580C" aria-hidden />
@@ -214,7 +214,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               </button>
               {viewerDone ? (
                 <div className="mt-5 flex h-[52px] items-center justify-center gap-2 text-[16px] font-bold" style={{ color: GREEN }}>
-                  <CircleCheck size={22} aria-hidden /> You're in today
+                  <CircleCheck size={22} aria-hidden /> Checked in today
                 </div>
               ) : (
                 <>

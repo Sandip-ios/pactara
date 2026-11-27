@@ -41,6 +41,8 @@ export type MemberToday = {
   workoutSessionId: string | null;
   /** Own today (member's timezone) covered by a rest or freeze row, with no check-in. */
   resting: boolean;
+  /** The cover on this member's own today; a check-in clears it for display. */
+  coverKind: "rest" | "freeze" | null;
 };
 
 export type GroupToday = {
@@ -134,7 +136,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       // Applied streak freezes count as a kept day, same as on the home screen.
       supabase
         .from("streak_freezes_used")
-        .select("group_id, user_id, freeze_date")
+        .select("group_id, user_id, freeze_date, kind")
         .in("group_id", groupIds)
         .gte("freeze_date", windowStart)
         .lte("freeze_date", windowEnd)
@@ -167,6 +169,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
     // Check-ins only, and rest/freeze rows only, to tell a rest day apart.
     const checkInsByKey = new Map<string, Set<string>>();
     const coveredByKey = new Map<string, Set<string>>();
+    const coverKindByKey = new Map<string, Map<string, "rest" | "freeze">>();
     const addTo = (map: Map<string, Set<string>>, key: string, date: string) => {
       let set = map.get(key);
       if (!set) map.set(key, (set = new Set()));
@@ -188,7 +191,11 @@ export const getGroupsToday = createServerFn({ method: "GET" })
       const byUser = daysByGroupUser.get(g)!;
       if (!byUser.has(u)) byUser.set(u, new Set());
       byUser.get(u)!.add(row.freeze_date as string);
-      addTo(coveredByKey, `${g}:${u}`, row.freeze_date as string);
+      const key = `${g}:${u}`;
+      addTo(coveredByKey, key, row.freeze_date as string);
+      const kinds = coverKindByKey.get(key) ?? new Map<string, "rest" | "freeze">();
+      kinds.set(row.freeze_date as string, row.kind === "rest" ? "rest" : "freeze");
+      coverKindByKey.set(key, kinds);
     }
 
 
@@ -269,6 +276,7 @@ export const getGroupsToday = createServerFn({ method: "GET" })
           workoutStartedAt: workout?.startedAt ?? null,
           workoutSessionId: workout?.id ?? null,
           resting,
+          coverKind: resting ? coverKindByKey.get(`${gid}:${uid}`)?.get(ownToday) ?? "rest" : null,
         };
       });
 

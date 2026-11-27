@@ -25,6 +25,16 @@ export function PostAttachmentSave({ postId, kind }: { postId: string; kind: "wo
       const result = await toggle({ data: { postId, kind, on: !added } });
       qc.setQueryData(key, result.added);
       void qc.invalidateQueries({ queryKey: kind === "workout" ? MY_WORKOUTS_KEY : ["my-meals"] });
+      if (added && !result.added) {
+        newToast(`Removed from your ${kind === "workout" ? "workouts" : "meals"}`, {
+          undo: () => {
+            void toggle({ data: { postId, kind, on: true } }).then((restored) => {
+              qc.setQueryData(key, restored.added);
+              void qc.invalidateQueries({ queryKey: kind === "workout" ? MY_WORKOUTS_KEY : ["my-meals"] });
+            }).catch(() => newToast("Couldn't undo. Try again."));
+          },
+        });
+      }
     } catch {
       newToast("Couldn't save. Try again.");
     } finally {

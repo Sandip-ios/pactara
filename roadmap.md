@@ -1,4 +1,5 @@
 # Roadmap
+- [x] Phase 5 Today card: all 16 new-version states with pure selection tests, crew counting/wording, plan/live/rest actions, loading/error retry and removal Undo toasts; 17 real-data captures at 390px in public/qa; Start/Resume, rest cancellation, both Undo paths and error retry browser-verified; 1006 tests and typecheck pass; temporary data removed; classic unchanged and unpublished
 - [x] Home feed of visible posts under the Today card (new version): 390px captures p5-home-feed.png / p5-home-after-post.png
 
 ## Library videos, never cropped
