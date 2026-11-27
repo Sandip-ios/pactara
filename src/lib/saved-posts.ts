@@ -9,6 +9,8 @@ export type SavedTile = {
   video: boolean;
   multi: boolean;
   workout: boolean;
+  /** Pinned to the profile; only the profile grid sets it, never Saved. */
+  pinned?: boolean;
   /** Where tapping the tile goes. */
   href: string;
   label: string;
@@ -25,4 +27,24 @@ export function mergeSaved(posts: SavedRef[], checkIns: SavedRef[], limit = SAVE
 /** Drop refs whose item is gone or no longer visible, keeping order. */
 export function keepVisible<T extends SavedRef>(refs: T[], visible: Set<string>): T[] {
   return refs.filter((r) => visible.has(`${r.kind}:${r.id}`));
+}
+
+type GridPost = { id: string; caption: string; createdAt: string; pinnedAt: string | null; workout: { title?: string } | null; items: { kind: "photo" | "video"; url: string | null; posterUrl: string | null }[] };
+
+/** Profile Posts grid: pinned first (newest pin first), then newest posts. */
+export function profileGridTiles(posts: GridPost[], fallbackLabel = "Post"): SavedTile[] {
+  const sorted = [...posts].sort((a, b) => {
+    if (!!a.pinnedAt !== !!b.pinnedAt) return a.pinnedAt ? -1 : 1;
+    if (a.pinnedAt && b.pinnedAt && a.pinnedAt !== b.pinnedAt) return a.pinnedAt < b.pinnedAt ? 1 : -1;
+    return a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0;
+  });
+  return sorted.map((p) => {
+    const first = p.items[0];
+    return {
+      kind: "post", id: p.id, savedAt: p.createdAt,
+      thumbUrl: first ? (first.kind === "video" ? first.posterUrl : first.url) : null,
+      video: first?.kind === "video", multi: p.items.length > 1, workout: !!p.workout, pinned: !!p.pinnedAt,
+      href: `/post/${p.id}`, label: p.caption || p.workout?.title || fallbackLabel,
+    };
+  });
 }

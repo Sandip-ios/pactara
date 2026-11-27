@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
-import { queryOptions, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
 import { Ban, ChevronDown, ChevronLeft, Flag, Lock, MessageCircle, MoreHorizontal, UserMinus, UserX } from 'lucide-react';
 import { newToastApi as toast } from "./new-toast";
@@ -16,7 +16,9 @@ import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetChevron, NewSheetMenuIcon, NewSheetRow } from './NewSheet';
 import { NewConfirm } from './NewConfirm';
-import { NewProfileWeekCard } from './NewOwnProfile';
+import { NewProfileWeekCard, ProfilePostsGrid } from './NewOwnProfile';
+import { getMemberSocialPosts } from '@/lib/posts.functions';
+import { profileGridTiles } from '@/lib/saved-posts';
 import { NewAvatarFallback } from './NewAvatarFallback';
 
 export const memberProfileOptions = (target: string) => queryOptions({
@@ -26,6 +28,13 @@ export const memberProfileOptions = (target: string) => queryOptions({
 });
 
 type Sheet = null | 'menu' | 'requested' | 'following' | 'report' | 'message' | 'crew';
+
+/** Their posts you can see: pinned first, then newest. */
+function MemberPosts({ target, name }: { target: string; name: string }) {
+  const { data } = useQuery({ queryKey: ['member-social-posts', target], queryFn: () => getMemberSocialPosts({ data: { target } }), staleTime: 30_000 });
+  if (!data?.length) return null;
+  return <ProfilePostsGrid tiles={profileGridTiles(data, `${name}'s post`)} />;
+}
 
 function MemberAvatar({ url, size }: { url: string | null; size: 56 | 84 }) {
   const [failed, setFailed] = useState<string | null>(null);
@@ -121,6 +130,7 @@ export function NewMemberProfile({ target }: { target: string }) {
       </div>}
     </section>
     {body === 'week' && crew && <NewProfileWeekCard groupId={crew.id} crewName={crew.name} showPicker={profile.sharedCrews.length > 1} onPick={() => setSheet('crew')} freezes={null} memberId={profile.id} />}
+    {body !== 'private' && <MemberPosts target={profile.id} name={first} />}
     {body === 'private' && <div className="new-member-private"><span className="new-member-lock"><Lock size={28} /></span><h2>This account is private</h2><p>Follow {first} to see their progress.</p></div>}
 
     <NewSheet open={sheet === 'menu'} onOpenChange={open => setSheet(open ? 'menu' : null)} title={`Options for ${first}`} hideTitle>

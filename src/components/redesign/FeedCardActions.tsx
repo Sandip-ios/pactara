@@ -28,7 +28,7 @@ export function FeedCardActions({ cheer, cheered, cheers, comments, openComments
   preview: CommentPreview | null;
   canComment?: boolean;
   /** Bookmark at the far right; filled when saved. */
-  save?: { saved: boolean; toggle: () => void } | undefined;
+  save?: { saved: boolean; toggle: () => void; count?: number } | undefined;
 }) {
   const visiblePreview = canComment ? preview : null;
   return <>
@@ -45,6 +45,7 @@ export function FeedCardActions({ cheer, cheered, cheers, comments, openComments
       {save && <Button variant="ghost" aria-label={save.saved ? "Saved" : "Save"} aria-pressed={save.saved} onClick={save.toggle} className={`relative h-[22px] min-h-0 min-w-0 shrink-0 rounded-none p-0 text-[#141218] after:absolute after:-inset-y-[11px] after:left-1/2 after:w-full after:min-w-11 after:-translate-x-1/2 after:content-[''] hover:bg-transparent ${cheerLine ? "" : "ml-auto"}`}>
         <Bookmark className="!size-[22px]" strokeWidth={2} fill={save.saved ? "currentColor" : "none"} aria-hidden />
       </Button>}
+      {save?.count !== undefined && <span className="-ml-2.5 shrink-0 text-[13px] tabular-nums text-[var(--new-muted)]">{save.count} saved</span>}
     </div>
     {visiblePreview && <div className="px-3.5 pb-3 text-[14px] leading-[1.4] text-[var(--new-ink-deep)]">
       <Button variant="ghost" aria-label={`Comments: ${visiblePreview.name} ${visiblePreview.body}`} onClick={openComments} className="relative block h-auto min-h-0 w-full rounded-none p-0 text-left text-[14px] font-normal leading-[1.4] after:absolute after:inset-x-0 after:top-1/2 after:min-h-11 after:h-full after:-translate-y-1/2 after:content-[''] hover:bg-transparent">

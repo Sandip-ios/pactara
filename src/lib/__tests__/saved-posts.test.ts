@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keepVisible, mergeSaved, type SavedRef } from "../saved-posts";
+import { keepVisible, mergeSaved, profileGridTiles, type SavedRef } from "../saved-posts";
 
 const r = (kind: "post" | "checkin", id: string, savedAt: string): SavedRef => ({ kind, id, savedAt });
 
@@ -19,5 +19,22 @@ describe("Saved › Posts list", () => {
   it("skips items you can no longer see or that were deleted", () => {
     const refs = [r("post", "p1", "a"), r("checkin", "c1", "b"), r("checkin", "gone", "c")];
     expect(keepVisible(refs, new Set(["post:p1", "checkin:c1"])).map((x) => x.id)).toEqual(["p1", "c1"]);
+  });
+});
+
+describe("Profile Posts grid", () => {
+  const p = (id: string, createdAt: string, extra: Partial<Parameters<typeof profileGridTiles>[0][number]> = {}) => ({ id, caption: "", createdAt, pinnedAt: null, workout: null, items: [{ kind: "photo" as const, url: `u-${id}`, posterUrl: null }], ...extra });
+  it("puts pinned posts first, then newest", () => {
+    const tiles = profileGridTiles([p("old", "2026-11-01"), p("new", "2026-11-05"), p("pin", "2026-10-01", { pinnedAt: "2026-11-02" })]);
+    expect(tiles.map((t) => t.id)).toEqual(["pin", "new", "old"]);
+    expect(tiles.map((t) => !!t.pinned)).toEqual([true, false, false]);
+  });
+  it("marks video, multi-photo and workout posts", () => {
+    const [v, m, w] = profileGridTiles([
+      p("v", "3", { items: [{ kind: "video", url: "x", posterUrl: "poster" }] }),
+      p("m", "2", { items: [{ kind: "photo", url: "a", posterUrl: null }, { kind: "photo", url: "b", posterUrl: null }] }),
+      p("w", "1", { workout: { title: "Legs" } }),
+    ]);
+    expect([v?.video, v?.thumbUrl, m?.multi, w?.workout, w?.label]).toEqual([true, "poster", true, true, "Legs"]);
   });
 });

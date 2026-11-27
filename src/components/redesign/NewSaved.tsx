@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
-import { Bookmark, Check, ChevronLeft, Layers, Play } from 'lucide-react';
+import { Bookmark, Check, ChevronLeft, Layers, Pin, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSavedPosts } from '@/lib/saved.functions';
 import type { SavedTile } from '@/lib/saved-posts';
@@ -17,12 +17,13 @@ function TilePill({ children }: { children: React.ReactNode }) {
   return <span className="absolute bottom-1.5 left-1.5 flex h-5 items-center gap-0.5 rounded-full bg-[rgba(20,18,24,0.72)] px-1.5 text-[10px] font-extrabold tracking-[0.04em] text-white">{children}</span>;
 }
 
-/** One 4:5 tile with the profile grid markers (video, multi-photo, WORKOUT) plus the check-in pill. */
+/** One 4:5 tile shared by Saved and the profile Posts grid: video, multi-photo, WORKOUT, check-in and (profile only) pin markers. */
 export function PostGridTile({ tile }: { tile: SavedTile }) {
   const router = useRouter();
   return <a href={tile.href} onClick={e => { e.preventDefault(); router.history.push(tile.href); }} aria-label={tile.label} className="relative block aspect-[4/5] overflow-hidden bg-[var(--new-control)]">
     {tile.thumbUrl ? <img src={tile.thumbUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="block h-full w-full" />}
     {tile.multi ? <Layers size={16} className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : tile.video ? <Play size={16} fill="currentColor" className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : null}
+    {tile.pinned && <Pin size={15} fill="currentColor" className="absolute left-1.5 top-1.5 rotate-45 text-white drop-shadow" aria-label="Pinned" />}
     {tile.kind === 'checkin' ? <TilePill><Check size={11} strokeWidth={3.5} aria-hidden />CHECK-IN</TilePill> : tile.workout ? <TilePill>WORKOUT</TilePill> : null}
   </a>;
 }

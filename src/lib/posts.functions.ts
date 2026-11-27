@@ -286,6 +286,16 @@ export const getMySocialPosts = createServerFn({ method: "GET" })
     return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (data ?? []) as Row[]));
   });
 
+/** Someone's live posts you're allowed to see (their profile Posts grid). RLS decides visibility, blocks included. */
+export const getMemberSocialPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { target: string }) => ({ target: String(input?.target ?? "") }))
+  .handler(async ({ context, data }) => {
+    const supabase = sb(context.supabase);
+    const { data: rows } = await supabase.from("social_posts").select("*").eq("user_id", data.target).eq("status", "live").order("pinned_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(60);
+    return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (rows ?? []) as Row[]));
+  });
+
 export const getSocialPost = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { id: string }) => ({ id: String(input?.id ?? "") }))
