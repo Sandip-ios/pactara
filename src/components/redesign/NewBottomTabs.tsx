@@ -1,12 +1,13 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
-import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, CalendarDays, Utensils } from "lucide-react";
+import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
 import { NewSheet, NewSheetRow, NewSheetIcon, NewSheetChevron } from "./NewSheet";
 import { NewAvatarFallback } from "./NewAvatarFallback";
+import { resetDraft } from "@/lib/post-draft";
 
 const ACTIVE = "#6D28D9";
 const INACTIVE = "#57534E";
@@ -64,10 +65,8 @@ export function NewBottomTabs() {
       <NewSheet open={createOpen} onOpenChange={setCreateOpen} title="Create" description="Pick what to create">
         <div>
           <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
-          <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" soon />
+          <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
           <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
-          <CreateRow icon={<CalendarDays size={20} />} title="Build a plan" subtitle="A few weeks of your workouts, day by day" soon />
-          <CreateRow icon={<Utensils size={20} />} title="Add a meal" subtitle="Breakfast, lunch, dinner or supplements" soon tone="meal" />
         </div>
       </NewSheet>
     </>

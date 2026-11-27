@@ -28,7 +28,7 @@ export type SocialPostItem = {
 
 export type SocialPostView = {
   id: string;
-  author: { id: string; name: string; avatarUrl: string | null; avatarColor: string | null };
+  author: { id: string; name: string; avatarUrl: string | null; avatarColor: string };
   isMine: boolean;
   caption: string;
   createdAt: string;

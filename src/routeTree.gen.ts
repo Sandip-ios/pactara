@@ -70,6 +70,11 @@ import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
 import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
+import { Route as AuthenticatedPostPostIdRouteImport } from './routes/_authenticated/post.$postId'
+import { Route as AuthenticatedPostComposeRouteImport } from './routes/_authenticated/post.compose'
+import { Route as AuthenticatedPostEditRouteImport } from './routes/_authenticated/post.edit'
+import { Route as AuthenticatedPostNewRouteImport } from './routes/_authenticated/post.new'
+import { Route as AuthenticatedPostShareWorkoutRouteImport } from './routes/_authenticated/post.share-workout'
 import { Route as AuthenticatedProfileEditRouteImport } from './routes/_authenticated/profile_.edit'
 import { Route as AuthenticatedProfilePrivacyRouteImport } from './routes/_authenticated/profile_.privacy'
 import { Route as AuthenticatedProfileProgressRouteImport } from './routes/_authenticated/profile_.progress'
@@ -427,6 +432,33 @@ const AuthenticatedPlansSlugRoute = AuthenticatedPlansSlugRouteImport.update({
   path: '/plans/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPostPostIdRoute = AuthenticatedPostPostIdRouteImport.update({
+  id: '/post/$postId',
+  path: '/post/$postId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPostComposeRoute =
+  AuthenticatedPostComposeRouteImport.update({
+    id: '/post/compose',
+    path: '/post/compose',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPostEditRoute = AuthenticatedPostEditRouteImport.update({
+  id: '/post/edit',
+  path: '/post/edit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPostNewRoute = AuthenticatedPostNewRouteImport.update({
+  id: '/post/new',
+  path: '/post/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPostShareWorkoutRoute =
+  AuthenticatedPostShareWorkoutRouteImport.update({
+    id: '/post/share-workout',
+    path: '/post/share-workout',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProfileEditRoute =
   AuthenticatedProfileEditRouteImport.update({
     id: '/profile_/edit',
@@ -652,6 +684,11 @@ export interface FileRoutesByFullPath {
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/post/$postId': typeof AuthenticatedPostPostIdRoute
+  '/post/compose': typeof AuthenticatedPostComposeRoute
+  '/post/edit': typeof AuthenticatedPostEditRoute
+  '/post/new': typeof AuthenticatedPostNewRoute
+  '/post/share-workout': typeof AuthenticatedPostShareWorkoutRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/profile/privacy': typeof AuthenticatedProfilePrivacyRoute
   '/profile/progress': typeof AuthenticatedProfileProgressRoute
@@ -742,6 +779,11 @@ export interface FileRoutesByTo {
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/post/$postId': typeof AuthenticatedPostPostIdRoute
+  '/post/compose': typeof AuthenticatedPostComposeRoute
+  '/post/edit': typeof AuthenticatedPostEditRoute
+  '/post/new': typeof AuthenticatedPostNewRoute
+  '/post/share-workout': typeof AuthenticatedPostShareWorkoutRoute
   '/profile/edit': typeof AuthenticatedProfileEditRoute
   '/profile/privacy': typeof AuthenticatedProfilePrivacyRoute
   '/profile/progress': typeof AuthenticatedProfileProgressRoute
@@ -835,6 +877,11 @@ export interface FileRoutesById {
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
+  '/_authenticated/post/$postId': typeof AuthenticatedPostPostIdRoute
+  '/_authenticated/post/compose': typeof AuthenticatedPostComposeRoute
+  '/_authenticated/post/edit': typeof AuthenticatedPostEditRoute
+  '/_authenticated/post/new': typeof AuthenticatedPostNewRoute
+  '/_authenticated/post/share-workout': typeof AuthenticatedPostShareWorkoutRoute
   '/_authenticated/profile_/edit': typeof AuthenticatedProfileEditRoute
   '/_authenticated/profile_/privacy': typeof AuthenticatedProfilePrivacyRoute
   '/_authenticated/profile_/progress': typeof AuthenticatedProfileProgressRoute
@@ -928,6 +975,11 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/pact/$groupId'
     | '/plans/$slug'
+    | '/post/$postId'
+    | '/post/compose'
+    | '/post/edit'
+    | '/post/new'
+    | '/post/share-workout'
     | '/profile/edit'
     | '/profile/privacy'
     | '/profile/progress'
@@ -1018,6 +1070,11 @@ export interface FileRouteTypes {
     | '/groups/$groupId'
     | '/pact/$groupId'
     | '/plans/$slug'
+    | '/post/$postId'
+    | '/post/compose'
+    | '/post/edit'
+    | '/post/new'
+    | '/post/share-workout'
     | '/profile/edit'
     | '/profile/privacy'
     | '/profile/progress'
@@ -1110,6 +1167,11 @@ export interface FileRouteTypes {
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/pact/$groupId'
     | '/_authenticated/plans/$slug'
+    | '/_authenticated/post/$postId'
+    | '/_authenticated/post/compose'
+    | '/_authenticated/post/edit'
+    | '/_authenticated/post/new'
+    | '/_authenticated/post/share-workout'
     | '/_authenticated/profile_/edit'
     | '/_authenticated/profile_/privacy'
     | '/_authenticated/profile_/progress'
@@ -1607,6 +1669,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlansSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/post/$postId': {
+      id: '/_authenticated/post/$postId'
+      path: '/post/$postId'
+      fullPath: '/post/$postId'
+      preLoaderRoute: typeof AuthenticatedPostPostIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/post/compose': {
+      id: '/_authenticated/post/compose'
+      path: '/post/compose'
+      fullPath: '/post/compose'
+      preLoaderRoute: typeof AuthenticatedPostComposeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/post/edit': {
+      id: '/_authenticated/post/edit'
+      path: '/post/edit'
+      fullPath: '/post/edit'
+      preLoaderRoute: typeof AuthenticatedPostEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/post/new': {
+      id: '/_authenticated/post/new'
+      path: '/post/new'
+      fullPath: '/post/new'
+      preLoaderRoute: typeof AuthenticatedPostNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/post/share-workout': {
+      id: '/_authenticated/post/share-workout'
+      path: '/post/share-workout'
+      fullPath: '/post/share-workout'
+      preLoaderRoute: typeof AuthenticatedPostShareWorkoutRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile_/edit': {
       id: '/_authenticated/profile_/edit'
       path: '/profile/edit'
@@ -1854,6 +1951,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
   AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
+  AuthenticatedPostPostIdRoute: typeof AuthenticatedPostPostIdRoute
+  AuthenticatedPostComposeRoute: typeof AuthenticatedPostComposeRoute
+  AuthenticatedPostEditRoute: typeof AuthenticatedPostEditRoute
+  AuthenticatedPostNewRoute: typeof AuthenticatedPostNewRoute
+  AuthenticatedPostShareWorkoutRoute: typeof AuthenticatedPostShareWorkoutRoute
   AuthenticatedProfileEditRoute: typeof AuthenticatedProfileEditRoute
   AuthenticatedProfilePrivacyRoute: typeof AuthenticatedProfilePrivacyRoute
   AuthenticatedProfileProgressRoute: typeof AuthenticatedProfileProgressRoute
@@ -1911,6 +2013,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
   AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
+  AuthenticatedPostPostIdRoute: AuthenticatedPostPostIdRoute,
+  AuthenticatedPostComposeRoute: AuthenticatedPostComposeRoute,
+  AuthenticatedPostEditRoute: AuthenticatedPostEditRoute,
+  AuthenticatedPostNewRoute: AuthenticatedPostNewRoute,
+  AuthenticatedPostShareWorkoutRoute: AuthenticatedPostShareWorkoutRoute,
   AuthenticatedProfileEditRoute: AuthenticatedProfileEditRoute,
   AuthenticatedProfilePrivacyRoute: AuthenticatedProfilePrivacyRoute,
   AuthenticatedProfileProgressRoute: AuthenticatedProfileProgressRoute,

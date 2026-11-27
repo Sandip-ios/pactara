@@ -229,7 +229,7 @@ async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]):
     if (workout && !mine) workout = { ...workout, prCount: 0, moves: workout.moves.map((m) => ({ ...m, sets: m.sets.map((s) => ({ ...s, isPr: false })) })) };
     return {
       id,
-      author: { id: r["user_id"] as string, name: (a?.["name"] as string) || "Member", avatarUrl: av ? (av.startsWith("http") ? av : avatars.get(av) ?? null) : null, avatarColor: (a?.["avatar_color"] as string | null) ?? null },
+      author: { id: r["user_id"] as string, name: (a?.["name"] as string) || "Member", avatarUrl: av ? (av.startsWith("http") ? av : avatars.get(av) ?? null) : null, avatarColor: (a?.["avatar_color"] as string | null) ?? "#7C3AED" },
       isMine: mine,
       caption: (r["caption"] as string) ?? "",
       createdAt: r["created_at"] as string,

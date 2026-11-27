@@ -209,3 +209,8 @@
 - [x] Plain trailing menu, library drawing verification, exact comment thumbnails
 - [x] Recapture top feed, unsaved/saved sheet, isolated plan/Health cards and Activity; remove temporary draft rows
 - [x] Full tests including database tests, typecheck and commit; no publish
+
+## Phase 5.2 camera-roll posts
+- [x] Build posts flow (picker, edit, compose, share workout, posting strip, own post, crew feed)
+- [x] No helper text under "Who sees it" chips (owner change)
+- [x] Tests + p5-2 QA screenshots (10 at 390x844); test data removed

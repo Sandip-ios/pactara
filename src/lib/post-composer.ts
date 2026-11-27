@@ -68,7 +68,7 @@ export function composerIsDirty(d: { items: number; caption: string; workoutAtta
 
 /** "46 min · 20 sets · 2 personal bests" for the Share workout card. */
 export function shareWorkoutStats(w: { minutes: number; sets: number; prs: number }): string {
-  const parts = [`${w.minutes} min`, `${w.sets} ${w.sets === 1 ? "set" : "sets"}`];
+  const parts = [...(w.minutes > 0 ? [`${w.minutes} min`] : []), `${w.sets} ${w.sets === 1 ? "set" : "sets"}`];
   if (w.prs > 0) parts.push(`${w.prs} ${w.prs === 1 ? "personal best" : "personal bests"}`);
   return parts.join(" · ");
 }

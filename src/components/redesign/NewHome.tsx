@@ -14,6 +14,8 @@ import { useClaimSharedWorkout } from "@/components/workout/useClaimSharedWorkou
 import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
 import { NewNotifBanner } from "./NewNotifBanner";
 
+import { PostingStrip } from "./post/PostingStrip";
+
 export function NewHome() {
   const navigate = useNavigate();
   const scrollRef = useOpenAtTop<HTMLDivElement>();
@@ -43,6 +45,7 @@ export function NewHome() {
           <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Activity" onClick={() => navigate({ to: "/activity" })}><Bell className="!size-5" />{(notifications?.total ?? 0) > 0 && <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[var(--new-red)]" />}</Button>
         </div>
       </header>
+      <PostingStrip />
       {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}
       <div className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-4 py-1">
         {isLoading ? <div className="h-24 animate-pulse" aria-label="Loading crews" /> : data?.groups.length ? data.groups.map((group) => {

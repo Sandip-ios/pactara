@@ -40,7 +40,8 @@ export function defaultEdit(m: DraftMedia): DraftItem {
 }
 
 /** The picked media in order, with their edits. */
-export function pickedItems(d: PostDraft): { media: DraftMedia; edit: DraftItem }[] {
+export type PickedItem = { media: DraftMedia; edit: DraftItem };
+export function pickedItems(d: PostDraft): PickedItem[] {
   return d.selected
     .map((id) => d.library.find((m) => m.id === id))
     .filter((m): m is DraftMedia => !!m)

@@ -21,6 +21,7 @@ import { saveSharedWorkout, shareSavedWorkout } from "@/lib/workout-share.functi
 import { shareText, shareTitle, shareUrl } from "@/lib/workout-share";
 import { shareLink } from "@/lib/share-link";
 import { useOpenAtTop } from "@/lib/use-open-at-top";
+import { resetDraft } from "@/lib/post-draft";
 
 const PURPLE = "#7C3AED";
 const PURPLE_INK = "#6D28D9";
@@ -276,7 +277,7 @@ export function NewWorkoutPage({ id }: { id: string }) {
       />
 
       {page.isMine && (
-        <WorkoutSharePanel variant="new" open={shareOpen} workoutId={page.workoutId} name={page.name} onClose={() => setShareOpen(false)} onShareLink={() => void shareOwnLink()} linkBusy={linkBusy} />
+        <WorkoutSharePanel variant="new" open={shareOpen} workoutId={page.workoutId} name={page.name} onClose={() => setShareOpen(false)} onShareLink={() => void shareOwnLink()} linkBusy={linkBusy} onPost={() => { setShareOpen(false); resetDraft(); void navigate({ to: "/post/share-workout", search: { workoutId: page.workoutId! } }); }} />
       )}
       {flow.overlays}
     </div>

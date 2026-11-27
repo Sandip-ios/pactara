@@ -71,6 +71,6 @@ describe("Capacitor includePlugins", () => {
   });
 
   it("matches the plugin count the iPhone README promises", () => {
-    expect(listed.size).toBe(10);
+    expect(listed.size).toBe(11);
   });
 });

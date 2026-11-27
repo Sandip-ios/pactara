@@ -79,7 +79,14 @@ async function run(job: PostJob) {
     for (let i = 0; i < job.files.length; i++) {
       const f = job.files[i]!;
       if (f.done) continue;
-      await uploadOne(f, token, (frac) => set({ ...strip!, progress: jobProgress(sizes, i, frac) }));
+      try {
+        await uploadOne(f, token, (frac) => set({ ...strip!, progress: jobProgress(sizes, i, frac) }));
+      } catch (e) {
+        // Some networks block the direct request; the client upload has no progress but still works.
+        if ((e as Error).message !== "network") throw e;
+        const { error } = await supabase.storage.from("posts").upload(f.path, f.blob, { contentType: f.contentType, upsert: true });
+        if (error) throw error;
+      }
       f.done = true;
       sizes[i]!.done = true;
       await idb("readwrite", (s) => s.put(job));

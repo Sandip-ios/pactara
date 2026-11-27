@@ -18,6 +18,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("@tanstack/react-query", () => ({
   useQuery: () => ({ data: { groups }, isLoading: false }),
 }));
+vi.mock("@/components/redesign/post/PostingStrip", () => ({ PostingStrip: () => null }));
 vi.mock("@/lib/group-today.functions", () => ({ getGroupsToday: vi.fn() }));
 vi.mock("@/components/redesign/social-query", () => ({ newActivityUnreadOptions: { queryKey: ['new-activity-unread'] } }));
 vi.mock("@/components/plans/PlanBits", () => ({ useMyPlans: () => ({ isSuccess: false }) }));

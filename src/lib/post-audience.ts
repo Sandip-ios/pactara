@@ -25,14 +25,6 @@ export function toggleCrew(a: PostAudience, crewId: string, under18: boolean): P
   return audienceIsValid(next, under18) ? next : a;
 }
 
-/** The chips row helper under "Who sees it". */
-export function audienceHelper(crewNames: string[], under18: boolean): string {
-  const crew = crewNames.length === 1 ? crewNames[0]! : "Your crews";
-  const crewLine = `${crew}: shows in the crew, but isn't a check-in.`;
-  if (under18) return crewLine;
-  return `Everyone: your profile, followers' feeds and Discover (videos over 3 min skip Discover). ${crewLine}`;
-}
-
 /** Mirrors can_see_social_post in the database. */
 export function canSeePost(
   post: { authorId: string; live: boolean; everyone: boolean; crewIds: string[]; authorPrivate: boolean },

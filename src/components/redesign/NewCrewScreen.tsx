@@ -11,6 +11,7 @@ import { usePartnerState } from "@/hooks/use-partner-state";
 import { relationForGroup } from "@/lib/group-display";
 import { elapsedLabel, NudgeButton } from "@/components/groups/AccountabilityBits";
 import { FeedList } from "@/components/feed/FeedList";
+import { getCrewSocialPosts } from "@/lib/posts.functions";
 import { useGroupFeed } from "@/components/feed/use-group-feed";
 import { FeedContext } from "@/components/feed/feed-context";
 import { isVideoUrl } from "@/components/feed/FeedMedia";
@@ -103,6 +104,11 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
   });
   const { data: prefs } = useQuery({ queryKey: ["notification-prefs"], queryFn: () => getNotificationPrefs() });
   const { data: partnerState } = usePartnerState();
+  const crewPosts = useQuery({
+    queryKey: ["crew-social-posts", groupId],
+    queryFn: () => getCrewSocialPosts({ data: { groupId, since: new Date(Date.now() - 90 * 86400_000).toISOString() } }),
+    staleTime: 30_000,
+  });
   const { data: joinGoal } = useQuery({ queryKey: ["crew-join-goal", groupId], queryFn: () => getCrewJoinGoal({ data: { groupId } }), staleTime: 60_000 });
   const [goalOpen, setGoalOpen] = useState(false);
   const [goalAnswered, setGoalAnswered] = useState(false);
@@ -256,6 +262,7 @@ export function NewCrewScreen({ groupId }: { groupId: string }) {
               onLoadMore={groupFeed.loadMore}
               todayCounts={{ inCount: counts.done, dueCount: counts.due }}
               variant="redesign"
+              socialPosts={crewPosts.data}
               deepLinkPost={deepLink?.post}
               deepLinkComments={deepLink?.comments}
               deepLinkComment={deepLink?.comment}

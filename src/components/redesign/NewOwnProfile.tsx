@@ -13,6 +13,8 @@ import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { ownNewProfileOptions } from './profile-query';
 import { NewSheet, NewSheetCheckbox, NewSheetChevron, NewSheetRow } from './NewSheet';
 import { NewAvatarFallback } from './NewAvatarFallback';
+import { getMySocialPosts } from '@/lib/posts.functions';
+import { Dumbbell, Layers } from 'lucide-react';
 
 export function NewProfileAvatar({ url, size }: { url: string | null; size: 84 | 96 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export function NewOwnProfile() {
     </section>
     {groupId && <NewProfileWeekCard groupId={groupId} crewName={crewName} showPicker={profile.crews.length > 1} onPick={() => setPicker(true)} freezes={profile.freezes} />}
     <div className="new-profile-note"><Lock size={18} aria-hidden /><p>Your crews always see your check-ins. Only you choose what goes on your public profile.</p></div>
+    <NewProfilePosts />
     <NewSheet open={menu} onOpenChange={setMenu} title="Profile" hideTitle description="Your profile menu">
       <NewSheetRow simple className="border-b-0" title="Account privacy" leading={<Lock />} trailing={<><span className="text-[14px] font-normal text-[var(--new-muted)]">{profile.isPrivate ? 'Private' : 'Public'}</span><NewSheetChevron /></>} onClick={() => { setMenu(false); void navigate({ to: '/profile/privacy' }); }} />
       {profile.isPrivate && <NewSheetRow simple title="Follow requests" leading={<Users />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/follow-requests' }); }} />}
@@ -67,5 +70,25 @@ export function NewProfileWeekCard({ groupId, crewName, showPicker, onPick, free
     <progress className="new-profile-week-progress" aria-label="This week's workouts" value={Math.min(me?.workouts ?? 0, me?.target ?? 1)} max={Math.max(1, me?.target ?? 1)} />
     {me ? <div className="new-profile-week-days">{newProfileWeek(me).map((day, index) => <div key={day.date}><span className={`new-profile-day ${day.state}`} aria-label={`${day.date}: ${day.state}`}>{day.state === 'checked' ? <Check size={18} /> : day.state === 'rest' ? 'Rest' : day.state === 'freeze' ? <Snowflake size={16} /> : null}</span><small>{['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}</small></div>)}</div> : <div className="h-[57px]" aria-label="Loading week" />}
     {chips.any && <div className={cn('new-profile-week-chips', chips.single && 'new-profile-week-chips-single')}>{chips.streak && <span className="new-profile-streak-chip"><Flame size={17} /><span>{me?.streak}-day streak</span></span>}{chips.freezes && <span className="new-profile-freeze-chip"><Snowflake size={17} /><span>{freezes} freezes</span></span>}</div>}
+  </section>;
+}
+
+/** Your camera-roll posts, newest first. */
+function NewProfilePosts() {
+  const { data } = useQuery({ queryKey: ['my-social-posts'], queryFn: () => getMySocialPosts(), staleTime: 30_000 });
+  if (!data?.length) return null;
+  return <section aria-label="Posts" className="px-4 pt-5">
+    <h2 className="pb-2.5 text-[15px] font-extrabold text-[var(--new-ink)]">Posts</h2>
+    <div className="grid grid-cols-3 gap-[2px] overflow-hidden rounded-[14px]">
+      {data.map(post => {
+        const first = post.items[0];
+        const thumb = first ? (first.kind === 'video' ? first.posterUrl : first.url) : null;
+        return <Link key={post.id} to="/post/$postId" params={{ postId: post.id }} aria-label={post.caption || 'Your post'} className="relative aspect-square bg-[var(--new-control)]">
+          {thumb ? <img src={thumb} alt="" className="h-full w-full object-cover" /> : <span className="flex h-full w-full flex-col items-center justify-center gap-1 px-2 text-center text-[12px] font-bold text-[var(--new-purple-text)]"><Dumbbell size={20} />{post.workout?.title ?? 'Post'}</span>}
+          {post.items.length > 1 && <Layers size={16} className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden />}
+          {post.status === 'uploading' && <span className="absolute inset-0 bg-white/50" aria-label="Posting" />}
+        </Link>;
+      })}
+    </div>
   </section>;
 }

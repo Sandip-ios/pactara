@@ -120,7 +120,7 @@ function TrimBar({ duration, start, end, onChange }: { duration: number; start: 
   const l = duration ? (start / duration) * 100 : 0;
   const r = duration ? (end / duration) * 100 : 100;
   return (
-    <div ref={bar} className="relative h-12 rounded-[10px]" style={{ background: "#292524" }} aria-label="Trim">
+    <div ref={bar} className="relative mx-4 h-12 rounded-[10px]" style={{ background: "#292524" }} aria-label="Trim">
       <div className="absolute inset-y-0 rounded-[8px]" style={{ left: `${l}%`, right: `${100 - r}%`, borderTop: `3px solid ${YELLOW}`, borderBottom: `3px solid ${YELLOW}`, background: "rgba(250,204,21,0.12)" }} />
       <button type="button" aria-label="Trim start" onPointerDown={drag("s")} className="absolute inset-y-0 w-4 -translate-x-full touch-none rounded-l-[8px]" style={{ left: `${l}%`, background: YELLOW }} />
       <button type="button" aria-label="Trim end" onPointerDown={drag("e")} className="absolute inset-y-0 w-4 touch-none rounded-r-[8px]" style={{ left: `${r}%`, background: YELLOW }} />

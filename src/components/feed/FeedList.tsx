@@ -11,6 +11,8 @@ import { RedesignPostCard } from "@/components/redesign/RedesignPostCard";
 import { RedesignCheckInCard } from "@/components/redesign/RedesignCheckInCard";
 import { crewStreakKept, redesignDayLabel } from "@/lib/redesign-feed-view";
 import { FeedContext } from "@/components/feed/feed-context";
+import type { SocialPostView } from "@/lib/social-post-types";
+import { SocialPostCard } from "@/components/redesign/post/SocialPostCard";
 import { MilestoneRow, MissedRow, NotYetRow, QuietDayRow, RestedRow } from "@/components/feed/QuietRows";
 
 const PURPLE = "#7C3AED";
@@ -161,6 +163,7 @@ export function FeedList({
   loadMoreFailed = false,
   onLoadMore,
   variant = "classic",
+  socialPosts,
 }: {
   items: FeedItem[] | undefined;
   meta: FeedMeta | null | undefined;
@@ -186,11 +189,14 @@ export function FeedList({
   onLoadMore?: () => void;
   /** The redesign's crew Posts tab: new day headers and post cards, same data and actions. */
   variant?: "classic" | "redesign";
+  /** New version: camera-roll posts shared to this crew, mixed in by time with no tag. */
+  socialPosts?: SocialPostView[];
 }) {
   const redesign = variant === "redesign";
   const days = useMemo(() => buildFeedDays(items ?? [], meta, localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone), { split: variant === "redesign" }), [items, meta, variant]);
   const me = meta?.members.find((m) => m.isMe) ?? null;
-  const hasPosts = days.some((d) => d.entries.some((e) => e.kind === "checkins" || e.kind === "update"));
+  const crewPosts = redesign ? socialPosts ?? [] : [];
+  const hasPosts = crewPosts.length > 0 || days.some((d) => d.entries.some((e) => e.kind === "checkins" || e.kind === "update"));
   const viewerToday = meta?.viewerToday;
   const feedGroupId = groupId ?? items?.[0]?.groupId ?? "";
 
@@ -359,7 +365,17 @@ export function FeedList({
                 )}
               </div>
               )}
-              {day.entries.map((entry) => {
+              {(() => {
+                const dayPosts = crewPosts.filter((p) => new Date(p.createdAt).toLocaleDateString("en-CA") === day.date);
+                const shown = new Set<string>();
+                const before = (at: string | null) => {
+                  const due = dayPosts.filter((p) => !shown.has(p.id) && (at === null || p.createdAt > at));
+                  due.forEach((p) => shown.add(p.id));
+                  return due.map((p) => <SocialPostCard key={`sp-${p.id}`} post={p} groupId={feedGroupId} />);
+                };
+                const out = day.entries.map((entry) => {
+                const entryAt = entry.kind === "checkins" ? entry.checkIns[0]?.at ?? null : entry.kind === "update" ? entry.node.at : null;
+                const leading = entryAt ? before(entryAt) : null;
                 const pid = entry.kind === "quiet"
                   ? entry.missedItems.find((i) => i.id === deepLinkPost)?.id ?? null
                   : entryPostId(entry);
@@ -373,6 +389,7 @@ export function FeedList({
                 const autoOpen = Boolean(isTarget && deepLinkComments && deepLinkPost === pid);
                 return (
                   <div key={entry.key} id={first ? `post-${pid}` : undefined}>
+                    {leading}
                     {entry.kind === "quiet" ? (
                       <QuietDayRow
                         missed={entry.missed}
@@ -384,7 +401,9 @@ export function FeedList({
                     )}
                   </div>
                 );
-              })}
+                });
+                return <>{out}{before(null)}</>;
+              })()}
             </section>
           );
         })}

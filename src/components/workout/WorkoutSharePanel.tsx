@@ -27,6 +27,7 @@ export function WorkoutSharePanel({
   onShareLink,
   linkBusy,
   variant = "classic",
+  onPost,
 }: {
   open: boolean;
   workoutId: string | null;
@@ -36,6 +37,8 @@ export function WorkoutSharePanel({
   linkBusy: boolean;
   /** "new": the new version's NewSheet look; same crews, sends and link. */
   variant?: "classic" | "new";
+  /** New version only: open the Share workout composer. */
+  onPost?: () => void;
 }) {
   const version = useAppVersion();
   const qc = useQueryClient();
@@ -103,6 +106,11 @@ export function WorkoutSharePanel({
           {!isLoading && (
             <section className="flex flex-col gap-2">
               <SectionLabel>ANYONE ELSE</SectionLabel>
+              {onPost && (
+                <button type="button" onClick={onPost} className="flex h-[52px] w-full items-center justify-between rounded-[16px] bg-white px-4 text-left text-[16px] font-bold" style={{ border: "1px solid #E7E3DE", color: "#1C1917" }}>
+                  Post it to your profile and crews <span aria-hidden style={{ color: "#A8A29E" }}>›</span>
+                </button>
+              )}
               <ShareLinkRow onClick={onShareLink} busy={linkBusy} />
             </section>
           )}
