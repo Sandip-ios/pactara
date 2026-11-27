@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useNavigate, useRouter } from '@tanstack/react-router';
 import { Bookmark, Check, ChevronLeft, Layers, Pin, Play } from 'lucide-react';
@@ -20,8 +20,11 @@ function TilePill({ children }: { children: React.ReactNode }) {
 /** One 4:5 tile shared by Saved and the profile Posts grid: video, multi-photo, WORKOUT, check-in and (profile only) pin markers. */
 export function PostGridTile({ tile }: { tile: SavedTile }) {
   const router = useRouter();
+  const [failed, setFailed] = useState<string | null>(null);
+  const thumb = tile.thumbUrl && tile.thumbUrl !== failed ? tile.thumbUrl : null;
   return <a href={tile.href} onClick={e => { e.preventDefault(); router.history.push(tile.href); }} aria-label={tile.label} className="relative block aspect-[4/5] overflow-hidden bg-[var(--new-control)]">
-    {tile.thumbUrl ? <img src={tile.thumbUrl} alt="" loading="lazy" className="h-full w-full object-cover" /> : <span className="block h-full w-full" />}
+    {thumb ? <img src={thumb} alt="" loading="lazy" className="h-full w-full object-cover" onError={() => setFailed(thumb)} />
+      : <span className="flex h-full w-full items-center justify-center bg-[#EDE4FF] p-2 text-center text-[12px] font-semibold leading-[1.3] text-[#5B21B6]"><span className="line-clamp-4">{tile.label}</span></span>}
     {tile.multi ? <Layers size={16} className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : tile.video ? <Play size={16} fill="currentColor" className="absolute right-1.5 top-1.5 text-white drop-shadow" aria-hidden /> : null}
     {tile.pinned && <Pin size={15} fill="currentColor" className="absolute left-1.5 top-1.5 rotate-45 text-white drop-shadow" aria-label="Pinned" />}
     {tile.kind === 'checkin' ? <TilePill><Check size={11} strokeWidth={3.5} aria-hidden />CHECK-IN</TilePill> : tile.workout ? <TilePill>WORKOUT</TilePill> : null}

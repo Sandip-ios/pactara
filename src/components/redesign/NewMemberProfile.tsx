@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { queryOptions, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Ban, ChevronDown, Flag, Lock, UserMinus, UserX } from 'lucide-react';
+import { Ban, Bell, ChevronDown, Flag, Lock, UserMinus, UserX } from 'lucide-react';
 import { newToastApi as toast } from "./new-toast";
 import { Button } from '@/components/ui/button';
 import { getRedesignMemberProfile } from '@/lib/redesign-profile.functions';
@@ -21,7 +21,7 @@ import { NewSheet, NewSheetButton, NewSheetCheckbox, NewSheetChevron, NewSheetMe
 import { NewConfirm } from './NewConfirm';
 import { getMemberSocialPosts } from '@/lib/posts.functions';
 import { profileGridTiles } from '@/lib/saved-posts';
-import { LockCard, MealsTab, MemberWorkoutsTab, P51Avatar, P51Back, P51Header, P51More, P51PostsGrid, P51Stats, P51Tabs, PlansTab, ProfileSkeleton, shareLink, type ProfileTab } from './NewProfileParts';
+import { LockCard, P51InfoParts, MealsTab, MemberWorkoutsTab, P51Avatar, P51Back, P51Header, P51More, P51PostsGrid, P51Stats, P51Tabs, PlansTab, ProfileSkeleton, shareLink, type ProfileTab } from './NewProfileParts';
 
 export const memberProfileOptions = (target: string) => queryOptions({
   queryKey: ['new-member-profile', target],
@@ -79,9 +79,10 @@ function BlockedProfile({ profile, onBack }: { profile: Blocked; onBack: () => v
     catch { toast.error('Could not unblock. Try again.'); }
     finally { setBusy(false); }
   };
-  return <Shell title={`@${profile.username || first}`} state={{ ...state, header: { left: 'back', right: 'none' } }} onBack={onBack}>
+  return <Shell title={profile.username || first} state={state} onBack={onBack} onMore={() => setOpen(true)} moreLabel={`Options for ${first}`}>
     <section className="new-profile-identity">
-      <div className="new-profile-avatar-row"><P51Avatar url={null} label={first} /><div className="min-w-0"><h2 className="new-profile-name">{profile.name?.trim() || profile.username}</h2></div></div>
+      <div className="new-profile-avatar-row"><P51Avatar url={null} label={first} /><P51Stats userId={profile.id} posts={0} followers={0} following={0} listsOpen={false} /></div>
+      <h2 className="new-profile-name">{profile.name?.trim() || profile.username}</h2>
       <div className="p51-buttons"><Button variant="ghost" className="p51-btn outline" onClick={() => setOpen(true)}>Unblock</Button></div>
     </section>
     <section className="p51-card"><span className="lock"><Ban size={24} /></span><h2>You blocked {first}</h2><p>They can't see your profile, posts or check-ins, and you won't see theirs. They aren't told you blocked them.</p></section>
@@ -161,22 +162,22 @@ function MemberProfileBody({ profile, tab, onTab, onBack: back }: { profile: Loa
   const sent = nudged || nudgedAlready;
 
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-profile-page fixed inset-0 overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]">
-    <P51Header title={<span className="inline-flex max-w-full items-center gap-1">{profile.isPrivate && <Lock size={14} aria-label="Private account" className="shrink-0" />}<span className="truncate">@{profile.username || first}</span></span>} left={<P51Back onClick={back} />} right={<P51More label={`Options for ${first}`} onClick={() => setSheet('menu')} />} />
+    <P51Header title={<span className="inline-flex max-w-full items-center gap-1">{profile.isPrivate && <Lock size={14} aria-label="Private account" className="shrink-0" />}<span className="truncate">{profile.username || first}</span></span>} left={<P51Back onClick={back} />} right={<P51More label={`Options for ${first}`} onClick={() => setSheet('menu')} />} />
     <section className="new-profile-identity">
       <div className="new-profile-avatar-row"><P51Avatar url={profile.avatarUrl} label={first} /><P51Stats userId={profile.id} posts={profile.posts} followers={profile.followers} following={profile.following} listsOpen={canSeeLists} /></div>
       <div>
         <h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>
         {profile.bio && <p className="new-profile-bio">{profile.bio}</p>}
-        {info.length > 0 && <p className="p51-line">{info.join(' · ')}</p>}
+        {info.length > 0 && <p className="p51-line"><P51InfoParts parts={info} /></p>}
       </div>
       <div className="p51-buttons">{state.buttons.map(b => b === 'follow' ? <Button key={b} variant="ghost" disabled={busy} className="p51-btn primary" onClick={() => void doFollow()}>Follow</Button>
         : b === 'follow_back' ? <Button key={b} variant="ghost" disabled={busy} className="p51-btn primary" onClick={() => void doFollow()}>Follow back</Button>
         : b === 'following' ? <Button key={b} variant="ghost" disabled={busy} className="p51-btn light" onClick={() => setSheet('following')}>Following<ChevronDown size={16} /></Button>
         : b === 'requested' ? <Button key={b} variant="ghost" disabled={busy} className="p51-btn light" onClick={() => setSheet('requested')}>Requested</Button>
-        : b === 'nudge' ? <Button key={b} variant="ghost" disabled={busy || sent} className="p51-btn light" onClick={() => void sendNudge()}>{sent ? 'Nudged' : '🔔 Nudge'}</Button>
+        : b === 'nudge' ? <Button key={b} variant="ghost" disabled={busy || sent} className="p51-btn light" onClick={() => void sendNudge()}><Bell size={18} aria-hidden />{sent ? 'Nudged' : 'Nudge'}</Button>
         : <Button key={b} variant="ghost" className="p51-btn light" onClick={() => void shareLink(`/u/${profile.username || profile.id}`, profile.name)}>Share profile</Button>)}</div>
     </section>
-    {state.content === 'locked' ? <><P51Tabs tab={tab} muted /><LockCard first={first} crew={state.crewLink ? crew : null} /></> : <>
+    {state.content === 'locked' ? <><LockCard first={first} crew={state.crewLink ? crew : null} /></> : <>
       <P51Tabs tab={tab} onTab={onTab} />
       {tab === 'posts' && <MemberPosts target={profile.id} name={first} />}
       {tab === 'workouts' && <MemberWorkoutsTab target={profile.id} />}

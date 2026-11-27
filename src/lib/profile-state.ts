@@ -56,7 +56,8 @@ export function profileState(input: ProfileStateInput): ProfileState {
       const locked = priv && input.follow !== 'following';
       return {
         header: { left: 'back', right: 'more' },
-        buttons: follow ? [follow, second] : [second],
+        // Locked, not a crewmate: one full-width follow button, no Share profile.
+        buttons: locked && input.sharedCrews === 0 && follow ? [follow] : follow ? [follow, second] : [second],
         content: locked ? 'locked' : 'tabs',
         crewLink: locked && input.sharedCrews > 0,
         followsYou: follow === 'follow_back',
@@ -74,22 +75,31 @@ export function sharedCrewLabel(names: readonly string[]): string | null {
 }
 
 /** Others' info line parts (shown joined with " · "). */
-export function memberInfoParts(input: { crewNames: readonly string[]; streak: number | null; followsYou: boolean; followedBy: string | null }): string[] {
-  const parts: string[] = [];
+/** One info-line segment; the icon is drawn as a line icon, never an emoji. */
+export type InfoPart = { icon: 'users' | 'flame' | null; text: string };
+
+export function memberInfoParts(input: { crewNames: readonly string[]; streak: number | null; followsYou: boolean; followedBy: string | null }): InfoPart[] {
+  const parts: InfoPart[] = [];
   const crew = sharedCrewLabel(input.crewNames);
-  if (crew) parts.push(`👥 ${crew}`);
-  if ((input.streak ?? 0) > 0) parts.push(`🔥 ${input.streak}-day streak`);
-  if (!crew && input.followedBy) parts.push(input.followedBy);
-  if (input.followsYou) parts.push('Follows you');
+  if (crew) parts.push({ icon: 'users', text: crew });
+  if ((input.streak ?? 0) > 0) parts.push({ icon: 'flame', text: `${input.streak}-day streak` });
+  if (!crew && input.followedBy) parts.push({ icon: null, text: input.followedBy });
+  if (input.followsYou) parts.push({ icon: null, text: 'Follows you' });
   return parts;
 }
 
-/** Own info line: "🔥 18-day streak · 4 badges" (zero parts left out). */
-export function ownInfoLine(streak: number, badges: number): string {
-  const parts: string[] = [];
-  if (streak > 0) parts.push(`🔥 ${streak}-day streak`);
-  if (badges > 0) parts.push(`${badges} ${badges === 1 ? 'badge' : 'badges'}`);
-  return parts.join(' · ');
+/** Own info line: [flame] 18-day streak · 4 badges (zero parts left out). */
+export function ownInfoLine(streak: number, badges: number): InfoPart[] {
+  const parts: InfoPart[] = [];
+  if (streak > 0) parts.push({ icon: 'flame', text: `${streak}-day streak` });
+  if (badges > 0) parts.push({ icon: null, text: `${badges} ${badges === 1 ? 'badge' : 'badges'}` });
+  return parts;
+}
+
+/** "1 post", "2 followers", "1 following" style stat labels. */
+export function statLabel(kind: 'posts' | 'followers' | 'following', n: number): string {
+  if (kind === 'following') return 'following';
+  return n === 1 ? kind.slice(0, -1) : kind;
 }
 
 export type ProfileWorkoutRow = { id: string; code: string | null; name: string; exercises: number; minutes: number; fromName: string | null; saves: number; muscle: string; myCopyId: string | null };
@@ -112,15 +122,15 @@ export function groupByMuscle<T extends { muscle: string; name: string }>(rows: 
 
 export const peopleStarted = (n: number) => `${n} ${n === 1 ? 'person' : 'people'} started`;
 
-export type SetupStep = { key: 'bio' | 'friends' | 'post' | 'photo'; title: string; action: string; done: boolean };
+export type SetupStep = { key: 'bio' | 'friends' | 'post' | 'photo'; title: string; body: string; action: string; done: boolean };
 
 /** "Complete your profile" (board 15): four steps; null once all are done. */
 export function completeProfileSteps(input: { bio: string | null; following: number; posts: number; hasPhoto: boolean }): { steps: SetupStep[]; done: number } | null {
   const steps: SetupStep[] = [
-    { key: 'bio', title: 'Add a bio', action: 'Add bio', done: !!input.bio?.trim() },
-    { key: 'friends', title: 'Find friends', action: 'Find', done: input.following > 0 },
-    { key: 'post', title: 'First post', action: 'Post', done: input.posts > 0 },
-    { key: 'photo', title: 'Add a photo', action: 'Add', done: input.hasPhoto },
+    { key: 'bio', title: 'Add a bio', body: "Tell people what you're working on", action: 'Add bio', done: !!input.bio?.trim() },
+    { key: 'friends', title: 'Find friends', body: 'See who from your contacts is here', action: 'Find', done: input.following > 0 },
+    { key: 'post', title: 'First post', body: 'Share a workout, meal or photo', action: 'Post', done: input.posts > 0 },
+    { key: 'photo', title: 'Add a photo', body: "So your crew knows it's you", action: 'Add', done: input.hasPhoto },
   ];
   const done = steps.filter(s => s.done).length;
   return done === steps.length ? null : { steps, done };

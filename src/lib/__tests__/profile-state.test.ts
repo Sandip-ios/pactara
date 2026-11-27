@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupByMuscle, memberInfoParts, ownInfoLine, profileState, sharedCrewLabel, workoutMeta, type ProfileStateInput } from '../profile-state';
+import { groupByMuscle, memberInfoParts, ownInfoLine, profileState, sharedCrewLabel, statLabel, workoutMeta, type ProfileStateInput } from '../profile-state';
 
 const other = (o: Partial<Extract<ProfileStateInput, { status: 'other' }>> = {}): ProfileStateInput => ({ status: 'other', iBlocked: false, isPrivate: false, under18: false, follow: 'none', followsMe: false, canFollow: true, sharedCrews: 0, nudgeable: false, ...o });
 
@@ -15,10 +15,10 @@ describe('profileState', () => {
     expect(profileState(other({ followsMe: true }))).toMatchObject({ buttons: ['follow_back', 'share'], followsYou: true });
   });
   it('private, requested: Requested + lock card', () => {
-    expect(profileState(other({ isPrivate: true, follow: 'requested' }))).toMatchObject({ buttons: ['requested', 'share'], content: 'locked' });
+    expect(profileState(other({ isPrivate: true, follow: 'requested' }))).toMatchObject({ buttons: ['requested'], content: 'locked' });
   });
   it('private, not following: Follow + lock card', () => {
-    expect(profileState(other({ isPrivate: true }))).toMatchObject({ buttons: ['follow', 'share'], content: 'locked', crewLink: false });
+    expect(profileState(other({ isPrivate: true }))).toMatchObject({ buttons: ['follow'], content: 'locked', crewLink: false });
   });
   it('private and followed: tabs', () => expect(profileState(other({ isPrivate: true, follow: 'following' })).content).toBe('tabs'));
   it('under 18 behaves as private', () => expect(profileState(other({ under18: true })).content).toBe('locked'));
@@ -50,12 +50,19 @@ describe('info lines', () => {
     expect(sharedCrewLabel([])).toBeNull();
   });
   it('member parts', () => {
-    expect(memberInfoParts({ crewNames: ['FitFam'], streak: 46, followsYou: false, followedBy: null })).toEqual(['👥 In FitFam with you', '🔥 46-day streak']);
-    expect(memberInfoParts({ crewNames: [], streak: 0, followsYou: true, followedBy: 'Followed by Ana' })).toEqual(['Followed by Ana', 'Follows you']);
+    expect(memberInfoParts({ crewNames: ['FitFam'], streak: 46, followsYou: false, followedBy: null })).toEqual([{ icon: 'users', text: 'In FitFam with you' }, { icon: 'flame', text: '46-day streak' }]);
+    expect(memberInfoParts({ crewNames: [], streak: 0, followsYou: true, followedBy: 'Followed by Ana' })).toEqual([{ icon: null, text: 'Followed by Ana' }, { icon: null, text: 'Follows you' }]);
   });
   it('own line', () => {
-    expect(ownInfoLine(18, 4)).toBe('🔥 18-day streak · 4 badges');
-    expect(ownInfoLine(0, 1)).toBe('1 badge');
+    expect(ownInfoLine(18, 4)).toEqual([{ icon: 'flame', text: '18-day streak' }, { icon: null, text: '4 badges' }]);
+    expect(ownInfoLine(0, 1)).toEqual([{ icon: null, text: '1 badge' }]);
+  });
+  it('stat labels are singular at 1', () => {
+    expect(statLabel('posts', 1)).toBe('post');
+    expect(statLabel('followers', 1)).toBe('follower');
+    expect(statLabel('posts', 0)).toBe('posts');
+    expect(statLabel('followers', 2)).toBe('followers');
+    expect(statLabel('following', 1)).toBe('following');
   });
   it('workout meta', () => {
     expect(workoutMeta({ exercises: 6, minutes: 45, fromName: 'Maya Lindqvist', saves: 3 }, true)).toBe('6 exercises · 45 min · from Maya Lindqvist · saved 3 times');

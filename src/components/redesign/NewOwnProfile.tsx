@@ -5,7 +5,7 @@ import { Bookmark, ChevronRight, Lock, Menu, Settings, ShieldBan, Users } from '
 import { Button } from '@/components/ui/button';
 import { completeProfileSteps, ownInfoLine } from '@/lib/profile-state';
 import { useAvatarPicker } from '@/components/profile/use-avatar-picker';
-import { Camera, Check, FileText, UserPlus } from 'lucide-react';
+import { Camera, Check, Pencil, Plus } from 'lucide-react';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
@@ -14,7 +14,7 @@ import { profileGridTiles } from '@/lib/saved-posts';
 import { ownNewProfileOptions } from './profile-query';
 import { NewSheet, NewSheetChevron, NewSheetRow } from './NewSheet';
 import { NewAvatarFallback } from './NewAvatarFallback';
-import { MealsTab, OwnWorkoutsTab, P51Avatar, P51Header, P51PostsGrid, P51Stats, P51Tabs, PlansTab, shareLink, type ProfileTab } from './NewProfileParts';
+import { FlatDumbbell, MealsTab, OwnWorkoutsTab, P51InfoParts, P51Avatar, P51Header, P51PostsGrid, P51Stats, P51Tabs, PlansTab, shareLink, type ProfileTab } from './NewProfileParts';
 
 export function NewProfileAvatar({ url, size }: { url: string | null; size: 84 | 96 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
@@ -35,19 +35,19 @@ export function NewOwnProfile({ tab, onTab }: { tab: ProfileTab; onTab: (t: Prof
   const line = ownInfoLine(profile.streak, profile.badges);
   const go = (to: '/saved' | '/profile/privacy' | '/follow-requests' | '/account-settings/blocked' | '/account-settings') => { setMenu(false); void navigate({ to }); };
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-profile-page fixed inset-0 overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]">
-    <P51Header title={`@${handle}`} left={null} right={<Button variant="ghost" className="p51-round" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button>} />
+    <P51Header title={handle} left={null} right={<Button variant="ghost" className="p51-round" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button>} />
     <section className="new-profile-identity">
       <div className="new-profile-avatar-row"><P51Avatar url={profile.avatarUrl} label="Your photo" /><P51Stats userId={profile.id} posts={posts?.length ?? 0} followers={profile.followers} following={profile.following} listsOpen /></div>
       <div>
         <h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>
         {profile.bio && <p className="new-profile-bio">{profile.bio}</p>}
-        <p className="p51-line">{line && <Link to="/profile/progress" className="!text-inherit !font-normal">{line}</Link>}<Link to="/profile/progress">See progress ›</Link></p>
+        <p className="p51-line">{line.length > 0 && <Link to="/profile/progress" className="p51-parts !text-inherit !font-normal"><P51InfoParts parts={line} /></Link>}<Link to="/profile/progress">See progress ›</Link></p>
       </div>
       <div className="p51-buttons">
-        <Button variant="ghost" asChild className="p51-btn light"><Link to="/profile/edit">Edit profile</Link></Button>
+        <Button variant="ghost" asChild className="p51-btn light"><Link to="/profile/edit"><Pencil size={16} aria-hidden />Edit profile</Link></Button>
         <Button variant="ghost" className="p51-btn light" onClick={() => void shareLink(`/u/${profile.username || profile.id}`, profile.name)}>Share profile</Button>
       </div>
-      {profile.plan && <Link to="/plans/$slug" params={{ slug: profile.plan.slug }} className="p51-plan"><span className="p51-plan-cover">{profile.plan.coverUrl && <img src={profile.plan.coverUrl} alt="" />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks} · others can view and start it</small></span><ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" /></Link>}
+      {profile.plan && <Link to="/plans/$slug" params={{ slug: profile.plan.slug }} className="p51-plan"><span className="p51-plan-cover">{profile.plan.coverUrl ? <img src={profile.plan.coverUrl} alt="" /> : <FlatDumbbell size={20} />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks} · others can view and start it</small></span><ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" /></Link>}
     </section>
     <CompleteProfile bio={profile.bio} following={profile.following} posts={posts?.length ?? null} hasPhoto={!!profile.avatarUrl} />
     <P51Tabs tab={tab} onTab={onTab} />
@@ -66,7 +66,7 @@ export function NewOwnProfile({ tab, onTab }: { tab: ProfileTab; onTab: (t: Prof
   </div>;
 }
 
-const STEP_ICON = { bio: FileText, friends: UserPlus, post: Camera, photo: Camera } as const;
+const STEP_ICON = { bio: Pencil, friends: Users, post: Plus, photo: Camera } as const;
 
 /** Board 15: shown between the buttons and the tabs until all four steps are done. */
 function CompleteProfile({ bio, following, posts, hasPhoto }: { bio: string | null; following: number; posts: number | null; hasPhoto: boolean }) {
@@ -79,7 +79,7 @@ function CompleteProfile({ bio, following, posts, hasPhoto }: { bio: string | nu
   return <section className="p51-setup" aria-label="Complete your profile">
     <div className="p51-setup-head"><h2>Complete your profile</h2><span>{setup.done} of 4 done</span></div>
     <div className="p51-setup-row">{setup.steps.map(s => { const Icon = STEP_ICON[s.key]; return <div key={s.key} className={`p51-setup-card${s.done ? ' is-done' : ''}`}>
-      <span className="ic">{s.done ? <Check size={22} strokeWidth={3} /> : <Icon size={20} />}</span><strong>{s.title}</strong>
+      <span className="ic">{s.done ? <Check size={22} strokeWidth={3} /> : <Icon size={22} />}</span><strong>{s.title}</strong><p>{s.body}</p>
       {s.done ? <span className="act">Done</span>
         : s.key === 'bio' ? <Link to="/profile/edit" className="act">{s.action}</Link>
         : s.key === 'friends' ? <Link to="/groups" className="act">{s.action}</Link>

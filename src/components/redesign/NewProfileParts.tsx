@@ -2,12 +2,12 @@ import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
-import { Check, ChevronLeft, Dumbbell, Lock, MoreHorizontal, Pencil, Plus, Share, Trash2, Users } from 'lucide-react';
+import { Check, ChevronLeft, Dumbbell, Flame, LayoutGrid, Lock, MoreHorizontal, Pencil, Plus, Share, Trash2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getProfilePlans, getProfileWorkouts } from '@/lib/profile-content.functions';
 import { deleteSavedWorkout } from '@/lib/lifts.functions';
 import { saveSharedWorkout } from '@/lib/workout-share.functions';
-import { groupByMuscle, peopleStarted, workoutMeta, type ProfileWorkoutRow } from '@/lib/profile-state';
+import { groupByMuscle, peopleStarted, statLabel, workoutMeta, type InfoPart, type ProfileWorkoutRow } from '@/lib/profile-state';
 import type { SavedTile } from '@/lib/saved-posts';
 import { PostGridTile } from './NewSaved';
 import { NewSheet, NewSheetMenuIcon, NewSheetRow } from './NewSheet';
@@ -43,10 +43,10 @@ export function P51Avatar({ url, label }: { url: string | null; label: string })
 /** posts / followers / following; the two lists open only when `listsOpen`. */
 export function P51Stats({ userId, posts, followers, following, listsOpen }: { userId: string; posts: number; followers: number; following: number; listsOpen: boolean }) {
   return <div className="p51-counts">
-    <div className="p51-stat"><strong>{posts}</strong><span>posts</span></div>
+    <div className="p51-stat"><strong>{posts}</strong><span>{statLabel('posts', posts)}</span></div>
     {(['followers', 'following'] as const).map(tab => listsOpen
-      ? <Button key={tab} variant="ghost" asChild className="p51-stat"><Link to="/u/$userId/follows" params={{ userId }} search={{ socialTab: tab }}><strong>{tab === 'followers' ? followers : following}</strong><span>{tab}</span></Link></Button>
-      : <div key={tab} className="p51-stat"><strong>{tab === 'followers' ? followers : following}</strong><span>{tab}</span></div>)}
+      ? <Button key={tab} variant="ghost" asChild className="p51-stat"><Link to="/u/$userId/follows" params={{ userId }} search={{ socialTab: tab }}><strong>{tab === 'followers' ? followers : following}</strong><span>{statLabel(tab, tab === 'followers' ? followers : following)}</span></Link></Button>
+      : <div key={tab} className="p51-stat"><strong>{tab === 'followers' ? followers : following}</strong><span>{statLabel(tab, tab === 'followers' ? followers : following)}</span></div>)}
   </div>;
 }
 
@@ -56,13 +56,23 @@ export function P51Tabs({ tab, onTab, muted = false }: { tab: ProfileTab; onTab?
   </div>;
 }
 
-export function P51Empty({ title, body, action }: { title: string; body?: string; action?: ReactNode }) {
-  return <div className="p51-empty"><h3>{title}</h3>{body && <p>{body}</p>}{action}</div>;
+/** Horizontal dumbbell: lucide draws it on the diagonal. */
+export function FlatDumbbell({ size }: { size: number }) {
+  return <Dumbbell size={size} className="rotate-45" aria-hidden />;
+}
+
+/** Info line segments with 13px line icons in the muted color. */
+export function P51InfoParts({ parts }: { parts: readonly InfoPart[] }) {
+  return <>{parts.map((p, i) => <span key={i} className="p51-part">{i > 0 && <span aria-hidden>·</span>}{p.icon === 'flame' ? <Flame size={13} aria-hidden /> : p.icon === 'users' ? <Users size={13} aria-hidden /> : null}<span>{p.text}</span></span>)}</>;
+}
+
+export function P51Empty({ title, body, action, icon }: { title: string; body?: string; action?: ReactNode; icon?: 'workouts' | 'posts' }) {
+  return <div className="p51-empty">{icon && <span className="ic">{icon === 'workouts' ? <FlatDumbbell size={26} /> : <LayoutGrid size={26} aria-hidden />}</span>}<h3>{title}</h3>{body && <p>{body}</p>}{action}</div>;
 }
 
 export function P51PostsGrid({ tiles, emptyBody }: { tiles: SavedTile[] | undefined; emptyBody: string }) {
   if (!tiles) return <div className="h-40" aria-label="Loading posts" />;
-  if (!tiles.length) return <P51Empty title="No posts yet" body={emptyBody} />;
+  if (!tiles.length) return <P51Empty icon="posts" title="No posts yet" body={emptyBody} />;
   return <section aria-label="Posts" className="grid grid-cols-3 gap-[2px] pt-[2px]">{tiles.map(t => <PostGridTile key={t.id} tile={t} />)}</section>;
 }
 
@@ -90,7 +100,7 @@ export function OwnWorkoutsTab() {
   const [confirm, setConfirm] = useState<ProfileWorkoutRow | null>(null);
   const [busy, setBusy] = useState(false);
   if (!data) return <div className="h-40" aria-label="Loading workouts" />;
-  if (!data.length) return <P51Empty title="No workouts yet" body="Build one, or add one from a post or a profile. They show up here for people who visit you." action={<Button variant="ghost" asChild className="p51-btn primary"><Link to="/workouts/new"><Plus size={18} />Build a workout</Link></Button>} />;
+  if (!data.length) return <P51Empty icon="workouts" title="No workouts yet" body="Build one, or add one from a post or a profile. They show up here for people who visit you." action={<Button variant="ghost" asChild className="p51-btn primary"><Link to="/workouts/new"><Plus size={18} />Build a workout</Link></Button>} />;
   const doRemove = async () => {
     if (!confirm || busy) return;
     setBusy(true);
@@ -101,9 +111,9 @@ export function OwnWorkoutsTab() {
   return <section className="p51-section">
     <div className="p51-section-head"><h2>YOUR WORKOUTS · {data.length}</h2><Link to="/workouts/new" className="p51-new"><Plus size={16} />New</Link></div>
     <div className="p51-list">{data.map(w => <div key={w.id} className="p51-row">
-      <span className="p51-tile"><Dumbbell size={20} /></span>
+      <span className="p51-tile"><FlatDumbbell size={22} /></span>
       <Link to="/workouts/$workoutId" params={{ workoutId: w.id }} className="min-w-0"><strong>{w.name}</strong><small>{workoutMeta(w, true)}</small></Link>
-      <Button variant="ghost" className="p51-dots" aria-label={`Options for ${w.name}`} onClick={() => setMenu(w)}><MoreHorizontal size={18} /></Button>
+      <Button variant="ghost" className="p51-dots" aria-label={`Options for ${w.name}`} onClick={() => setMenu(w)}><MoreHorizontal size={20} /></Button>
     </div>)}</div>
     <NewSheet open={!!menu} onOpenChange={o => { if (!o) setMenu(null); }} title={menu?.name ?? 'Workout'} hideTitle>
       <NewSheetRow simple title="Edit" leading={<NewSheetMenuIcon><Pencil /></NewSheetMenuIcon>} onClick={() => { const id = menu?.id; setMenu(null); if (id) void navigate({ to: '/workouts/$workoutId/edit', params: { workoutId: id } }); }} />
@@ -121,7 +131,7 @@ export function MemberWorkoutsTab({ target }: { target: string }) {
   const remove = useServerFn(deleteSavedWorkout);
   const [busy, setBusy] = useState<string | null>(null);
   if (!data) return <div className="h-40" aria-label="Loading workouts" />;
-  if (!data.length) return <P51Empty title="No workouts yet" />;
+  if (!data.length) return <P51Empty icon="workouts" title="No workouts yet" />;
   const setCopy = (code: string, myCopyId: string | null) => qc.setQueryData<ProfileWorkoutRow[]>(key, rows => rows?.map(r => r.code === code ? { ...r, myCopyId } : r));
   const add = async (w: ProfileWorkoutRow) => {
     if (!w.code) return;
@@ -150,7 +160,7 @@ export function MemberWorkoutsTab({ target }: { target: string }) {
   return <section className="p51-section">{groupByMuscle(data).map(g => <div key={g.muscle} className="p51-group">
     <div className="p51-section-head"><h2>{g.muscle.toUpperCase()} · {g.items.length}</h2></div>
     <div className="p51-list">{g.items.map(w => <div key={w.id} className="p51-row">
-      <span className="p51-tile"><Dumbbell size={20} /></span>
+      <span className="p51-tile"><FlatDumbbell size={22} /></span>
       {w.code ? <Link to="/workouts/$workoutId" params={{ workoutId: w.code }} className="min-w-0"><strong>{w.name}</strong><small>{workoutMeta(w, false)}</small></Link> : <div className="min-w-0"><strong>{w.name}</strong><small>{workoutMeta(w, false)}</small></div>}
       {w.code && <Button variant="ghost" disabled={busy === w.code} className={`p51-add${w.myCopyId ? ' is-added' : ''}`} aria-pressed={!!w.myCopyId} aria-label={w.myCopyId ? `Remove ${w.name} from my workouts` : `Add ${w.name} to my workouts`} onClick={() => void toggle(w)}>{w.myCopyId ? <Check size={20} strokeWidth={3} /> : <Plus size={20} strokeWidth={2.5} />}</Button>}
     </div>)}</div>
@@ -182,8 +192,8 @@ export function MealsTab({ own }: { own: boolean }) {
 }
 
 export function LockCard({ first, crew }: { first: string; crew: { id: string; name: string } | null }) {
-  return <section className="p51-card"><span className="lock"><Lock size={24} /></span><h2>This account is private</h2><p>Follow {first} to see their posts, workouts and meals.</p>
-    {crew && <Link to="/crews/$groupId" params={{ groupId: crew.id }} className="p51-crew-row"><Users size={18} className="shrink-0" /><span className="min-w-0 flex-1">You see {first}'s check-ins in {crew.name}</span><span aria-hidden className="text-[var(--new-chevron)]">›</span></Link>}
+  return <section className="p51-card"><span className="lock is-private"><Lock size={28} /></span><h2>This account is private</h2><p>Follow {first} to see their posts, workouts and meals.</p>
+    {crew && <Link to="/crews/$groupId" params={{ groupId: crew.id }} className="p51-crew-row"><Users size={18} className="shrink-0 text-[var(--new-purple)]" /><span className="min-w-0 flex-1">You see {first}'s check-ins in <strong>{crew.name}</strong></span><span aria-hidden className="text-[var(--new-chevron)]">›</span></Link>}
   </section>;
 }
 
