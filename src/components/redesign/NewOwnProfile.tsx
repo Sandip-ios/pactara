@@ -1,21 +1,18 @@
-import { progressSummary } from '@/lib/redesign-profile';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { Bookmark, Check, ChevronDown, ChevronRight, Flame, Lock, Menu, Pencil, Settings, ShieldBan, Snowflake, Users } from 'lucide-react';
+import { Bookmark, ChevronRight, Lock, Menu, Settings, ShieldBan, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { getHomeCrew } from '@/lib/home-crew.functions';
-import { newProfileWeek, profileWeekChips } from '@/lib/redesign-profile';
-import { cn } from '@/lib/utils';
+import { ownInfoLine } from '@/lib/profile-state';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
 import { useStatusBarScrollToTop } from '@/lib/status-bar-scroll';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
-import { ownNewProfileOptions } from './profile-query';
-import { NewSheet, NewSheetCheckbox, NewSheetChevron, NewSheetRow } from './NewSheet';
-import { NewAvatarFallback } from './NewAvatarFallback';
 import { getMySocialPosts } from '@/lib/posts.functions';
-import { profileGridTiles, type SavedTile } from '@/lib/saved-posts';
-import { PostGridTile } from './NewSaved';
+import { profileGridTiles } from '@/lib/saved-posts';
+import { ownNewProfileOptions } from './profile-query';
+import { NewSheet, NewSheetChevron, NewSheetRow } from './NewSheet';
+import { NewAvatarFallback } from './NewAvatarFallback';
+import { MealsTab, OwnWorkoutsTab, P51Avatar, P51Header, P51PostsGrid, P51Stats, P51Tabs, PlansTab, shareLink, type ProfileTab } from './NewProfileParts';
 
 export function NewProfileAvatar({ url, size }: { url: string | null; size: 84 | 96 }) {
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
@@ -24,68 +21,44 @@ export function NewProfileAvatar({ url, size }: { url: string | null; size: 84 |
   </span>;
 }
 
-export function NewOwnProfile() {
+export function NewOwnProfile({ tab, onTab }: { tab: ProfileTab; onTab: (t: ProfileTab) => void }) {
   const navigate = useNavigate();
   const { data: profile } = useSuspenseQuery(ownNewProfileOptions);
+  const { data: posts } = useQuery({ queryKey: ['my-social-posts'], queryFn: () => getMySocialPosts(), staleTime: 30_000 });
   const scroll = useOpenAtTop();
   useStatusBarScrollToTop();
   const [menu, setMenu] = useState(false);
-  const [picker, setPicker] = useState(false);
-  useHideBottomTabs(menu || picker);
-  const [chosen, setChosen] = useState<string | null>(null);
-  const groupId = profile.crews.find(crew => crew.id === chosen)?.id ?? profile.crews[0]?.id ?? null;
-  const crewName = profile.crews.find(crew => crew.id === groupId)?.name ?? '';
+  useHideBottomTabs(menu);
+  const handle = profile.username || profile.name.trim().split(/\s+/)[0] || 'You';
+  const line = ownInfoLine(profile.streak, profile.badges);
+  const go = (to: '/saved' | '/profile/privacy' | '/follow-requests' | '/account-settings/blocked' | '/account-settings') => { setMenu(false); void navigate({ to }); };
   return <div ref={scroll} data-scroll-root className="redesign-step3 new-profile-page fixed inset-0 overflow-y-auto overscroll-none pb-[calc(104px+env(safe-area-inset-bottom))]">
-    <header className="new-profile-header pt-new-top"><div className="new-profile-header-row"><span className="new-profile-header-spacer" /><h1>{profile.username || profile.name.trim().split(/\s+/)[0]}</h1><Button variant="ghost" className="new-profile-menu-button" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button></div></header>
+    <P51Header title={`@${handle}`} left={null} right={<Button variant="ghost" className="p51-round" aria-label="Profile menu" onClick={() => setMenu(true)}><Menu size={22} /></Button>} />
     <section className="new-profile-identity">
-      <div className="new-profile-avatar-row"><NewProfileAvatar url={profile.avatarUrl} size={84} /><div className="new-profile-counts"><Button variant="ghost" asChild className="new-profile-stat"><Link to="/u/$userId/follows" params={{ userId: profile.id }} search={{ socialTab: 'followers' }}><strong>{profile.followers}</strong><span>followers</span></Link></Button><Button variant="ghost" asChild className="new-profile-stat"><Link to="/u/$userId/follows" params={{ userId: profile.id }} search={{ socialTab: 'following' }}><strong>{profile.following}</strong><span>following</span></Link></Button></div></div>
-      <div><h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>{profile.bio && <p className="new-profile-bio">{profile.bio}</p>}<div className="new-profile-progress-link">{profile.streak > 0 && <Flame size={14} aria-hidden />}{progressSummary(profile.streak, profile.badges) && <span>{progressSummary(profile.streak, profile.badges)}</span>}<Link to="/profile/progress">See progress ›</Link></div></div>
-      <Button variant="ghost" asChild className="new-profile-edit-button"><Link to="/profile/edit"><Pencil size={17} />Edit profile</Link></Button>
-      {profile.plan && <Button variant="ghost" asChild className="new-profile-plan"><Link to="/plans/$slug" params={{ slug: profile.plan.slug }}><span className="new-profile-plan-cover">{profile.plan.coverUrl && <img src={profile.plan.coverUrl} alt="" />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks}</small></span><ChevronRight size={20} /></Link></Button>}
+      <div className="new-profile-avatar-row"><P51Avatar url={profile.avatarUrl} label="Your photo" /><P51Stats userId={profile.id} posts={posts?.length ?? 0} followers={profile.followers} following={profile.following} listsOpen /></div>
+      <div>
+        <h2 className="new-profile-name">{profile.name.trim() || profile.username}</h2>
+        {profile.bio && <p className="new-profile-bio">{profile.bio}</p>}
+        <p className="p51-line">{line && <Link to="/profile/progress" className="!text-inherit !font-normal">{line}</Link>}<Link to="/profile/progress">See progress ›</Link></p>
+      </div>
+      <div className="p51-buttons">
+        <Button variant="ghost" asChild className="p51-btn light"><Link to="/profile/edit">Edit profile</Link></Button>
+        <Button variant="ghost" className="p51-btn light" onClick={() => void shareLink(`/u/${profile.username || profile.id}`, profile.name)}>Share profile</Button>
+      </div>
+      {profile.plan && <Link to="/plans/$slug" params={{ slug: profile.plan.slug }} className="p51-plan"><span className="p51-plan-cover">{profile.plan.coverUrl && <img src={profile.plan.coverUrl} alt="" />}</span><span className="min-w-0 flex-1"><strong>On {profile.plan.name}</strong><small>Week {profile.plan.week} of {profile.plan.weeks} · others can view and start it</small></span><ChevronRight size={20} className="shrink-0 text-[var(--new-chevron)]" /></Link>}
     </section>
-    {groupId && <NewProfileWeekCard groupId={groupId} crewName={crewName} showPicker={profile.crews.length > 1} onPick={() => setPicker(true)} freezes={profile.freezes} />}
-    <div className="new-profile-note"><Lock size={18} aria-hidden /><p>Your crews always see your check-ins. Only you choose what goes on your public profile.</p></div>
-    <NewProfilePosts />
+    <P51Tabs tab={tab} onTab={onTab} />
+    {tab === 'posts' && <P51PostsGrid tiles={posts ? profileGridTiles(posts, 'Your post') : undefined} emptyBody="Your workouts, meals and photos show up here." />}
+    {tab === 'workouts' && <OwnWorkoutsTab />}
+    {tab === 'plans' && <PlansTab target={null} />}
+    {tab === 'meals' && <MealsTab own />}
     <NewSheet open={menu} onOpenChange={setMenu} title="Profile" hideTitle description="Your profile menu">
-      <NewSheetRow simple className="border-b-0" title="Saved" leading={<Bookmark />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/saved' }); }} />
-      <NewSheetRow simple className="border-b-0" title="Account privacy" leading={<Lock />} trailing={<><span className="text-[14px] font-normal text-[var(--new-muted)]">{profile.isPrivate ? 'Private' : 'Public'}</span><NewSheetChevron /></>} onClick={() => { setMenu(false); void navigate({ to: '/profile/privacy' }); }} />
-      {profile.isPrivate && <NewSheetRow simple title="Follow requests" leading={<Users />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/follow-requests' }); }} />}
-      <NewSheetRow simple className="border-b-0" title="Blocked people" leading={<ShieldBan />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/account-settings/blocked' }); }} />
+      <NewSheetRow simple className="border-b-0" title="Saved" leading={<Bookmark />} trailing={<NewSheetChevron />} onClick={() => go('/saved')} />
+      <NewSheetRow simple className="border-b-0" title="Account privacy" leading={<Lock />} trailing={<><span className="text-[14px] font-normal text-[var(--new-muted)]">{profile.isPrivate ? 'Private' : 'Public'}</span><NewSheetChevron /></>} onClick={() => go('/profile/privacy')} />
+      {profile.isPrivate && <NewSheetRow simple title="Follow requests" leading={<Users />} trailing={<NewSheetChevron />} onClick={() => go('/follow-requests')} />}
+      <NewSheetRow simple className="border-b-0" title="Blocked people" leading={<ShieldBan />} trailing={<NewSheetChevron />} onClick={() => go('/account-settings/blocked')} />
       <div className="new-profile-menu-divider" />
-      <NewSheetRow simple title="Settings" leading={<Settings />} trailing={<NewSheetChevron />} onClick={() => { setMenu(false); void navigate({ to: '/account-settings' }); }} />
-    </NewSheet>
-    <NewSheet open={picker} onOpenChange={setPicker} title="Pick your crew" description="Choose which crew counts this week">
-      {profile.crews.map(group => <NewSheetRow key={group.id} simple title={group.name} trailing={<NewSheetCheckbox checked={group.id === groupId} />} onClick={() => { setChosen(group.id); setPicker(false); }} />)}
+      <NewSheetRow simple title="Settings" leading={<Settings />} trailing={<NewSheetChevron />} onClick={() => go('/account-settings')} />
     </NewSheet>
   </div>;
-}
-
-/** This week card shared by your own profile and a crewmate's profile (memberId set). */
-export function NewProfileWeekCard({ groupId, crewName, showPicker, onPick, freezes, memberId }: {
-  groupId: string; crewName: string; showPicker: boolean; onPick: () => void; freezes: number | null; memberId?: string;
-}) {
-  const { data: crew } = useQuery({ queryKey: ['home-crew', groupId], queryFn: () => getHomeCrew({ data: { groupId } }), staleTime: 30_000 });
-  const me = crew?.members.find(member => memberId ? member.userId === memberId : member.isYou);
-  const chips = profileWeekChips(me?.streak, freezes);
-  return <section className="new-profile-week" aria-label="This week">
-    <div className="new-profile-week-heading"><div><h2>THIS WEEK</h2><strong>{me?.workouts ?? 0} of {me?.target ?? crew?.weeklyTarget ?? 0} workouts</strong></div>{showPicker && <Button variant="ghost" className="new-profile-crew-pill" onClick={onPick}><span>In {crewName}</span><ChevronDown size={14} /></Button>}</div>
-    <progress className="new-profile-week-progress" aria-label="This week's workouts" value={Math.min(me?.workouts ?? 0, me?.target ?? 1)} max={Math.max(1, me?.target ?? 1)} />
-    {me ? <div className="new-profile-week-days">{newProfileWeek(me).map((day, index) => <div key={day.date}><span className={`new-profile-day ${day.state}`} aria-label={`${day.date}: ${day.state}`}>{day.state === 'checked' ? <Check size={18} /> : day.state === 'rest' ? 'Rest' : day.state === 'freeze' ? <Snowflake size={16} /> : null}</span><small>{['M', 'T', 'W', 'T', 'F', 'S', 'S'][index]}</small></div>)}</div> : <div className="h-[57px]" aria-label="Loading week" />}
-    {chips.any && <div className={cn('new-profile-week-chips', chips.single && 'new-profile-week-chips-single')}>{chips.streak && <span className="new-profile-streak-chip"><Flame size={17} /><span>{me?.streak}-day streak</span></span>}{chips.freezes && <span className="new-profile-freeze-chip"><Snowflake size={17} /><span>{freezes} freezes</span></span>}</div>}
-  </section>;
-}
-
-/** Your camera-roll posts: pinned first, then newest. */
-function NewProfilePosts() {
-  const { data } = useQuery({ queryKey: ['my-social-posts'], queryFn: () => getMySocialPosts(), staleTime: 30_000 });
-  if (!data?.length) return null;
-  return <ProfilePostsGrid tiles={profileGridTiles(data, 'Your post')} />;
-}
-
-/** Profile Posts grid (own and member): 3 columns of 4:5 tiles, 2px gaps, edge to edge. */
-export function ProfilePostsGrid({ tiles }: { tiles: SavedTile[] }) {
-  return <section aria-label="Posts" className="pt-5">
-    <h2 className="px-4 pb-2.5 text-[15px] font-extrabold text-[var(--new-ink)]">Posts</h2>
-    <div className="grid grid-cols-3 gap-[2px]">{tiles.map(t => <PostGridTile key={t.id} tile={t} />)}</div>
-  </section>;
 }

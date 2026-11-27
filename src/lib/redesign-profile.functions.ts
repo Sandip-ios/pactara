@@ -52,13 +52,20 @@ export const getRedesignMemberProfile = createServerFn({ method: 'GET' }).middle
     if (!raw) return null;
     const base = raw as unknown as import('./follows.server').FollowProfile;
     if (base.id === userId) return { isSelf: true as const, id: userId };
-    if (base.relationship === 'blocked') return { isSelf: false as const, blocked: true as const, id: base.id, username: base.username, name: base.name };
+    if (base.relationship === 'blocked') {
+      // Only your own block is ever revealed; their block reads as an unavailable account.
+      const { data: mine } = await supabase.from('user_blocks').select('blocked_id').eq('blocker_id', userId).eq('blocked_id', base.id).maybeSingle();
+      if (!mine) return null;
+      return { isSelf: false as const, blocked: true as const, id: base.id, username: base.username, name: base.name, avatarUrl: null as string | null };
+    }
     const { completeFollowProfile } = await import('./follows.server');
     const profile = await completeFollowProfile(base, userId);
-    const [mine, followsMe, myFollowing] = await Promise.all([
+    const [mine, followsMe, myFollowing, postCount] = await Promise.all([
       supabase.from('group_members').select('group_id, groups!inner(id, name, ended_at)').eq('user_id', userId).is('groups.ended_at', null),
       supabase.from('follows').select('follower_id').eq('follower_id', base.id).eq('following_id', userId).eq('status', 'accepted').maybeSingle(),
       supabase.from('follows').select('following_id').eq('follower_id', userId).eq('status', 'accepted'),
+      // RLS decides which of their posts you can see; the count matches the grid.
+      supabase.from('social_posts').select('id', { count: 'exact', head: true }).eq('user_id', base.id).eq('status', 'live'),
     ]);
     if (mine.error || followsMe.error || myFollowing.error) throw new Error('Could not load profile');
     const myCrews = (mine.data ?? []).map(row => ({ id: row.group_id, name: row.groups.name }));
@@ -87,7 +94,7 @@ export const getRedesignMemberProfile = createServerFn({ method: 'GET' }).middle
       avatarUrl: profile.avatar, followers: profile.follower_count, following: profile.following_count,
       isPrivate: profile.is_private, canFollow: profile.can_follow, relationship: profile.relationship,
       followsMe: Boolean(followsMe.data), streak: 'current_streak' in profile ? profile.current_streak ?? null : null,
-      sharedCrews, followedBy,
+      sharedCrews, followedBy, posts: postCount.count ?? 0,
     };
   });
 
