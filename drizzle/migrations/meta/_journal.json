@@ -666,6 +666,13 @@
       "when": 1795730928876,
       "tag": "0094_check_in_share_with_followers",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1795737555931,
+      "tag": "0095_counted_check_in",
+      "breakpoints": true
     }
   ]
 }

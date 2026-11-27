@@ -184,3 +184,9 @@
 - [x] Followers choice saved per check-in (default off, off for under-18); nothing reads it yet
 - [x] QA: six 390x844 screenshots in public/qa/p5-1a-*.png
 - [ ] Step 1b: extra same-day check-ins rules
+
+## Phase 5.1b: many check-ins a day, first counts
+- [x] Server: counted per crew, skip push/badges for later check-ins; plan advances once per local day per plan
+- [x] Distinct-day profile totals; friendly Health reuse message
+- [x] DB: is_counted_check_in + index; delete trigger re-points day post
+- [x] Feed isCounted field (no UI); tests; DB QA

@@ -96,7 +96,8 @@ export const getProfileOverview = createServerFn({ method: "GET" })
       (freezeProfile as { streak_freezes_available?: number } | null)
         ?.streak_freezes_available ?? 0;
 
-    const dates = (checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date);
+    // Distinct days: later same-day check-ins never add to the total.
+    const dates = [...new Set((checkIns ?? []).map((c: { checkin_date: string }) => c.checkin_date))];
     const set = new Set<string>([...dates, ...frozenDates]);
     const current = currentStreak(set, today);
     const best = bestStreak(set);

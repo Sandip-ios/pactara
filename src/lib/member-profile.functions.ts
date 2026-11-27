@@ -159,7 +159,7 @@ export const getMemberProfile = createServerFn({ method: "GET" })
 
     const { data: statusRows, error: statusError } = await supabase.rpc('crew_checkin_status').select('checkin_date').eq('user_id', targetId).eq('group_id', groupId);
     if (statusError) throw new Error('Could not load member status');
-    const dates = (statusRows ?? []).map(r => r.checkin_date);
+    const dates = [...new Set((statusRows ?? []).map(r => r.checkin_date))];
 
     const { data: freezeRows } = await supabase
       .from("streak_freezes_used")

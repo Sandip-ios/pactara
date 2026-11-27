@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { countedCheckInId } from "./counted-check-in";
 import { commentMediaKind, commentProblem, commentPush } from "@/lib/comment-media";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -251,6 +252,8 @@ export const postThought = createServerFn({ method: "POST" })
 
   });
 
+export const HEALTH_REUSED_MESSAGE = "You already posted this Health workout. Pick another one or check in without it.";
+
 export const recordCheckIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
@@ -311,7 +314,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
         _groups: groupIds, _date: localDateFor(timezone), _note: data.note ?? '',
         _photo: data.photoUrl ?? '', _mood: data.mood ?? '', _activity: data.activity ?? '', _health: data.healthWorkout,
       });
-      if (error) throw new Error('This Health workout could not be posted. It may already have been used.');
+      if (error) throw new Error(HEALTH_REUSED_MESSAGE);
       for (const row of rows ?? []) healthPosted.set(row.crew_id, row.check_in_id);
       // Owner-only flag on the caller's own new rows (no client UPDATE policy on check_ins).
       if (shareWithFollowers && healthPosted.size) await (await import('@/integrations/supabase/client.server')).supabaseAdmin.from('check_ins').update({ share_with_followers: true }).in('id', [...healthPosted.values()]).eq('user_id', userId);
@@ -325,8 +328,15 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     // Sender photo + thumbnail for the check-in push, signed once for all crews.
     let pushMedia: Promise<{ avatarUrl: string | null; imageUrl: string | null }> | null = null;
 
+    const countedByGroup: Record<string, boolean> = {};
+    // Which crews already have a check-in from this member today (before this post).
+    const { data: priorToday } = await supabase.from("check_ins").select("group_id, id").eq("user_id", userId).eq("checkin_date", today).in("group_id", groupIds);
+    const healthIds = new Set(healthPosted.values());
+    const alreadyIn = new Set(((priorToday ?? []) as { group_id: string; id: string }[]).filter((r) => !healthIds.has(r.id)).map((r) => r.group_id));
     for (const groupId of groupIds) {
       const healthId = healthPosted.get(groupId);
+      const counted = !alreadyIn.has(groupId);
+      countedByGroup[groupId] = counted;
       const { data: checkIn, error: ciErr } = healthId ? { data: { id: healthId }, error: null } : await supabase
         .from("check_ins")
         .insert({
@@ -371,6 +381,13 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       if (dpErr) throw new Error(dpErr.message);
 
 
+      // A later same-day check-in is a normal post: no badges, no crew push.
+      if (!counted) {
+        console.info("[check-in] later same-day post, no badges or crew push", { groupId });
+        badgesByGroup[groupId] = [];
+        continue;
+      }
+
       try {
         // Badges follow the streak the member is on now (same number as the
         // celebration and share cards), never an older run.
@@ -414,7 +431,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     if (data.planDay) {
       try {
         const { logPlanWorkout } = await import("./plan-progress.server");
-        plan = await logPlanWorkout(supabase as SupabaseClient, userId, data.planDay, postedCheckInIds);
+        plan = await logPlanWorkout(supabase as SupabaseClient, userId, data.planDay, postedCheckInIds, today);
       } catch (err) {
         console.error("[check-in] plan log failed", err);
       }
@@ -430,7 +447,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       }
     }
 
-    return { ok: true, userId, firstCheckIn, newBadges: Array.from(newBadgeSet), streakByGroup, badgesByGroup, groupCount: groupIds.length, plan };
+    return { ok: true, userId, firstCheckIn, newBadges: Array.from(newBadgeSet), streakByGroup, badgesByGroup, countedByGroup, groupCount: groupIds.length, plan };
 
   });
 
@@ -465,6 +482,8 @@ export type TimelineNode =
       workout?: FeedWorkout | null;
       health?: HealthWorkout | null;
       note: string | null;
+      /** First check-in of this local day in this crew (the one that counts). */
+      isCounted?: boolean;
       photoUrl: string | null;
       posterUrl?: string | null;
       at: string;
@@ -923,6 +942,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
       const myCheckIns = checkIns
         .filter((c) => c.user_id === p.user_id && c.checkin_date === p.local_date)
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
+      const countedId = countedCheckInId(myCheckIns);
       for (const c of myCheckIns) {
         nodes.push({
           kind: "check_in",
@@ -933,6 +953,7 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           workout: workoutTags.get(c.id) ?? null,
           health: healthWorkoutSchema.safeParse(c.health_workout).success ? healthWorkoutSchema.parse(c.health_workout) : null,
           note: c.note,
+          isCounted: c.id === countedId,
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,
           at: c.created_at,

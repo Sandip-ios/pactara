@@ -36,3 +36,12 @@ describe.skipIf(!process.env['PGHOST'])('Crew discovery needs a new-version owne
     expect(scalar("SELECT position('is_new_version_user(NEW.owner_id)' in prosrc)>0 FROM pg_proc WHERE proname='normalize_crew_discovery'")).toBe('t');
   });
 });
+
+describe.skipIf(!process.env['PGHOST'])('Many check-ins a day, first counts', () => {
+  it('has the counted check-in function', () => {
+    expect(scalar("SELECT count(*) FROM pg_proc WHERE proname='is_counted_check_in'")).toBe('1');
+  });
+  it('re-points the day post after a check-in is deleted', () => {
+    expect(scalar("SELECT count(*) FROM pg_trigger WHERE tgname='repoint_daily_post_after_check_in_delete' AND tgrelid='public.check_ins'::regclass")).toBe('1');
+  });
+});

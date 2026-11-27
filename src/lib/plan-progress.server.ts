@@ -16,7 +16,11 @@ export async function logPlanWorkout(
   userId: string,
   input: PlanDayInput,
   checkInIds: string[],
+  today?: string,
 ): Promise<PlanDayResult | null> {
+  // At most one plan day per local day per plan: a second plan workout that day
+  // is a normal post (no plan tag) and the plan stays put.
+  if (today && (await planDayLoggedOn(supabase, userId, input.userPlanId, today, checkInIds))) return null;
   const { data: up } = await supabase
     .from("user_plans")
     .select("id, user_id, status, current_week, next_day, plans(slug, name, weeks, days_per_week)")
@@ -78,4 +82,19 @@ export async function planTagsForCheckIns(
     out.set(r.check_in_id, { name: r.plan_name, slug: r.plan_slug, week: r.week, day: r.day_number });
   }
   return out;
+}
+
+/** True when this plan already logged a day from a check-in on `today` (member-local date). */
+export async function planDayLoggedOn(
+  supabase: SupabaseClient,
+  userId: string,
+  userPlanId: string,
+  today: string,
+  excludeCheckInIds: string[] = [],
+): Promise<boolean> {
+  const { data: todays } = await supabase.from("check_ins").select("id").eq("user_id", userId).eq("checkin_date", today);
+  const ids = ((todays ?? []) as { id: string }[]).map((r) => r.id).filter((id) => !excludeCheckInIds.includes(id));
+  if (ids.length === 0) return false;
+  const { data: logs } = await supabase.from("plan_workout_logs").select("id").eq("user_plan_id", userPlanId).in("check_in_id", ids).limit(1);
+  return (logs ?? []).length > 0;
 }

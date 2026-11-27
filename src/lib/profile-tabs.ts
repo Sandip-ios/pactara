@@ -44,7 +44,7 @@ export function weeklyGoalInsight(hit: number, completed: number, missedMondays:
 }
 export function profileStats(input: ProfileStatsInput) {
   const { joinedOn, today, target } = input;
-  const checks = input.checkIns.filter(d => d >= joinedOn && d <= today);
+  const checks = [...new Set(input.checkIns)].filter(d => d >= joinedOn && d <= today);
   const checked = new Set(checks);
   const covered = new Set(input.covered.filter(d => d >= joinedOn && d <= today));
   const currentMonday = weekStartIso(today);

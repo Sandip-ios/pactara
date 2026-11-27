@@ -48,9 +48,9 @@ describe('showing up', () => {
   });
   it('keeps checks ahead of protected days and today uncompleted', () => expect(profileStats({ ...input, covered: ['2026-11-24'] }).columns[0]?.days[1]?.state).toBe('checked'));
   it('does not count before-join checks in totals', () => expect(profileStats({ ...input, checkIns: ['2026-11-23','2026-11-24'] }).totalCheckIns).toBe(1));
-  it('multiple workouts count as check-ins but one calendar cell', () => {
+  it('multiple check-ins in one day count as one day', () => {
     const v = profileStats({ ...input, checkIns: ['2026-11-24','2026-11-24'] });
-    expect(v.totalCheckIns).toBe(2); expect(v.checked).toBe(1); expect(v.thisWeek).toBe(1);
+    expect(v.totalCheckIns).toBe(1); expect(v.checked).toBe(1); expect(v.thisWeek).toBe(1);
   });
 });
 describe('weekly bars', () => {
