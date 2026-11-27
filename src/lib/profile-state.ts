@@ -128,10 +128,10 @@ export type SetupStep = { key: 'bio' | 'friends' | 'post' | 'photo'; title: stri
 export function completeProfileSteps(input: { bio: string | null; following: number; posts: number; hasPhoto: boolean }): { steps: SetupStep[]; done: number } | null {
   const steps: SetupStep[] = [
     { key: 'bio', title: 'Add a bio', body: "Tell people what you're working on", action: 'Add bio', done: !!input.bio?.trim() },
-    { key: 'friends', title: 'Find friends', body: 'See who from your contacts is here', action: 'Find', done: input.following > 0 },
+    { key: 'friends', title: 'Find friends', body: 'Find people to follow', action: 'Find', done: input.following > 0 },
     { key: 'post', title: 'First post', body: 'Share a workout, meal or photo', action: 'Post', done: input.posts > 0 },
     { key: 'photo', title: 'Add a photo', body: "So your crew knows it's you", action: 'Add', done: input.hasPhoto },
   ];
   const done = steps.filter(s => s.done).length;
-  return done === steps.length ? null : { steps, done };
+  return done === steps.length ? null : { steps: [...steps.filter(s => !s.done), ...steps.filter(s => s.done)], done };
 }

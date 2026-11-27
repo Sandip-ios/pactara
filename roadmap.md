@@ -253,3 +253,8 @@
 - [x] Shared full workout/meal post sections and reversible library saves; own posts omit saves
 - [x] Real 390px flow checks and six requested public/qa/p5 captures; all temporary example members, subscriptions, crews, content, workouts, meals, exercises and storage photos removed. Native shell points to the hosted app; 390x844 browser geometry passed without horizontal overflow or content under the bottom bar. Physical iPhone and actual safe-area inset emulation remain unverified.
 - [x] Full suite: 989 tests across 107 files passed; automatic typecheck/build clean; saved without publishing.
+
+## Complete your profile follow-up
+- [x] Updated Find friends description and stable unfinished-first step order; added ordering regression test.
+- [x] Retook 01, 03 and 20 at 390px without toasts using existing draft accounts; restored Nadia and Viktor to classic, left Rosa on her original new version.
+- [x] Full suite: 1032 tests across 110 files passed on first run, no failures; typecheck passed; unpublished.

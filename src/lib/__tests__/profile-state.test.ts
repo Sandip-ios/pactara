@@ -83,5 +83,12 @@ describe('completeProfileSteps', () => {
     expect(r?.steps.map(s => s.done)).toEqual([false, false, false, true]);
   });
   it('blank bio is not done', () => expect(completeProfileSteps({ bio: '  ', following: 1, posts: 1, hasPhoto: true })?.done).toBe(3));
+  it('puts unfinished steps first and preserves base order within both groups', () => {
+    const nadia = completeProfileSteps({ bio: 'Training together', following: 1, posts: 1, hasPhoto: false });
+    expect(nadia?.steps.map(s => s.key)).toEqual(['photo', 'bio', 'friends', 'post']);
+    expect(nadia?.steps.map(s => s.done)).toEqual([false, true, true, true]);
+    const mixed = completeProfileSteps({ bio: 'Training together', following: 0, posts: 1, hasPhoto: false });
+    expect(mixed?.steps.map(s => s.key)).toEqual(['friends', 'photo', 'bio', 'post']);
+  });
   it('disappears when all 4 are done', () => expect(completeProfileSteps({ bio: 'Hi', following: 2, posts: 1, hasPhoto: true })).toBeNull());
 });
