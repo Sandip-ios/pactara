@@ -31,18 +31,18 @@ export function FeedCardActions({ cheer, cheered, cheers, comments, openComments
   const visiblePreview = canComment ? preview : null;
   return <>
     <div className={`flex items-center gap-4 px-3.5 pt-2.5 text-[var(--new-ink-deep)] ${visiblePreview ? "pb-2.5" : "pb-3"}`}>
-      {cheer && <Button variant="ghost" aria-label="Cheer" aria-pressed={cheered} onClick={cheer} className="h-11 min-w-11 justify-start gap-[5px] rounded-none p-0 hover:bg-transparent">
+      {cheer && <Button variant="ghost" aria-label="Cheer" aria-pressed={cheered} onClick={cheer} className="relative h-[22px] min-h-0 min-w-0 justify-start gap-[5px] rounded-none p-0 after:absolute after:-inset-y-[11px] after:left-1/2 after:w-full after:min-w-11 after:-translate-x-1/2 after:content-[''] hover:bg-transparent">
         <Flame className={`!size-[22px] ${cheered ? "fill-[var(--new-orange-icon)] text-[var(--new-orange-icon)]" : "text-[var(--new-ink-deep)]"}`} strokeWidth={2} aria-hidden />
         {cheers > 0 && <span className="text-[14px] font-bold tabular-nums text-[var(--new-ink-deep)]">{cheers}</span>}
       </Button>}
-      {canComment && <Button variant="ghost" aria-label="Comments" onClick={openComments} onPointerDown={prefetchComments} className="h-11 min-w-11 justify-start gap-[5px] rounded-none p-0 text-[var(--new-ink-deep)] hover:bg-transparent">
+      {canComment && <Button variant="ghost" aria-label="Comments" onClick={openComments} onPointerDown={prefetchComments} className="relative h-[22px] min-h-0 min-w-0 justify-start gap-[5px] rounded-none p-0 text-[var(--new-ink-deep)] after:absolute after:-inset-y-[11px] after:left-1/2 after:w-full after:min-w-11 after:-translate-x-1/2 after:content-[''] hover:bg-transparent">
         <MessageCircle className="!size-[22px]" strokeWidth={2} aria-hidden />
         {comments > 0 && <span className="text-[14px] font-bold tabular-nums">{comments}</span>}
       </Button>}
       {cheerLine && <span className="ml-auto min-w-0 truncate text-[13px] text-[var(--new-muted)]">{cheerLine}</span>}
     </div>
     {visiblePreview && <div className="px-3.5 pb-3 text-[14px] leading-[1.4] text-[var(--new-ink-deep)]">
-      <Button variant="ghost" aria-label={`Comments: ${visiblePreview.name} ${visiblePreview.body}`} onClick={openComments} className="relative block h-auto w-full rounded-none p-0 text-left text-[14px] font-normal leading-[1.4] after:absolute after:inset-x-0 after:-inset-y-3 after:content-[''] hover:bg-transparent">
+      <Button variant="ghost" aria-label={`Comments: ${visiblePreview.name} ${visiblePreview.body}`} onClick={openComments} className="relative block h-auto min-h-0 w-full rounded-none p-0 text-left text-[14px] font-normal leading-[1.4] after:absolute after:inset-x-0 after:top-1/2 after:min-h-11 after:h-full after:-translate-y-1/2 after:content-[''] hover:bg-transparent">
         <span className="block truncate"><b className="font-bold">{visiblePreview.name.split(" ")[0]}</b> {visiblePreview.body}</span>
       </Button>
     </div>}

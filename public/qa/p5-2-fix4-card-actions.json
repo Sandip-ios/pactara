@@ -3,7 +3,7 @@
     {
       "screen": "checkin-comments",
       "icons": {
-        "h": 44,
+        "h": 22,
         "icon": 22
       },
       "blockedSkipped": true
@@ -11,7 +11,7 @@
     {
       "screen": "checkin-no-comments",
       "icons": {
-        "h": 44,
+        "h": 22,
         "icon": 22
       },
       "blockedSkipped": false
@@ -19,7 +19,7 @@
     {
       "screen": "library-comment",
       "icons": {
-        "h": 44,
+        "h": 22,
         "icon": 22
       },
       "blockedSkipped": true
