@@ -21,6 +21,6 @@ export function highestPostedBadge(badges: number[]): number | null {
   return badges.length ? Math.max(...badges) : null;
 }
 
-export function postedMediaHeight(hasBadge: boolean): number {
-  return hasBadge ? 380 : 430;
+export function postedMediaHeight(availableHeight: number): number {
+  return Math.min(430, Math.max(260, availableHeight));
 }

@@ -25,8 +25,11 @@ describe("new Posted screen", () => {
     expect(highestPostedBadge([])).toBeNull();
   });
 
-  it("makes room for the badge banner in the media height", () => {
-    expect(postedMediaHeight(true)).toBe(380);
-    expect(postedMediaHeight(false)).toBe(430);
+  it("fills the available media space between 260px and 430px", () => {
+    expect(postedMediaHeight(500)).toBe(430);
+    expect(postedMediaHeight(430)).toBe(430);
+    expect(postedMediaHeight(320)).toBe(320);
+    expect(postedMediaHeight(260)).toBe(260);
+    expect(postedMediaHeight(100)).toBe(260);
   });
 });

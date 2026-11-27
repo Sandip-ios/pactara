@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Play, Share, Volume2, VolumeX, X } from "lucide-react";
 import type { GroupToday } from "@/lib/group-today.functions";
 import { BADGE_META } from "@/lib/badges";
@@ -21,10 +21,10 @@ function useReducedMotion() {
   return reduced;
 }
 
-function PostedMedia({ src, isVideo, hasBadge, counted, streak }: {
+function PostedMedia({ src, isVideo, height, counted, streak }: {
   src: string | null;
   isVideo: boolean;
-  hasBadge: boolean;
+  height: number;
   counted: boolean;
   streak: number;
 }) {
@@ -53,7 +53,7 @@ function PostedMedia({ src, isVideo, hasBadge, counted, streak }: {
     if (videoRef.current) videoRef.current.muted = !next;
   };
 
-  return <div className="relative w-full overflow-hidden bg-[var(--new-ink-deep)]" style={{ height: postedMediaHeight(hasBadge) }}>
+  return <div className="relative w-full shrink-0 overflow-hidden bg-[var(--new-ink-deep)]" style={{ height }}>
     {src && isVideo ? <video
       ref={videoRef}
       src={src}
@@ -111,6 +111,9 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
 }) {
   useHideBottomTabs(true, false);
   const scrollRef = useOpenAtTop<HTMLDivElement>();
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const detailsRef = useRef<HTMLDivElement>(null);
+  const [mediaHeight, setMediaHeight] = useState(430);
   const crew = postedCrew(groups, countedByGroup);
   const counted = Object.values(countedByGroup).some(Boolean);
   const shownStreak = (crew && streakByGroup[crew.id]) || streak;
@@ -118,6 +121,27 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
   const badgeMeta = badge === null ? null : BADGE_META[badge] ?? null;
   const crewChip = postedCrewChip(groups.length);
   const avatars = (crew?.members ?? []).map((member) => ({ id: member.userId, name: member.name, avatarUrl: member.avatarUrl, avatarColor: member.avatarColor }));
+  const hasBadge = badge !== null && !!badgeMeta;
+
+  useLayoutEffect(() => {
+    const scroller = scrollRef.current;
+    if (!scroller) return;
+    const update = () => {
+      const badgeHeight = badgeRef.current ? badgeRef.current.offsetHeight + 14 : 0;
+      const detailsHeight = detailsRef.current?.offsetHeight ?? 0;
+      setMediaHeight(postedMediaHeight(scroller.clientHeight - badgeHeight - detailsHeight - 14));
+    };
+    update();
+    const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    observer?.observe(scroller);
+    if (badgeRef.current) observer?.observe(badgeRef.current);
+    if (detailsRef.current) observer?.observe(detailsRef.current);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [hasBadge, scrollRef]);
 
   return <div role="dialog" aria-modal="true" aria-label="Posted" className="redesign-step3 fixed inset-0 z-40 flex flex-col bg-[var(--new-bg)] text-[var(--new-ink)]">
     <header className="shrink-0 px-5 pt-new-top">
@@ -127,15 +151,15 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
       </div>
     </header>
 
-    <div ref={scrollRef} data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-contain" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 164px)" }}>
-      {badge !== null && badgeMeta && <div className="mx-4 mt-3.5 flex items-center gap-3 rounded-[18px] px-4 py-3" style={{ background: "linear-gradient(90deg,#FFF1E7,#EDE4FF)" }}>
+    <div ref={scrollRef} data-scroll-root className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      {badge !== null && badgeMeta && <div ref={badgeRef} className="mx-4 mt-3.5 flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3" style={{ background: "linear-gradient(90deg,#FFF1E7,#EDE4FF)" }}>
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--new-white)]"><img src={badgeMeta.image} alt="" className="h-8 w-8 object-contain" /></span>
         <div className="min-w-0"><p className="text-[11px] font-extrabold tracking-[1px] text-[var(--new-purple-text)]">NEW BADGE UNLOCKED</p><p className="text-[17px] font-extrabold">{badgeMeta.title}</p></div>
       </div>}
 
-      <section className="mx-4 mt-3.5 overflow-hidden rounded-[22px] bg-[var(--new-white)]">
-        <PostedMedia src={mediaUrl} isVideo={isVideo} hasBadge={badge !== null && !!badgeMeta} counted={counted} streak={shownStreak} />
-        <div className="px-4 pb-4 pt-3.5">
+      <section className="mx-4 mt-3.5 shrink-0 overflow-hidden rounded-[22px] bg-[var(--new-white)]">
+        <PostedMedia src={mediaUrl} isVideo={isVideo} height={mediaHeight} counted={counted} streak={shownStreak} />
+        <div ref={detailsRef} className="px-4 pb-4 pt-3.5">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2"><h1 className="min-w-0 truncate text-[18px] font-extrabold">{crew?.name ?? "Your crew"}</h1>{crewChip && <span className="flex h-[22px] shrink-0 items-center rounded-[11px] bg-[#F0EDE8] px-2 text-[12px] font-bold text-[var(--new-muted)]">{crewChip}</span>}</div>
@@ -148,7 +172,7 @@ export function NewCheckInPosted({ groups, countedByGroup, streakByGroup, badges
       </section>
     </div>
 
-    <div className="fixed inset-x-0 z-50 flex flex-col gap-2.5 bg-[var(--new-bg)] px-4" style={{ bottom: "calc(env(safe-area-inset-bottom, 0px) + 30px)" }}>
+    <div className="z-50 flex shrink-0 flex-col gap-2.5 bg-[var(--new-bg)] px-4 pt-4" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 30px)" }}>
       {onShare && <button type="button" onClick={onShare} className="flex h-[54px] w-full items-center justify-center gap-2 rounded-[27px] bg-[var(--new-purple)] text-[16px] font-bold text-[var(--new-white)]"><Share size={18} />Share your win</button>}
       <button type="button" onClick={onDone} className="h-[50px] w-full rounded-[25px] bg-[#EDE9FE] text-[16px] font-bold text-[var(--new-purple-text)]">Done</button>
     </div>
