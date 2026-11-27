@@ -146,7 +146,8 @@ export async function loadSocialPostsForViewer(
       tagged: ((tagRows ?? []) as Row[])
         .filter((t) => t["post_id"] === id && !blocked.has(t["user_id"] as string) && tagProfile.has(t["user_id"] as string))
         .map((t) => {
-          const p = tagProfile.get(t["user_id"] as string)!;
+          const p = tagProfile.get(t["user_id"] as string);
+          if (!p) return null;
           const av = (p["avatar_url"] as string | null) ?? null;
           return {
             id: p["id"] as string,
@@ -155,7 +156,7 @@ export async function loadSocialPostsForViewer(
             avatarUrl: av ? (av.startsWith("http") ? av : (tagAvatars.get(av) ?? null)) : null,
             avatarColor: (p["avatar_color"] as string | null) ?? "#7C3AED",
           };
-        }),
+        }).filter((p): p is NonNullable<typeof p> => p !== null),
     };
   });
 }

@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { MealsProfileTab } from './MealViews';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
@@ -189,8 +190,8 @@ export function PlansTab({ target }: { target: string | null }) {
   </section>;
 }
 
-export function MealsTab({ own }: { own: boolean }) {
-  return own ? <P51Empty title="Share your typical day" body="Your meals show up here." /> : <P51Empty title="No meals yet" />;
+export function MealsTab({ own, target }: { own: boolean; target?: string }) {
+  return <MealsProfileTab target={own ? null : target ?? null} />;
 }
 
 export function LockCard({ first, crew }: { first: string; crew: { id: string; name: string } | null }) {

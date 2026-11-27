@@ -1,3 +1,4 @@
+import { DiscoverMealsRow } from "./DiscoverMeals";
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -60,8 +61,8 @@ export function NewDiscover() {
           <label className={`p5-search${focused ? " p5-search-open" : ""}`}>
             <Search size={18} />
             <input
-              placeholder="Search workouts, plans, people"
-              aria-label="Search workouts, plans, people"
+              placeholder="Search workouts, plans, meals, people"
+              aria-label="Search workouts, plans, meals, people"
               value={query}
               onFocus={() => setFocused(true)}
               onChange={(e) => setQuery(e.target.value)}
@@ -221,6 +222,7 @@ export function NewDiscover() {
               )}
             </section>
           )}
+          <DiscoverMealsRow />
         </>
       )}
       {opened && <DiscoverWorkoutSheet card={opened} onClose={() => setOpened(null)} />}

@@ -18,7 +18,7 @@ const extOf = (blob: Blob, name: string, kind: "photo" | "video") => {
 
 /** Creates the post (hidden from others while uploading), then hands media to the background queue. */
 export async function submitPost(input: {
-  picked: PickedItem[]; caption: string; audience: PostAudience; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[];
+  picked: PickedItem[]; caption: string; audience: PostAudience; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[]; mealId?: string | null;
 }): Promise<{ id: string; uploading: boolean }> {
   const { data } = await supabase.auth.getUser();
   const uid = data.user?.id;
@@ -47,7 +47,7 @@ export async function submitPost(input: {
     });
   }
   const { id } = await createSocialPost({ data: {
-    caption: input.caption, audience: input.audience.kind, crewIds: input.audience.crewIds, items, workout: input.workout,
+    mealId: input.mealId ?? null, caption: input.caption, audience: input.audience.kind, crewIds: input.audience.crewIds, items, workout: input.workout,
     commentsOn: input.audience.kind !== "only_me" && input.commentsOn, tags: input.audience.kind === "only_me" ? [] : input.tags, skipDiscover: skipsDiscover(input.picked.map((p) => p.edit)),
   } });
   markHomePost(id);

@@ -1,3 +1,6 @@
+import type { Meal } from "@/lib/meals";
+import { fullMealLine } from "@/lib/meals";
+import { Utensils } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronLeft, Play, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +58,7 @@ export function NewCheckInCompose(p: {
   note: string; onNote: (v: string) => void;
   tags: ComposeTag[]; tag: string | null; onTag: (v: string | null) => void;
   hasHealth: boolean;
+  meal?: Meal | null; onMeal?: () => void; onRemoveMeal?: () => void;
   attached: { title: string; line: string } | null;
   crews: ComposeCrewChip[]; selected: string[]; onSelected: (ids: string[]) => void;
   followers: boolean; onFollowers: (v: boolean) => void;
@@ -89,6 +93,7 @@ export function NewCheckInCompose(p: {
         <p className="mt-1 text-[17px] font-extrabold">{p.attached.title}</p>
         {p.attached.line && <p className="mt-0.5 text-[13px] text-[var(--new-muted)]">{p.attached.line}</p>}
       </section>}
+      {!p.hasHealth && <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] p-4">{p.meal ? <div className="p6-attached-head"><div><p className="p6-meal-kicker">MEAL</p><strong>{p.meal.name}</strong><p className="text-[12px] p6-muted">{fullMealLine(p.meal.snapshot)}</p></div><Button variant="ghost" className="p6-link text-[12px]" onClick={p.onMeal}>Change</Button><Button variant="ghost" className="p6-icon" aria-label="Remove meal" onClick={p.onRemoveMeal}><X size={16}/></Button></div> : <Button variant="ghost" className="w-full justify-start" onClick={p.onMeal}><Utensils size={18}/>Add a meal</Button>}</section>}
       <section className="mx-4 mt-3 rounded-[20px] bg-[var(--new-white)] p-4">
         <h2 className="text-[16px] font-bold">Check in to</h2>
         <div className="mt-3 flex flex-wrap gap-2">

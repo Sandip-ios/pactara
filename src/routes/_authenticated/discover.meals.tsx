@@ -1,0 +1,4 @@
+import { createFileRoute,Navigate } from '@tanstack/react-router';
+import { useAppPrefs,useAppVersion } from '@/hooks/use-app-version';
+import { DiscoverMealsPage } from '@/components/redesign/DiscoverMeals';
+export const Route=createFileRoute('/_authenticated/discover/meals')({validateSearch:(s:Record<string,unknown>)=>({q:typeof s['q']==='string'?s['q']:'',type:typeof s['type']==='string'?s['type']:'All'}),head:()=>({meta:[{title:'Discover meals · Pactara'},{name:'description',content:'Real meals people eat, with foods and portions.'},{property:'og:title',content:'Discover meals · Pactara'},{property:'og:description',content:'Real meals people eat, with foods and portions.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:()=>{const version=useAppVersion();const prefs=useAppPrefs();const search=Route.useSearch();return prefs.isLoading?null:version==='new'?<DiscoverMealsPage {...search}/>:<Navigate to="/groups"/>;}});

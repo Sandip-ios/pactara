@@ -813,6 +813,20 @@
       "when": 1795804636081,
       "tag": "0115_post_tag_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 116,
+      "version": "7",
+      "when": 1795816354262,
+      "tag": "0116_phase6_meal_nutrition_and_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 117,
+      "version": "7",
+      "when": 1795817120346,
+      "tag": "0117_preserve_protected_meal_copy_nutrition",
+      "breakpoints": true
     }
   ]
 }

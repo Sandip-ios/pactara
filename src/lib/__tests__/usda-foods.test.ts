@@ -1,0 +1,8 @@
+import { afterEach,describe,it,expect,vi } from 'vitest';
+import { fetchUsda,normalizeUsdaFood } from '../usda-foods.server';
+afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
+describe('USDA server boundary',()=>{
+ it('normalizes per-100g nutrients and cup grams, with no credential field in the result',()=>{const food=normalizeUsdaFood({fdcId:123,description:'White rice',foodNutrients:[{nutrient:{id:1008},amount:130},{nutrient:{id:1003},amount:2.5},{nutrient:{id:1005},amount:28},{nutrient:{id:1004},amount:.2}],foodPortions:[{amount:1,gramWeight:158,portionDescription:'1 cup'}]});expect(food.portions[0]).toEqual({unit:'cup',grams:158});expect(food.nutrition).toEqual({calories:130,protein:2.5,carbs:28,fat:.2});expect(Object.keys(food).sort()).toEqual(['id','name','nutrition','portions','yours']);});
+ it('uses the credential only in the server request header, not in the URL or returned food',async()=>{vi.stubEnv('USDA_API_KEY','test-only-credential');const fetchMock=vi.fn(async()=>new Response(JSON.stringify({foods:[{fdcId:123,description:'Rice'}]}),{status:200}));vi.stubGlobal('fetch',fetchMock);const result=await fetchUsda('foods/search',{query:'rice'});const call=fetchMock.mock.calls[0] as unknown as [string,RequestInit];expect(call[0]).toBe('https://api.nal.usda.gov/fdc/v1/foods/search');expect((call[1].headers as Record<string,string>)['X-Api-Key']).toBe('test-only-credential');expect(JSON.stringify(result)).not.toContain('test-only-credential');});
+ it('never returns unknown calories as zero',()=>{expect(normalizeUsdaFood({fdcId:1,description:'Food',foodNutrients:[]}).nutrition?.calories).toBeNull();});
+});

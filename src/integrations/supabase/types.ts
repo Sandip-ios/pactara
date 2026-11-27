@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -123,6 +118,7 @@ export type Database = {
           group_id: string
           health_workout: Json | null
           id: string
+          meal_id: string | null
           mood: string | null
           note: string | null
           photo_url: string | null
@@ -136,6 +132,7 @@ export type Database = {
           group_id: string
           health_workout?: Json | null
           id?: string
+          meal_id?: string | null
           mood?: string | null
           note?: string | null
           photo_url?: string | null
@@ -149,6 +146,7 @@ export type Database = {
           group_id?: string
           health_workout?: Json | null
           id?: string
+          meal_id?: string | null
           mood?: string | null
           note?: string | null
           photo_url?: string | null
@@ -856,13 +854,124 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_attachments: {
+        Row: {
+          content_id: string
+          kind: string
+          owner_id: string
+          snapshot: Json
+        }
+        Insert: {
+          content_id: string
+          kind: string
+          owner_id: string
+          snapshot: Json
+        }
+        Update: {
+          content_id?: string
+          kind?: string
+          owner_id?: string
+          snapshot?: Json
+        }
+        Relationships: []
+      }
+      meal_food_recent: {
+        Row: {
+          food_id: string
+          used_at: string
+          user_id: string
+        }
+        Insert: {
+          food_id: string
+          used_at?: string
+          user_id: string
+        }
+        Update: {
+          food_id?: string
+          used_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_food_recent_food_id_fkey"
+            columns: ["food_id"]
+            isOneToOne: false
+            referencedRelation: "meal_foods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meal_food_searches: {
+        Row: {
+          fetched_at: string
+          food_ids: string[]
+          query: string
+        }
+        Insert: {
+          fetched_at?: string
+          food_ids: string[]
+          query: string
+        }
+        Update: {
+          fetched_at?: string
+          food_ids?: string[]
+          query?: string
+        }
+        Relationships: []
+      }
+      meal_foods: {
+        Row: {
+          fetched_at: string
+          id: string
+          name: string
+          nutrition: Json
+          owner_id: string | null
+          portions: Json
+        }
+        Insert: {
+          fetched_at?: string
+          id: string
+          name: string
+          nutrition: Json
+          owner_id?: string | null
+          portions: Json
+        }
+        Update: {
+          fetched_at?: string
+          id?: string
+          name?: string
+          nutrition?: Json
+          owner_id?: string | null
+          portions?: Json
+        }
+        Relationships: []
+      }
+      meal_usda_budget: {
+        Row: {
+          hour: string
+          requests: number
+        }
+        Insert: {
+          hour: string
+          requests?: number
+        }
+        Update: {
+          hour?: string
+          requests?: number
+        }
+        Relationships: []
+      }
       meals: {
         Row: {
           created_at: string
           id: string
           name: string
           snapshot: Json
+          source_meal_id: string | null
+          source_name: string | null
           source_post_id: string | null
+          source_user_id: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
@@ -870,7 +979,11 @@ export type Database = {
           id?: string
           name: string
           snapshot: Json
+          source_meal_id?: string | null
+          source_name?: string | null
           source_post_id?: string | null
+          source_user_id?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
@@ -878,7 +991,11 @@ export type Database = {
           id?: string
           name?: string
           snapshot?: Json
+          source_meal_id?: string | null
+          source_name?: string | null
           source_post_id?: string | null
+          source_user_id?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -2554,6 +2671,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_meal_usda_request: { Args: never; Returns: boolean }
       claim_social_post_tag_pushes: {
         Args: { _post_id: string }
         Returns: string[]
@@ -2561,6 +2679,23 @@ export type Database = {
       complete_crew_join_goal: {
         Args: { _goal?: string; _group_id: string }
         Returns: boolean
+      }
+      create_library_meal_post: {
+        Args: {
+          _audience: string
+          _caption: string
+          _comments_on: boolean
+          _credit_user_id: string
+          _group_ids: string[]
+          _items: Json
+          _meal_id: string
+          _skip_discover: boolean
+          _tags: string[]
+          _workout: Json
+          _workout_id: string
+          _workout_session_id: string
+        }
+        Returns: string
       }
       create_library_post_v2: {
         Args: {
@@ -2784,6 +2919,7 @@ export type Database = {
         Args: { _action: string; _group_id: string; _member_id: string }
         Returns: undefined
       }
+      meal_without_numbers: { Args: { j: Json }; Returns: Json }
       merge_solo_into_partner: {
         Args: { _solo: string; _target: string; _user: string }
         Returns: undefined
@@ -3064,3 +3200,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

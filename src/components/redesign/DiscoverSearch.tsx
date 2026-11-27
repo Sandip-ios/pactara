@@ -1,3 +1,4 @@
+import { DiscoverMealSearch } from "./DiscoverMeals";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -139,6 +140,7 @@ export function DiscoverSearch({
     );
   if (!groups.length)
     return (
+      <>
       <div className="p5-empty">
         <span className="p5-empty-icon">
           <Search size={28} />
@@ -157,7 +159,7 @@ export function DiscoverSearch({
           </p>
         )}
         <p>Or try a muscle, a goal like "lose fat", or someone's name.</p>
-      </div>
+      </div><DiscoverMealSearch q={debounced} /></>
     );
   return (
     <section className="p5-white">
@@ -243,6 +245,7 @@ export function DiscoverSearch({
                 ))}
         </div>
       ))}
+      <DiscoverMealSearch q={debounced} />
     </section>
   );
 }

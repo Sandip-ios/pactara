@@ -1,3 +1,4 @@
+import { ComposeMealAttachment } from "../MealViews";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
@@ -62,7 +63,7 @@ export function NewPostCompose() {
     setBusy(true);
     setErr(null);
     try {
-      await submitPost({ picked, caption: draft.caption, audience, workout, commentsOn, tags });
+      await submitPost({ picked, caption: draft.caption, audience, workout, commentsOn, tags, mealId: draft.mealId });
       await Promise.all([qc.invalidateQueries({ queryKey: ["post-compose-context"] }), qc.invalidateQueries({ queryKey: ["my-social-posts"] }), qc.invalidateQueries({ queryKey: ["crew-social-posts"] }), qc.invalidateQueries({ queryKey: ["home-social-posts"] })]);
       await navigate({ to: "/home" });
       resetDraft();
@@ -97,6 +98,7 @@ export function NewPostCompose() {
         />
       </section>
       <WorkoutAttachment ctx={ctx.data} suggestions={moves} workout={workout} onChange={setWorkout} />
+      <ComposeMealAttachment />
       {ctx.data && <WhoSeesIt ctx={ctx.data} audience={audience} onChange={setAudience} />}
       {audience.kind !== "only_me" && <PostOptionRows audience={audience} tags={tags} setTags={setTags} commentsOn={commentsOn} setCommentsOn={setCommentsOn} />}
       {lengthErr && <p role="alert" className="px-4 pt-3 text-[14px] font-semibold" style={{ color: "var(--new-destructive)" }}>{lengthErr}</p>}

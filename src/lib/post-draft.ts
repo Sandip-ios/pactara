@@ -11,11 +11,12 @@ export type PostDraft = {
   /** Edit settings per picked id. */
   edits: Record<string, DraftItem>;
   caption: string;
+  mealId: string | null;
   /** Opened from a workout's Share: that workout is attached. */
   shareWorkout: { workoutId: string | null; sessionId: string | null } | null;
 };
 
-const empty = (): PostDraft => ({ library: [], selected: [], edits: {}, caption: "", shareWorkout: null });
+const empty = (): PostDraft => ({ library: [], selected: [], edits: {}, caption: "", mealId: null, shareWorkout: null });
 let state: PostDraft = empty();
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());

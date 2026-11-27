@@ -1,3 +1,5 @@
+import { MealPicker } from "@/components/redesign/MealViews";
+import { getMeal } from "@/lib/meals.functions";
 import { makeVideoPoster } from "@/lib/video-poster";
 import { createFileRoute, useBlocker, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -148,6 +150,9 @@ function NotesPage() {
   const version = useAppVersion();
   const [selected, setSelectedState] = useState<string[] | null>(null);
   const [followers, setFollowers] = useState(false);
+  const [mealId, setMealId] = useState<string | null>(null);
+  const [mealPicker, setMealPicker] = useState(false);
+  const meal = useQuery({queryKey:["meal",mealId],queryFn:()=>mealId?getMeal({data:{id:mealId}}):Promise.resolve(null),enabled:!!mealId&&version==="new"});
   const draftGroupIds = useRef<string[] | null>(null);
   const [postedExit, setPostedExit] = useState(false);
   const [doneGroups, setDoneGroups] = useState<GroupToday[]>([]);
@@ -257,6 +262,7 @@ function NotesPage() {
       setAllGroups(draft.allGroups ?? false);
       draftGroupIds.current = draft.groupIds ?? null;
       setFollowers(draft.shareWithFollowers === true);
+      setMealId(draft.mealId ?? null);
       setDraftRestored(true);
     });
     return () => {
@@ -325,6 +331,7 @@ function NotesPage() {
       workoutSessionId?: string | null;
       healthWorkout?: HealthWorkout | null;
       shareWithFollowers?: boolean;
+      mealId?: string | null;
     }) =>
       recordCheckInFn({ data: vars }),
   });
@@ -372,6 +379,7 @@ function NotesPage() {
           workoutSessionId: workout?.sessionId ?? null,
           healthWorkout,
           ...(version === "new" && followers ? { shareWithFollowers: true } : {}),
+          ...(version === "new" && mealId ? { mealId } : {}),
         }),
         POST_TIMEOUT_MS,
         "Posting timed out. Please try again.",
@@ -478,7 +486,7 @@ function NotesPage() {
         planDay,
         workout,
         health: healthWorkout && healthUserId ? { userId: healthUserId, workout: healthWorkout } : null,
-        ...(version === "new" ? { groupIds: picked, shareWithFollowers: followers } : {}),
+        ...(version === "new" ? { groupIds: picked, shareWithFollowers: followers, mealId } : {}),
       });
       if (ok) {
         // The draft now owns the blob; drop the in-memory copy and go home,
@@ -559,10 +567,12 @@ function NotesPage() {
       className="min-h-[100dvh] w-full bg-white flex flex-col"
       style={{ fontFamily: "Inter, system-ui, sans-serif" }}
     >
+      {version === "new" && <MealPicker open={mealPicker} onClose={()=>setMealPicker(false)} onPick={setMealId} forPost={false} />}
       {version === "new" ? (!shareData ? <NewCheckInCompose
         src={photoPreview} isVideo={!!getCheckInPhoto()?.blob.type.startsWith("video/")}
         note={note} onNote={setNote} tags={ACTIVITIES} tag={activity} onTag={setActivity}
         hasHealth={!!healthWorkout}
+        meal={meal.data ?? null} onMeal={()=>setMealPicker(true)} onRemoveMeal={()=>setMealId(null)}
         attached={workout ? { title: workout.title, line: workout.line } : planDay ? { title: planDay.planName, line: `Week ${planDay.week} · Day ${planDay.day}` } : healthWorkout ? { title: healthWorkoutName(healthWorkout.type), line: healthStats(healthWorkout) } : null}
         crews={composeCrews} selected={picked} onSelected={setSelected}
         followers={followers} onFollowers={setFollowers}

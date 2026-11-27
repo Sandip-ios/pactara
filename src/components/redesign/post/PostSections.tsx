@@ -1,3 +1,4 @@
+import { AttachmentMealCard } from "../MealViews";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { PostWorkout } from "@/lib/social-post-types";
@@ -90,55 +91,6 @@ export function PostWorkoutCard({
     </>
   );
 }
-export function PostMealCard({
-  meal,
-  isMine,
-  postId,
-}: {
-  meal: PostMeal;
-  isMine: boolean;
-  postId: string;
-}) {
-  const [open, setOpen] = useState(false);
-  const preview = sectionPreview(meal.items);
-  const action = postSectionCanSave(isMine) ? (
-    <PostAttachmentSave postId={postId} kind="meal" />
-  ) : null;
-  const rows = (items: PostMeal["items"]) => (
-    <ul>
-      {items.map((item, i) => (
-        <li key={i}>
-          <Button variant="ghost" className="new-post-meal-row" onClick={() => setOpen(true)}>
-            <span className="min-w-0 flex-1 text-left">{item.name}</span>
-            <span className="shrink-0 font-semibold text-[var(--new-muted)]">{item.amount}</span>
-          </Button>
-        </li>
-      ))}
-    </ul>
-  );
-  return (
-    <>
-      <section className="new-post-section meal" aria-label="Meal" onClick={() => setOpen(true)}>
-        <Button variant="ghost" className="new-post-section-heading" onClick={() => setOpen(true)}>
-          <span className="new-post-section-label">MEAL</span>
-          <span className="new-post-section-title">{meal.title}</span>
-        </Button>
-        {rows(preview.rows)}
-        {mealMacroLine(meal) && <p className="new-post-meal-macros">{mealMacroLine(meal)}</p>}
-        {preview.more && (
-          <Button variant="ghost" className="new-post-section-more" onClick={() => setOpen(true)}>
-            See all {preview.total} items
-          </Button>
-        )}
-        {action}
-      </section>
-      <NewSheet open={open} onOpenChange={setOpen} title={meal.title} description="Meal details">
-        <div className="new-post-section meal !mx-0 !mt-0 !w-full">
-          {rows(meal.items)}
-          <p className="new-post-meal-macros">{mealMacroLine(meal)}</p>
-          {action}
-        </div>
-      </NewSheet>
-    </>
-  );
+export function PostMealCard({ meal, isMine, postId }: { meal: PostMeal; isMine: boolean; postId: string }) {
+  return <AttachmentMealCard id={postId} kind="post" isMine={isMine} />;
 }

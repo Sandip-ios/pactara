@@ -242,6 +242,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       workoutSessionId?: string | null;
       healthWorkout?: HealthWorkout | null;
       shareWithFollowers?: boolean;
+      mealId?: string | null;
     }) => ({
       note: input?.note?.slice(0, 500) ?? null,
       photoUrl: input?.photoUrl?.slice(0, 2000) ?? null,
@@ -257,6 +258,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
       workoutSessionId: typeof input?.workoutSessionId === "string" ? input.workoutSessionId.slice(0, 64) : null,
       healthWorkout: input?.healthWorkout ? healthWorkoutSchema.parse(input.healthWorkout) : null,
       shareWithFollowers: input?.shareWithFollowers === true,
+      mealId: typeof input?.mealId === "string" && /^[0-9a-f-]{36}$/i.test(input.mealId) ? input.mealId : null,
     }),
   )
   .handler(async ({ data, context }) => {
@@ -269,6 +271,8 @@ export const recordCheckIn = createServerFn({ method: "POST" })
     );
     if (groupIds.length === 0) throw new Error("You're not in a group yet");
 
+    if (data.mealId && data.healthWorkout) throw new Error('Use one attachment per check-in.');
+    if (data.mealId && !data.photoUrl) throw new Error('Add a video to check in with this meal.');
     if (data.healthWorkout && !healthVideoRequired(data.photoUrl)) throw new Error('Add a video to check in with this Health workout.');
     if (data.healthWorkout && (data.workoutSessionId || data.planDay)) throw new Error('Use one workout per check-in.');
     const { count: previousCount, error: countError } = await supabase.from('check_ins').select('id', { count: 'exact', head: true }).eq('user_id', userId);
@@ -322,6 +326,7 @@ export const recordCheckIn = createServerFn({ method: "POST" })
           mood: data.mood,
           activity: data.activity,
           share_with_followers: shareWithFollowers,
+          ...(data.mealId ? { meal_id: data.mealId } : {}),
         })
         .select("id")
         .single();

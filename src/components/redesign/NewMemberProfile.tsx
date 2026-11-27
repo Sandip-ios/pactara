@@ -182,7 +182,7 @@ function MemberProfileBody({ profile, tab, onTab, onBack: back }: { profile: Loa
       {tab === 'posts' && <MemberPosts target={profile.id} name={first} />}
       {tab === 'workouts' && <MemberWorkoutsTab target={profile.id} />}
       {tab === 'plans' && <PlansTab target={profile.id} />}
-      {tab === 'meals' && <MealsTab own={false} />}
+      {tab === 'meals' && <MealsTab own={false} target={profile.id} />}
     </>}
 
     <NewSheet open={sheet === 'menu'} onOpenChange={open => setSheet(open ? 'menu' : null)} title={`Options for ${first}`} hideTitle>

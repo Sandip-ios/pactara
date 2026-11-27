@@ -65,12 +65,14 @@ import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authent
 import { Route as AuthenticatedCheckInsCheckInIdRouteImport } from './routes/_authenticated/check-ins.$checkInId'
 import { Route as AuthenticatedCrewsIndexRouteImport } from './routes/_authenticated/crews.index'
 import { Route as AuthenticatedCrewsGroupIdRouteImport } from './routes/_authenticated/crews.$groupId'
+import { Route as AuthenticatedDiscoverMealsRouteImport } from './routes/_authenticated/discover.meals'
 import { Route as AuthenticatedDiscoverPlansRouteImport } from './routes/_authenticated/discover.plans'
 import { Route as AuthenticatedDiscoverWorkoutsRouteImport } from './routes/_authenticated/discover.workouts'
 import { Route as AuthenticatedExercisesExerciseIdRouteImport } from './routes/_authenticated/exercises.$exerciseId'
 import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenticated/goal.$groupId'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
+import { Route as AuthenticatedMealsNewRouteImport } from './routes/_authenticated/meals.new'
 import { Route as AuthenticatedPactGroupIdRouteImport } from './routes/_authenticated/pact.$groupId'
 import { Route as AuthenticatedPlansSlugRouteImport } from './routes/_authenticated/plans.$slug'
 import { Route as AuthenticatedPostPostIdRouteImport } from './routes/_authenticated/post.$postId'
@@ -93,6 +95,7 @@ import { Route as AuthenticatedCrewsGroupIdPreviewRouteImport } from './routes/_
 import { Route as AuthenticatedCrewsGroupIdRequestsRouteImport } from './routes/_authenticated/crews.$groupId_.requests'
 import { Route as AuthenticatedCrewsGroupIdSettingsRouteImport } from './routes/_authenticated/crews.$groupId_.settings'
 import { Route as AuthenticatedExercisesExerciseIdHowToRouteImport } from './routes/_authenticated/exercises.$exerciseId_.how-to'
+import { Route as AuthenticatedMealsMealIdEditRouteImport } from './routes/_authenticated/meals.$mealId.edit'
 import { Route as AuthenticatedPlansSlugDayRouteImport } from './routes/_authenticated/plans.$slug_.day'
 import { Route as AuthenticatedUUserIdFollowsRouteImport } from './routes/_authenticated/u.$userId_.follows'
 import { Route as AuthenticatedWorkoutsWorkoutIdEditRouteImport } from './routes/_authenticated/workouts_.$workoutId_.edit'
@@ -405,6 +408,12 @@ const AuthenticatedCrewsGroupIdRoute =
     path: '/crews/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDiscoverMealsRoute =
+  AuthenticatedDiscoverMealsRouteImport.update({
+    id: '/discover/meals',
+    path: '/discover/meals',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDiscoverPlansRoute =
   AuthenticatedDiscoverPlansRouteImport.update({
     id: '/discover/plans',
@@ -441,6 +450,11 @@ const AuthenticatedGroupsGroupIdRoute =
     path: '/groups/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMealsNewRoute = AuthenticatedMealsNewRouteImport.update({
+  id: '/meals/new',
+  path: '/meals/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPactGroupIdRoute =
   AuthenticatedPactGroupIdRouteImport.update({
     id: '/pact/$groupId',
@@ -565,6 +579,12 @@ const AuthenticatedExercisesExerciseIdHowToRoute =
   AuthenticatedExercisesExerciseIdHowToRouteImport.update({
     id: '/exercises/$exerciseId_/how-to',
     path: '/exercises/$exerciseId/how-to',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMealsMealIdEditRoute =
+  AuthenticatedMealsMealIdEditRouteImport.update({
+    id: '/meals/$mealId/edit',
+    path: '/meals/$mealId/edit',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlansSlugDayRoute =
@@ -700,11 +720,13 @@ export interface FileRoutesByFullPath {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/discover/meals': typeof AuthenticatedDiscoverMealsRoute
   '/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
+  '/meals/new': typeof AuthenticatedMealsNewRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/post/$postId': typeof AuthenticatedPostPostIdRoute
@@ -732,6 +754,7 @@ export interface FileRoutesByFullPath {
   '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
+  '/meals/$mealId/edit': typeof AuthenticatedMealsMealIdEditRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/workouts/$workoutId/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
@@ -798,11 +821,13 @@ export interface FileRoutesByTo {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/discover/meals': typeof AuthenticatedDiscoverMealsRoute
   '/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
+  '/meals/new': typeof AuthenticatedMealsNewRoute
   '/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/post/$postId': typeof AuthenticatedPostPostIdRoute
@@ -830,6 +855,7 @@ export interface FileRoutesByTo {
   '/crews/$groupId/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/crews/$groupId/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/exercises/$exerciseId/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
+  '/meals/$mealId/edit': typeof AuthenticatedMealsMealIdEditRoute
   '/plans/$slug/day': typeof AuthenticatedPlansSlugDayRoute
   '/u/$userId/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/workouts/$workoutId/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
@@ -899,11 +925,13 @@ export interface FileRoutesById {
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/_authenticated/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/_authenticated/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/_authenticated/discover/meals': typeof AuthenticatedDiscoverMealsRoute
   '/_authenticated/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/_authenticated/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/_authenticated/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/_authenticated/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
+  '/_authenticated/meals/new': typeof AuthenticatedMealsNewRoute
   '/_authenticated/pact/$groupId': typeof AuthenticatedPactGroupIdRoute
   '/_authenticated/plans/$slug': typeof AuthenticatedPlansSlugRoute
   '/_authenticated/post/$postId': typeof AuthenticatedPostPostIdRoute
@@ -931,6 +959,7 @@ export interface FileRoutesById {
   '/_authenticated/crews/$groupId_/requests': typeof AuthenticatedCrewsGroupIdRequestsRoute
   '/_authenticated/crews/$groupId_/settings': typeof AuthenticatedCrewsGroupIdSettingsRoute
   '/_authenticated/exercises/$exerciseId_/how-to': typeof AuthenticatedExercisesExerciseIdHowToRoute
+  '/_authenticated/meals/$mealId/edit': typeof AuthenticatedMealsMealIdEditRoute
   '/_authenticated/plans/$slug_/day': typeof AuthenticatedPlansSlugDayRoute
   '/_authenticated/u/$userId_/follows': typeof AuthenticatedUUserIdFollowsRoute
   '/_authenticated/workouts_/$workoutId_/edit': typeof AuthenticatedWorkoutsWorkoutIdEditRoute
@@ -1000,11 +1029,13 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/check-ins/$checkInId'
     | '/crews/$groupId'
+    | '/discover/meals'
     | '/discover/plans'
     | '/discover/workouts'
     | '/exercises/$exerciseId'
     | '/goal/$groupId'
     | '/groups/$groupId'
+    | '/meals/new'
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/post/$postId'
@@ -1032,6 +1063,7 @@ export interface FileRouteTypes {
     | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
+    | '/meals/$mealId/edit'
     | '/plans/$slug/day'
     | '/u/$userId/follows'
     | '/workouts/$workoutId/edit'
@@ -1098,11 +1130,13 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/check-ins/$checkInId'
     | '/crews/$groupId'
+    | '/discover/meals'
     | '/discover/plans'
     | '/discover/workouts'
     | '/exercises/$exerciseId'
     | '/goal/$groupId'
     | '/groups/$groupId'
+    | '/meals/new'
     | '/pact/$groupId'
     | '/plans/$slug'
     | '/post/$postId'
@@ -1130,6 +1164,7 @@ export interface FileRouteTypes {
     | '/crews/$groupId/requests'
     | '/crews/$groupId/settings'
     | '/exercises/$exerciseId/how-to'
+    | '/meals/$mealId/edit'
     | '/plans/$slug/day'
     | '/u/$userId/follows'
     | '/workouts/$workoutId/edit'
@@ -1198,11 +1233,13 @@ export interface FileRouteTypes {
     | '/_authenticated/check-in/notes'
     | '/_authenticated/check-ins/$checkInId'
     | '/_authenticated/crews/$groupId'
+    | '/_authenticated/discover/meals'
     | '/_authenticated/discover/plans'
     | '/_authenticated/discover/workouts'
     | '/_authenticated/exercises/$exerciseId'
     | '/_authenticated/goal/$groupId'
     | '/_authenticated/groups/$groupId'
+    | '/_authenticated/meals/new'
     | '/_authenticated/pact/$groupId'
     | '/_authenticated/plans/$slug'
     | '/_authenticated/post/$postId'
@@ -1230,6 +1267,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crews/$groupId_/requests'
     | '/_authenticated/crews/$groupId_/settings'
     | '/_authenticated/exercises/$exerciseId_/how-to'
+    | '/_authenticated/meals/$mealId/edit'
     | '/_authenticated/plans/$slug_/day'
     | '/_authenticated/u/$userId_/follows'
     | '/_authenticated/workouts_/$workoutId_/edit'
@@ -1672,6 +1710,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCrewsGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/discover/meals': {
+      id: '/_authenticated/discover/meals'
+      path: '/discover/meals'
+      fullPath: '/discover/meals'
+      preLoaderRoute: typeof AuthenticatedDiscoverMealsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/discover/plans': {
       id: '/_authenticated/discover/plans'
       path: '/discover/plans'
@@ -1712,6 +1757,13 @@ declare module '@tanstack/react-router' {
       path: '/groups/$groupId'
       fullPath: '/groups/$groupId'
       preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/meals/new': {
+      id: '/_authenticated/meals/new'
+      path: '/meals/new'
+      fullPath: '/meals/new'
+      preLoaderRoute: typeof AuthenticatedMealsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/pact/$groupId': {
@@ -1868,6 +1920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExercisesExerciseIdHowToRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/meals/$mealId/edit': {
+      id: '/_authenticated/meals/$mealId/edit'
+      path: '/meals/$mealId/edit'
+      fullPath: '/meals/$mealId/edit'
+      preLoaderRoute: typeof AuthenticatedMealsMealIdEditRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/plans/$slug_/day': {
       id: '/_authenticated/plans/$slug_/day'
       path: '/plans/$slug/day'
@@ -2006,11 +2065,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
   AuthenticatedCheckInsCheckInIdRoute: typeof AuthenticatedCheckInsCheckInIdRoute
   AuthenticatedCrewsGroupIdRoute: typeof AuthenticatedCrewsGroupIdRoute
+  AuthenticatedDiscoverMealsRoute: typeof AuthenticatedDiscoverMealsRoute
   AuthenticatedDiscoverPlansRoute: typeof AuthenticatedDiscoverPlansRoute
   AuthenticatedDiscoverWorkoutsRoute: typeof AuthenticatedDiscoverWorkoutsRoute
   AuthenticatedExercisesExerciseIdRoute: typeof AuthenticatedExercisesExerciseIdRoute
   AuthenticatedGoalGroupIdRoute: typeof AuthenticatedGoalGroupIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
+  AuthenticatedMealsNewRoute: typeof AuthenticatedMealsNewRoute
   AuthenticatedPactGroupIdRoute: typeof AuthenticatedPactGroupIdRoute
   AuthenticatedPlansSlugRoute: typeof AuthenticatedPlansSlugRoute
   AuthenticatedPostPostIdRoute: typeof AuthenticatedPostPostIdRoute
@@ -2038,6 +2099,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrewsGroupIdRequestsRoute: typeof AuthenticatedCrewsGroupIdRequestsRoute
   AuthenticatedCrewsGroupIdSettingsRoute: typeof AuthenticatedCrewsGroupIdSettingsRoute
   AuthenticatedExercisesExerciseIdHowToRoute: typeof AuthenticatedExercisesExerciseIdHowToRoute
+  AuthenticatedMealsMealIdEditRoute: typeof AuthenticatedMealsMealIdEditRoute
   AuthenticatedPlansSlugDayRoute: typeof AuthenticatedPlansSlugDayRoute
   AuthenticatedUUserIdFollowsRoute: typeof AuthenticatedUUserIdFollowsRoute
   AuthenticatedWorkoutsWorkoutIdEditRoute: typeof AuthenticatedWorkoutsWorkoutIdEditRoute
@@ -2071,11 +2133,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
   AuthenticatedCheckInsCheckInIdRoute: AuthenticatedCheckInsCheckInIdRoute,
   AuthenticatedCrewsGroupIdRoute: AuthenticatedCrewsGroupIdRoute,
+  AuthenticatedDiscoverMealsRoute: AuthenticatedDiscoverMealsRoute,
   AuthenticatedDiscoverPlansRoute: AuthenticatedDiscoverPlansRoute,
   AuthenticatedDiscoverWorkoutsRoute: AuthenticatedDiscoverWorkoutsRoute,
   AuthenticatedExercisesExerciseIdRoute: AuthenticatedExercisesExerciseIdRoute,
   AuthenticatedGoalGroupIdRoute: AuthenticatedGoalGroupIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
+  AuthenticatedMealsNewRoute: AuthenticatedMealsNewRoute,
   AuthenticatedPactGroupIdRoute: AuthenticatedPactGroupIdRoute,
   AuthenticatedPlansSlugRoute: AuthenticatedPlansSlugRoute,
   AuthenticatedPostPostIdRoute: AuthenticatedPostPostIdRoute,
@@ -2109,6 +2173,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedCrewsGroupIdSettingsRoute,
   AuthenticatedExercisesExerciseIdHowToRoute:
     AuthenticatedExercisesExerciseIdHowToRoute,
+  AuthenticatedMealsMealIdEditRoute: AuthenticatedMealsMealIdEditRoute,
   AuthenticatedPlansSlugDayRoute: AuthenticatedPlansSlugDayRoute,
   AuthenticatedUUserIdFollowsRoute: AuthenticatedUUserIdFollowsRoute,
   AuthenticatedWorkoutsWorkoutIdEditRoute:

@@ -22,6 +22,7 @@ export type CheckInDraft = {
   /** New version: picked crews and followers choice. */
   groupIds?: string[] | null;
   shareWithFollowers?: boolean;
+  mealId?: string | null;
   savedAt: number;
 };
 

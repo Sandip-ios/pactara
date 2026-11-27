@@ -1,3 +1,4 @@
+import { AttachmentMealCard } from "./MealViews";
 import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
 import { useFeedSave } from "./use-feed-save";
 import { useQuery } from "@tanstack/react-query";
@@ -156,6 +157,7 @@ export function RedesignCheckInCard({
         </button>
       )}
 
+      <AttachmentMealCard id={rawId} kind="checkin" isMine={item.isMe} />
       {homeFeed ? <HomeCheckInActions id={rawId} isMine={item.isMe} /> : <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />}
       {comments.sheet}
       {card && card.kind !== "health" && (

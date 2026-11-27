@@ -1,7 +1,7 @@
 import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
-import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell } from "lucide-react";
+import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, Utensils } from "lucide-react";
 import { getMyGroupStatus } from "@/lib/groups.functions";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
@@ -67,6 +67,7 @@ export function NewBottomTabs() {
           <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
           <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
           <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
+          <CreateRow icon={<Utensils size={20} />} title="Build a meal" subtitle="One meal people can save and eat" tone="meal" onClick={() => { setCreateOpen(false); navigate({ to: "/meals/new", search: { forPost: false } }); }} />
         </div>
       </NewSheet>
     </>

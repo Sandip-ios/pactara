@@ -1,0 +1,4 @@
+import { createFileRoute, Navigate } from '@tanstack/react-router';
+import { useAppPrefs, useAppVersion } from '@/hooks/use-app-version';
+import { NewMealBuilder } from '@/components/redesign/NewMealBuilder';
+export const Route=createFileRoute('/_authenticated/meals/new')({validateSearch:(s:Record<string,unknown>)=>({forPost:s['forPost']===true||s['forPost']==='true'}),head:()=>({meta:[{title:'New meal · Pactara'},{name:'description',content:'Build a meal with foods, portions and notes.'},{property:'og:title',content:'New meal · Pactara'},{property:'og:description',content:'Build a meal with foods, portions and notes.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary'}]}),component:()=>{const v=useAppVersion();const p=useAppPrefs();const s=Route.useSearch();return p.isLoading?null:v==='new'?<NewMealBuilder forPost={s.forPost}/>:<Navigate to="/profile"/>;}});

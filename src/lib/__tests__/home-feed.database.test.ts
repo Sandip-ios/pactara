@@ -187,7 +187,7 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
         await rpc(v, "toggle_post_attachment", { _post_id: id, _kind: "meal", _on: true }),
       ).toBe(one);
       await rpc(v, "toggle_post_attachment", { _post_id: id, _kind: "meal", _on: false });
-      expect(await req<unknown[]>("/rest/v1/meals?id=eq." + one, v.token)).toEqual([]);
+      expect(await req<unknown[]>("/rest/v1/meals?select=id&id=eq." + one, v.token)).toEqual([]);
       const own = await post(v, "Own attachment");
       await expect(
         rpc(v, "toggle_post_attachment", { _post_id: own, _kind: "workout", _on: true }),

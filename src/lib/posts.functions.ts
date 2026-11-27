@@ -172,7 +172,7 @@ export const getShareWorkoutPreview = createServerFn({ method: "GET" })
 /** Step 1 of posting: one atomic insert (audience, crews, items) while media uploads. */
 export const createSocialPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { caption: string; audience: AudienceKind; crewIds: string[]; items: PostItemInput[]; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[]; skipDiscover: boolean }) => input)
+  .inputValidator((input: { caption: string; audience: AudienceKind; crewIds: string[]; items: PostItemInput[]; workout: PostWorkoutChoice; commentsOn: boolean; tags: string[]; skipDiscover: boolean; mealId?: string | null }) => input)
   .handler(async ({ context, data }) => {
     const supabase = sb(context.supabase);
     const snap = await snapshotWorkout(supabase, context.userId, data.workout);
@@ -180,11 +180,12 @@ export const createSocialPost = createServerFn({ method: "POST" })
       kind: i.kind, path: i.path, poster_path: i.posterPath, duration_s: i.duration, trim_start: i.trimStart, trim_end: i.trimEnd,
       muted: i.muted, cover_s: i.cover, crop: i.crop,
     }));
-    const { data: id, error } = await supabase.rpc("create_library_post_v2", {
+    const args = {
       _caption: (data.caption ?? "").slice(0, 2200), _audience: data.audience, _group_ids: data.crewIds ?? [], _items: items,
       _workout: snap.workout, _workout_session_id: snap.sessionId, _workout_id: snap.workoutId, _credit_user_id: snap.creditUserId,
       _comments_on: data.commentsOn !== false, _tags: data.tags ?? [], _skip_discover: !!data.skipDiscover,
-    });
+    };
+    const { data: id, error } = data.mealId ? await supabase.rpc("create_library_meal_post", { ...args, _meal_id: data.mealId }) : await supabase.rpc("create_library_post_v2", args);
     if (error || !id) throw new Error(error?.message ?? "Couldn't post");
     if (!items.length) { await notifyCredit(supabase, context.userId, id as string); await notifyTags(supabase, context.userId, id as string); }
     return { id: id as string };
