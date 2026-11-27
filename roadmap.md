@@ -245,4 +245,10 @@
 ## Round 3 feed card actions
 - [x] Tightened action buttons to 22px visible boxes with invisible 44px targets and a content-measured 16px group gap; preview has no minimum height. Recaptured the three p5-2-fix4 card-action images and measured exact row/preview padding and 10px icon-to-preview gap at 390×844; 945 tests/typecheck pass, temporary draft data removed, classic unchanged, unpublished.
 - [x] All existing new-version feed layouts share icon/count actions with 44px targets, cheered flame, optional right-side cheer text and the earliest visible comment. Three 390×844 captures verified; comment icon/count/preview open threads and a comment saves/readbacks. Block-filtered library reads repaired with narrow migration; 945 tests/typecheck pass, temporary data removed; classic unchanged, unpublished.
-- [ ] Following feed application: blocked because this draft has no Following feed screen or read path yet; shared new-only actions are ready for it, no new feed built in this visual pass.
+- [x] Following feed application superseded by Phase 5 Home tabs below.
+
+## Phase 5 Home tabs and full post sections
+- [ ] New-only Following/For you feeds, pagination, audience/block/hide enforcement, follow pills and empty states
+- [ ] Shared full workout/meal post sections and reversible library saves; own posts omit saves
+- [ ] Real 390px flow checks, six requested screenshots and native-shell check; remove temporary draft data
+- [ ] Full tests and typecheck; commit without publishing

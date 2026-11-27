@@ -6,6 +6,7 @@ import { skipsDiscover } from "./post-composer";
 import type { PickedItem } from "./post-draft";
 import type { PostAudience } from "./post-audience";
 import type { PostItemInput, PostWorkoutChoice } from "./social-post-types";
+import { markHomePost } from "./home-visit-posts";
 import { postItemCrop } from "./post-video-layout";
 
 const extOf = (blob: Blob, name: string, kind: "photo" | "video") => {
@@ -49,6 +50,7 @@ export async function submitPost(input: {
     caption: input.caption, audience: input.audience.kind, crewIds: input.audience.crewIds, items, workout: input.workout,
     commentsOn: input.audience.kind !== "only_me" && input.commentsOn, tags: input.audience.kind === "only_me" ? [] : input.tags, skipDiscover: skipsDiscover(input.picked.map((p) => p.edit)),
   } });
+  markHomePost(id);
   if (files.length) await enqueuePost({ postId: id, label: "Posting...", thumb, thumbKind, files, failed: false });
   return { id, uploading: files.length > 0 };
 }

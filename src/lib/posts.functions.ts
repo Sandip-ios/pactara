@@ -14,7 +14,6 @@ import type { PostItemInput, PostWorkout, PostWorkoutChoice, PostWorkoutMove, So
  */
 
 const BUCKET = "posts";
-const TTL = 60 * 60;
 type Row = Record<string, unknown>;
 const sb = (c: unknown) => c as SupabaseClient;
 const firstName = (name: string | null | undefined) => (name ?? "").trim().split(/\s+/)[0] || "Member";
@@ -218,72 +217,13 @@ export const finalizeSocialPost = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-async function loadPosts(supabase: SupabaseClient, userId: string, rows: Row[]): Promise<SocialPostView[]> {
-  if (!rows.length) return [];
-  const ids = rows.map((r) => r["id"] as string);
-  const authorIds = [...new Set(rows.map((r) => r["user_id"] as string))];
-  const [{ data: items }, { data: crews }, { data: cheers }, { data: comments }, { data: saves }, { data: authors }, { data: memberRows }] = await Promise.all([
-    supabase.from("social_post_items").select("*").in("post_id", ids).order("position"),
-    supabase.from("social_post_crews").select("post_id, group_id").in("post_id", ids),
-    supabase.from("social_post_cheers").select("post_id, user_id").in("post_id", ids),
-    supabase.from("social_post_comments").select("post_id").in("post_id", ids),
-    supabase.from("social_post_saves").select("post_id, user_id").in("post_id", ids),
-    supabase.from("profiles").select("id, name, avatar_url, avatar_color").in("id", authorIds),
-    supabase.from("group_members").select("group_id, groups!inner(name)").eq("user_id", userId),
-  ]);
-  const paths = ((items ?? []) as Row[]).flatMap((i) => [i["path"] as string, i["poster_path"] as string | null].filter((p): p is string => !!p));
-  const signed = new Map<string, string>();
-  if (paths.length) {
-    const { data: urls } = await supabase.storage.from(BUCKET).createSignedUrls([...new Set(paths)], TTL);
-    for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
-  }
-  const avatars = await signAvatarThumbs(supabase, ((authors ?? []) as Row[]).map((a) => a["avatar_url"] as string | null));
-  const myCrewNames = new Map(((memberRows ?? []) as unknown as { group_id: string; groups: { name: string } }[]).map((m) => [m.group_id, m.groups.name]));
-  const authorById = new Map(((authors ?? []) as Row[]).map((a) => [a["id"] as string, a]));
-  return rows.map((r) => {
-    const id = r["id"] as string;
-    const mine = r["user_id"] === userId;
-    const a = authorById.get(r["user_id"] as string);
-    const av = (a?.["avatar_url"] as string | null) ?? null;
-    let workout = (r["workout"] ?? null) as PostWorkout | null;
-    if (workout && !mine) workout = { ...workout, prCount: 0, moves: workout.moves.map((m) => ({ ...m, sets: m.sets.map((s) => ({ ...s, isPr: false })) })) };
-    return {
-      id,
-      author: { id: r["user_id"] as string, name: (a?.["name"] as string) || "Member", avatarUrl: av ? (av.startsWith("http") ? av : avatars.get(av) ?? null) : null, avatarColor: (a?.["avatar_color"] as string | null) ?? "#7C3AED" },
-      isMine: mine,
-      caption: (r["caption"] as string) ?? "",
-      createdAt: r["created_at"] as string,
-      status: r["status"] as SocialPostView["status"],
-      audience: r["audience"] as AudienceKind,
-      crewIds: ((crews ?? []) as Row[]).filter((c) => c["post_id"] === id).map((c) => c["group_id"] as string),
-      viewerCrews: ((crews ?? []) as Row[]).filter((c) => c["post_id"] === id && myCrewNames.has(c["group_id"] as string)).map((c) => ({ id: c["group_id"] as string, name: myCrewNames.get(c["group_id"] as string)! })),
-      commentsOn: r["comments_on"] !== false,
-      items: ((items ?? []) as Row[]).filter((i) => i["post_id"] === id).map((i) => ({
-        id: i["id"] as string, kind: i["kind"] as "photo" | "video",
-        url: signed.get(i["path"] as string) ?? null, posterUrl: i["poster_path"] ? signed.get(i["poster_path"] as string) ?? null : null,
-        trimStart: i["trim_start"] == null ? null : Number(i["trim_start"]), trimEnd: i["trim_end"] == null ? null : Number(i["trim_end"]),
-        muted: !!i["muted"], crop: (i["crop"] ?? null) as SocialPostView["items"][number]["crop"],
-      })),
-      workout,
-      workoutId: (r["workout_id"] as string | null) ?? null,
-      workoutSessionId: (r["workout_session_id"] as string | null) ?? null,
-      pinnedAt: (r["pinned_at"] as string | null) ?? null,
-      cheers: ((cheers ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
-      cheeredByMe: ((cheers ?? []) as Row[]).some((c) => c["post_id"] === id && c["user_id"] === userId),
-      comments: ((comments ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
-      saves: ((saves ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
-      savedByMe: ((saves ?? []) as Row[]).some((c) => c["post_id"] === id && c["user_id"] === userId),
-    };
-  });
-}
-
 /** Your own posts, newest first (profile Posts). */
 export const getMySocialPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const supabase = sb(context.supabase);
     const { data } = await supabase.from("social_posts").select("*").eq("user_id", context.userId).neq("status", "failed").order("pinned_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(60);
-    return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (data ?? []) as Row[]));
+    return stabilizeSignedUrls(await (await import("./social-post-load.server")).loadSocialPostsForViewer(supabase, context.userId, (data ?? []) as Row[]));
   });
 
 /** Someone's live posts you're allowed to see (their profile Posts grid). RLS decides visibility, blocks included. */
@@ -293,7 +233,7 @@ export const getMemberSocialPosts = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     const supabase = sb(context.supabase);
     const { data: rows } = await supabase.from("social_posts").select("*").eq("user_id", data.target).eq("status", "live").order("pinned_at", { ascending: false, nullsFirst: false }).order("created_at", { ascending: false }).limit(60);
-    return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (rows ?? []) as Row[]));
+    return stabilizeSignedUrls(await (await import("./social-post-load.server")).loadSocialPostsForViewer(supabase, context.userId, (rows ?? []) as Row[]));
   });
 
 export const getSocialPost = createServerFn({ method: "GET" })
@@ -303,7 +243,7 @@ export const getSocialPost = createServerFn({ method: "GET" })
     const supabase = sb(context.supabase);
     const { data: row } = await supabase.from("social_posts").select("*").eq("id", data.id).maybeSingle();
     if (!row) return null;
-    const [post] = await loadPosts(supabase, context.userId, [row as Row]);
+    const [post] = await (await import("./social-post-load.server")).loadSocialPostsForViewer(supabase, context.userId, [row as Row]);
     return stabilizeSignedUrls(post ?? null);
   });
 
@@ -317,7 +257,7 @@ export const getCrewSocialPosts = createServerFn({ method: "GET" })
     const ids = ((links ?? []) as Row[]).map((l) => l["post_id"] as string);
     if (!ids.length) return [];
     const { data: rows } = await supabase.from("social_posts").select("*").in("id", ids).eq("status", "live").neq("audience", "only_me").gte("created_at", data.since).order("created_at", { ascending: false }).limit(100);
-    return stabilizeSignedUrls(await loadPosts(supabase, context.userId, (rows ?? []) as Row[]));
+    return stabilizeSignedUrls(await (await import("./social-post-load.server")).loadSocialPostsForViewer(supabase, context.userId, (rows ?? []) as Row[]));
   });
 
 /** Home feed: your own posts plus live posts shared to any of your crews, newest first, 20 a page. */
@@ -343,8 +283,8 @@ export const getHomeSocialPosts = createServerFn({ method: "GET" })
     const byId = new Map<string, Row>();
     for (const r of [...((mine ?? []) as Row[]), ...((crew.data ?? []) as Row[])]) byId.set(r["id"] as string, r);
     const rows = [...byId.values()].sort((a, b) => String(b["created_at"]).localeCompare(String(a["created_at"]))).slice(0, 20);
-    const posts = stabilizeSignedUrls(await loadPosts(supabase, context.userId, rows));
-    return { posts, next: rows.length === 20 ? (rows[19]!["created_at"] as string) : null };
+    const posts = stabilizeSignedUrls(await (await import("./social-post-load.server")).loadSocialPostsForViewer(supabase, context.userId, rows));
+    return { posts, next: rows.length === 20 ? (rows.at(-1)?.["created_at"] as string) : null };
   });
 
 export const updateSocialPostCaption = createServerFn({ method: "POST" })

@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ChevronRight, Volume2, VolumeX } from "lucide-react";
-import type { WorkoutDetail } from "@/lib/lifts.functions";
+import { Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PostWorkout, SocialPostItem } from "@/lib/social-post-types";
-import { workoutCardLine, type AttachedCard } from "@/lib/redesign-feed-view";
-import { RedesignWorkoutSheet, type SheetAuthor } from "../RedesignCheckInSheets";
+import type { SocialPostItem } from "@/lib/social-post-types";
 import { postVideoRatio } from "@/lib/post-video-layout";
 
 export const INK = "#1C1917";
@@ -164,54 +161,4 @@ export function PostCarousel({ items, height = 420, aspectRatio }: { items: Soci
   );
 }
 
-/** "2 exercises · 7 sets · 46 min"; caption workouts have no time, so no minutes. */
-export function postWorkoutLine(w: PostWorkout): string {
-  const line = workoutCardLine({ title: w.title, exercises: w.moves.length, sets: w.sets, minutes: w.minutes, prCount: w.prCount });
-  return w.minutes > 0 ? line : line.replace(/ · \d+ min$/, "");
-}
-
-function toDetail(w: PostWorkout, isMine: boolean): WorkoutDetail {
-  return {
-    title: w.title,
-    summary: { exercises: w.moves.length, sets: w.sets, minutes: w.minutes, volume: 0, unit: "kg", items: [], prs: [] },
-    exercises: w.moves.map((m) => ({
-      exerciseId: m.exerciseId, name: m.name, imageStart: m.imageStart, logType: m.logType, equipment: "",
-      sets: m.sets.map((s) => ({ weight: null, reps: s.reps, seconds: s.seconds, unit: "kg" as const, isPr: s.isPr })),
-    })),
-    isMine,
-    dayLabel: null,
-    savedWorkoutId: null,
-  };
-}
-
-/** The 1d compact "WORKOUT" card; opens the sets-and-reps sheet. */
-export function PostWorkoutCard({ workout, isMine, author, postId }: { workout: PostWorkout; isMine: boolean; author: SheetAuthor | null; postId: string }) {
-  const [open, setOpen] = useState(false);
-  const card: AttachedCard = {
-    kind: "workout",
-    label: "WORKOUT",
-    title: workout.title || "Workout",
-    line: postWorkoutLine(workout),
-    pr: isMine && workout.prCount > 0,
-  };
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex w-[calc(100%-24px)] items-center gap-3 rounded-[16px] text-left active:opacity-80"
-        style={{ margin: "10px 12px 0", padding: "12px 14px", background: "#F7F5F2", color: INK }}
-        aria-label={`${card.label}: ${card.title}. ${card.line}. Show details`}
-      >
-        <span className="min-w-0 flex-1">
-          <span className="block text-[11px] font-extrabold" style={{ letterSpacing: "0.6px", color: PURPLE }}>{card.label}</span>
-          <span className="block truncate text-[16px] font-extrabold leading-snug">{card.title}</span>
-          <span className="block truncate text-[12px]" style={{ color: MUTED }}>{card.line}</span>
-          {card.pr && <span className="mt-1.5 inline-flex h-[22px] items-center rounded-full px-2 text-[11px] font-extrabold" style={{ background: "#FEF3C7", color: "#A16207" }}>🏆 New PR</span>}
-        </span>
-        <ChevronRight size={18} className="shrink-0" style={{ color: "#8A847E" }} aria-hidden />
-      </button>
-      <RedesignWorkoutSheet open={open} onOpenChange={setOpen} checkInId={`post-${postId}`} card={card} author={author} isMine={isMine} planSlug={null} detail={toDetail(workout, isMine)} />
-    </>
-  );
-}
+export { PostWorkoutCard } from "./PostSections";

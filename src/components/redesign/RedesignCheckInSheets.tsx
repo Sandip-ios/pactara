@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -68,12 +68,15 @@ export function RedesignWorkoutSheet({
   isMine,
   planSlug,
   detail,
+  attachmentAction,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   checkInId: string;
   /** Camera-roll posts pass their own sets-and-reps snapshot instead of a check-in. */
   detail?: WorkoutDetail;
+  /** Camera-roll posts reuse the card save state inside their sheet. */
+  attachmentAction?: ReactNode;
   card: AttachedCard;
   author: SheetAuthor | null;
   isMine: boolean;
@@ -137,6 +140,7 @@ export function RedesignWorkoutSheet({
           </ul>
         ) : null}
         <div className="mt-4">
+          {attachmentAction}
           {canSave && hasWeightedExercise(exercises) && (
             <p className="mb-2.5 text-center text-[12px]" style={{ color: NOTE }}>Your weights fill in from your own history.</p>
           )}

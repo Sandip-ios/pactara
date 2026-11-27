@@ -15,6 +15,7 @@ import { CrewAvatar } from "../CrewAvatars";
 import { PostCarousel, PostWorkoutCard, INK, MUTED, PostTopBar } from "./PostBits";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { PostMealCard } from "./PostSections";
 import { PostCommentsSheet } from "./PostComments";
 
 /** One post: carousel, caption, workout and the owner's exact canvas menu. */
@@ -76,6 +77,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
       <PostCarousel items={post.items} />
       {post.caption && <p className="whitespace-pre-wrap break-words px-4 pt-3 text-[15px]" style={{ lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={null} />}
+      {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}
       <div className="pt-1.5">
         <FeedCardActions cheer={() => void toggleCheer()} cheered={cheered} cheers={cheerCount} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment}
           save={post.isMine ? { ...save, toggle: () => void save.toggle(), count: post.saves + Number(save.saved) - Number(post.savedByMe) } : { ...save, toggle: () => void save.toggle() }} />

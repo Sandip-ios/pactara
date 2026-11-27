@@ -14,10 +14,12 @@ import { PostCarousel, PostWorkoutCard, INK, MUTED } from "./PostBits";
 import { PostCommentsSheet } from "./PostComments";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { PostMealCard } from "./PostSections";
+import { FollowPill } from "../FollowPill";
 import { MoreHorizontal } from "lucide-react";
 
 /** A camera-roll post in the crew Posts feed: the 1d card with no tag at all. */
-export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupId: string }) {
+export function SocialPostCard({ post, groupId, showFollow = false }: { post: SocialPostView; groupId: string; showFollow?: boolean }) {
   const qc = useQueryClient();
   const cheerFn = useServerFn(toggleSocialPostCheer);
   const [cheered, setCheered] = useState(post.cheeredByMe);
@@ -43,6 +45,7 @@ export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupI
           <div className="truncate text-[15px] font-bold leading-tight">{post.isMine ? "You" : post.author.name}</div>
           <div className="truncate text-[12px]" style={{ color: MUTED }}>{postSubline(post.audience, post.viewerCrews, clock(post.createdAt))}</div>
         </div>
+        {showFollow && !post.isMine && <FollowPill userId={post.author.id} />}
         {post.isMine && (
           <button type="button" aria-label="Post options" onClick={() => setMenu(true)} className="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center text-[var(--new-muted)]"><MoreHorizontal className="size-5" /></button>
         )}
@@ -55,6 +58,7 @@ export function SocialPostCard({ post, groupId }: { post: SocialPostView; groupI
       {post.isMine ? <Link to="/post/$postId" params={{ postId: post.id }} className="block w-full"><PostCarousel items={post.items} aspectRatio="4 / 5" /></Link> : <PostCarousel items={post.items} aspectRatio="4 / 5" />}
       {post.caption && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={post.isMine ? null : { ...post.author, firstName, when: clock(post.createdAt) }} />}
+      {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}
       <FeedCardActions cheer={() => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment} save={save} />
       {post.isMine && <OwnPostMenu post={post} open={menu} onOpenChange={setMenu} />}
       <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />

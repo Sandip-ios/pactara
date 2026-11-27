@@ -40,6 +40,7 @@ export type SocialPostView = {
   commentsOn: boolean;
   items: SocialPostItem[];
   workout: PostWorkout | null;
+  meal?: import("./post-sections").PostMeal | null;
   workoutId: string | null;
   workoutSessionId: string | null;
   pinnedAt: string | null;

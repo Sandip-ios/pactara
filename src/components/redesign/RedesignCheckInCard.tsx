@@ -1,5 +1,10 @@
 import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
 import { useFeedSave } from "./use-feed-save";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { getHomeCheckInSocial } from "@/lib/home-checkin.functions";
+import { HomeCheckInActions } from "./HomeCheckInActions";
+import { FollowPill } from "./FollowPill";
 import { useEffect, useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
 import type { FeedItem } from "@/lib/daily-posts.functions";
@@ -31,14 +36,22 @@ export function RedesignCheckInCard({
   viewerToday,
   autoOpenComments,
   targetCommentId,
+  homeCrewName,
+  showFollow = false,
+  homeFeed = false,
 }: {
   item: FeedItem;
   checkIn: CheckInNode;
   viewerToday: string;
   autoOpenComments?: boolean;
   targetCommentId?: string | null;
+  homeCrewName?: string | null;
+  showFollow?: boolean;
+  homeFeed?: boolean;
 }) {
   const rawId = checkIn.id.replace(/^c-/, "");
+  const homeSocialFn = useServerFn(getHomeCheckInSocial);
+  const homeSocial = useQuery({ queryKey: ["home-checkin-social", rawId], queryFn: () => homeSocialFn({ data: { id: rawId } }), enabled: homeFeed, staleTime: 30_000 });
   const firstId = item.nodes.find((n) => n.kind === "check_in")?.id ?? checkIn.id;
   const isFirst = firstId === checkIn.id;
   const preview = useCheckInFirstComment(item.id, checkIn.social?.commentCount ?? item.commentCount, { checkInId: rawId, includeUnscoped: isFirst });
@@ -83,8 +96,9 @@ export function RedesignCheckInCard({
         </MemberProfileLink>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-bold leading-tight">{item.isMe ? "You" : item.name}</div>
-          <div className="truncate text-[12px]" style={{ color: MUTED }}>{meta}</div>
+          <div className="truncate text-[12px]" style={{ color: MUTED }}>{homeCrewName ? `${homeCrewName} · ${clock(checkIn.at)}${checkIn.workout?.title ? ` · ${checkIn.workout.title}` : tag ? ` · ${tag}` : ""}` : meta}</div>
         </div>
+        {showFollow && !item.isMe && <FollowPill userId={item.userId} />}
         {showCheckedInPill("check_in") && (
           <span className="flex h-[26px] shrink-0 items-center gap-1 rounded-[13px] px-2.5 text-[12px] font-extrabold" style={{ background: "#DCFCE7", color: "#15803D" }}>
             <Check size={12} strokeWidth={3} aria-hidden /> Checked in
@@ -102,10 +116,10 @@ export function RedesignCheckInCard({
 
       {checkIn.photoUrl && (
         isVideoUrl(checkIn.photoUrl) ? (
-          <FeedVideo src={checkIn.photoUrl} poster={checkIn.posterUrl} variant="redesign" onOpen={() => setLightbox({ src: checkIn.photoUrl!, kind: "video" })} />
+          <FeedVideo src={checkIn.photoUrl} poster={checkIn.posterUrl} variant="redesign" onOpen={() => checkIn.photoUrl && setLightbox({ src: checkIn.photoUrl, kind: "video" })} />
         ) : (
           <div className="h-[300px] overflow-hidden [&>div]:h-full [&>div]:aspect-auto">
-            <FeedImage src={checkIn.photoUrl} onOpen={() => setLightbox({ src: checkIn.photoUrl!, kind: "image" })} />
+            <FeedImage src={checkIn.photoUrl} onOpen={() => checkIn.photoUrl && setLightbox({ src: checkIn.photoUrl, kind: "image" })} />
           </div>
         )
       )}
@@ -132,10 +146,10 @@ export function RedesignCheckInCard({
         </button>
       )}
 
-      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />
+      {homeFeed ? <HomeCheckInActions id={rawId} isMine={item.isMe} /> : <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />}
       {comments.sheet}
       {card && card.kind !== "health" && (
-        <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} />
+        <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} {...(homeFeed && homeSocial.data?.workoutDetail ? { detail: homeSocial.data.workoutDetail } : {})} />
       )}
       {card?.kind === "health" && checkIn.health && (
         <RedesignHealthSheet open={sheetOpen} onOpenChange={setSheetOpen} health={checkIn.health} unit={unit} author={author} isMine={item.isMe} />

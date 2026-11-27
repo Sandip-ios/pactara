@@ -15,6 +15,7 @@ import { useOpenSharedPlan } from "@/components/plans/useOpenSharedPlan";
 import { NewNotifBanner } from "./NewNotifBanner";
 
 import { PostingStrip } from "./post/PostingStrip";
+import { HOME_INITIAL_TAB, type HomeTab } from "@/lib/home-feed";
 import { HomeSocialFeed } from "./HomeSocialFeed";
 
 export function NewHome() {
@@ -27,6 +28,7 @@ export function NewHome() {
   const { data, isLoading } = useQuery({ queryKey: ["groups-today"], queryFn: () => getGroupsToday(), staleTime: 30_000 });
   const { data: notifications } = useQuery(newActivityUnreadOptions);
   const plans = useMyPlans();
+  const [tab, setTab] = useState<HomeTab>(HOME_INITIAL_TAB);
   const [hidePlan, setHidePlan] = useState(true);
   const userId = user.id;
   useEffect(() => {
@@ -46,6 +48,9 @@ export function NewHome() {
           <Button variant="ghost" size="icon" className="relative h-11 w-11 rounded-full bg-[var(--new-control)]" aria-label="Activity" onClick={() => navigate({ to: "/activity" })}><Bell className="!size-5" />{(notifications?.total ?? 0) > 0 && <span className="absolute right-2.5 top-2 h-2 w-2 rounded-full bg-[var(--new-red)]" />}</Button>
         </div>
       </header>
+      <nav className="new-home-tabs" role="tablist" aria-label="Home feed">
+        {(["following", "for-you"] as const).map(value => <Button key={value} variant="ghost" role="tab" aria-selected={tab === value} onClick={() => setTab(value)}>{value === "following" ? "Following" : "For you"}</Button>)}
+      </nav>
       <PostingStrip />
       {data && <NewNotifBanner crewNames={data.groups.map((g) => g.name)} />}
       <section aria-label="Today" className="mx-3 mt-3 rounded-[20px] bg-[var(--new-white)] px-3.5 py-1.5">
@@ -67,7 +72,7 @@ export function NewHome() {
           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0 text-[var(--new-chevron)]" aria-label="Dismiss" onClick={hidePlanRow}><X className="!size-4" /></Button>
         </div>}
       </section>
-      <HomeSocialFeed />
+      <HomeSocialFeed tab={tab} />
     </div>
   );
 }

@@ -24,6 +24,8 @@
   --new-orange-icon: #EA580C;
   --new-soft: #EDE4FF;
   --new-post-attachment: #F5F0FF;
+  --new-meal-surface: #FFF7ED;
+  --new-meal-save: #FFEDD5;
   --new-post-credit: #F4F0FF;
   --new-header-border: #EFEAE4;
   --new-post-banner-border: #E4D8FD;
@@ -674,3 +676,30 @@ body [class*="min-h-[100dvh]"] {
 .new-progress-tile.is-locked > b { color: #78716C; }
 .new-progress-tile.is-locked > small { color: #A8A29E; }
 .new-progress-footer { font-size: 13px; color: #57534E; text-align: center; padding: 16px 24px; }
+
+/* Phase 5: shared new-version post sections and Home tabs. */
+.new-home-tabs { display: flex; height: 46px; background: var(--new-white); border-bottom: 1px solid var(--new-header-border); }
+.new-home-tabs > button { position: relative; flex: 1; height: 46px; border-radius: 0; padding: 0; font-size: 14px; font-weight: 700; color: var(--new-post-remove); background: transparent; }
+.new-home-tabs > button[aria-selected="true"] { color: var(--new-purple); }
+.new-home-tabs > button[aria-selected="true"]::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--new-purple); }
+.new-home-follow { height: 32px; min-height: 32px; flex-shrink: 0; border: 1px solid var(--new-purple); border-radius: 16px; padding: 0 12px; color: var(--new-purple); background: var(--new-white); font-size: 13px; font-weight: 700; }
+.new-post-section { margin: 10px 12px 0; padding: 12px 14px; border-radius: 16px; background: var(--new-profile-surface); color: var(--new-ink); }
+.new-post-section.meal { background: var(--new-meal-surface); }
+.new-post-section-heading { display: block; text-align: left; height: auto; width: 100%; padding: 0; white-space: normal; border-radius: 0; background: transparent; }
+.new-post-section-label { display: block; font-size: 11px; font-weight: 800; letter-spacing: 0.6px; color: var(--new-purple); }
+.meal .new-post-section-label { color: var(--new-orange); }
+.new-post-section-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 16px; font-weight: 800; line-height: 1.35; margin-top: 2px; }
+.new-post-section-meta { display: block; font-size: 12px; font-weight: 400; color: var(--new-muted); margin-top: 2px; }
+.new-post-exercise-row { display: flex; width: 100%; height: auto; min-height: 44px; gap: 8px; padding: 8px 0; border-radius: 0; font-size: 14px; font-weight: 600; background: transparent; }
+.new-post-exercise-row strong { font-weight: 700; }
+.new-post-section-more { display: flex; height: auto; min-height: 32px; padding: 4px 0 0; justify-content: flex-start; font-size: 13px; font-weight: 700; color: var(--new-purple); background: transparent; }
+.meal .new-post-section-more { color: var(--new-orange); }
+.new-post-meal-row { display: flex; width: 100%; height: auto; gap: 8px; padding: 8px 0; white-space: normal; font-size: 14px; font-weight: 500; border-radius: 0; background: transparent; }
+.meal li + li { border-top: 1px solid var(--new-divider); }
+.new-post-meal-macros { margin-top: 8px; font-size: 12px; font-weight: 600; color: var(--new-orange-strong); }
+.new-post-section-save { display: flex; width: 100%; height: 40px; margin-top: 10px; border-radius: 20px; gap: 6px; font-size: 13px; font-weight: 700; }
+.new-post-section-save.workout { color: var(--new-purple); background: var(--new-soft); }
+.new-post-section-save.workout.added { color: var(--new-white); background: var(--new-purple); }
+.new-post-section-save.meal { color: var(--new-orange); background: var(--new-meal-save); }
+.new-post-section-save.meal.added { color: var(--new-white); background: var(--new-orange); }
+.new-post-section-save svg { width: 16px; height: 16px; }

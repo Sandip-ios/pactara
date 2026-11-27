@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -855,6 +850,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      meals: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          snapshot: Json
+          source_post_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          snapshot: Json
+          source_post_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          snapshot?: Json
+          source_post_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meals_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       member_nudges: {
         Row: {
@@ -1942,6 +1972,7 @@ export type Database = {
           created_at: string
           credit_user_id: string | null
           id: string
+          meal: Json | null
           pinned_at: string | null
           skip_discover: boolean
           status: string
@@ -1959,6 +1990,7 @@ export type Database = {
           created_at?: string
           credit_user_id?: string | null
           id?: string
+          meal?: Json | null
           pinned_at?: string | null
           skip_discover?: boolean
           status?: string
@@ -1976,6 +2008,7 @@ export type Database = {
           created_at?: string
           credit_user_id?: string | null
           id?: string
+          meal?: Json | null
           pinned_at?: string | null
           skip_discover?: boolean
           status?: string
@@ -2394,6 +2427,7 @@ export type Database = {
           id: string
           last_done_at: string | null
           name: string
+          source_post_id: string | null
           source_session_id: string | null
           source_share_code: string | null
           source_user_id: string | null
@@ -2408,6 +2442,7 @@ export type Database = {
           id?: string
           last_done_at?: string | null
           name: string
+          source_post_id?: string | null
           source_session_id?: string | null
           source_share_code?: string | null
           source_user_id?: string | null
@@ -2422,6 +2457,7 @@ export type Database = {
           id?: string
           last_done_at?: string | null
           name?: string
+          source_post_id?: string | null
           source_session_id?: string | null
           source_share_code?: string | null
           source_user_id?: string | null
@@ -2435,6 +2471,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "workout_cover_photos"
             referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "workouts_source_post_id_fkey"
+            columns: ["source_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2457,6 +2500,8 @@ export type Database = {
         Args: { _post_id: string; _viewer: string }
         Returns: boolean
       }
+      can_use_home_checkin: { Args: { _id: string }; Returns: boolean }
+      can_view_new_shared_checkin: { Args: { _id: string }; Returns: boolean }
       cancel_crew_join_request: {
         Args: { _request_id: string }
         Returns: string
@@ -2613,6 +2658,7 @@ export type Database = {
       }
       follow_user: { Args: { target: string }; Returns: Json }
       get_follow_profile_stats: { Args: { target: string }; Returns: Json }
+      get_home_checkin_social: { Args: { _id: string }; Returns: Json }
       get_my_app_prefs: {
         Args: never
         Returns: {
@@ -2628,6 +2674,12 @@ export type Database = {
       }
       get_my_logger_check_tip_seen: { Args: never; Returns: string }
       get_my_post_audience: { Args: never; Returns: Json }
+      get_new_home_checkins: { Args: { _ids: string[] }; Returns: Json }
+      get_new_home_refs: {
+        Args: { _before?: Json; _tab: string }
+        Returns: Json
+      }
+      get_new_home_suggestions: { Args: never; Returns: Json }
       get_profile: { Args: { target: string }; Returns: Json }
       get_redesign_activity_extras: { Args: never; Returns: Json }
       get_social_list: {
@@ -2649,6 +2701,10 @@ export type Database = {
       get_visible_follow_profile_stats: {
         Args: { target: string; viewer: string }
         Returns: Json
+      }
+      home_checkin_action: {
+        Args: { _action: string; _body?: string; _id: string }
+        Returns: undefined
       }
       increment_badge_counts: {
         Args: { _user_ids: string[] }
@@ -2797,6 +2853,10 @@ export type Database = {
           _type: string
         }
         Returns: undefined
+      }
+      toggle_post_attachment: {
+        Args: { _kind: string; _on: boolean; _post_id: string }
+        Returns: string
       }
       unfollow_user: { Args: { target: string }; Returns: undefined }
       workout_cover_hash: { Args: { _workout_id: string }; Returns: number }
@@ -2950,3 +3010,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
