@@ -61,8 +61,19 @@ export const setHiddenPost = createServerFn({ method: 'POST' })
 
 export const sendContentReport = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
-  .inputValidator(reportSchema)
+  .inputValidator(z.union([reportSchema, z.object({ reportedUserId: z.string().uuid(), targetType: z.literal("post"), targetId: z.string().uuid(), groupId: z.literal(""), reason: z.enum(["inappropriate_media", "harassment", "hate_or_threats", "spam_or_fake", "other"]), details: z.string().max(500), alsoBlock: z.boolean() })]))
   .handler(async ({ context, data }) => {
+    if (data.targetType === "post" && data.targetId) {
+      const { data: isNew } = await context.supabase.rpc("is_new_version_user", { _user_id: context.userId });
+      const { data: social } = isNew ? await context.supabase.from("social_posts").select("id").eq("id", data.targetId).maybeSingle() : { data: null };
+      const { data: sharedCheckIn } = isNew && !social ? await context.supabase.rpc("can_use_home_checkin", { _id: data.targetId }) : { data: false };
+      if (isNew && (social || sharedCheckIn)) {
+        const { error } = await context.supabase.rpc("report_new_home_post", { _id: data.targetId, _reported: data.reportedUserId, _reason: data.reason, _details: data.details, _block: data.alsoBlock });
+        if (error) throw new Error("Could not send report. Please try again.");
+        return { ok: true };
+      }
+    }
+    if (data.groupId === "") throw new Error("Invalid report crew");
     const { submitReport } = await import('./safety.server');
     await submitReport(context.supabase, data);
     return { ok: true };

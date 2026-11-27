@@ -6,7 +6,8 @@ import { getHomeCheckInSocial } from "@/lib/home-checkin.functions";
 import { HomeCheckInActions } from "./HomeCheckInActions";
 import { FollowPill } from "./FollowPill";
 import { useEffect, useState } from "react";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Dumbbell, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { FeedItem } from "@/lib/daily-posts.functions";
 import type { CheckInNode } from "@/lib/feed-days";
 import { activityMeta } from "@/lib/feed-view";
@@ -99,7 +100,7 @@ export function RedesignCheckInCard({
           <div className="truncate text-[12px]" style={{ color: MUTED }}>{homeCrewName ? `${homeCrewName} · ${clock(checkIn.at)}${checkIn.workout?.title ? ` · ${checkIn.workout.title}` : tag ? ` · ${tag}` : ""}` : meta}</div>
         </div>
         {showFollow && !item.isMe && <FollowPill userId={item.userId} />}
-        {showCheckedInPill("check_in") && (
+        {!homeFeed && showCheckedInPill("check_in") && (
           <span className="flex h-[26px] shrink-0 items-center gap-1 rounded-[13px] px-2.5 text-[12px] font-extrabold" style={{ background: "#DCFCE7", color: "#15803D" }}>
             <Check size={12} strokeWidth={3} aria-hidden /> Checked in
           </span>
@@ -126,7 +127,13 @@ export function RedesignCheckInCard({
 
       {checkIn.note && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{checkIn.note}</p>}
 
-      {card && (
+      {card && (homeFeed ? (
+        <Button variant="ghost" onClick={() => setSheetOpen(true)} className="mx-3 mt-2.5 flex h-10 w-[calc(100%-24px)] justify-start gap-2 rounded-[16px] bg-[var(--new-profile-surface)] px-3.5 text-[var(--new-muted)]" aria-label={`${card.label}: ${card.title}. ${card.line}. Show details`}>
+          {card.kind === "health" ? <Heart className="!size-4 shrink-0" /> : <Dumbbell className="!size-4 shrink-0" />}
+          <span className="min-w-0 flex-1 truncate text-left text-[12px] font-semibold">{card.line || card.title}</span>
+          <ChevronRight className="!size-4 shrink-0 text-[var(--new-post-remove)]" />
+        </Button>
+      ) : (
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
@@ -144,7 +151,7 @@ export function RedesignCheckInCard({
           </span>
           <ChevronRight size={18} className="shrink-0" style={{ color: "#8A847E" }} aria-hidden />
         </button>
-      )}
+      ))}
 
       {homeFeed ? <HomeCheckInActions id={rawId} isMine={item.isMe} /> : <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />}
       {comments.sheet}

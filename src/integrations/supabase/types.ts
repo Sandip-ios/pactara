@@ -2788,6 +2788,16 @@ export type Database = {
       random_share_code: { Args: never; Returns: string }
       refresh_pactara_workouts: { Args: never; Returns: number }
       remove_follower: { Args: { follower: string }; Returns: undefined }
+      report_new_home_post: {
+        Args: {
+          _block: boolean
+          _details: string
+          _id: string
+          _reason: string
+          _reported: string
+        }
+        Returns: undefined
+      }
       request_crew_join: { Args: { _group_id: string }; Returns: Json }
       respond_follow_request: {
         Args: { accept: boolean; follower: string }

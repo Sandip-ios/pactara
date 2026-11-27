@@ -248,7 +248,7 @@
 - [x] Following feed application superseded by Phase 5 Home tabs below.
 
 ## Phase 5 Home tabs and full post sections
-- [ ] New-only Following/For you feeds, pagination, audience/block/hide enforcement, follow pills and empty states
-- [ ] Shared full workout/meal post sections and reversible library saves; own posts omit saves
-- [ ] Real 390px flow checks, six requested screenshots and native-shell check; remove temporary draft data
-- [ ] Full tests and typecheck; commit without publishing
+- [x] New-only Following/For you feeds, pagination, audience/block/hide enforcement, follow pills and empty states
+- [x] Shared full workout/meal post sections and reversible library saves; own posts omit saves
+- [x] Real 390px flow checks and six requested public/qa/p5 captures; all temporary example members, subscriptions, crews, content, workouts, meals, exercises and storage photos removed. Native shell points to the hosted app; 390x844 browser geometry passed without horizontal overflow or content under the bottom bar. Physical iPhone and actual safe-area inset emulation remain unverified.
+- [x] Full suite: 989 tests across 107 files passed; automatic typecheck/build clean; saved without publishing.

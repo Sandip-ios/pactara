@@ -51,7 +51,7 @@ export const getSavedPosts = createServerFn({ method: "GET" })
     const [{ data: posts }, { data: items }, { data: checkIns }] = await Promise.all([
       postIds.length ? supabase.from("social_posts").select("id, caption, workout, status").in("id", postIds).eq("status", "live") : Promise.resolve({ data: [] }),
       postIds.length ? supabase.from("social_post_items").select("post_id, kind, path, poster_path, position").in("post_id", postIds).order("position") : Promise.resolve({ data: [] }),
-      ciIds.length ? supabase.from("check_ins").select("id, user_id, group_id, checkin_date, photo_url, note").in("id", ciIds) : Promise.resolve({ data: [] }),
+      ciIds.length ? supabase.rpc("get_new_home_checkins", { _ids: ciIds }).then(({ data, error }) => { if (error) throw new Error("Could not load saved check-ins"); return { data: ((data ?? []) as Row[]).map(c => ({ id: c["id"], user_id: c["userId"], group_id: c["groupId"], checkin_date: c["localDate"], photo_url: c["photoUrl"], note: c["note"], day_post_id: c["postId"] })) }; }) : Promise.resolve({ data: [] }),
     ]);
     const postById = new Map(((posts ?? []) as Row[]).map((p) => [p["id"] as string, p]));
     const ciById = new Map(((checkIns ?? []) as Row[]).map((c) => [c["id"] as string, c]));
@@ -65,7 +65,10 @@ export const getSavedPosts = createServerFn({ method: "GET" })
       if (!pagePostIds.has(id)) continue;
       itemsByPost.set(id, [...(itemsByPost.get(id) ?? []), i]);
     }
-    const pageCis = page.filter((r) => r.kind === "checkin").map((r) => ciById.get(r.id)!);
+    const pageCis = page.filter((r) => r.kind === "checkin").flatMap((r) => { const c = ciById.get(r.id); return c ? [c] : []; });
+    const { data: memberships } = await supabase.from("group_members").select("group_id").eq("user_id", me);
+    const ownCrews = new Set((memberships ?? []).map(m => m["group_id"] as string));
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Day post ids, so a check-in tile opens its exact card in the crew feed.
     const dayKeys = new Map<string, string>();
@@ -91,23 +94,25 @@ export const getSavedPosts = createServerFn({ method: "GET" })
         }));
         return out;
       })(),
-      signGridThumbs(supabase, pageCis.map((c) => c["photo_url"] as string | null)),
+      signGridThumbs(supabaseAdmin, pageCis.map((c) => c["photo_url"] as string | null)),
     ]);
 
     const tiles: SavedTile[] = page.map((ref) => {
       if (ref.kind === "post") {
-        const p = postById.get(ref.id)!;
+        const p = postById.get(ref.id);
+        if (!p) throw new Error("Saved post unavailable");
         const list = itemsByPost.get(ref.id) ?? [];
         const first = list[0];
         const path = first ? ((first["kind"] === "video" ? first["poster_path"] : first["path"]) as string | null) : null;
         const workout = (p["workout"] ?? null) as { title?: string } | null;
         return { kind: "post", id: ref.id, savedAt: ref.savedAt, thumbUrl: path ? postUrls.get(path) ?? null : null, video: first?.["kind"] === "video", multi: list.length > 1, workout: !!workout, href: `/post/${ref.id}`, label: (p["caption"] as string) || workout?.title || "Saved post" };
       }
-      const c = ciById.get(ref.id)!;
+      const c = ciById.get(ref.id);
+      if (!c) throw new Error("Saved check-in unavailable");
       const photo = (c["photo_url"] as string | null) ?? null;
       const groupId = c["group_id"] as string;
       const dayId = dayKeys.get(`ci|${ref.id}`) ?? dayKeys.get(`${c["user_id"]}|${groupId}|${c["checkin_date"]}`);
-      const href = dayId ? crewPostUrl({ groupId, postId: dayId, checkInId: ref.id }) : `/crews/${groupId}?crewTab=posts`;
+      const href = !ownCrews.has(groupId) ? `/check-ins/${ref.id}` : dayId ? crewPostUrl({ groupId, postId: dayId, checkInId: ref.id }) : `/crews/${groupId}?crewTab=posts`;
       return { kind: "checkin", id: ref.id, savedAt: ref.savedAt, thumbUrl: photo ? (photo.startsWith("http") ? photo : ciUrls.get(photo) ?? null) : null, video: !!photo && isVideoPath(photo), multi: false, workout: false, href, label: (c["note"] as string) || "Saved check-in" };
     });
     return { items: tiles, nextBefore: more ? page[page.length - 1]?.savedAt ?? null : null };
