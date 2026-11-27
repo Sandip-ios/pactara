@@ -2,7 +2,7 @@
 
 43 board captures remain at `public/qa/p6-<board>.png`, at 390px wide and 2x resolution. Builder/amount editor, duplicate search, explicit search error, missing calories, edited totals without stray Undo, removal Undo, save toast, post-building and attached-meal states were recaptured through the app. The meal check-in now shows the real card rather than crew Today. Empty and under-18 states were verified separately. Only 76i, 76l and 77e contain the depicted toast.
 
-The captures show actual draft data, not the mockups' example counts or member photos. Discover 75q shows the Meals rail, but this draft's temporary shared workout did not become visible in Discover, so its Workouts rail is absent. This board does not yet match the reference's full populated-rail state. 75o shows meal search results but this draft has no matching workout/person results for that query. No claim of pixel-exact matching is made.
+The captures show actual draft data, not the mockups' example counts or member photos. Discover 75q shows the Meals rail, but this draft's temporary shared workout did not become visible in Discover, so its Workouts rail is absent. This board does not yet match the reference's full populated-rail state. 75o shows meal search results but this draft has no matching workout/person results for that query. Final visual review also found 76m still retains the preceding “Mixed greens” query instead of the idle Recent state, and 76p has the duplicate-marked private rice row below the visible USDA results. These two captures still need correction. No claim of pixel-exact matching is made.
 
 Fixed the missing adult legacy “No calories” label. Nutrition-redacted under-18 snapshots remain label- and number-free.
 
