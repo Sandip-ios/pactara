@@ -130,17 +130,17 @@ export function NewTodayCard({
         <button
           type="button"
           onClick={() => opensCrew ? onOpenCrew(first.id) : setOpen((value) => !value)}
-          className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
           aria-expanded={expandable ? open : undefined}
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full" style={{ background: iconBackground }}>{icon}</span>
-          <span className="min-w-0 flex-1 text-[14px] font-semibold leading-[1.3]">{line}</span>
+          <span className="min-w-0 flex-1 truncate text-[14px] font-semibold leading-[1.3]">{line}</span>
           {!pill && expandable && (open ? <ChevronUp size={16} color={CHEVRON} /> : <ChevronDown size={16} color={CHEVRON} />)}
           {single && <ChevronRight size={16} color={CHEVRON} />}
         </button>
         {pill && checkInButton(true)}
         {pill && (
-          <button type="button" aria-label={open ? "Hide crews" : "Show crews"} aria-expanded={open} onClick={() => setOpen((value) => !value)} className="-mr-1 flex h-8 w-7 shrink-0 items-center justify-center">
+          <button type="button" aria-label={open ? "Hide crews" : "Show crews"} aria-expanded={open} onClick={() => setOpen((value) => !value)} className="-mr-1 flex h-8 w-6 shrink-0 items-center justify-center">
             {open ? <ChevronUp size={16} color={CHEVRON} /> : <ChevronDown size={16} color={CHEVRON} />}
           </button>
         )}
