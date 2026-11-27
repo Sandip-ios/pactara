@@ -65,6 +65,7 @@ import { Route as AuthenticatedCheckInNotesRouteImport } from './routes/_authent
 import { Route as AuthenticatedCheckInsCheckInIdRouteImport } from './routes/_authenticated/check-ins.$checkInId'
 import { Route as AuthenticatedCrewsIndexRouteImport } from './routes/_authenticated/crews.index'
 import { Route as AuthenticatedCrewsGroupIdRouteImport } from './routes/_authenticated/crews.$groupId'
+import { Route as AuthenticatedDiscoverPlansRouteImport } from './routes/_authenticated/discover.plans'
 import { Route as AuthenticatedDiscoverWorkoutsRouteImport } from './routes/_authenticated/discover.workouts'
 import { Route as AuthenticatedExercisesExerciseIdRouteImport } from './routes/_authenticated/exercises.$exerciseId'
 import { Route as AuthenticatedGoalGroupIdRouteImport } from './routes/_authenticated/goal.$groupId'
@@ -404,6 +405,12 @@ const AuthenticatedCrewsGroupIdRoute =
     path: '/crews/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDiscoverPlansRoute =
+  AuthenticatedDiscoverPlansRouteImport.update({
+    id: '/discover/plans',
+    path: '/discover/plans',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDiscoverWorkoutsRoute =
   AuthenticatedDiscoverWorkoutsRouteImport.update({
     id: '/discover/workouts',
@@ -693,6 +700,7 @@ export interface FileRoutesByFullPath {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
@@ -790,6 +798,7 @@ export interface FileRoutesByTo {
   '/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
@@ -890,6 +899,7 @@ export interface FileRoutesById {
   '/_authenticated/check-in/notes': typeof AuthenticatedCheckInNotesRoute
   '/_authenticated/check-ins/$checkInId': typeof AuthenticatedCheckInsCheckInIdRoute
   '/_authenticated/crews/$groupId': typeof AuthenticatedCrewsGroupIdRoute
+  '/_authenticated/discover/plans': typeof AuthenticatedDiscoverPlansRoute
   '/_authenticated/discover/workouts': typeof AuthenticatedDiscoverWorkoutsRoute
   '/_authenticated/exercises/$exerciseId': typeof AuthenticatedExercisesExerciseIdRoute
   '/_authenticated/goal/$groupId': typeof AuthenticatedGoalGroupIdRoute
@@ -990,6 +1000,7 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/check-ins/$checkInId'
     | '/crews/$groupId'
+    | '/discover/plans'
     | '/discover/workouts'
     | '/exercises/$exerciseId'
     | '/goal/$groupId'
@@ -1087,6 +1098,7 @@ export interface FileRouteTypes {
     | '/check-in/notes'
     | '/check-ins/$checkInId'
     | '/crews/$groupId'
+    | '/discover/plans'
     | '/discover/workouts'
     | '/exercises/$exerciseId'
     | '/goal/$groupId'
@@ -1186,6 +1198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/check-in/notes'
     | '/_authenticated/check-ins/$checkInId'
     | '/_authenticated/crews/$groupId'
+    | '/_authenticated/discover/plans'
     | '/_authenticated/discover/workouts'
     | '/_authenticated/exercises/$exerciseId'
     | '/_authenticated/goal/$groupId'
@@ -1659,6 +1672,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCrewsGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/discover/plans': {
+      id: '/_authenticated/discover/plans'
+      path: '/discover/plans'
+      fullPath: '/discover/plans'
+      preLoaderRoute: typeof AuthenticatedDiscoverPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/discover/workouts': {
       id: '/_authenticated/discover/workouts'
       path: '/discover/workouts'
@@ -1986,6 +2006,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
   AuthenticatedCheckInsCheckInIdRoute: typeof AuthenticatedCheckInsCheckInIdRoute
   AuthenticatedCrewsGroupIdRoute: typeof AuthenticatedCrewsGroupIdRoute
+  AuthenticatedDiscoverPlansRoute: typeof AuthenticatedDiscoverPlansRoute
   AuthenticatedDiscoverWorkoutsRoute: typeof AuthenticatedDiscoverWorkoutsRoute
   AuthenticatedExercisesExerciseIdRoute: typeof AuthenticatedExercisesExerciseIdRoute
   AuthenticatedGoalGroupIdRoute: typeof AuthenticatedGoalGroupIdRoute
@@ -2050,6 +2071,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
   AuthenticatedCheckInsCheckInIdRoute: AuthenticatedCheckInsCheckInIdRoute,
   AuthenticatedCrewsGroupIdRoute: AuthenticatedCrewsGroupIdRoute,
+  AuthenticatedDiscoverPlansRoute: AuthenticatedDiscoverPlansRoute,
   AuthenticatedDiscoverWorkoutsRoute: AuthenticatedDiscoverWorkoutsRoute,
   AuthenticatedExercisesExerciseIdRoute: AuthenticatedExercisesExerciseIdRoute,
   AuthenticatedGoalGroupIdRoute: AuthenticatedGoalGroupIdRoute,

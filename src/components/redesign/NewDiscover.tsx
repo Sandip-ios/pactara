@@ -1,318 +1,362 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Search, Sparkle, X, Zap } from "lucide-react";
-import { coverThumb, filterPlans, type PlanFilters } from "@/lib/plan-filters";
+import { ChevronRight, Search, Sparkle, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { coverThumb } from "@/lib/plan-filters";
 import type { Plan } from "@/lib/workout-plans";
 import { matchPlans } from "@/lib/plan-quiz";
 import { listMyGroups } from "@/lib/groups.functions";
 import { weeklyTarget } from "@/lib/streak-rules";
 import { quizSearchFor, type SavedQuiz } from "@/lib/plan-quiz-saved";
-import { answerChips, discoverCardMatch, droppedNote, fitCountLine, type DroppableKey } from "@/lib/new-quiz";
-import { getPlanCrewmate } from "@/lib/new-discover.functions";
-import {
-  NEW_GOAL_CHIPS,
-  activePlanProgressLine,
-  chipFilters,
-  crewmateOnPlanLine,
-  plansWithoutActive,
-  plansByName,
-  selectedChipKey,
-  type DiscoverTab,
-} from "@/lib/new-discover";
-import { gearText, useMyPlans, usePlans } from "@/components/plans/PlanBits";
+import { discoverCardMatch } from "@/lib/new-quiz";
+import { useMyPlans, usePlans, gearText } from "@/components/plans/PlanBits";
 import { useSavedQuiz } from "@/components/plans/QuizMatchCard";
-import { NewAvatarFallback } from "./NewAvatarFallback";
-import { NewWorkoutsTab } from "./NewDiscoverWorkouts";
+import { discoverTopCard, popularPlans, showDiscoverRow } from "@/lib/discover-page";
+import { getDiscoverPlanStarts } from "@/lib/discover-page.functions";
+import { useDiscoverWorkouts } from "./NewDiscoverWorkouts";
+import { DiscoverError, DiscoverImage } from "./DiscoverBits";
+import { DiscoverSearch } from "./DiscoverSearch";
+import { DiscoverWorkoutSheet } from "./DiscoverWorkoutSheet";
+import type { DiscoverCard } from "@/lib/discover-workouts";
+import { useOpenAtTop } from "@/lib/use-open-at-top";
+const PURPLE = "var(--new-purple)";
 
-const BG = "#F5F2EC";
-const INK = "#1C1917";
-const PURPLE = "#7C3AED";
-
-export function NewDiscover({
-  tab,
-  onTab,
-  filters,
-  onFiltersChange,
-  quiz = null,
-  onClearQuiz,
-}: {
-  tab: DiscoverTab;
-  onTab: (t: DiscoverTab) => void;
-  filters: PlanFilters;
-  onFiltersChange: (f: PlanFilters) => void;
-  /** Filtered by the quiz answers ("Browse all plans with my answers"). */
-  quiz?: { dropped: DroppableKey[] } | null;
-  onClearQuiz?: () => void;
-}) {
-  const [query, setQuery] = useState("");
+export function NewDiscover() {
+  const scroll = useOpenAtTop();
   const navigate = useNavigate();
-  // Workouts tab: typing opens the Workouts list page with the search; Plans tab filters the plan list by name.
-  const onQuery = (v: string) => {
-    if (tab === "workouts" && v.trim()) {
-      void navigate({ to: "/discover/workouts", search: { q: v } });
-      return;
-    }
-    setQuery(v);
-  };
+  const plans = usePlans();
+  const mine = useMyPlans();
+  const quiz = useSavedQuiz();
+  const starts = useQuery({
+    queryKey: ["discover-plan-starts"],
+    queryFn: () => getDiscoverPlanStarts(),
+  });
+  const workouts = useDiscoverWorkouts(
+    { muscle: "all", equipment: null, time: null, sort: "saved", q: "" },
+    false,
+  );
+  const [focused, setFocused] = useState(false);
+  const [query, setQuery] = useState("");
+  const [opened, setOpened] = useState<DiscoverCard | null>(null);
+  const all = plans.data ?? [];
+  const active = mine.data?.active;
+  const activePlan = all.find((p) => p.slug === active?.slug);
+  const top = discoverTopCard(!!active, !!quiz.data);
+  const row = popularPlans(all, starts.data ?? {}, active?.slug ?? null);
+  const cards = (workouts.data?.pages[0]?.items ?? []).slice(0, 10);
+  const mostStarted = popularPlans(all, starts.data ?? {}, null)[0];
+  const openPlan = (slug: string) => void navigate({ to: "/plans/$slug", params: { slug } });
   return (
-    <div data-scroll-root className="fixed inset-0 w-full overflow-y-auto overscroll-none" style={{ background: BG, fontFamily: "Inter, system-ui, sans-serif", color: INK }}>
-      <div className="flex flex-col bg-white px-4 pb-[14px] pt-new-top">
-        <h1 className="text-[26px] font-extrabold leading-[26px] tracking-[-0.5px]">Discover</h1>
-        <label className="mt-[13px] mb-3 flex h-[44px] items-center gap-[10px] rounded-[14px] px-[14px]" style={{ background: "#F4F2EF" }}>
-          <Search size={18} className="shrink-0" style={{ color: "#78716C" }} aria-hidden />
-          <input
-            value={query}
-            onChange={(e) => onQuery(e.target.value)}
-            placeholder="Search workouts and plans"
-            aria-label="Search workouts and plans"
-            enterKeyHint="search"
-            className="min-w-0 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[#78716C]"
-          />
-          {query && (
-            <button type="button" onClick={() => setQuery("")} aria-label="Clear search" className="-mr-2 flex h-11 w-11 items-center justify-center">
-              <X size={16} style={{ color: "#78716C" }} />
-            </button>
-          )}
-        </label>
-        <div role="tablist" aria-label="Discover sections" className="grid h-[42px] grid-cols-2 rounded-[12px] p-[3px]" style={{ background: "#EFEAE4" }}>
-          {(["workouts", "plans"] as const).map((t) => {
-            const on = tab === t;
-            return (
-              <button
-                key={t}
-                role="tab"
-                aria-selected={on}
-                type="button"
-                onClick={() => onTab(t)}
-                className="h-full rounded-[10px] text-[14px]"
-                style={{ background: on ? "#FFFFFF" : "transparent", color: on ? INK : "#78716C", fontWeight: on ? 800 : 600, boxShadow: on ? "0 1px 2px rgba(0,0,0,.08)" : undefined }}
+    <div
+      ref={scroll}
+      data-scroll-root
+      className="redesign-step3 p5-discover fixed inset-0 overflow-y-auto overscroll-none"
+    >
+      <header className="p5-white px-4 pb-[14px] pt-new-top">
+        <h1 className="text-[26px] font-extrabold leading-[30px]">Discover</h1>
+        <div className="mt-[13px] flex gap-3 items-center">
+          <label className="p5-search">
+            <Search size={18} />
+            <input
+              placeholder="Search workouts, plans, people"
+              aria-label="Search workouts, plans, people"
+              value={query}
+              onFocus={() => setFocused(true)}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") window.dispatchEvent(new Event("discover-search-submit"));
+              }}
+            />
+            {query && (
+              <Button
+                variant="ghost"
+                className="p5-icon -mr-3"
+                aria-label="Clear search"
+                onClick={() => setQuery("")}
               >
-                {t === "workouts" ? "Workouts" : "Plans"}
-              </button>
-            );
-          })}
+                <X />
+              </Button>
+            )}
+          </label>
+          {focused && (
+            <Button
+              variant="ghost"
+              className="p5-link"
+              onClick={() => {
+                setQuery("");
+                setFocused(false);
+              }}
+            >
+              Cancel
+            </Button>
+          )}
         </div>
-      </div>
-      <div className="flex flex-col gap-4 px-4 pb-[130px] pt-[14px]">
-        {tab === "workouts" ? (
-          <NewWorkoutsTab />
-        ) : (
-          <PlansTab query={query} filters={filters} onFiltersChange={onFiltersChange} quiz={quiz} onClearQuiz={onClearQuiz} />
-        )}
-      </div>
+      </header>
+      {focused ? (
+        <DiscoverSearch query={query} onQuery={setQuery} plans={all} onWorkout={setOpened} />
+      ) : (
+        <>
+          <div className="px-4 pt-4">
+            {plans.isPending || mine.isPending || quiz.isPending ? (
+              <div className="p5-skeleton h-[80px] animate-pulse" />
+            ) : top === "onPlan" ? (
+              active &&
+              activePlan && (
+                <Button
+                  variant="ghost"
+                  className="p5-card p5-active-card w-full gap-3 rounded-[16px] px-3 py-[10px]"
+                  onClick={() => openPlan(activePlan.slug)}
+                >
+                  <DiscoverImage url={activePlan.coverUrl} className="h-12 w-12 rounded-[10px]" />
+                  <span className="min-w-0 flex-1">
+                    <span className="text-[11px] font-extrabold text-[var(--new-purple)]">
+                      YOUR PLAN
+                    </span>
+                    <span className="p5-title block text-[15px] line-clamp-2">
+                      {activePlan.name}
+                    </span>
+                    <span className="p5-small block">
+                      Week {active.currentWeek} of {active.weeks} · Today:{" "}
+                      {activePlan.days.find(
+                        (d) =>
+                          d.dayNumber === active.nextDay &&
+                          (!d.weekNumber || d.weekNumber === active.currentWeek),
+                      )?.title ?? "Workout"}
+                    </span>
+                  </span>
+                  <ChevronRight className="shrink-0" />
+                </Button>
+              )
+            ) : top === "quizTaken" && quiz.data ? (
+              <MatchCard saved={quiz.data} plans={all} activeSlug={null} />
+            ) : (
+              <QuizCard onOpen={() => void navigate({ to: "/find-plan" })} />
+            )}
+          </div>
+          {showDiscoverRow(row.length, plans.isPending, plans.isError) && (
+            <section>
+              <SectionHeader
+                title="Plans"
+                subtitle="A few weeks of workouts, day by day"
+                onAll={() => void navigate({ to: "/discover/plans" })}
+              />
+              {plans.isError ? (
+                <div className="px-4">
+                  <DiscoverError kind="plans" retry={() => void plans.refetch()} />
+                </div>
+              ) : (
+                <div className="p5-rail">
+                  {plans.isPending
+                    ? [0, 1].map((i) => (
+                        <div key={i} className="p5-skeleton h-[250px] w-[260px] animate-pulse" />
+                      ))
+                    : row.map((p) => (
+                        <Button
+                          variant="ghost"
+                          key={p.id}
+                          className="p5-card p5-plan-card"
+                          onClick={() => openPlan(p.slug)}
+                        >
+                          <DiscoverImage url={p.coverUrl} className="h-[150px] w-full" />
+                          {p.id === mostStarted?.id && (starts.data?.[p.id] ?? 0) > 0 && (
+                            <span className="p5-white absolute left-3 top-3 rounded-full px-2 py-1 text-[10px] font-extrabold">
+                              POPULAR
+                            </span>
+                          )}
+                          <span className="p5-card-body block px-[14px] pt-3 pb-[14px]">
+                            <span className="p5-title line-clamp-2">{p.name}</span>
+                            <span className="p5-meta block">
+                              {p.weeks} weeks · {p.daysPerWeek} days a week · {p.minutes} min
+                            </span>
+                            <span className="p5-small block font-semibold">
+                              {p.gearShort ?? gearText(p)} · {p.level}
+                            </span>
+                          </span>
+                        </Button>
+                      ))}
+                </div>
+              )}
+            </section>
+          )}
+          {showDiscoverRow(cards.length, workouts.isPending, workouts.isError) && (
+            <section>
+              <SectionHeader
+                title="Workouts"
+                subtitle="One session you can do today"
+                onAll={() => void navigate({ to: "/discover/workouts" })}
+              />
+              {workouts.isError ? (
+                <div className="px-4">
+                  <DiscoverError kind="workouts" retry={() => void workouts.refetch()} />
+                </div>
+              ) : (
+                <div className="p5-rail">
+                  {workouts.isPending
+                    ? [0, 1, 2].map((i) => (
+                        <div key={i} className="p5-skeleton h-[216px] w-[168px] animate-pulse" />
+                      ))
+                    : cards.map((c) => (
+                        <Button
+                          key={c.code}
+                          variant="ghost"
+                          className="p5-card p5-workout-card"
+                          onClick={() => setOpened(c)}
+                        >
+                          <DiscoverImage url={c.coverUrl} className="h-[124px] w-full" />
+                          <span className="p5-card-body block p-3">
+                            <span className="p5-title text-[15px] line-clamp-2">{c.name}</span>
+                            <span className="p5-small block">
+                              {c.exercises} {c.exercises === 1 ? "exercise" : "exercises"} ·{" "}
+                              {c.minutes} min
+                            </span>
+                            <span className="p5-small block">
+                              by {c.author} · {c.saves} saves
+                            </span>
+                          </span>
+                        </Button>
+                      ))}
+                </div>
+              )}
+            </section>
+          )}
+        </>
+      )}
+      {opened && <DiscoverWorkoutSheet card={opened} onClose={() => setOpened(null)} />}
     </div>
   );
 }
-
-function PlansTab({ query, filters, onFiltersChange, quiz, onClearQuiz }: { query: string; filters: PlanFilters; onFiltersChange: (f: PlanFilters) => void; quiz: { dropped: DroppableKey[] } | null; onClearQuiz?: (() => void) | undefined }) {
-  const navigate = useNavigate();
-  const { data: plans, isLoading } = usePlans();
-  const { data: mine } = useMyPlans();
-  const { data: savedQuiz, isPending: quizPending } = useSavedQuiz();
-  const all = plans ?? [];
-  const active = mine?.active ?? null;
-  const activePlan = active ? all.find((p) => p.slug === active.slug) ?? null : null;
-  const list = useMemo(
-    () => plansWithoutActive(filterPlans(plansByName(all, query), filters), active?.slug ?? null),
-    [all, query, filters, active?.slug],
-  );
-  const chipOn = selectedChipKey(filters);
-  const openPlan = (slug: string) => navigate({ to: "/plans/$slug", params: { slug } });
-  // New version: the saved match shows whenever there are saved answers, under the Your plan card.
-  const showMatch = !!mine && !quizPending && !!savedQuiz;
-
-  if (quiz) {
-    const chips = answerChips(filters);
-    const note = droppedNote(quiz.dropped, savedQuiz?.answers ?? null);
-    return (
-      <>
-      <p className="text-[13px] leading-[1.35]" style={{ color: "#57534E" }}>
-        A plan is a few weeks of workouts. It tells you what to do each day.
-      </p>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Your answers">
-          {chips.map((c) => (
-            <button key={c.id} type="button" onClick={() => onFiltersChange(c.remove(filters))} aria-label={`Remove ${c.label}`} className="flex h-9 items-center gap-1.5 rounded-full pl-3.5 pr-3 text-[14px] font-bold" style={{ background: PURPLE, color: "#FFFFFF" }}>
-              {c.label}
-              <X size={14} strokeWidth={3} aria-hidden />
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-[14px]" style={{ color: "#57534E" }}>{fitCountLine(list.length)}</span>
-          <button type="button" onClick={onClearQuiz} className="-my-2 min-h-10 px-1 text-[14px] font-bold" style={{ color: PURPLE }}>Clear</button>
-        </div>
-        <div className="flex flex-col gap-[10px]">
-          {isLoading && [0, 1].map((i) => <div key={i} className="h-[108px] animate-pulse rounded-[18px] bg-white/70" />)}
-          {list.map((p) => (
-            <button key={p.id} type="button" onClick={() => openPlan(p.slug)} className="flex w-full items-center gap-3 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
-              <Cover plan={p} />
-              <PlanText plan={p} />
-            </button>
-          ))}
-        </div>
-        {note && <p className="px-1 text-[14px] leading-[1.4]" style={{ color: "#78716C" }}>{note}</p>}
-      </>
-    );
-  }
-
+function SectionHeader({
+  title,
+  subtitle,
+  onAll,
+}: {
+  title: string;
+  subtitle: string;
+  onAll: () => void;
+}) {
   return (
-    <>
-      <p className="text-[13px] leading-[1.35]" style={{ color: "#57534E" }}>
-        A plan is a few weeks of workouts. It tells you what to do each day.
-      </p>
-      {active && activePlan && (
-        <ActivePlanCard plan={activePlan} line={activePlanProgressLine({ ...active, daysPerWeek: activePlan.daysPerWeek })} onOpen={() => openPlan(activePlan.slug)} />
-      )}
-      {mine && !quizPending && (showMatch && savedQuiz ? <MatchCard saved={savedQuiz} plans={all} activeSlug={activePlan?.slug ?? null} /> : <QuizCard onOpen={() => navigate({ to: "/find-plan" })} />)}
-      <div className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Goals">
-        {NEW_GOAL_CHIPS.map((c) => {
-          const on = chipOn === c.key;
-          return (
-            <button
-              key={c.key}
-              type="button"
-              aria-pressed={on}
-              onClick={() => onFiltersChange(chipFilters(c))}
-              className="h-9 shrink-0 rounded-full px-4 text-[14px] font-bold"
-              style={on ? { background: PURPLE, color: "#FFFFFF" } : { background: "#FFFFFF", color: INK, border: "1px solid #E7E3DE" }}
-            >
-              {c.label}
-            </button>
-          );
-        })}
+    <div className="p5-heading">
+      <div>
+        <h2>{title}</h2>
+        <p>{subtitle}</p>
       </div>
-      <div className="flex flex-col gap-[10px]">
-        {isLoading && [0, 1, 2].map((i) => <div key={i} className="h-[108px] animate-pulse rounded-[18px] bg-white/70" />)}
-        {!isLoading && list.length === 0 && (
-          <p className="rounded-[18px] bg-white px-4 py-6 text-center text-[15px] font-semibold" style={{ color: "#57534E" }}>
-            No plans match. Try another goal.
-          </p>
-        )}
-        {list.map((p) => (
-          <button key={p.id} type="button" onClick={() => openPlan(p.slug)} className="flex w-full items-center gap-3 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
-            <Cover plan={p} />
-            <PlanText plan={p} />
-          </button>
-        ))}
-      </div>
-    </>
+      <Button variant="ghost" className="p5-link shrink-0 text-[14px]" onClick={onAll}>
+        See all <ChevronRight />
+      </Button>
+    </div>
   );
 }
-
-function Cover({ plan }: { plan: Plan }) {
-  const [failed, setFailed] = useState(false);
-  const src = coverThumb(plan.coverUrl);
-  if (!src || failed) {
-    return (
-      <span className="flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-[12px]" style={{ background: "#FEF3C7" }}>
-        <Zap size={28} style={{ color: "#92400E" }} aria-hidden />
-      </span>
-    );
-  }
-  return (
-    <span className="block h-[84px] w-[84px] shrink-0 overflow-hidden rounded-[12px]" style={{ background: "#ECE8E1" }}>
-      <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)} className="h-full w-full object-cover" data-plan-cover={plan.slug} />
-    </span>
-  );
-}
-
-function PlanText({ plan, line }: { plan: Plan; line?: string }) {
-  return (
-    <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
-      <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
-      <span className="text-[13px]" style={{ color: "#44403C" }}>
-        {line ?? `${plan.weeks} weeks · ${plan.daysPerWeek} days a week · ${plan.minutes} min`}
-      </span>
-      <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
-        {plan.gearShort ?? gearText(plan)} · {plan.level}
-      </span>
-    </span>
-  );
-}
-
-function ActivePlanCard({ plan, line, onOpen }: { plan: Plan; line: string; onOpen: () => void }) {
-  const { data: mate } = useQuery({
-    queryKey: ["plan-crewmate", plan.id],
-    queryFn: () => getPlanCrewmate({ data: { planId: plan.id } }),
-    staleTime: 60_000,
-  });
-  return (
-    <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-[18px] bg-white p-3 text-left active:scale-[0.99]">
-      <Cover plan={plan} />
-      <span className="flex min-w-0 flex-1 flex-col items-start gap-[3px]">
-        <span className="rounded-full px-2 py-[2px] text-[11px] font-bold uppercase tracking-[0.4px]" style={{ background: "#EDE4FF", color: "#6D28D9" }}>
-          Your plan
-        </span>
-        <span className="text-[16px] font-bold leading-tight">{plan.name}</span>
-        <span className="text-[13px]" style={{ color: "#44403C" }}>{line}</span>
-        <span className="line-clamp-2 text-[12px] font-semibold" style={{ color: "#57534E" }}>
-          {plan.gearShort ?? gearText(plan)} · {plan.level}
-        </span>
-        {mate && (
-          <span className="flex max-w-full items-center gap-2" data-crewmate-line>
-            <span className="block h-5 w-5 shrink-0 overflow-hidden rounded-full" style={{ background: "#E4DAFB", color: "#F8F5FF" }}>
-              {mate.avatarUrl ? <img src={mate.avatarUrl} alt="" className="h-full w-full object-cover" /> : <NewAvatarFallback />}
-            </span>
-            <span className="truncate text-[12px] font-semibold" style={{ color: "#6D28D9" }}>
-              {crewmateOnPlanLine(mate.firstName, mate.crewName)}
-            </span>
-          </span>
-        )}
-      </span>
-    </button>
-  );
-}
-
-const GRADIENT = "linear-gradient(135deg, #7C3AED 0%, #4C1D95 100%)";
-
 function QuizCard({ onOpen }: { onOpen: () => void }) {
   return (
-    <button type="button" onClick={onOpen} className="flex w-full items-center gap-3 rounded-[18px] p-[14px] text-left" style={{ background: GRADIENT }}>
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "rgba(255,255,255,.18)" }}>
-        <Sparkle size={22} color="#FFFFFF" aria-hidden />
+    <Button variant="ghost" className="p5-quiz" onClick={onOpen}>
+      <Sparkle className="size-[22px]! shrink-0" />
+      <span className="min-w-0 flex-1">
+        <strong className="block text-[16px] font-extrabold">Not sure which plan?</strong>
+        <span className="block text-[13px]">Answer 4 quick questions and we'll match you</span>
       </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[16px] font-extrabold" style={{ color: "#FFFFFF" }}>Not sure which plan?</span>
-        <span className="text-[13px]" style={{ color: "rgba(255,255,255,.8)" }}>Answer 4 quick questions and we'll match you</span>
-      </span>
-      <ChevronRight size={20} color="#FFFFFF" className="shrink-0" aria-hidden />
-    </button>
+      <ChevronRight />
+    </Button>
   );
 }
-
-function MatchCard({ saved, plans, activeSlug }: { saved: SavedQuiz; plans: Plan[]; activeSlug: string | null }) {
+export function MatchCard({
+  saved,
+  plans,
+  activeSlug,
+}: {
+  saved: SavedQuiz;
+  plans: Plan[];
+  activeSlug: string | null;
+}) {
   const navigate = useNavigate();
-  const { data } = useQuery({ queryKey: ["my-groups"], queryFn: () => listMyGroups(), staleTime: 60_000 });
-  const targets = (data?.groups ?? []).map((g) => weeklyTarget({ frequency: g.frequency, days_per_week: g.daysPerWeek }));
+  const { data } = useQuery({
+    queryKey: ["my-groups"],
+    queryFn: () => listMyGroups(),
+    staleTime: 60_000,
+  });
+  const targets = (data?.groups ?? []).map((g) =>
+    weeklyTarget({ frequency: g.frequency, days_per_week: g.daysPerWeek }),
+  );
   const crewDays = targets.length ? Math.max(...targets) : null;
-  const match = useMemo(() => (plans.length ? matchPlans(plans, saved.answers, crewDays) : null), [plans, saved, crewDays]);
+  const match = useMemo(
+    () => (plans.length ? matchPlans(plans, saved.answers, crewDays) : null),
+    [plans, saved, crewDays],
+  );
   if (!match) return null;
   const shown = discoverCardMatch(match, activeSlug);
   const bp = shown.plan;
   const open = () => navigate({ to: "/plans/$slug", params: { slug: bp.slug } });
   return (
-    <section className="flex flex-col gap-3 rounded-[18px] p-[14px]" style={{ background: "#EDE9FE" }} aria-label="Your best match">
+    <section
+      className="flex flex-col gap-2 rounded-[18px] p-[14px]"
+      style={{ background: "var(--new-soft)" }}
+      aria-label="Your best match"
+    >
       <span className="flex items-center justify-between">
-        <span className="text-[12px] font-extrabold uppercase tracking-[0.6px]" style={{ color: PURPLE }}>Your best match</span>
-        <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 1) })} className="-my-2 min-h-10 px-1 text-[13px] font-bold" style={{ color: PURPLE }}>
+        <span
+          className="text-[12px] font-extrabold uppercase tracking-[0.6px]"
+          style={{ color: PURPLE }}
+        >
+          Your best match
+        </span>
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 1) })}
+          className="-my-2 min-h-10 px-1 text-[13px] font-bold"
+          style={{ color: PURPLE }}
+        >
           Retake quiz
         </button>
       </span>
       <button type="button" onClick={open} className="flex w-full items-center gap-3 text-left">
-        <span className="block h-16 w-16 shrink-0 overflow-hidden rounded-[12px]" style={{ background: "#ECE8E1" }}>
-          {coverThumb(bp.coverUrl, 192) && <img src={coverThumb(bp.coverUrl, 192)!} alt="" className="h-full w-full object-cover" />}
+        <span
+          className="block h-14 w-14 shrink-0 overflow-hidden rounded-[12px]"
+          style={{ background: "var(--new-header-border)" }}
+        >
+          {coverThumb(bp.coverUrl, 192) && (
+            <img
+              src={coverThumb(bp.coverUrl, 192) ?? undefined}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          )}
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="text-[16px] font-extrabold leading-tight">{bp.name}</span>
-          <span className="text-[13px]" style={{ color: "#44403C" }}>{bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min</span>
-          {shown.why.length > 0 && <span className="text-[12px] font-bold" style={{ color: "#6D28D9" }}>{shown.why.join(" · ")}</span>}
+          <span className="text-[13px]" style={{ color: "var(--new-muted)" }}>
+            {bp.weeks} weeks · {bp.daysPerWeek} days a week · {bp.minutes} min
+          </span>
+          {shown.why.length > 0 && (
+            <span
+              className="text-[12px] font-bold line-clamp-1"
+              style={{ color: "var(--new-purple-text)" }}
+            >
+              {shown.why.slice(0, 2).join(" · ")}
+            </span>
+          )}
         </span>
-        <ChevronRight size={20} className="shrink-0" style={{ color: "#6D28D9" }} aria-hidden />
+        <ChevronRight
+          size={20}
+          className="shrink-0"
+          style={{ color: "var(--new-purple-text)" }}
+          aria-hidden
+        />
       </button>
       <span className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={open} className="h-11 rounded-full text-[15px] font-bold" style={{ background: PURPLE, color: "#FFFFFF" }}>See plan</button>
-        <button type="button" onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 5) })} className="h-11 rounded-full bg-white text-[15px] font-bold" style={{ color: PURPLE }}>
+        <button
+          type="button"
+          onClick={open}
+          className="h-11 rounded-full text-[15px] font-bold"
+          style={{ background: PURPLE, color: "var(--new-white)" }}
+        >
+          See plan
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/find-plan", search: quizSearchFor(saved.answers, 5) })}
+          className="h-11 rounded-full bg-[var(--new-white)] text-[15px] font-bold"
+          style={{ color: PURPLE }}
+        >
           See all {1 + match.also.length} matches
         </button>
       </span>

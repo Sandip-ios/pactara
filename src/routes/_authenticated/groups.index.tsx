@@ -1,13 +1,18 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { useStatusBarScrollToTop } from "@/lib/status-bar-scroll";
 import { PlansDiscover } from "@/components/plans/PlansDiscover";
-import { useAppVersion } from "@/hooks/use-app-version";
+import { useAppPrefs, useAppVersion } from "@/hooks/use-app-version";
 import { NewDiscover } from "@/components/redesign/NewDiscover";
-import { parseDiscoverTab } from "@/lib/new-discover";
-import { parseDropped } from "@/lib/new-quiz";
-import { FILTER_KEYS, cleanFilter, readFilterParam, toFilterParam, type FilterKey, type PlanFilters } from "@/lib/plan-filters";
+import {
+  FILTER_KEYS,
+  cleanFilter,
+  readFilterParam,
+  toFilterParam,
+  type FilterKey,
+  type PlanFilters,
+} from "@/lib/plan-filters";
 
 type DiscoverSearch = {
   invite?: string;
@@ -42,13 +47,17 @@ export const Route = createFileRoute("/_authenticated/groups/")({
     goal: readFilterParam(s.goal),
   }),
   beforeLoad: ({ search }) => {
-    if (search.invite) throw redirect({ href: `/home?invite=${encodeURIComponent(search.invite)}`, replace: true });
-    if (search.tab === "crews") throw redirect({ href: "/home?crews=1", replace: true });
+    if (search.invite)
+      throw redirect({ href: `/home?invite=${encodeURIComponent(search.invite)}`, replace: true });
   },
   head: () => ({
     meta: [
       { title: "Discover · Pactara" },
-      { name: "description", content: "Find a workout plan on Pactara: browse by goal, filter by days, time and equipment, or search." },
+      { name: "description", content: "Find workouts, plans and people on Pactara." },
+      { property: "og:title", content: "Discover · Pactara" },
+      { property: "og:description", content: "Find workouts, plans and people on Pactara." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DiscoverPage,
@@ -59,57 +68,14 @@ const DISCOVER_TOP = "max(56px, calc(env(safe-area-inset-top) + 12px))";
 
 function DiscoverPage() {
   const version = useAppVersion();
+  const prefs = useAppPrefs();
+  if (prefs.isLoading) return null;
   return version === "new" ? <NewDiscoverPage /> : <ClassicDiscoverPage />;
-}
-
-function useUrlFilters() {
-  const search = Route.useSearch();
-  return useMemo(() => {
-    const f = {} as PlanFilters;
-    for (const k of FILTER_KEYS) f[k] = cleanFilter(k, String(search[k] ?? "").split(","));
-    return f;
-  }, [search]);
 }
 
 function NewDiscoverPage() {
   useStatusBarScrollToTop();
-  const navigate = useNavigate();
-  const search = Route.useSearch();
-  const filters = useUrlFilters();
-  return (
-    <NewDiscover
-      tab={parseDiscoverTab(search.tab)}
-      onTab={(t) => navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, tab: t }), replace: true, resetScroll: false })}
-      filters={filters}
-      quiz={search.quiz ? { dropped: parseDropped(search.dropped) } : null}
-      onClearQuiz={() =>
-        navigate({
-          from: "/groups/",
-          to: "/groups",
-          search: (prev) => {
-            const next = { ...prev, quiz: undefined, dropped: undefined };
-            for (const k of FILTER_KEYS) next[k] = undefined;
-            return next;
-          },
-          replace: true,
-          resetScroll: false,
-        })
-      }
-      onFiltersChange={(f) =>
-        navigate({
-          from: "/groups/",
-          to: "/groups",
-          search: (prev) => {
-            const next = { ...prev };
-            for (const k of FILTER_KEYS) next[k] = toFilterParam(f[k]);
-            return next;
-          },
-          replace: true,
-          resetScroll: false,
-        })
-      }
-    />
-  );
+  return <NewDiscover />;
 }
 
 function ClassicDiscoverPage() {
@@ -117,6 +83,9 @@ function ClassicDiscoverPage() {
   const navigate = useNavigate();
   const search = Route.useSearch();
   const completeSlug = search.complete;
+  useEffect(() => {
+    if (search.tab === "crews") void navigate({ to: "/home", search: { crews: 1 }, replace: true });
+  }, [search.tab, navigate]);
   const [query, setQuery] = useState("");
   const filters = useMemo(() => {
     const f = {} as PlanFilters;
@@ -142,7 +111,10 @@ function ClassicDiscoverPage() {
       className="fixed inset-0 w-full overflow-y-auto overscroll-none"
       style={{ background: "#F4F2EF", fontFamily: "Inter, system-ui, sans-serif", color: D_INK }}
     >
-      <div className="flex flex-col gap-[18px] px-4 pb-[130px]" style={{ paddingTop: DISCOVER_TOP }}>
+      <div
+        className="flex flex-col gap-[18px] px-4 pb-[130px]"
+        style={{ paddingTop: DISCOVER_TOP }}
+      >
         <h1 className="mx-1 text-[30px] font-extrabold tracking-[-0.6px]" style={{ color: D_INK }}>
           Discover
         </h1>
@@ -179,10 +151,21 @@ function ClassicDiscoverPage() {
           completeSlug={completeSlug}
           scrollToList={!!search.list}
           onScrolledToList={() =>
-            navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, list: undefined }), replace: true, resetScroll: false })
+            navigate({
+              from: "/groups/",
+              to: "/groups",
+              search: (prev) => ({ ...prev, list: undefined }),
+              replace: true,
+              resetScroll: false,
+            })
           }
           onCloseComplete={() =>
-            navigate({ from: "/groups/", to: "/groups", search: (prev) => ({ ...prev, complete: undefined }), replace: true })
+            navigate({
+              from: "/groups/",
+              to: "/groups",
+              search: (prev) => ({ ...prev, complete: undefined }),
+              replace: true,
+            })
           }
         />
       </div>

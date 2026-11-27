@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -2636,6 +2631,8 @@ export type Database = {
         Returns: boolean
       }
       discover_owner_eligible: { Args: { _owner: string }; Returns: boolean }
+      discover_plan_starts: { Args: never; Returns: Json }
+      discover_search_text: { Args: { value: string }; Returns: string }
       discover_workout_feed: {
         Args: never
         Returns: {
@@ -2823,6 +2820,7 @@ export type Database = {
         Returns: boolean
       }
       safety_visible: { Args: { _author: string }; Returns: boolean }
+      search_discover_people: { Args: { query_text: string }; Returns: Json }
       set_profile_privacy: { Args: { private: boolean }; Returns: undefined }
       set_social_post_audience: {
         Args: { _audience: string; _group_ids: string[]; _post_id: string }
@@ -3025,3 +3023,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

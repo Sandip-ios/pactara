@@ -7,6 +7,7 @@
 /* Scoped redesign colors: classic surfaces do not inherit these tokens. */
 .redesign-step3, .new-sheet, .new-confirm {
   --new-bg: #F5F2EE;
+  --new-discover-bg: #F5F2EC;
   --new-white: #FFFFFF;
   --new-ink: #1C1917;
   --new-muted: #57534E;
