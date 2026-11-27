@@ -5,12 +5,23 @@ import { checkInPostWorkout, postSectionCanSave, sectionPreview } from "../post-
 const meta = { crew: "FitFam", time: "6:12 am", localDate: "2026-11-27", viewerToday: "2026-11-27", tag: "Workout" };
 describe("new check-ins matching posts", () => {
   it("workout subline contains only crew and time", () => {
-    expect(checkInSubline({ ...meta, hasWorkout: true })).toBe("FitFam · 6:12 am");
+    expect(checkInSubline({ ...meta, hasCard: true })).toBe("FitFam · 6:12 am");
   });
   it("without a workout keeps the current tag and date behavior", () => {
-    expect(checkInSubline({ ...meta, hasWorkout: false, tag: "Run" })).toBe("FitFam · 6:12 am · Run");
-    expect(checkInSubline({ ...meta, hasWorkout: false, crew: null, localDate: "2026-11-26" })).toBe("Yesterday · Workout");
-    expect(checkInSubline({ ...meta, hasWorkout: false, tag: null })).toBe("FitFam · 6:12 am");
+    expect(checkInSubline({ ...meta, hasCard: false, tag: "Run" })).toBe("FitFam · 6:12 am · Run");
+    expect(checkInSubline({ ...meta, hasCard: false, crew: null, localDate: "2026-11-26" })).toBe("Yesterday · Workout");
+    expect(checkInSubline({ ...meta, hasCard: false, tag: null })).toBe("FitFam · 6:12 am");
+  });
+  it("Health on Home omits Run when its card names the activity", () => {
+    expect(checkInSubline({ ...meta, time: "6:00 pm", tag: "Run", hasCard: true })).toBe("FitFam · 6:00 pm");
+  });
+  it("crew-page headers omit the crew for Health and workout cards", () => {
+    expect(checkInSubline({ ...meta, time: "6:15 pm", tag: "Run", hasCard: true, crewPage: true })).toBe("6:15 pm");
+    expect(checkInSubline({ ...meta, time: "6:14 pm", hasCard: true, crewPage: true })).toBe("6:14 pm");
+  });
+  it("crew-page headers keep a tag only without a card, including past days", () => {
+    expect(checkInSubline({ ...meta, time: "6:15 pm", tag: "Run", hasCard: false, crewPage: true, localDate: "2026-11-26" })).toBe("6:15 pm · Run");
+    expect(checkInSubline({ ...meta, time: "6:14 pm", tag: null, hasCard: false, crewPage: true })).toBe("6:14 pm");
   });
   it.each([1, 2, 3])("%i exercises has no See all", (count) => {
     expect(sectionPreview(Array.from({ length: count }, (_, i) => i)).more).toBe(false);

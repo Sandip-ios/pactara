@@ -54,9 +54,10 @@ export function checkInCardMeta(input: { time: string; localDate: string; viewer
   return input.tag ? `${when} · ${input.tag}` : when;
 }
 
-/** Workout names belong in the attachment; unaccompanied check-ins keep their existing tag/date wording. */
-export function checkInSubline(input: { crew: string | null; time: string; localDate: string; viewerToday: string; tag: string | null; hasWorkout: boolean }): string {
-  if (input.hasWorkout) return [input.crew, input.time].filter(Boolean).join(" · ");
+/** Attachment names stay in the card; crew-page headers use time without repeating the crew. */
+export function checkInSubline(input: { crew: string | null; time: string; localDate: string; viewerToday: string; tag: string | null; hasCard: boolean; crewPage?: boolean }): string {
+  if (input.crewPage) return input.hasCard || !input.tag ? input.time : `${input.time} · ${input.tag}`;
+  if (input.hasCard) return [input.crew, input.time].filter(Boolean).join(" · ");
   if (input.crew) return `${input.crew} · ${input.time}${input.tag ? ` · ${input.tag}` : ""}`;
   return checkInCardMeta(input);
 }
