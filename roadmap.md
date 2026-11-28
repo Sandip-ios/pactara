@@ -1,3 +1,7 @@
+# Home check-in workout PR badge order
+- [x] Put New PR directly after the shared workout exercise rows/See all and keep Add to my workouts last on Home, Crews, social posts and the own-post page through their shared card.
+- [x] Full suite 1230 tests across 130 files and typecheck pass; recaptured hc-home-other.png and added hc-crew-other.png at 390x844 2x with measured exercise/PR/save ordering and no browser errors; temporary data removed.
+
 # Home check-in social parity
 - [x] Reused the Crews check-in social source on Home for cheer names/counts, comments and workout PR flags, including legacy NULL-check-in reactions and multi-crew posts; verified cheer updates in both directions in the browser.
 - [x] Added focused pure/database parity tests; all 1229 tests across 129 files and typecheck pass.

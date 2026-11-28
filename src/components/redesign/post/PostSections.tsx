@@ -74,8 +74,8 @@ export function PostWorkoutCard({
             See all {preview.total} exercises
           </Button>
         )}
-        {action}
         {checkIn?.card.pr && <span className="mt-1.5 inline-flex h-[22px] items-center rounded-full bg-[var(--new-warning-soft)] px-2 text-[11px] font-extrabold text-[var(--new-warning-ink)]">🏆 New PR</span>}
+        {action}
       </section>
       <RedesignWorkoutSheet
         open={open}
