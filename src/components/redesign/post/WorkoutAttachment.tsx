@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Dumbbell, Minus, Plus, Search, Sparkle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ExerciseThumb } from '@/components/workout/WorkoutBits';
-import { searchPostExercises } from '@/lib/posts.functions';
-import type { PostWorkoutChoice } from '@/lib/social-post-types';
+import { getShareWorkoutPreview, searchPostExercises } from '@/lib/posts.functions';
+import type { PostWorkout, PostWorkoutChoice } from '@/lib/social-post-types';
+import { attachmentWorkoutView } from '@/lib/post-edit-attachment';
+import { ComposeAttachmentCard } from './ComposeAttachmentCard';
 import { NewSheet, NewSheetChip, NewSheetRow } from '../NewSheet';
 import { SheetActions, type useComposeContext } from './ComposeParts';
 
@@ -12,7 +14,7 @@ export type CaptionMove = { exerciseId: string; name: string; imageStart: string
 type Context = ReturnType<typeof useComposeContext>['data'];
 
 /** Workout is independent of any future meal attachment. Suggestions never auto-attach. */
-export function WorkoutAttachment({ ctx, suggestions, workout, onChange }: { ctx: Context; suggestions: CaptionMove[]; workout: PostWorkoutChoice; onChange: (w: PostWorkoutChoice) => void }) {
+export function WorkoutAttachment({ ctx, suggestions, workout, onChange, snapshot, inset = true }: { ctx: Context; suggestions: CaptionMove[]; workout: PostWorkoutChoice; onChange: (w: PostWorkoutChoice) => void; snapshot?: PostWorkout | null; inset?: boolean }) {
   const [pick, setPick] = useState(false);
   const [edit, setEdit] = useState(false);
   const [add, setAdd] = useState(false);
@@ -22,29 +24,20 @@ export function WorkoutAttachment({ ctx, suggestions, workout, onChange }: { ctx
   const [exerciseQuery, setExerciseQuery] = useState('');
   const exercises = useQuery({ queryKey: ['post-exercise-search', exerciseQuery], queryFn: () => searchPostExercises({ data: { query: exerciseQuery } }), enabled: add });
   const selected = workout && workout.source !== 'caption' ? (workout.source === 'session' ? ctx?.sessions : ctx?.saved)?.find(w => w.id === workout.id) : null;
-  const title = workout?.source === 'caption' ? 'From your caption' : selected?.title ?? 'Workout';
-  const count = workout?.source === 'caption' ? workout.moves.length : selected?.exercises ?? 0;
-  const sets = workout?.source === 'caption' ? workout.moves.reduce((n, m) => n + m.sets, 0) : selected?.sets ?? 0;
-  const minutes = selected && 'minutes' in selected && typeof selected.minutes === 'number' ? selected.minutes : 0;
+  const detail = useQuery({ queryKey: ['compose-workout-snapshot', workout?.source, workout && workout.source !== 'caption' ? workout.id : null], queryFn: () => getShareWorkoutPreview({ data: workout?.source === 'session' ? { sessionId: workout.id } : workout?.source === 'saved' ? { workoutId: workout.id } : {} }), enabled: !!workout && workout.source !== 'caption' && !snapshot });
+  const view = attachmentWorkoutView(workout, snapshot ?? detail.data?.workout);
+  const title = view?.title ?? selected?.title ?? 'Workout';
   const rows = source === 'session' ? (ctx?.sessions ?? []).map(w => ({ ...w, dateLabel: new Date(w.loggedAt).toDateString() === new Date().toDateString() ? 'Today' : new Date(w.loggedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) })) : (ctx?.saved ?? []).map(w => ({ ...w, minutes: 0, dateLabel: '' }));
   const openEdit = () => { if (workout?.source === 'caption') setMoves(workout.moves.map(m => ({ ...m }))); setEdit(true); };
   const update = (i: number, key: 'sets' | 'reps', value: number) => setMoves(ms => ms.map((m, j) => j === i ? { ...m, [key]: value } : m));
 
-  return <section className="mx-4 mt-3 text-[var(--new-ink)]">
+  return <section className={`${inset ? 'mx-4' : ''} mt-3 text-[var(--new-ink)]`}>
     {!workout && suggestions.length > 0 && <div className="mb-3 flex items-center gap-3 rounded-[16px] border border-[var(--new-post-banner-border)] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-3">
       <Sparkle size={20} className="shrink-0 text-[var(--new-purple)]" />
       <div className="min-w-0 flex-1"><div className="text-[14px] font-bold text-[var(--new-ink-deep)]">We found {suggestions.length} {suggestions.length === 1 ? 'exercise' : 'exercises'} in your caption</div><div className="text-[12px] text-[var(--new-muted)]">{suggestions.map(m => m.name).join(', ')}</div></div>
       <Button onClick={() => onChange({ source: 'caption', moves: suggestions.map(m => ({ ...m })) })} className="h-[34px] rounded-[17px] bg-[var(--new-purple)] px-3.5 text-[14px] font-bold text-[var(--new-white)] hover:bg-[var(--new-purple)]">Attach</Button>
     </div>}
-    <div className="rounded-[20px] bg-[var(--new-white)] px-4">
-      {workout ? <div className="py-2.5">
-        <div className="flex items-center gap-2.5 rounded-[14px] bg-[var(--new-post-attachment)] py-3 pl-3.5 pr-2">
-          <div className="min-w-0 flex-1"><div className="text-[11px] font-extrabold tracking-[0.6px] text-[var(--new-purple)]">WORKOUT</div><div className="text-[16px] font-extrabold">{title}</div><div className="text-[12px] text-[var(--new-muted)]">{count} exercises · {sets} sets{minutes > 0 ? ` · ${minutes} min` : ''}</div></div>
-          <Button variant="ghost" onClick={workout.source === 'caption' ? openEdit : () => setPick(true)} className="h-8 px-1 text-[13px] font-bold text-[var(--new-purple)] hover:bg-transparent hover:text-[var(--new-purple)]">{workout.source === 'caption' ? 'Edit' : 'Change'}</Button>
-          <Button variant="ghost" aria-label={`Remove ${title}`} onClick={() => onChange(null)} className="h-8 w-8 shrink-0 px-0 text-[var(--new-post-remove)] hover:bg-transparent hover:text-[var(--new-post-remove)]"><X className="!size-4" /></Button>
-        </div>
-      </div> : <Button variant="ghost" onClick={() => setPick(true)} className="h-auto w-full justify-start gap-3 rounded-none px-0 py-3.5 text-[15px] font-semibold hover:bg-transparent"><Dumbbell className="!size-5 text-[var(--new-ink-deep)]" /><span className="flex-1 text-left">Add a workout</span><ChevronRight className="!size-4 text-[var(--new-chevron)]" /></Button>}
-    </div>
+    {workout ? <ComposeAttachmentCard kind="workout" title={title} line={view?.line ?? (detail.isError ? "Couldn't load workout" : 'Loading workout…')} action={workout.source === 'caption' ? 'Edit' : 'Change'} onChange={workout.source === 'caption' ? openEdit : () => setPick(true)} onRemove={() => onChange(null)} /> : <div className="rounded-[20px] bg-[var(--new-white)] px-4"><Button variant="ghost" onClick={() => setPick(true)} className="h-auto w-full justify-start gap-3 rounded-none px-0 py-3.5 text-[15px] font-semibold hover:bg-transparent"><Dumbbell className="!size-5 text-[var(--new-ink-deep)]" /><span className="flex-1 text-left">Add a workout</span><ChevronRight className="!size-4 text-[var(--new-chevron)]" /></Button></div>}
 
     <NewSheet open={pick} onOpenChange={setPick} title="Add a workout" hideTitle compose>
       <SheetActions title="Add a workout" cancel={() => setPick(false)} />

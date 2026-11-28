@@ -7,6 +7,10 @@ export type PostMeal = {
   protein: number | null;
 };
 export const SECTION_PREVIEW_ROWS = 3;
+export function postWorkoutSummary(workout: { moves: readonly unknown[]; sets: number; minutes: number }): string {
+  const count = workout.moves.length;
+  return `${count} ${count === 1 ? "exercise" : "exercises"} · ${workout.sets} ${workout.sets === 1 ? "set" : "sets"}${workout.minutes > 0 ? ` · ${workout.minutes} min` : ""}`;
+}
 export function sectionPreview<T>(items: T[]) {
   return {
     rows: items.slice(0, SECTION_PREVIEW_ROWS),

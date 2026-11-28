@@ -166,7 +166,7 @@ export const getShareWorkoutPreview = createServerFn({ method: "GET" })
       const avatar = (p?.["avatar_url"] as string | null) ?? null;
       if (avatar) creditAvatar = avatar.startsWith("http") ? avatar : (await signAvatarThumbs(supabase, [avatar], 96)).get(avatar) ?? null;
     }
-    return { title: snap.workout?.title ?? "Workout", minutes: snap.workout?.minutes ?? 0, sets: snap.workout?.sets ?? 0, prs: snap.workout?.prCount ?? 0, credit, creditAvatar };
+    return { workout: snap.workout, title: snap.workout?.title ?? "Workout", minutes: snap.workout?.minutes ?? 0, sets: snap.workout?.sets ?? 0, prs: snap.workout?.prCount ?? 0, credit, creditAvatar };
   });
 
 /** Step 1 of posting: one atomic insert (audience, crews, items) while media uploads. */
@@ -319,12 +319,22 @@ export const updateSocialPostCaption = createServerFn({ method: "POST" })
 
 export const updateSocialPostContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; caption: string; workout: PostWorkoutChoice }) => ({ id: String(input.id), caption: String(input.caption ?? "").slice(0, 2200), workout: input.workout }))
+  .inputValidator((input: { id: string; caption: string; workout: PostWorkoutChoice; keepWorkout?: boolean; mealId?: string | null }) => ({ id: String(input.id), caption: String(input.caption ?? "").slice(0, 2200), workout: input.workout, keepWorkout: input.keepWorkout === true, mealId: input.mealId }))
   .handler(async ({ context, data }) => {
     const supabase = sb(context.supabase);
-    const snap = await snapshotWorkout(supabase, context.userId, data.workout);
-    const { error } = await supabase.rpc("set_social_post_content", { _post_id: data.id, _caption: data.caption, _workout: snap.workout, _workout_session_id: snap.sessionId, _workout_id: snap.workoutId, _credit_user_id: snap.creditUserId });
+    // Caption-only edits must not rebuild the posted snapshot from a changed template.
+    const result = data.keepWorkout
+      ? await supabase.from("social_posts").update({ caption: data.caption }).eq("id", data.id).eq("user_id", context.userId)
+      : await (async () => {
+        const snap = await snapshotWorkout(supabase, context.userId, data.workout);
+        return supabase.rpc("set_social_post_content", { _post_id: data.id, _caption: data.caption, _workout: snap.workout, _workout_session_id: snap.sessionId, _workout_id: snap.workoutId, _credit_user_id: snap.creditUserId });
+      })();
+    const { error } = result;
     if (error) throw new Error(error.message);
+    if (data.mealId !== undefined) {
+      const { updatePostMealAttachment } = await import("./meals.server");
+      await updatePostMealAttachment({ supabase, userId: context.userId }, data.id, data.mealId);
+    }
     return { ok: true };
   });
 
