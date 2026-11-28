@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import warmTerms from '../../../scripts/common-meal-food-terms.json';
 import fixtures from './fixtures/usda-common-searches.json';
-import { capPerTier, distinctFoodNames, normalizeUsdaFood, rankUsdaRows } from '../usda-foods.server';
+import { capPerTier, distinctFoodNames, distinctCachedFoodNames, normalizeUsdaFood, rankUsdaRows } from '../usda-foods.server';
 import { foodRelevance, mergeFoodSearch } from '../food-search';
 import type { Food } from '../meals';
 
 const expected:Record<string,string[]>={
  'pasta':['Pasta, whole-wheat, cooked', 'Pasta, cooked', 'Pasta, whole grain, cooked', 'Pasta, fresh-refrigerated, plain, cooked', 'Pasta, vegetable, cooked'],
- 'eggs':['Egg white','Whole egg','Egg yolk','Egg white, raw','Whole egg, raw'],
- 'egg':['Egg white','Whole egg','Egg yolk','Egg white, raw','Whole egg, raw'],
+ 'eggs':['Egg white','Whole egg','Egg yolk','Whole egg, cooked, hard-boiled','Whole egg, cooked, scrambled'],
+ 'egg':['Egg white','Whole egg','Egg yolk','Whole egg, cooked, hard-boiled','Whole egg, cooked, scrambled'],
  'chicken breast':['Chicken breast, cooked, braised', 'Chicken breast, cooked, fried', 'Chicken breast, cooked, stewed', 'Chicken breast, cooked, roasted', 'Chicken breast, cooked, grilled'],
  'rice':['White rice, long-grain, cooked', 'Brown rice, long-grain, cooked', 'White rice, short-grain, cooked', 'White rice, medium-grain, cooked', 'Brown rice, medium-grain, cooked'],
  'white rice':['White rice, long-grain, cooked', 'White rice, short-grain, cooked', 'White rice, medium-grain, cooked', 'White rice, glutinous, cooked', 'White rice, long-grain, parboiled, cooked'],
@@ -30,6 +30,20 @@ describe('recorded USDA common queries',()=>{
   const foods=distinctFoodNames(raw.map(r=>{const row={...r,...fixture.details.find(d=>d.fdcId===r['fdcId'])};return{row,food:normalizeUsdaFood(row)};}));
   expect(foods.slice(0,5).map(f=>f.name)).toEqual(expected[q]);
   expect(new Set(foods.map(f=>f.name.toLowerCase())).size).toBe(foods.length);
+ });
+ it('eggs collapse equivalent raw forms into Foundation foods, then show cooked forms',()=>{
+  const fixture=fixtures.eggs;
+  const foods=distinctFoodNames(capPerTier(rankUsdaRows(fixture.search,'eggs')).slice(0,25).map(r=>{const row={...r,...fixture.details.find(d=>d.fdcId===r['fdcId'])};return{row,food:normalizeUsdaFood(row)};}));
+  expect(foods.slice(0,8).map(f=>f.name)).toEqual(['Egg white','Whole egg','Egg yolk','Whole egg, cooked, hard-boiled','Whole egg, cooked, scrambled','Whole egg, cooked, fried','Whole egg, cooked, poached','Whole egg, cooked, omelet']);
+  expect(distinctCachedFoodNames(capPerTier(rankUsdaRows(fixture.search,'eggs')).slice(0,25).map(r=>normalizeUsdaFood({...r,...fixture.details.find(d=>d.fdcId===r['fdcId'])}))).slice(0,8).map(f=>f.name)).toEqual(foods.slice(0,8).map(f=>f.name));
+  expect(distinctCachedFoodNames(foods).slice(0,8).map(f=>f.name)).toEqual(foods.slice(0,8).map(f=>f.name));
+  expect(foods.slice(0,3).map(f=>f.id)).toEqual(['usda:747997','usda:748967','usda:748236']);
+ });
+ it('only merges generic implied qualifiers within ten percent for both nutrients',()=>{
+  const make=(fdcId:number,name:string,dataType:string,calories:number|null,protein:number|null)=>({row:{fdcId,dataType},food:{id:String(fdcId),name,portions:[],yours:false,nutrition:{calories,protein,carbs:null,fat:null}}});
+  const plain=make(1,'Food','SR Legacy',100,10);
+  expect(distinctFoodNames([plain,make(2,'Food, raw','Foundation',110,11)]).map(f=>({id:f.id,name:f.name}))).toEqual([{id:'2',name:'Food'}]);
+  for(const other of [make(3,'Food, raw','Foundation',111,10),make(4,'Food, raw','Foundation',100,12),make(5,'Food, raw','Branded',100,10),make(6,'Food, cooked','Foundation',100,10),make(7,'Food, raw','Foundation',null,10)])expect(distinctFoodNames([plain,other])).toHaveLength(2);
  });
  it('puts a primary food above mentions, niche food and an unrequested brand',()=>{
   const rank=rankUsdaRows([

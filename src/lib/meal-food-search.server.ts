@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { foodRelevance, foodWords, preparedFoodScore } from './food-search';
 import { mealForViewer, type Food } from './meals';
-import { cleanUsdaDescription, fetchUsda, normalizeUsdaFood, rankUsdaRows, capPerTier, distinctFoodNames } from './usda-foods.server';
+import { cleanUsdaDescription, fetchUsda, normalizeUsdaFood, rankUsdaRows, capPerTier, distinctFoodNames, distinctCachedFoodNames } from './usda-foods.server';
 export const FOOD_SEARCH_VERSION='v12';
 export type MealFoodSearchResult={under18:boolean;foods:Food[];own:Food[];error:boolean;cached:boolean;incomplete?:boolean;limited?:boolean};
 const toFood=(r:Record<string,unknown>):Food=>({id:String(r['id']),name:String(r['name']),portions:r['portions'] as Food['portions'],nutrition:r['nutrition'] as Food['nutrition'],yours:!!r['owner_id']});
@@ -18,12 +18,12 @@ export async function localMealFoods(admin:SupabaseClient,userId:string,q:string
  else if(q)rows=rows.filter(r=>foodRelevance(String(r['name']),q).match).sort((a,b)=>foodRelevance(String(a['name']),q).score+(String(a['name']).includes(' · ')?100:0)-foodRelevance(String(b['name']),q).score-(String(b['name']).includes(' · ')?100:0));
  let foods=rows.map(r=>{const f=toFood(r);return !f.yours&&!f.name.includes(' · ')?{...f,name:cleanUsdaDescription(f.name)}:f;});
  if(q&&!cache.data){const score=(f:Food)=>{const [name,brand]=f.name.split(' · ');const relevance=foodRelevance(name??f.name,q,brand??'');return preparedFoodScore(name??f.name,q,brand??'')+(brand&&!relevance.brandAsked?100:0);};foods.sort((a,b)=>score(a)-score(b));const best=foods[0];if(best)foods=foods.filter(f=>score(f)<=score(best)+2);}
- return mealForViewer({under18,foods,own:(own.data??[]).map(toFood),error:false,cached:!!cache.data},under18);
+ return mealForViewer({under18,foods:q?distinctCachedFoodNames(foods):foods,own:(own.data??[]).map(toFood),error:false,cached:!!cache.data},under18);
 }
 export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:boolean,signal:AbortSignal):Promise<MealFoodSearchResult>{
  const key=`${FOOD_SEARCH_VERSION}:${q.toLowerCase()}`;
  const cache=await admin.from('meal_food_searches').select('food_ids').eq('query',key).abortSignal(signal).maybeSingle();
- if(cache.data){const ids=cache.data.food_ids as string[];const r=await admin.from('meal_foods').select('*').in('id',ids).is('owner_id',null).abortSignal(signal);return mealForViewer({under18,foods:ids.flatMap(id=>{const row=r.data?.find(r=>r.id===id);return row?[toFood(row)]:[];}),own:[] as Food[],error:false,cached:true},under18);}
+ if(cache.data){const ids=cache.data.food_ids as string[];const r=await admin.from('meal_foods').select('*').in('id',ids).is('owner_id',null).abortSignal(signal);return mealForViewer({under18,foods:distinctCachedFoodNames(ids.flatMap(id=>{const row=r.data?.find(r=>r.id===id);return row?[toFood(row)]:[];})),own:[] as Food[],error:false,cached:true},under18);}
  signal.throwIfAborted();
  // Three search calls and at most two 20-ID detail calls. Reserve the whole maximum once.
  const claim=await admin.rpc('claim_meal_usda_search',{_requests:5}).abortSignal(signal);

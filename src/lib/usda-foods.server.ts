@@ -60,7 +60,32 @@ export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}
  const tier=(e:{row:Record<string,unknown>})=>TIER[String(e.row['dataType'])]??3;
  const kept=new Map<string,{food:Food;row:Record<string,unknown>;i:number}>();
  entries.forEach((e,i)=>{const prev=kept.get(e.food.name.toLowerCase());if(!prev||tier(e)<tier(prev))kept.set(e.food.name.toLowerCase(),{...e,i:prev?prev.i:i});});
- return [...kept.values()].sort((a,b)=>a.i-b.i).map(e=>({...e.food}));
+ const ordered=[...kept.values()].sort((a,b)=>a.i-b.i);
+ const close=(a:number|null|undefined,b:number|null|undefined)=>typeof a==='number'&&typeof b==='number'&&Math.abs(a-b)<=Math.min(Math.abs(a),Math.abs(b))*.1;
+ const base=(name:string)=>name.split(',').filter((part,i)=>i===0||! /^(raw|fresh|uncooked)$/i.test(part.trim())).join(',').trim();
+ const collapsed=new Set<string>();
+ for(let i=0;i<ordered.length;i++){
+  const a=ordered[i];if(!a||a.row['dataType']==='Branded')continue;
+  for(let j=i+1;j<ordered.length;j++){
+   const b=ordered[j];if(!b||b.row['dataType']==='Branded'||base(a.food.name).toLowerCase()!==base(b.food.name).toLowerCase()||a.food.name.toLowerCase()===b.food.name.toLowerCase())continue;
+   if(!close(a.food.nutrition?.calories,b.food.nutrition?.calories)||!close(a.food.nutrition?.protein,b.food.nutrition?.protein))continue;
+   const name=base(a.food.name);const winner=tier(b)<tier(a)?b:a;
+   a.food={...winner.food,name};a.row=winner.row;ordered.splice(j,1);j--;collapsed.add(name.toLowerCase());
+  }
+ }
+ // Once an implied-form family collapses, put its plain form then its common
+ // cooked preparations together. Other families keep their existing positions.
+ const prep=(name:string)=>{const m=name.match(/\b(hard-boiled|scrambled|fried|poached|omelet)\b/i);return m?['hard-boiled','scrambled','fried','poached','omelet'].indexOf(m[0].toLowerCase()):99;};
+ for(const head of collapsed){
+  const slots=ordered.map((e,i)=>({e,i})).filter(({e})=>e.row['dataType']!=='Branded'&&(e.food.name.split(',')[0]??'').toLowerCase()===head);
+  const sorted=slots.map(x=>x.e).sort((a,b)=>Number(a.food.name.includes(','))-Number(b.food.name.includes(','))||prep(a.food.name)-prep(b.food.name)||a.i-b.i);
+  slots.forEach((slot,i)=>{const entry=sorted[i];if(entry)ordered[slot.i]=entry;});
+ }
+ return ordered.map(e=>({...e.food}));
+}
+/** Stored search lists are already tier-ranked; preserve their first equivalent row. */
+export function distinctCachedFoodNames(foods:Food[]) {
+ return distinctFoodNames(foods.map(food=>({food,row:{dataType:food.yours||food.name.includes(' · ')?'Branded':'Cached'}})));
 }
 /** Ready-to-eat forms (cooked, boiled, steamed…) before plain ones, and raw, dry or flour forms last. */
 export function preparedOrder(r:Record<string,unknown>) { const d=String(r['description']??'').toLowerCase(); return /\b(cooked|boiled|steamed|roasted|baked|grilled|braised|poached|prepared|scrambled|fried)\b/.test(d)?0:/\b(raw|dry|uncooked|flour)\b/.test(d)?2:1; }
