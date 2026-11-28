@@ -1,6 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { FOOD_SEARCH_VERSION, remoteMealFoods } from './meal-food-search.server';
-import { runMealFoodWarm, WARM_REQUESTS_PER_SEARCH } from './meal-food-warm';
+import { runMealFoodWarm, retryMealFoodWarm, WARM_REQUESTS_PER_SEARCH, WARM_USDA_TIMEOUT_MS } from './meal-food-warm';
 import terms from './common-meal-food-terms.json';
 
 /** Unlike the legacy reminders' public apikey, this hook requires a private, per-database job token. */
@@ -18,26 +18,28 @@ export async function handleMealFoodWarm(request: Request): Promise<Response> {
     if (claim.error) throw new Error('Could not claim warming run');
     const lease = claim.data;
     if (!lease) return Response.json({ ok: true, busy: true });
+    // Bound the whole invocation below pg_net's existing 120s response timeout.
+    const runSignal = AbortSignal.timeout(100000);
     const result = await runMealFoodWarm({
       claimTerm: async version => {
         const r = await admin.rpc('claim_meal_food_warm_term', { _version: version, _lease: lease });
         if (r.error) throw new Error('Could not claim term');
         return r.data;
       },
-      search: async term => {
-        const signal = AbortSignal.timeout(10000);
+      search: term => retryMealFoodWarm(async () => {
+        const signal = runSignal;
         const r = await remoteMealFoods(admin, term, false, signal, async () => {
           const claim = await admin.rpc('claim_meal_usda_warm_search', { _requests: WARM_REQUESTS_PER_SEARCH }).abortSignal(signal);
           if (claim.error) throw new Error('Could not reserve warming allowance');
           return claim.data;
-        });
+        }, WARM_USDA_TIMEOUT_MS);
         // A term is complete only when the normal pipeline's current-version list is persisted.
         if (!r.incomplete && !r.limited && !r.error) {
           const saved = await admin.from('meal_food_searches').select('query').eq('query', `${FOOD_SEARCH_VERSION}:${term}`).abortSignal(signal).maybeSingle();
           if (saved.error || !saved.data) return { ...r, incomplete: true };
         }
         return r;
-      },
+      }, runSignal),
       finish: async (term, version, success, error) => {
         const r = await admin.rpc('finish_meal_food_warm_term', { _term: term, _version: version, _lease: lease, _success: success, _error: error ?? '' });
         if (r.error) throw new Error('Could not record warming result');

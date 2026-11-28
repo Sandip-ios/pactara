@@ -20,7 +20,7 @@ export async function localMealFoods(admin:SupabaseClient,userId:string,q:string
  if(q&&!cache.data){const score=(f:Food)=>{const [name,brand]=f.name.split(' · ');const relevance=foodRelevance(name??f.name,q,brand??'');return preparedFoodScore(name??f.name,q,brand??'')+(brand&&!relevance.brandAsked?100:0);};foods.sort((a,b)=>score(a)-score(b));const best=foods[0];if(best)foods=foods.filter(f=>score(f)<=score(best)+2);}
  return mealForViewer({under18,foods:q?distinctCachedFoodNames(foods):foods,own:(own.data??[]).map(toFood),error:false,cached:!!cache.data},under18);
 }
-export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:boolean,signal:AbortSignal,claimBudget?:()=>Promise<boolean>):Promise<MealFoodSearchResult>{
+export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:boolean,signal:AbortSignal,claimBudget?:()=>Promise<boolean>,providerTimeoutMs=4000):Promise<MealFoodSearchResult>{
  const key=`${FOOD_SEARCH_VERSION}:${q.toLowerCase()}`;
  const cache=await admin.from('meal_food_searches').select('food_ids').eq('query',key).abortSignal(signal).maybeSingle();
  if(cache.data){const ids=cache.data.food_ids as string[];const r=await admin.from('meal_foods').select('*').in('id',ids).is('owner_id',null).abortSignal(signal);return mealForViewer({under18,foods:distinctCachedFoodNames(ids.flatMap(id=>{const row=r.data?.find(r=>r.id===id);return row?[toFood(row)]:[];})),own:[] as Food[],error:false,cached:true},under18);}
@@ -30,8 +30,9 @@ export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:bool
  if(!claimed)return {under18,foods:[] as Food[],own:[] as Food[],error:false,cached:false,incomplete:true,limited:true};
  try{
   signal.throwIfAborted();
-  const providerSignal=AbortSignal.any([signal,AbortSignal.timeout(4000)]);
-  const responses=await Promise.allSettled([['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']].map(dataType=>fetchUsda('foods/search',{query:q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:dataType[0]==='Foundation'?200:50,dataType},providerSignal)));
+  // Keep the existing user deadline; background work gets a fresh deadline per USDA call.
+  const providerSignal=providerTimeoutMs===4000?AbortSignal.any([signal,AbortSignal.timeout(4000)]):signal;
+  const responses=await Promise.allSettled([['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']].map(dataType=>fetchUsda('foods/search',{query:q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:dataType[0]==='Foundation'?200:50,dataType},providerSignal,providerTimeoutMs)));
   let incomplete=responses.some(r=>r.status==='rejected');
   const candidates=[...new Map(responses.flatMap(r=>r.status==='fulfilled'?(r.value['foods']??[]) as Record<string,unknown>[]:[]).map(r=>[r['fdcId'],r])).values()];
   const counts=candidates.length?await admin.from('meal_food_add_counts').select('food_id,adds').in('food_id',candidates.map(r=>`usda:${r['fdcId']}`)).abortSignal(signal):{data:[]};
@@ -42,7 +43,7 @@ export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:bool
   const byId=new Map((cachedFoods.data??[]).filter(r=>{const f=toFood(r);return !f.portions.some(p=>vaguePortion(p.unit)||/^\d+$/.test(p.unit));}).map(r=>[r.id,toFood(r)]));
   const missing=raw.filter(r=>!byId.has(`usda:${r['fdcId']}`));
   const batches=[];for(let i=0;i<missing.length;i+=20)batches.push(missing.slice(i,i+20));
-  const responsesDetail=await Promise.allSettled(batches.map(batch=>fetchUsda('foods',{fdcIds:batch.map(r=>r['fdcId']),format:'full',nutrients:[203,204,205,208,957,958]},providerSignal)));
+  const responsesDetail=await Promise.allSettled(batches.map(batch=>fetchUsda('foods',{fdcIds:batch.map(r=>r['fdcId']),format:'full',nutrients:[203,204,205,208,957,958]},providerSignal,providerTimeoutMs)));
   incomplete ||= responsesDetail.some(r=>r.status==='rejected');
   const details=responsesDetail.flatMap(r=>r.status==='fulfilled'&&Array.isArray(r.value)?r.value as Record<string,unknown>[]:[]);
   const available=raw.filter(r=>byId.has(`usda:${r['fdcId']}`)||details.some(d=>d['fdcId']===r['fdcId']));

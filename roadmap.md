@@ -1,11 +1,12 @@
 # Food search follow-up
+- [x] Background-only 25s per-call deadlines and one budgeted retry after 1s backoff; user deadline remains 4s. Seven prior timeout terms all completed in one draft hook run (5.234/5.872/15.421/5.444/6.623/17.810/4.754s), nine new completions, 17/300 total, 283 remaining; read back complete v13 lists. 1219 tests/127 files passed; typecheck/build clean; temporary test terms removed. Production pg_cron/pg_net and published URL confirmed; activation SQL and migration 0120 unchanged.
 - [x] Qualifier-set/synonym deduplication, meaningful portions, common meat preparations then raw; recorded tests and rice/chicken/eggs captures at 390×844/2× verified. Temporary member removed; no meal or popularity writes.
 - [x] Cache-warm status checked: 39/300 old v12 cached terms retained, 3/300 rebuilt v13 terms (rice/chicken/eggs). No independent scheduler exists and job is stopped; cannot claim it continues after session.
 - [x] Generic implied-qualifier duplicates: both calories/protein within 10%, higher tier and plain name; recorded/cache egg sequence verified, 1192 tests and typecheck pass. No data changes.
 - [x] Restore cooked/plain ranking and 200/50/6 retrieval, top-25 details; recorded rice/pasta/chicken tests.
 - [x] Four-second provider deadline, partial results and Retry; bounded resumable 300-term one-off warmer.
 - [x] Replaced session warmer with private-token hook, versioned 300-term progress, SKIP LOCKED/global leases, atomic 300/600 background allowance and staged production activation SQL. Draft hook: 8/300 complete (5 new, 3 reused), 292 remaining, 41.534s; seven partial terms queued. 1210 tests/126 files passed, typecheck/build clean; temporary test terms removed, no owned food/account writes. Ranking/UI unchanged.
-- [ ] Activate production HTTP schedule after acceptance/publication: blocked because managed HTTP scheduling is unavailable in isolated drafts. Publishing alone does not start the job; requested activation SQL and operational instructions are committed.
+- [ ] Production schedule activation awaits owner running scripts/schedule-meal-food-warming.sql after acceptance/publication. Production pg_cron/pg_net confirmed; migration 0120 creates the token row on acceptance, no extra secret setup. Publishing alone does not start warming.
 - [x] Full tests/checks: 1190 tests/124 files, typecheck and build clean. Viewed final rice/chicken 390×844/2× captures; first rows 348–374ms, complete warmed lists 365–396ms. Real timeout/Retry verified, temporary member removed; no publication.
 
 # Roadmap

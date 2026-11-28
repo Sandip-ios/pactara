@@ -115,8 +115,8 @@ export function rankUsdaRows(rows:Record<string,unknown>[],query='') {
  };
  return rows.map((r,i)=>({r,i})).sort((a,b)=>(meatRank(a.r)!==null?meatScore(a.r)-meatScore(b.r):0)||relevance(a.r)-relevance(b.r)||((query&&preparedFoodGroup(query))?Number(b.r['add_count']??0)-Number(a.r['add_count']??0)||rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||cleanUsdaDescription(String(a.r['description']??'')).length-cleanUsdaDescription(String(b.r['description']??'')).length:rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r))||a.i-b.i).map(x=>x.r);
 }
-export async function fetchUsda(path:string,body?:unknown,signal?:AbortSignal):Promise<Record<string,unknown>> {
+export async function fetchUsda(path:string,body?:unknown,signal?:AbortSignal,timeoutMs=4000):Promise<Record<string,unknown>> {
  const key=process.env['USDA_API_KEY']; if(!key) throw new Error('USDA credential unavailable');
- const response=await fetch(`https://api.nal.usda.gov/fdc/v1/${path}`,{method:body?'POST':'GET',headers:{'X-Api-Key':key,'Content-Type':'application/json'},...(body ? {body:JSON.stringify(body)} : {}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(4000)]):AbortSignal.timeout(4000),redirect:'manual'});
+ const response=await fetch(`https://api.nal.usda.gov/fdc/v1/${path}`,{method:body?'POST':'GET',headers:{'X-Api-Key':key,'Content-Type':'application/json'},...(body ? {body:JSON.stringify(body)} : {}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(timeoutMs)]):AbortSignal.timeout(timeoutMs),redirect:'manual'});
  if(!response.ok) throw new Error(`USDA request status ${response.status}`);return await response.json() as Record<string,unknown>;
 }

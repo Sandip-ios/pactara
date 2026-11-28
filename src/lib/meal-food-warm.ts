@@ -2,7 +2,30 @@
 export const WARM_TERMS_PER_RUN = 15;
 export const WARM_REQUESTS_PER_SEARCH = 5;
 export const WARM_HOURLY_REQUEST_LIMIT = 300;
+export const WARM_USDA_TIMEOUT_MS = 25000;
+export const WARM_RETRY_BACKOFF_MS = 1000;
 export type WarmSearchResult = { incomplete?: boolean; limited?: boolean; error: boolean };
+function warmBackoff(ms: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    signal.throwIfAborted();
+    const onAbort = () => { clearTimeout(timer); reject(signal.reason); };
+    const timer = setTimeout(() => { signal.removeEventListener('abort', onAbort); resolve(); }, ms);
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+/** Retry a partial/failed background pipeline once. Each attempt claims its own budget. */
+export async function retryMealFoodWarm<T extends WarmSearchResult>(search: () => Promise<T>, signal: AbortSignal, backoff = warmBackoff): Promise<T> {
+  try {
+    const result = await search();
+    if (result.limited || (!result.incomplete && !result.error)) return result;
+  } catch (error) {
+    if (signal.aborted) throw error;
+  }
+  signal.throwIfAborted();
+  await backoff(WARM_RETRY_BACKOFF_MS, signal);
+  signal.throwIfAborted();
+  return search();
+}
 export type WarmDeps = {
   claimTerm: (version: string) => Promise<string | null>;
   search: (term: string) => Promise<WarmSearchResult>;

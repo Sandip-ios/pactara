@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runMealFoodWarm, WARM_TERMS_PER_RUN, WARM_HOURLY_REQUEST_LIMIT, WARM_REQUESTS_PER_SEARCH, type WarmDeps } from '../meal-food-warm';
+import { runMealFoodWarm, retryMealFoodWarm, WARM_USDA_TIMEOUT_MS, WARM_TERMS_PER_RUN, WARM_HOURLY_REQUEST_LIMIT, WARM_REQUESTS_PER_SEARCH, type WarmDeps } from '../meal-food-warm';
 
 function harness(rows: { term: string; version?: string; warmed?: boolean }[]) {
   const claimed = new Set<string>();
@@ -43,7 +43,7 @@ describe('durable meal-food warmer', () => {
     expect(await runMealFoodWarm(deps, 'v13')).toMatchObject({ warmed: 0, remaining: 0 });
     expect(deps.search).not.toHaveBeenCalled();
   });
-  it('bounds a run to 15 terms and 75 reserved calls, at most 300/hour over four runs', async () => {
+  it('bounds successful runs to 15 terms and keeps the hourly background allowance at 300', async () => {
     const deps = harness(Array.from({ length: 300 }, (_, i) => ({ term: `term ${i}` })));
     expect((await runMealFoodWarm(deps, 'v13')).warmed).toBe(15);
     expect(WARM_TERMS_PER_RUN * WARM_REQUESTS_PER_SEARCH * 4).toBe(WARM_HOURLY_REQUEST_LIMIT);
@@ -55,5 +55,39 @@ describe('durable meal-food warmer', () => {
     expect(await runMealFoodWarm(deps, 'v13')).toMatchObject({ warmed: 1, remaining: 2 });
     expect(deps.log).toHaveBeenCalledExactlyOnceWith('pasta');
     expect(deps.release).toHaveBeenCalledTimes(1);
+  });
+});
+describe('background-only backoff retry', () => {
+  it('uses 25-second calls and retries a partial result once after one-second backoff', async () => {
+    const search = vi.fn().mockResolvedValueOnce({ error: false, incomplete: true }).mockResolvedValueOnce({ error: false });
+    const backoff = vi.fn(async () => {});
+    const signal = new AbortController().signal;
+    expect(WARM_USDA_TIMEOUT_MS).toBe(25000);
+    expect(await retryMealFoodWarm(search, signal, backoff)).toEqual({ error: false });
+    expect(search).toHaveBeenCalledTimes(2);
+    expect(backoff).toHaveBeenCalledExactlyOnceWith(1000, signal);
+  });
+  it('retries a thrown network error but never tries a third time', async () => {
+    const search = vi.fn().mockRejectedValueOnce(new Error('Network failed')).mockResolvedValueOnce({ error: false, incomplete: true });
+    expect(await retryMealFoodWarm(search, new AbortController().signal, async () => {})).toMatchObject({ incomplete: true });
+    expect(search).toHaveBeenCalledTimes(2);
+  });
+  it('does not retry or back off when the initial warming budget is refused', async () => {
+    const search = vi.fn(async () => ({ error: false, limited: true }));
+    const backoff = vi.fn(async () => {});
+    expect(await retryMealFoodWarm(search, new AbortController().signal, backoff)).toMatchObject({ limited: true });
+    expect(search).toHaveBeenCalledTimes(1); expect(backoff).not.toHaveBeenCalled();
+  });
+  it('honors a refusal on the retry without any further provider attempt', async () => {
+    const search = vi.fn().mockResolvedValueOnce({ error: false, incomplete: true }).mockResolvedValueOnce({ error: false, limited: true });
+    expect(await retryMealFoodWarm(search, new AbortController().signal, async () => {})).toMatchObject({ limited: true });
+    expect(search).toHaveBeenCalledTimes(2);
+  });
+  it('does not retry after the overall run deadline aborts', async () => {
+    const controller = new AbortController();
+    const search = vi.fn(async () => { controller.abort(); return { error: false, incomplete: true }; });
+    const backoff = vi.fn(async () => {});
+    await expect(retryMealFoodWarm(search, controller.signal, backoff)).rejects.toThrow();
+    expect(search).toHaveBeenCalledTimes(1); expect(backoff).not.toHaveBeenCalled();
   });
 });
