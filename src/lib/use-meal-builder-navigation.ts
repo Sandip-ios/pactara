@@ -1,9 +1,9 @@
 import { useRouter } from '@tanstack/react-router';
-import { mealBuilderReturn, type MealBuilderOrigin } from './meal-builder-return';
+import { mealBuilderReturn, mealBuilderSaveReturnsHome, type MealBuilderOrigin } from './meal-builder-return';
 
 const key = 'pactara:meal-builder-origin';
 
-/** Capture before navigation; Cancel/Discard restore the exact page, query and scroll. Save keeps its existing destination. */
+/** Capture before navigation; Cancel/Discard and Home saves restore the exact page, query and scroll. */
 export function useMealBuilderNavigation() {
   const router = useRouter();
   const openMealBuilder = ({ mealId, forPost = false }: { mealId?: string; forPost?: boolean } = {}) => {
@@ -18,7 +18,7 @@ export function useMealBuilderNavigation() {
       ? router.navigate({ to: '/meals/$mealId/edit', params: { mealId } })
       : router.navigate({ to: '/meals/new', search: { forPost } });
   };
-  const closeMealBuilder = (forPost: boolean) => {
+  const closeMealBuilder = (forPost: boolean, onRestored?: () => void) => {
     let origin: MealBuilderOrigin | null = null;
     try { origin = JSON.parse(sessionStorage.getItem(key) ?? 'null') as MealBuilderOrigin | null; } catch { /* Direct link has no opening page. */ }
     sessionStorage.removeItem(key);
@@ -31,10 +31,18 @@ export function useMealBuilderNavigation() {
         document.querySelectorAll<HTMLElement>('[data-scroll-root]').forEach((element, index) => {
           element.scrollTop = destination.scroll[index] ?? 0;
         });
+        onRestored?.();
       }));
     });
     if (destination.back) router.history.back();
     else void router.navigate({ href: destination.href, replace: true, resetScroll: false });
   };
-  return { openMealBuilder, closeMealBuilder };
+  const returnHomeAfterSave = (forPost: boolean, onRestored: () => void) => {
+    let origin: MealBuilderOrigin | null = null;
+    try { origin = JSON.parse(sessionStorage.getItem(key) ?? 'null') as MealBuilderOrigin | null; } catch { /* Not opened from Home. */ }
+    if (!mealBuilderSaveReturnsHome(origin, forPost)) return false;
+    closeMealBuilder(forPost, onRestored);
+    return true;
+  };
+  return { openMealBuilder, closeMealBuilder, returnHomeAfterSave };
 }

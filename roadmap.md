@@ -288,3 +288,7 @@
 ## Composer scope correction
 - [x] Restore approved composer wrappers and meal typography, remove edit-sheet meal display; retained only shared card extraction, edit workout layout and meal-builder return fix versus 7b25913 (plus QA captures, tests and notes).
 - [x] Recaptured composer workout/meal and edit workout at 390px/2x; deleted edit meal capture. Composer white wrappers x=16–374, cards x=32–358, 16px side inset + 10px top/bottom, meal title 15px. Edit card/caption/Save x=16–374. Full suite 1155 passed, typecheck/build clean; temporary member, posts, workout and meal removed.
+
+## Home meal Save return
+- [x] Successful Home Save restores origin URL and scroll, then shows the existing saved toast; other Save destinations unchanged.
+- [x] Extended return tests: full suite 1157 passed, typecheck/build clean. Verified Home /home at 120px → Save → /home at 120px, Oat bowl saved toast; saved meal reads back in Profile. Captured public/qa/fx-home-after-save.png at 390px/2x. Temporary member, meals and foods removed.
