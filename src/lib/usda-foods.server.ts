@@ -20,8 +20,8 @@ const FILLER=new Set(['regular','enriched','unenriched','meat only','skinless','
 const LEADING=new Set(['white','brown','wild','whole','atlantic','pink','sockeye','coho','chinook','rolled','steel cut','ground','sweet','red','green','black','jasmine','basmati']);
 const PARTS=new Set(['breast','thigh','wing','drumstick','leg','fillet','yolk','white','tenders']);
 /** Turns a USDA generic description into a natural name that keeps what sets the variant apart. */
-/** Keeps USDA's capitals for proper nouns; only words written in all caps are lowercased. */
-export function usdaCase(text:string) { return text.replace(/\b[A-Z][A-Z'&]+\b/g,w=>w.toLowerCase()); }
+/** Keeps USDA's capitals for proper nouns; words written in all caps become title case. */
+export function usdaCase(text:string) { return text.replace(/\b[A-Z][A-Z'&]+\b/g,w=>w.charAt(0)+w.slice(1).toLowerCase()); }
 export function cleanUsdaDescription(description:string,keepFiller=false) {
  let t=usdaCase(description).replace(/\s*\(includes [^)]*\)/gi,'').split(',').map(x=>x.trim()).filter(Boolean);
  if(t[0])t[0]=t[0].charAt(0).toLowerCase()+t[0].slice(1);
@@ -38,8 +38,8 @@ export function cleanUsdaDescription(description:string,keepFiller=false) {
 export function usdaFoodName(row:Record<string,unknown>,keepFiller=false) {
  const raw=String(row['description']??'Food').trim();
  const branded=row['dataType']==='Branded';
- const name=branded?usdaCase(raw).replace(/^./,c=>c.toUpperCase()):cleanUsdaDescription(raw,keepFiller);
- const brand=String(row['brandOwner']??row['brandName']??'').trim();
+ const name=branded?(raw===raw.toUpperCase()?raw.toLowerCase():usdaCase(raw)).replace(/^./,c=>c.toUpperCase()):cleanUsdaDescription(raw,keepFiller);
+ const brand=usdaCase(String(row['brandOwner']??row['brandName']??'').trim());
  return `${name}${branded&&brand?` · ${brand}`:''}`.slice(0,200);
 }
 const TIER:Record<string,number>={'Foundation':0,'SR Legacy':1,'Survey (FNDDS)':2};
@@ -50,13 +50,18 @@ export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}
  entries.forEach((e,i)=>{const prev=kept.get(e.food.name);if(!prev||tier(e)<tier(prev))kept.set(e.food.name,{...e,i:prev?prev.i:i});});
  return [...kept.values()].sort((a,b)=>a.i-b.i).map(e=>({...e.food}));
 }
+/** Ready-to-eat forms (cooked, boiled, steamed…) before plain ones, and raw, dry or flour forms last. */
+export function preparedOrder(r:Record<string,unknown>) { const d=String(r['description']??'').toLowerCase(); return /\b(cooked|boiled|steamed|roasted|baked|grilled|braised|poached|prepared|scrambled|fried)\b/.test(d)?0:/\b(raw|dry|uncooked|flour)\b/.test(d)?2:1; }
+/** Distinct cleaned names kept per generic tier, so near-duplicates don't push plain forms out. */
+export function capPerTier(rows:Record<string,unknown>[],limit=12) { const seen=new Map<string,Set<string>>();return rows.filter(r=>{const t=String(r['dataType']);if(t==='Branded')return true;const set=seen.get(t)??new Set<string>();seen.set(t,set);const name=cleanUsdaDescription(String(r['description']??''));if(set.has(name))return true;if(set.size>=limit)return false;set.add(name);return true;}); }
 /** Generic tiers first (Foundation, SR Legacy, Survey, then Branded); inside a tier, foods named for the query come first. */
 export function rankUsdaRows(rows:Record<string,unknown>[],query='') {
  rows=rows.filter(r=>query.toLowerCase().split(/\s+/).filter(Boolean).every(w=>String(r['description']??'').toLowerCase().includes(w)));
  const rank=(r:Record<string,unknown>)=>r['dataType']==='Foundation'?0:r['dataType']==='SR Legacy'?1:r['dataType']==='Survey (FNDDS)'?2:3;
  const q=query.toLowerCase().trim();const head=(r:Record<string,unknown>)=>String(r['description']??'').toLowerCase().split(',')[0]!.trim();
  const match=(r:Record<string,unknown>)=>!q?0:head(r)===q?0:head(r).startsWith(q)||q.split(/\s+/).every(w=>head(r).includes(w))?1:2;
- return rows.map((r,i)=>({r,i})).sort((a,b)=>rank(a.r)-rank(b.r)||match(a.r)-match(b.r)||String(a.r['description']??'').split(',').length-String(b.r['description']??'').split(',').length||a.i-b.i).map(x=>x.r);
+ const parts=(r:Record<string,unknown>)=>r['dataType']==='Branded'?0:cleanUsdaDescription(String(r['description']??'')).split(',').length;
+ return rows.map((r,i)=>({r,i})).sort((a,b)=>rank(a.r)-rank(b.r)||match(a.r)-match(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r)||a.i-b.i).map(x=>x.r);
 }
 export async function fetchUsda(path:string,body?:unknown):Promise<Record<string,unknown>> {
  const key=process.env['USDA_API_KEY']; if(!key) throw new Error('USDA credential unavailable');

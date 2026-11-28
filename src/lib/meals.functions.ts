@@ -30,16 +30,16 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));}
  else {
  // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
- const key=`v8:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
+ const key=`v9:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
  if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=cache.food_ids.flatMap(id=>{const row=rows?.find(r=>r.id===id);return row?[toFood(row as unknown as Record<string,unknown>)]:[];});}
  else {try {
- const {fetchUsda,normalizeUsdaFood,rankUsdaRows,distinctFoodNames}=await import('./usda-foods.server');
+ const {fetchUsda,normalizeUsdaFood,rankUsdaRows,capPerTier,distinctFoodNames}=await import('./usda-foods.server');
  const responses=[];
  for(const dataType of [['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']]) {
   const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
   responses.push(await fetchUsda('foods/search',{query:data.q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:200,dataType}));
  }
- const raw=rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q).filter((r,i,all)=>r['dataType']==='Branded'||all.slice(0,i).filter(x=>x['dataType']===r['dataType']).length<12);
+ const raw=capPerTier(rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q));
  if(raw.length){
   const details:Record<string,unknown>[]=[];
   for(let i=0;i<raw.length;i+=20){

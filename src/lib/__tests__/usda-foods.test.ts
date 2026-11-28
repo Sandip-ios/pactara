@@ -29,3 +29,18 @@ describe('USDA server boundary',()=>{
  it('puts foods named for the query first inside each tier and drops rows that never mention it',()=>{const rows=[{fdcId:1,dataType:'SR Legacy',description:'Snacks, rice cakes, brown rice, plain'},{fdcId:2,dataType:'SR Legacy',description:'Rice, white, medium-grain, cooked'},{fdcId:3,dataType:'Branded',description:'RICE'},{fdcId:4,dataType:'Foundation',description:'Rice, brown, long-grain, raw'},{fdcId:5,dataType:'SR Legacy',description:'Cheese, cheddar'}];expect(rankUsdaRows(rows,'rice').map(r=>r['fdcId'])).toEqual([4,2,1,3]);});
  it('keeps the base unit alone when unique and the descriptor only when two portions share it',()=>{const f=normalizeUsdaFood({fdcId:9,description:'Apples, raw',foodPortions:[{amount:1,gramWeight:110,modifier:'cup, sliced'},{amount:1,gramWeight:125,modifier:'cup, chopped'},{amount:1,gramWeight:132,modifier:'cup, loosely packed'},{amount:1,gramWeight:200,modifier:'stalk, large'}]});expect(f.portions.map(p=>p.unit).slice(0,4)).toEqual(['cup, sliced','cup, chopped','cup, loosely packed','stalk']);expect(normalizeUsdaFood({fdcId:10,description:'Rice',foodPortions:[{amount:1,gramWeight:132,modifier:'cup, loosely packed'}]}).portions[0]?.unit).toBe('cup');});
 });
+import riceFixture from './fixtures/usda-rice-search.json';
+import { capPerTier } from '../usda-foods.server';
+import { rankFoodResults, uniqueFoodResults } from '../meals';
+describe('USDA rice search (real rows)',()=>{
+ it('keeps a plain long-grain or medium-grain cooked white rice in the first 8 results',()=>{
+  const raw=capPerTier(rankUsdaRows(riceFixture.search as Record<string,unknown>[],'rice'));
+  const detail=(r:Record<string,unknown>)=>({...r,...(riceFixture.details as Record<string,unknown>[]).find(d=>d['fdcId']===r['fdcId'])});
+  const foods=rankFoodResults(uniqueFoodResults(distinctFoodNames(raw.map(r=>{const row=detail(r);return {row,food:normalizeUsdaFood(row)};}))),{});
+  expect(foods.slice(0,8).some(f=>/^White rice, (long|medium)-grain, cooked$/.test(f.name))).toBe(true);
+ });
+ it('writes all-caps words in title case in generic and branded names',()=>{
+  expect(cleanUsdaDescription("Rice, brown, parboiled, cooked, UNCLE BENS")).toBe('Brown rice, parboiled, cooked, Uncle Bens');
+  expect(normalizeUsdaFood({fdcId:9,description:'BROWN RICE',dataType:'Branded',brandOwner:'FRESH & EASY'}).name).toBe('Brown rice · Fresh & Easy');
+ });
+});
