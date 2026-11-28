@@ -21,7 +21,7 @@ describe('USDA server boundary',()=>{
   ['Broccoli, cooked, boiled, drained, without salt','Broccoli, cooked, boiled, drained'],
   ['Fish, salmon, Atlantic, farmed, cooked, dry heat','Atlantic salmon, farmed, cooked, dry heat'],
   ['Rice, white, steamed, Chinese restaurant','White rice, steamed, Chinese restaurant'],
-  ['Yogurt, Greek, plain, nonfat','Yogurt, Greek, plain, nonfat'],
+  ['Yogurt, Greek, plain, nonfat','Greek yogurt, plain, nonfat'],
   ['Cheese, Swiss','Cheese, Swiss'],
   ['Cereals, QUAKER, Quick Oats, Dry','Quaker, Quick Oats, Dry'],
  ])('cleans the USDA name %s',(raw,clean)=>{expect(cleanUsdaDescription(raw)).toBe(clean);});

@@ -1,0 +1,1 @@
+Recorded from USDA FoodData Central on 2026-11-28 using the fifteen named queries, requireAllWords, generic/Survey pageSize 50 and Branded pageSize 6. Details were fetched in 20-ID batches with full portions. Only description, type, brand, portions and the six relevant nutrient IDs are retained. These are provider records, not invented rows or user data. Tests do not call USDA.

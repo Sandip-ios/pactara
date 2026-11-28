@@ -22,45 +22,13 @@ export const copyMealAttachment=createServerFn({method:'POST'}).middleware([requ
  const {data:existing}=await admin.from('meals').select('id').eq('source_meal_id',source).eq('user_id',context.userId).maybeSingle();if(existing)return {id:existing.id};
  const {data:profile}=await admin.from('profiles').select('name').eq('id',row.owner_id).maybeSingle();const {data:copy,error}=await admin.from('meals').insert({user_id:context.userId,name:snap.title,snapshot:row.snapshot,source_meal_id:source,source_user_id:row.owner_id,source_name:(profile?.name??'Member').trim(),...(data.kind==='post'?{source_post_id:data.id}:{})}).select('id').single();if(error) throw new Error('Could not add meal');return {id:copy.id};
 });
-export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({q:z.string().trim().max(80)}).parse(i)).handler(async({context,data})=>{
+const foodSearchInput=z.object({q:z.string().trim().max(80),phase:z.enum(['local','remote']).default('remote')});
+export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>foodSearchInput.parse(i)).handler(async({context,data})=>{
  const {admin,under18}=await mealAccess(context);
- const {data:own}=await admin.from('meal_foods').select('*').eq('owner_id',context.userId).ilike('name',`%${data.q.replace(/[%_]/g,'')}%`).limit(30);
- const toFood=(r:Record<string,unknown>):Food=>({id:String(r['id']),name:String(r['name']),portions:r['portions'] as Food['portions'],nutrition:r['nutrition'] as Food['nutrition'],yours:!!r['owner_id']});
- let foods:Food[]=[];let error=false;
- if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));
-  // Recent reads each USDA food's current cleaned name from its record and refreshes the stored one.
-  const usdaIds=foods.filter(f=>!f.yours&&f.id.startsWith('usda:')).map(f=>Number(f.id.slice(5))).filter(Number.isFinite);
-  if(usdaIds.length){try{const {fetchUsda,recentFoodName}=await import('./usda-foods.server');const res=await fetchUsda('foods',{fdcIds:usdaIds,format:'abridged'}) as unknown as Record<string,unknown>[];const byId=new Map((Array.isArray(res)?res:[]).map(r=>[`usda:${r['fdcId']}`,r]));
-   foods=await Promise.all(foods.map(async f=>{const name=recentFoodName(f.name,byId.get(f.id));if(name!==f.name)await admin.from('meal_foods').update({name}).eq('id',f.id);return {...f,name};}));}catch(e){console.error('USDA recent name refresh failed',e);}}
-  }
- else {
- // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
- const key=`v10:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();
- if(cache){const {data:rows}=await admin.from('meal_foods').select('*').in('id',cache.food_ids).is('owner_id',null);foods=cache.food_ids.flatMap(id=>{const row=rows?.find(r=>r.id===id);return row?[toFood(row as unknown as Record<string,unknown>)]:[];});}
- else {try {
- const {fetchUsda,normalizeUsdaFood,rankUsdaRows,capPerTier,distinctFoodNames}=await import('./usda-foods.server');
- const responses=[];
- for(const dataType of [['Foundation','SR Legacy'],['Survey (FNDDS)'],['Branded']]) {
-  const {data:claimed}=await admin.rpc('claim_meal_usda_request');if(!claimed)throw new Error('Search busy');
-  responses.push(await fetchUsda('foods/search',{query:data.q,requireAllWords:true,pageSize:dataType[0]==='Branded'?6:200,dataType}));
- }
- const raw=capPerTier(rankUsdaRows([...new Map(responses.flatMap(r=>(r['foods']??[]) as Record<string,unknown>[]).map(r=>[r['fdcId'],r])).values()],data.q));
- if(raw.length){
-  const details:Record<string,unknown>[]=[];
-  for(let i=0;i<raw.length;i+=20){
-   const {data:detailClaim}=await admin.rpc('claim_meal_usda_request');if(!detailClaim)throw new Error('Search busy');
-   const response=await fetchUsda('foods',{fdcIds:raw.slice(i,i+20).map(r=>r['fdcId']),format:'full',nutrients:[203,204,205,208,957,958]});
-   if(Array.isArray(response))details.push(...response as Record<string,unknown>[]);
-  }
-  foods=uniqueFoodResults(distinctFoodNames(raw.map(r=>{const row={...r,...details.find(d=>d['fdcId']===r['fdcId'])};return {row,food:normalizeUsdaFood(row)};})));
-  const {error:saveError}=await admin.from('meal_foods').upsert(foods.map(f=>({id:f.id,owner_id:null,name:f.name,portions:JSON.parse(JSON.stringify(f.portions)),nutrition:JSON.parse(JSON.stringify(f.nutrition))})));
-  if(saveError)throw new Error('Could not cache');
- }
- await admin.from('meal_food_searches').upsert({query:key,food_ids:foods.map(f=>f.id)});
- }catch(e){console.error('[meals] Food search unavailable:', e instanceof Error ? e.message : 'Request failed');error=true;}}
- }
- const ranked=uniqueFoodResults(foods);const {data:counts}=ranked.length?await admin.from('meal_food_add_counts').select('food_id,adds').in('food_id',ranked.map(f=>f.id)):{data:[]};
- return mealForViewer({under18,foods:rankFoodResults(ranked,Object.fromEntries((counts??[]).map(c=>[c.food_id,c.adds]))),own:(own??[]).map(r=>toFood(r as unknown as Record<string,unknown>)),error},under18);
+ const {getRequest}=await import('@tanstack/react-start/server');
+ const signal=getRequest().signal;
+ const {localMealFoods,remoteMealFoods}=await import('./meal-food-search.server');
+ return data.phase==='local'||!data.q?localMealFoods(admin,context.userId,data.q,under18,signal):remoteMealFoods(admin,data.q,under18,signal);
 });
 export const createOwnFood=createServerFn({method:'POST'}).middleware([requireSupabaseAuth]).inputValidator((i:unknown)=>z.object({name:z.string().trim().min(1).max(200),amount:z.number().positive().max(100000),unit:z.enum(['g','oz','cup','tbsp','tsp','piece','scoop']),nutrition:nutritionSchema}).parse(i)).handler(async({context,data})=>{
  const {admin,under18}=await mealAccess(context);const gramsPerUnit=data.unit==='oz'?28.349523125:data.unit==='g'?1:1;

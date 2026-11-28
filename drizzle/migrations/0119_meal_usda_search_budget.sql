@@ -1,0 +1,3 @@
+CREATE FUNCTION public.claim_meal_usda_search(_requests integer) RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$ DECLARE n integer; BEGIN IF _requests < 1 OR _requests > 6 THEN RETURN false; END IF; INSERT INTO public.meal_usda_budget(hour,requests) VALUES(date_trunc('hour',now()),_requests) ON CONFLICT(hour) DO UPDATE SET requests=meal_usda_budget.requests+_requests WHERE meal_usda_budget.requests+_requests<=600 RETURNING requests INTO n; RETURN n IS NOT NULL; END $$;
+REVOKE ALL ON FUNCTION public.claim_meal_usda_search(integer) FROM public,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.claim_meal_usda_search(integer) TO service_role;

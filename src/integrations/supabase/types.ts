@@ -2696,6 +2696,7 @@ export type Database = {
         }
       }
       claim_meal_usda_request: { Args: never; Returns: boolean }
+      claim_meal_usda_search: { Args: { _requests: number }; Returns: boolean }
       claim_social_post_tag_pushes: {
         Args: { _post_id: string }
         Returns: string[]
