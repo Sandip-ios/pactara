@@ -42,18 +42,13 @@ export function usdaFoodName(row:Record<string,unknown>,keepFiller=false) {
  const brand=String(row['brandOwner']??row['brandName']??'').trim();
  return `${name}${branded&&brand?` · ${brand}`:''}`.slice(0,200);
 }
-const SOURCE:Record<string,string>={'Foundation':'lab tested','SR Legacy':'reference','Survey (FNDDS)':'as eaten'};
-const nutritionKey=(f:Food)=>JSON.stringify(f.nutrition?(['calories','protein','carbs','fat'] as const).map(k=>f.nutrition?.[k]==null?null:Math.round(f.nutrition[k]??0)):null);
-/** Same name must mean same numbers: give clashing foods a source label, then a fuller qualifier. */
+const TIER:Record<string,number>={'Foundation':0,'SR Legacy':1,'Survey (FNDDS)':2};
+/** One name, one food: when cleaned names clash, generic foods keep the highest tier (Foundation, SR Legacy, Survey) and branded foods keep the first. */
 export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}[]):Food[] {
- const clash=(list:{food:Food}[],f:Food)=>list.some(e=>e.food!==f&&e.food.name===f.name&&nutritionKey(e.food)!==nutritionKey(f));
- let list=entries.map(e=>({...e,food:{...e.food}}));
- const pass=(rename:(e:{food:Food;row:Record<string,unknown>})=>string)=>{const flagged=list.filter(e=>clash(list,e.food));for(const e of flagged)e.food.name=rename(e);};
- pass(e=>{const src=SOURCE[String(e.row['dataType'])];return src?`${e.food.name} (${src})`:e.food.name;});
- pass(e=>`${usdaFoodName(e.row,true)}${e.food.name.match(/ \([^)]*\)$/)?.[0]??''}`);
- pass(e=>e.food.nutrition?.calories!=null?`${e.food.name} (${Math.round(e.food.nutrition.calories)} cal per 100 g)`:e.food.name);
- list=list.filter((e,i)=>!list.slice(0,i).some(o=>o.food.name===e.food.name&&nutritionKey(o.food)===nutritionKey(e.food)));
- return list.map(e=>e.food);
+ const tier=(e:{row:Record<string,unknown>})=>TIER[String(e.row['dataType'])]??3;
+ const kept=new Map<string,{food:Food;row:Record<string,unknown>;i:number}>();
+ entries.forEach((e,i)=>{const prev=kept.get(e.food.name);if(!prev||tier(e)<tier(prev))kept.set(e.food.name,{...e,i:prev?prev.i:i});});
+ return [...kept.values()].sort((a,b)=>a.i-b.i).map(e=>({...e.food}));
 }
 /** Generic tiers first (Foundation, SR Legacy, Survey, then Branded); inside a tier, foods named for the query come first. */
 export function rankUsdaRows(rows:Record<string,unknown>[],query='') {
