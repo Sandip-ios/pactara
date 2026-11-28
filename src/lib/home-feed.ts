@@ -22,7 +22,7 @@ export type HomeEntry =
       canInteract: boolean;
     };
 export const HOME_PAGE_SIZE = 20;
-export const HOME_INITIAL_TAB: HomeTab = "for-you";
+export const HOME_INITIAL_TAB: HomeTab = "following";
 
 /** The existing Today/crew card belongs only above Following. */
 export function showHomeToday(tab: HomeTab): boolean {

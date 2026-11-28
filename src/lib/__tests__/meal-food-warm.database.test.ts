@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 
 const base = 'http://127.0.0.1:8001/rest/v1/';
 async function admin<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
@@ -15,6 +15,17 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
   let lease: string | null = null;
   let token = '';
   let terms: string[] = [];
+  let createdControl = false;
+  beforeAll(async () => {
+    const config = await admin<{ token: string }[]>('meal_food_warm_control?select=token');
+    if (!config.length) {
+      await admin('meal_food_warm_control', 'POST', { id: true });
+      createdControl = true;
+    }
+  });
+  afterAll(async () => {
+    if (createdControl) await admin('meal_food_warm_control?id=eq.true', 'DELETE');
+  });
   beforeEach(async () => {
     terms = [randomUUID(), randomUUID()].map(id => `warm-test-${id}`);
     const config = await admin<{ token: string }[]>('meal_food_warm_control?select=token');

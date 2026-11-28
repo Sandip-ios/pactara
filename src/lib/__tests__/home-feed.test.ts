@@ -11,7 +11,7 @@ const item = {
   hidden: false,
 };
 describe("new Home audience rules", () => {
-  it("opens on For you", () => expect(HOME_INITIAL_TAB).toBe("for-you"));
+  it("opens on Following", () => expect(HOME_INITIAL_TAB).toBe("following"));
   it("shows the crew card on Following and not on For you", () => {
     expect(showHomeToday("following")).toBe(true);
     expect(showHomeToday("for-you")).toBe(false);

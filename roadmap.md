@@ -1,3 +1,8 @@
+# Following Home default and warming test setup
+- [x] Made Following the initial Home tab without adding or changing session tab memory; fresh Home and Home-tab return browser-verified.
+- [x] Food-warming database tests create their own missing control row and remove it afterward.
+- [x] All 1221 tests across 127 files and typecheck pass; captured home-default.png at 390x844 2x and removed the temporary member and both crews.
+
 # Home empty For you and Following crew card
 - [x] Built the For you empty state with the shared suggestions list, existing New post entry and a short Discover URL that opens the existing Discover screen.
 - [x] Show the existing Today/crew card only on Following; preserved For you as the default tab and verified both new actions in the browser.
