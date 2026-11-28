@@ -1,3 +1,8 @@
+# Home empty For you and Following crew card
+- [x] Built the For you empty state with the shared suggestions list, existing New post entry and a short Discover URL that opens the existing Discover screen.
+- [x] Show the existing Today/crew card only on Following; preserved For you as the default tab and verified both new actions in the browser.
+- [x] Added focused tests, captured four 390x844 2x screenshots and removed all four temporary members, both crews and temporary blocks. Typecheck clean; full suite 1218 passed, 3 unrelated food-warming tests failed because the draft has no warming control row (also fails alone).
+
 # Food search follow-up
 - [x] Background-only 25s per-call deadlines and one budgeted retry after 1s backoff; user deadline remains 4s. Seven prior timeout terms all completed in one draft hook run (5.234/5.872/15.421/5.444/6.623/17.810/4.754s), nine new completions, 17/300 total, 283 remaining; read back complete v13 lists. 1219 tests/127 files passed; typecheck/build clean; temporary test terms removed. Production pg_cron/pg_net and published URL confirmed; activation SQL and migration 0120 unchanged.
 - [x] Qualifier-set/synonym deduplication, meaningful portions, common meat preparations then raw; recorded tests and rice/chicken/eggs captures at 390×844/2× verified. Temporary member removed; no meal or popularity writes.

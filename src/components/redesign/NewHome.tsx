@@ -20,7 +20,7 @@ import { cancelNewHomeRest, getNewHomePlanStatus } from "@/lib/home-today.functi
 import { selectTodayState, type TodayPlanInput } from "@/lib/home-today";
 import { NewNotifBanner } from "./NewNotifBanner";
 import { PostingStrip } from "./post/PostingStrip";
-import { HOME_INITIAL_TAB, type HomeTab } from "@/lib/home-feed";
+import { HOME_INITIAL_TAB, showHomeToday, type HomeTab } from "@/lib/home-feed";
 import { HomeSocialFeed } from "./HomeSocialFeed";
 import { NewTodayCard } from "./NewTodayCard";
 import { newToast } from "./new-toast";
@@ -129,18 +129,20 @@ export function NewHome() {
       </nav>
       <PostingStrip />
       {crewsQuery.data && <NewNotifBanner crewNames={crewsQuery.data.groups.map((group) => group.name)} />}
-      <NewTodayCard
-        selection={selection}
-        crews={crews}
-        plan={plan}
-        onRetry={() => void crewsQuery.refetch()}
-        onOpenCrew={(groupId) => void navigate({ to: "/crews/$groupId", params: { groupId } })}
-        onCheckIn={openCheckIn}
-        onCheckInAnyway={(ids) => void checkInAnyway(ids)}
-        onStartCrew={() => void navigate({ to: "/new-pactara" })}
-        onStartPlan={startPlan}
-        onResumePlan={() => void navigate({ to: "/workout/log" })}
-      />
+      {showHomeToday(tab) && (
+        <NewTodayCard
+          selection={selection}
+          crews={crews}
+          plan={plan}
+          onRetry={() => void crewsQuery.refetch()}
+          onOpenCrew={(groupId) => void navigate({ to: "/crews/$groupId", params: { groupId } })}
+          onCheckIn={openCheckIn}
+          onCheckInAnyway={(ids) => void checkInAnyway(ids)}
+          onStartCrew={() => void navigate({ to: "/new-pactara" })}
+          onStartPlan={startPlan}
+          onResumePlan={() => void navigate({ to: "/workout/log" })}
+        />
+      )}
       <HomeSocialFeed tab={tab} />
     </div>
   );

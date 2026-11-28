@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HOME_INITIAL_TAB, homeEligible, homePage, type HomeRef } from "../home-feed";
+import { HOME_INITIAL_TAB, homeEligible, homeEmptyState, homePage, showHomeToday, type HomeRef } from "../home-feed";
 const item = {
   own: false,
   crew: false,
@@ -12,6 +12,20 @@ const item = {
 };
 describe("new Home audience rules", () => {
   it("opens on For you", () => expect(HOME_INITIAL_TAB).toBe("for-you"));
+  it("shows the crew card on Following and not on For you", () => {
+    expect(showHomeToday("following")).toBe(true);
+    expect(showHomeToday("for-you")).toBe(false);
+  });
+  it("For you empty includes posting and Discover actions with the shared suggestions list", () => {
+    const suggestions = [{ id: "one" }, { id: "two" }];
+    const forYou = homeEmptyState("for-you", suggestions);
+    const following = homeEmptyState("following", suggestions);
+    expect(forYou).toMatchObject({ showShare: true, showDiscover: true, showSuggestions: true });
+    expect(forYou.suggestions).toBe(suggestions);
+    expect(following.suggestions).toBe(forYou.suggestions);
+    expect(following.showSuggestions).toBe(true);
+    expect(homeEmptyState("for-you", []).showSuggestions).toBe(false);
+  });
   it("Following includes own, crews and explicitly shared follows", () => {
     expect(homeEligible("following", { ...item, own: true, shared: false })).toBe(true);
     expect(homeEligible("following", { ...item, crew: true, shared: false })).toBe(true);

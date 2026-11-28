@@ -23,6 +23,23 @@ export type HomeEntry =
     };
 export const HOME_PAGE_SIZE = 20;
 export const HOME_INITIAL_TAB: HomeTab = "for-you";
+
+/** The existing Today/crew card belongs only above Following. */
+export function showHomeToday(tab: HomeTab): boolean {
+  return tab === "following";
+}
+
+/** Both empty feeds share one suggestion list; only For you adds posting and Discover actions. */
+export function homeEmptyState<T>(tab: HomeTab, suggestions: T[]) {
+  return {
+    tab,
+    suggestions,
+    showSuggestions: suggestions.length > 0,
+    showShare: tab === "for-you",
+    showDiscover: tab === "for-you",
+  };
+}
+
 /** Newest first with a stable tie-breaker; cursors never drop same-time posts. */
 export function homePage(refs: HomeRef[]) {
   const rows = [...new Map(refs.map((r) => [r.key, r])).values()].sort(

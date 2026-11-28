@@ -25,6 +25,7 @@ import { Route as TermsRouteImport } from './routes/terms'
 import { Route as DotwellKnownAppleAppSiteAssociationRouteImport } from './routes/[.]well-known/apple-app-site-association'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAppleHealthRouteImport } from './routes/_authenticated/apple-health'
+import { Route as AuthenticatedDiscoverRouteImport } from './routes/_authenticated/discover'
 import { Route as AuthenticatedFindPlanRouteImport } from './routes/_authenticated/find-plan'
 import { Route as AuthenticatedFollowRequestsRouteImport } from './routes/_authenticated/follow-requests'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
@@ -193,6 +194,11 @@ const AuthenticatedAppleHealthRoute =
     path: '/apple-health',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedDiscoverRoute = AuthenticatedDiscoverRouteImport.update({
+  id: '/discover',
+  path: '/discover',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedFindPlanRoute = AuthenticatedFindPlanRouteImport.update({
   id: '/find-plan',
   path: '/find-plan',
@@ -411,21 +417,21 @@ const AuthenticatedCrewsGroupIdRoute =
   } as any)
 const AuthenticatedDiscoverMealsRoute =
   AuthenticatedDiscoverMealsRouteImport.update({
-    id: '/discover/meals',
-    path: '/discover/meals',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/meals',
+    path: '/meals',
+    getParentRoute: () => AuthenticatedDiscoverRoute,
   } as any)
 const AuthenticatedDiscoverPlansRoute =
   AuthenticatedDiscoverPlansRouteImport.update({
-    id: '/discover/plans',
-    path: '/discover/plans',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/plans',
+    path: '/plans',
+    getParentRoute: () => AuthenticatedDiscoverRoute,
   } as any)
 const AuthenticatedDiscoverWorkoutsRoute =
   AuthenticatedDiscoverWorkoutsRouteImport.update({
-    id: '/discover/workouts',
-    path: '/discover/workouts',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/workouts',
+    path: '/workouts',
+    getParentRoute: () => AuthenticatedDiscoverRoute,
   } as any)
 const AuthenticatedExercisesExerciseIdRoute =
   AuthenticatedExercisesExerciseIdRouteImport.update({
@@ -690,6 +696,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/activity': typeof AuthenticatedActivityRouteWithChildren
   '/apple-health': typeof AuthenticatedAppleHealthRoute
+  '/discover': typeof AuthenticatedDiscoverRouteWithChildren
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -792,6 +799,7 @@ export interface FileRoutesByTo {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/activity': typeof AuthenticatedActivityRouteWithChildren
   '/apple-health': typeof AuthenticatedAppleHealthRoute
+  '/discover': typeof AuthenticatedDiscoverRouteWithChildren
   '/find-plan': typeof AuthenticatedFindPlanRoute
   '/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -897,6 +905,7 @@ export interface FileRoutesById {
   '/.well-known/apple-app-site-association': typeof DotwellKnownAppleAppSiteAssociationRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRouteWithChildren
   '/_authenticated/apple-health': typeof AuthenticatedAppleHealthRoute
+  '/_authenticated/discover': typeof AuthenticatedDiscoverRouteWithChildren
   '/_authenticated/find-plan': typeof AuthenticatedFindPlanRoute
   '/_authenticated/follow-requests': typeof AuthenticatedFollowRequestsRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -1002,6 +1011,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/activity'
     | '/apple-health'
+    | '/discover'
     | '/find-plan'
     | '/follow-requests'
     | '/home'
@@ -1104,6 +1114,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/activity'
     | '/apple-health'
+    | '/discover'
     | '/find-plan'
     | '/follow-requests'
     | '/home'
@@ -1208,6 +1219,7 @@ export interface FileRouteTypes {
     | '/.well-known/apple-app-site-association'
     | '/_authenticated/activity'
     | '/_authenticated/apple-health'
+    | '/_authenticated/discover'
     | '/_authenticated/find-plan'
     | '/_authenticated/follow-requests'
     | '/_authenticated/home'
@@ -1441,6 +1453,13 @@ declare module '@tanstack/react-router' {
       path: '/apple-health'
       fullPath: '/apple-health'
       preLoaderRoute: typeof AuthenticatedAppleHealthRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/discover': {
+      id: '/_authenticated/discover'
+      path: '/discover'
+      fullPath: '/discover'
+      preLoaderRoute: typeof AuthenticatedDiscoverRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/find-plan': {
@@ -1725,24 +1744,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/discover/meals': {
       id: '/_authenticated/discover/meals'
-      path: '/discover/meals'
+      path: '/meals'
       fullPath: '/discover/meals'
       preLoaderRoute: typeof AuthenticatedDiscoverMealsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDiscoverRoute
     }
     '/_authenticated/discover/plans': {
       id: '/_authenticated/discover/plans'
-      path: '/discover/plans'
+      path: '/plans'
       fullPath: '/discover/plans'
       preLoaderRoute: typeof AuthenticatedDiscoverPlansRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDiscoverRoute
     }
     '/_authenticated/discover/workouts': {
       id: '/_authenticated/discover/workouts'
-      path: '/discover/workouts'
+      path: '/workouts'
       fullPath: '/discover/workouts'
       preLoaderRoute: typeof AuthenticatedDiscoverWorkoutsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedDiscoverRoute
     }
     '/_authenticated/exercises/$exerciseId': {
       id: '/_authenticated/exercises/$exerciseId'
@@ -2061,9 +2080,27 @@ const AuthenticatedActivityRouteWithChildren =
     AuthenticatedActivityRouteChildren,
   )
 
+interface AuthenticatedDiscoverRouteChildren {
+  AuthenticatedDiscoverMealsRoute: typeof AuthenticatedDiscoverMealsRoute
+  AuthenticatedDiscoverPlansRoute: typeof AuthenticatedDiscoverPlansRoute
+  AuthenticatedDiscoverWorkoutsRoute: typeof AuthenticatedDiscoverWorkoutsRoute
+}
+
+const AuthenticatedDiscoverRouteChildren: AuthenticatedDiscoverRouteChildren = {
+  AuthenticatedDiscoverMealsRoute: AuthenticatedDiscoverMealsRoute,
+  AuthenticatedDiscoverPlansRoute: AuthenticatedDiscoverPlansRoute,
+  AuthenticatedDiscoverWorkoutsRoute: AuthenticatedDiscoverWorkoutsRoute,
+}
+
+const AuthenticatedDiscoverRouteWithChildren =
+  AuthenticatedDiscoverRoute._addFileChildren(
+    AuthenticatedDiscoverRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRouteWithChildren
   AuthenticatedAppleHealthRoute: typeof AuthenticatedAppleHealthRoute
+  AuthenticatedDiscoverRoute: typeof AuthenticatedDiscoverRouteWithChildren
   AuthenticatedFindPlanRoute: typeof AuthenticatedFindPlanRoute
   AuthenticatedFollowRequestsRoute: typeof AuthenticatedFollowRequestsRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -2085,9 +2122,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckInNotesRoute: typeof AuthenticatedCheckInNotesRoute
   AuthenticatedCheckInsCheckInIdRoute: typeof AuthenticatedCheckInsCheckInIdRoute
   AuthenticatedCrewsGroupIdRoute: typeof AuthenticatedCrewsGroupIdRoute
-  AuthenticatedDiscoverMealsRoute: typeof AuthenticatedDiscoverMealsRoute
-  AuthenticatedDiscoverPlansRoute: typeof AuthenticatedDiscoverPlansRoute
-  AuthenticatedDiscoverWorkoutsRoute: typeof AuthenticatedDiscoverWorkoutsRoute
   AuthenticatedExercisesExerciseIdRoute: typeof AuthenticatedExercisesExerciseIdRoute
   AuthenticatedGoalGroupIdRoute: typeof AuthenticatedGoalGroupIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
@@ -2128,6 +2162,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRouteWithChildren,
   AuthenticatedAppleHealthRoute: AuthenticatedAppleHealthRoute,
+  AuthenticatedDiscoverRoute: AuthenticatedDiscoverRouteWithChildren,
   AuthenticatedFindPlanRoute: AuthenticatedFindPlanRoute,
   AuthenticatedFollowRequestsRoute: AuthenticatedFollowRequestsRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
@@ -2153,9 +2188,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckInNotesRoute: AuthenticatedCheckInNotesRoute,
   AuthenticatedCheckInsCheckInIdRoute: AuthenticatedCheckInsCheckInIdRoute,
   AuthenticatedCrewsGroupIdRoute: AuthenticatedCrewsGroupIdRoute,
-  AuthenticatedDiscoverMealsRoute: AuthenticatedDiscoverMealsRoute,
-  AuthenticatedDiscoverPlansRoute: AuthenticatedDiscoverPlansRoute,
-  AuthenticatedDiscoverWorkoutsRoute: AuthenticatedDiscoverWorkoutsRoute,
   AuthenticatedExercisesExerciseIdRoute: AuthenticatedExercisesExerciseIdRoute,
   AuthenticatedGoalGroupIdRoute: AuthenticatedGoalGroupIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,

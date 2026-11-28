@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Link } from "@tanstack/react-router";
-import { Users } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Globe, Users } from "lucide-react";
 import { getNewHomeFeed, getNewHomeSuggestions } from "@/lib/home-feed.functions";
 import { getSocialPost } from "@/lib/posts.functions";
-import { mergeHomeEntries, type HomeCursor, type HomeTab } from "@/lib/home-feed";
+import { homeEmptyState, mergeHomeEntries, type HomeCursor, type HomeTab } from "@/lib/home-feed";
+import { resetDraft } from "@/lib/post-draft";
 import { consumeHomePosts, subscribeHomePosts } from "@/lib/home-visit-posts";
 import { onPostLive } from "@/lib/posting-queue";
 import type { SocialPostView } from "@/lib/social-post-types";
@@ -16,49 +17,89 @@ import { FollowPill } from "./FollowPill";
 import { CrewAvatar } from "./CrewAvatars";
 import { suggestionDetail } from "@/lib/suggestion-detail";
 
-function EmptyFollowing() {
+type HomeSuggestion = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  avatarColor: string;
+  bioLine: string | null;
+  followers: number;
+};
+
+function HomeSuggestions({ people }: { people: HomeSuggestion[] }) {
+  if (!people.length) return null;
+  return (
+    <section aria-label="Suggested for you">
+      <h3 className="mt-7 text-[15px] font-extrabold">Suggested for you</h3>
+      <ul className="mt-2">
+        {people.map((person) => (
+          <li
+            key={person.id}
+            className="flex items-center gap-3 border-b border-[var(--new-divider)] py-3 last:border-0"
+          >
+            <Link
+              to="/u/$userId"
+              params={{ userId: person.id }}
+              className="flex min-w-0 flex-1 items-center gap-3"
+            >
+              <CrewAvatar member={person} size={40} />
+              <span className="min-w-0">
+                <span className="block truncate text-[15px] font-bold">{person.name}</span>
+                <span className="mt-0.5 block truncate text-[13px] text-[#57534E]">{suggestionDetail(person.bioLine, person.followers)}</span>
+              </span>
+            </Link>
+            <FollowPill userId={person.id} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function HomeEmptyState({ tab }: { tab: HomeTab }) {
+  const navigate = useNavigate();
   const get = useServerFn(getNewHomeSuggestions);
   const suggestions = useQuery({
     queryKey: ["home-suggestions"],
     queryFn: () => get(),
     staleTime: 60_000,
   });
+  const view = homeEmptyState(tab, suggestions.data ?? []);
+  const forYou = view.tab === "for-you";
+  const share = () => {
+    resetDraft();
+    void navigate({ to: "/post/new" });
+  };
   return (
     <div className="px-5 pb-6 pt-8">
       <div className="text-center">
         <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--new-soft)] text-[var(--new-purple)]">
-          <Users size={28} />
+          {forYou ? <Globe size={28} /> : <Users size={28} />}
         </span>
-        <h2 className="mt-3 text-[20px] font-extrabold">Nothing here yet</h2>
+        <h2 className="mt-3 text-[20px] font-extrabold">{forYou ? "Nothing public yet" : "Nothing here yet"}</h2>
         <p className="mx-auto mt-2 max-w-[300px] text-[14px] leading-[1.45] text-[var(--new-muted)]">
-          Follow people and their workouts, meals and plans show up here.
+          {forYou
+            ? "Posts shared with Everyone show up here. Yours could be the first."
+            : "Follow people and their workouts, meals and plans show up here."}
         </p>
       </div>
-      {!!suggestions.data?.length && (
-        <>
-          <h3 className="mt-7 text-[15px] font-extrabold">Suggested for you</h3>
-          <ul className="mt-2">
-            {suggestions.data.map((person) => (
-              <li
-                key={person.id}
-                className="flex items-center gap-3 border-b border-[var(--new-divider)] py-3 last:border-0"
-              >
-                <Link
-                  to="/u/$userId"
-                  params={{ userId: person.id }}
-                  className="flex min-w-0 flex-1 items-center gap-3"
-                >
-                  <CrewAvatar member={person} size={40} />
-                  <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-bold">{person.name}</span>
-                    <span className="mt-0.5 block truncate text-[13px] text-[#57534E]">{suggestionDetail(person.bioLine, person.followers)}</span>
-                  </span>
-                </Link>
-                <FollowPill userId={person.id} />
-              </li>
-            ))}
-          </ul>
-        </>
+      {view.showShare && (
+        <div className="mt-5 text-center">
+          <button
+            type="button"
+            onClick={share}
+            className="h-10 rounded-full bg-[var(--new-purple)] px-4 text-[14px] font-bold text-[var(--new-white)]"
+          >
+            Share a post
+          </button>
+        </div>
+      )}
+      {view.showSuggestions && <HomeSuggestions people={view.suggestions} />}
+      {view.showDiscover && (
+        <p className="mt-6 text-center text-[14px] leading-[1.45] text-[var(--new-muted)]">
+          Looking for workouts or meals?{" "}
+          <Link to="/discover" className="font-bold text-[var(--new-purple-text)]">Browse Discover</Link>
+        </p>
       )}
     </div>
   );
@@ -132,16 +173,7 @@ export function HomeSocialFeed({ tab = "for-you" }: { tab?: HomeTab }) {
           <button type="button" onClick={() => void feed.refetch()} className="h-10 shrink-0 rounded-full border border-[#D6D3D1] px-4 text-[14px] font-bold">Try again</button>
         </div>
       )}
-      {!feed.isPending &&
-        !feed.isError &&
-        !entries.length &&
-        (tab === "following" ? (
-          <EmptyFollowing />
-        ) : (
-          <p className="px-5 py-12 text-center text-[14px] text-[var(--new-muted)]">
-            Nothing new right now. Check back soon.
-          </p>
-        ))}
+      {!feed.isPending && !feed.isError && !entries.length && <HomeEmptyState tab={tab} />}
       {entries.map((entry) =>
         entry.kind === "post" ? (
           <SocialPostCard
