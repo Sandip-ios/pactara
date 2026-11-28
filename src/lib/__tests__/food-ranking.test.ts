@@ -11,7 +11,7 @@ describe('food search ranking',()=>{
  it('counts only foods newly added in a save, duplicates included',()=>{expect(newlyAddedFoodIds(['a','a','b','c'],['a','c'])).toEqual(['a','b']);});
 });
 describe('default household portion',()=>{
- it('starts broccoli on 1 cup and keeps the stalk sizes as short chips',()=>{expect(defaultPortion({...broccoli,portions:foodPortions(broccoli)},'en-GB').unit).toBe('cup, chopped');expect(foodPortions(broccoli).map(p=>p.unit)).toEqual(expect.arrayContaining(['stalk, large','stalk, medium','stalk, small','spear']));});
- it.each([['egg',egg,'large'],['chicken breast',chicken,'piece'],['bread',bread,'slice'],['apple',apple,'medium'],['rice',rice,'cup'],['broccoli',broccoli,'cup, chopped']] as const)('starts %s on 1 %s-style whole item or household measure',(_,f,unit)=>{expect(defaultPortion({...f,portions:foodPortions(f)},'en-GB').unit).toBe(unit);expect(foodPortions(f)[0]?.unit).toBe(unit);});
+ it('starts broccoli on 1 cup and keeps the stalk sizes as short chips',()=>{expect(defaultPortion({...broccoli,portions:foodPortions(broccoli)},'en-GB').unit).toBe('cup');expect(foodPortions(broccoli).map(p=>p.unit)).toEqual(expect.arrayContaining(['stalk, large','stalk, medium','stalk, small','spear']));});
+ it.each([['egg',egg,'large'],['chicken breast',chicken,'piece'],['bread',bread,'slice'],['apple',apple,'medium'],['rice',rice,'cup'],['broccoli',broccoli,'cup']] as const)('starts %s on 1 %s-style whole item or household measure',(_,f,unit)=>{expect(defaultPortion({...f,portions:foodPortions(f)},'en-GB').unit).toBe(unit);expect(foodPortions(f)[0]?.unit).toBe(unit);});
  it('uses grams when a food has no household portion',()=>{expect(defaultPortion({...puffed,portions:foodPortions(puffed)},'en-GB').unit).toBe('g');});
 });

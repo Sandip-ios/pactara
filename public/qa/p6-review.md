@@ -52,3 +52,9 @@ Cleanup verified: both temporary members restored then deleted; crew, meals/copi
 ## Ranking and portions follow-up (Nov 27)
 - Search sorts by how often members add each food, then foods with a household portion, then tier and name match. Starting portion prefers cup, then piece/slice/medium, then tbsp, then grams; size notes in brackets are dropped from unit names.
 - Retaken: 76c, 76d, 76m.
+
+## Capitals and unit labels follow-up (Nov 28)
+- Cleaned names keep USDA's capitals for proper nouns (Chinese, Atlantic, Greek, Swiss); only all-caps words are lowercased.
+- Unit labels drop the descriptor after the comma unless two portions share the base unit.
+- Foods that share a name but differ in numbers now get the source note before falling back to a fuller name.
+- All 43 p6 captures retaken.

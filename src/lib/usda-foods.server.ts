@@ -9,6 +9,8 @@ export function normalizeUsdaFood(row:Record<string,unknown>):Food {
  if(serving>0 && ['g','grm'].includes(servingUnit)) portions.push({unit:match?.[2]?.toLowerCase()??'serving',grams:serving/(Number(match?.[1])||1)});
  for(const p of (row['foodPortions'] ?? []) as Record<string,unknown>[]) { const weight=Number(p['gramWeight']);const amount=Number(p['amount'])||1; const measure=p['measureUnit'] as Record<string,unknown>|undefined; const unit=String(p['modifier']||measure?.['name']||p['portionDescription']||'serving').replace(/^\d+(?:\.\d+)?\s*/, '').replace(/\s*\([^)]*\)/g,'').trim().slice(0,50) || 'serving'; if(weight>0 && unit!=='undetermined' && !/^racc$/i.test(unit) && !portions.some(x=>x.unit===unit)) portions.push({unit,grams:weight/amount}); }
  portions.sort((a,b)=>Number(a.unit==='serving')-Number(b.unit==='serving'));
+ // Drop descriptors after the comma unless another portion shares the base unit.
+ const base=(u:string)=>u.split(',')[0]!.trim();for(const p of portions){const b=base(p.unit);if(b!==p.unit&&portions.filter(x=>base(x.unit)===b).length===1)p.unit=b;}
  if(!portions.some(p=>p.unit==='g')) portions.push({unit:'g',grams:1});
  if(!portions.some(p=>p.unit==='oz')) portions.push({unit:'oz',grams:28.349523125});
  return {id:`usda:${row['fdcId']}`,name:usdaFoodName(row),portions,nutrition,yours:false};
@@ -18,33 +20,37 @@ const FILLER=new Set(['regular','enriched','unenriched','meat only','skinless','
 const LEADING=new Set(['white','brown','wild','whole','atlantic','pink','sockeye','coho','chinook','rolled','steel cut','ground','sweet','red','green','black','jasmine','basmati']);
 const PARTS=new Set(['breast','thigh','wing','drumstick','leg','fillet','yolk','white','tenders']);
 /** Turns a USDA generic description into a natural name that keeps what sets the variant apart. */
+/** Keeps USDA's capitals for proper nouns; only words written in all caps are lowercased. */
+export function usdaCase(text:string) { return text.replace(/\b[A-Z][A-Z'&]+\b/g,w=>w.toLowerCase()); }
 export function cleanUsdaDescription(description:string,keepFiller=false) {
- let t=description.toLowerCase().replace(/\s*\(includes [^)]*\)/g,'').split(',').map(x=>x.trim()).filter(Boolean);
- if(t.length>1&&CATEGORY_PREFIXES.has(t[0]!))t=t.slice(1);
- if(!keepFiller)t=t.filter((x,i)=>i===0||!FILLER.has(x));
+ let t=usdaCase(description).replace(/\s*\(includes [^)]*\)/gi,'').split(',').map(x=>x.trim()).filter(Boolean);
+ if(t[0])t[0]=t[0].charAt(0).toLowerCase()+t[0].slice(1);
+ const low=(x:string|undefined)=>x?.toLowerCase();
+ if(t.length>1&&CATEGORY_PREFIXES.has(low(t[0])!))t=t.slice(1);
+ if(!keepFiller)t=t.filter((x,i)=>i===0||!FILLER.has(x.toLowerCase()));
  const [head,next,...rest]=t;if(!head)return 'Food';
  let lead=head;let tail=next===undefined?[]:[next,...rest];
- if(next&&PARTS.has(next)&&(next!=='white'||head==='egg')){lead=`${head} ${next}`;tail=rest;}
- else if(next&&LEADING.has(next)){lead=`${next} ${head}`;tail=rest;}
+ if(next&&PARTS.has(low(next)!)&&(low(next)!=='white'||low(head)==='egg')){lead=`${head} ${next}`;tail=rest;}
+ else if(next&&LEADING.has(low(next)!)){lead=`${next} ${head}`;tail=rest;}
  const label=[lead,...tail].join(', ');
  return label.charAt(0).toUpperCase()+label.slice(1);
 }
 export function usdaFoodName(row:Record<string,unknown>,keepFiller=false) {
  const raw=String(row['description']??'Food').trim();
  const branded=row['dataType']==='Branded';
- const name=branded?(raw.toLowerCase().replace(/^./,c=>c.toUpperCase())):cleanUsdaDescription(raw,keepFiller);
+ const name=branded?usdaCase(raw).replace(/^./,c=>c.toUpperCase()):cleanUsdaDescription(raw,keepFiller);
  const brand=String(row['brandOwner']??row['brandName']??'').trim();
  return `${name}${branded&&brand?` · ${brand}`:''}`.slice(0,200);
 }
 const SOURCE:Record<string,string>={'Foundation':'lab tested','SR Legacy':'reference','Survey (FNDDS)':'as eaten'};
 const nutritionKey=(f:Food)=>JSON.stringify(f.nutrition?(['calories','protein','carbs','fat'] as const).map(k=>f.nutrition?.[k]==null?null:Math.round(f.nutrition[k]??0)):null);
-/** Same name must mean same numbers: give clashing foods a fuller qualifier, then a source label. */
+/** Same name must mean same numbers: give clashing foods a source label, then a fuller qualifier. */
 export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}[]):Food[] {
  const clash=(list:{food:Food}[],f:Food)=>list.some(e=>e.food!==f&&e.food.name===f.name&&nutritionKey(e.food)!==nutritionKey(f));
  let list=entries.map(e=>({...e,food:{...e.food}}));
  const pass=(rename:(e:{food:Food;row:Record<string,unknown>})=>string)=>{const flagged=list.filter(e=>clash(list,e.food));for(const e of flagged)e.food.name=rename(e);};
- pass(e=>usdaFoodName(e.row,true));
  pass(e=>{const src=SOURCE[String(e.row['dataType'])];return src?`${e.food.name} (${src})`:e.food.name;});
+ pass(e=>`${usdaFoodName(e.row,true)}${e.food.name.match(/ \([^)]*\)$/)?.[0]??''}`);
  pass(e=>e.food.nutrition?.calories!=null?`${e.food.name} (${Math.round(e.food.nutrition.calories)} cal per 100 g)`:e.food.name);
  list=list.filter((e,i)=>!list.slice(0,i).some(o=>o.food.name===e.food.name&&nutritionKey(o.food)===nutritionKey(e.food)));
  return list.map(e=>e.food);
