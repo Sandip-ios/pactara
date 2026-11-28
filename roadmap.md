@@ -280,3 +280,7 @@
 - [x] Restore original workout/meal summary helpers, picker counts, wording and save behavior; remove count-equality and added meal mutation tests.
 - [x] Keep shared full-width attachment surfaces without nested wrappers for workout and meal.
 - [x] Refreshed all three captures at 390×844/2×; one-exercise edit retains "1 exercises · 1 sets". Painted edges x=16/374 (358px), exactly matching caption and edit Save. Full suite 1149 tests / 120 files passed; typecheck clean. Temporary member and all example rows removed; unpublished.
+
+## Meal builder return fix
+- [x] Return Cancel/Discard to the opening page, query and scroll for every meal-builder entry; leave Save destination unchanged.
+- [x] Full suite 1155 passed (121 files), typecheck clean, 390px/2x Home captures saved. Home /home → /meals/new?forPost=false → /home, scroll 120px unchanged; Discover /discover/meals?q=&type=All returns unchanged; composer /post/compose uses forPost=true and preserves caption; Profile /profile?tab=meals returns with scroll 148px unchanged. Cancel and dirty Discard verified. This builder is a full-screen route with Cancel, not a swipe/X sheet. A successful Home Save was verified to open /profile?tab=meals as before, reported and left unchanged. Temporary test member, meal and foods removed; unpublished.

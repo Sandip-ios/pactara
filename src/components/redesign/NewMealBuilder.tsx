@@ -9,6 +9,7 @@ import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useHideBottomTabs } from '@/hooks/use-hide-bottom-tabs';
 import { useOpenAtTop } from '@/lib/use-open-at-top';
+import { useMealBuilderNavigation } from '@/lib/use-meal-builder-navigation';
 import { getMeal, getMeals, saveMeal } from '@/lib/meals.functions';
 import { MEAL_TYPES, foodAmount, foodNutrition, effectiveTotals, missingCalorieWarning, totalsWarning, changedFoodAfterRemoval, changedFoodAfterChange, type Food, type MealFood, type Nutrition, type MealType } from '@/lib/meals';
 import { setDraft } from '@/lib/post-draft';
@@ -26,15 +27,17 @@ export function NewMealBuilder({mealId,forPost=false}:{mealId?:string;forPost?:b
  return <MealBuilder key={mealId??'new'} initial={query.data??null} under18={access.data.under18} forPost={forPost}/>;
 }
 function MealBuilder({initial,under18,forPost}:{initial:Awaited<ReturnType<typeof getMeal>>;under18:boolean;forPost:boolean}) {
+ const {closeMealBuilder}=useMealBuilderNavigation();
  const navigate=useNavigate();const qc=useQueryClient();const save=useServerFn(saveMeal);const scroll=useOpenAtTop();
  const [name,setName]=useState(initial?.name??'');const [type,setType]=useState<MealType|null>(initial?.snapshot.type??null);const [foods,setFoods]=useState<MealFood[]>(initial?.snapshot.foods??[]);const [override,setOverride]=useState<Nutrition|null>(initial?.snapshot.override??null);const [changedFood,setChangedFood]=useState<string|null>(null);
  const [search,setSearch]=useState(false);const [picked,setPicked]=useState<Food|null>(null);const [editing,setEditing]=useState<MealFood|null>(null);const [noteKey,setNoteKey]=useState<string|null>(null);const [discard,setDiscard]=useState(false);const [busy,setBusy]=useState(false);const [error,setError]=useState<string|null>(null);
  const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor,{coordinateGetter:sortableKeyboardCoordinates}));
  const initialSignature=useRef(JSON.stringify({name:initial?.name??'',type:initial?.snapshot.type??null,foods:initial?.snapshot.foods??[],override:initial?.snapshot.override??null}));
  const dirty=JSON.stringify({name,type,foods,override})!==initialSignature.current;const totals=useMemo(()=>effectiveTotals(foods,override),[foods,override]);
- const leave=()=>void navigate({to:forPost?'/post/compose':'/profile',...(forPost?{}:{search:{tab:'meals'}})});
+ const leave=()=>closeMealBuilder(forPost);
+ const afterSave=()=>void navigate({to:forPost?'/post/compose':'/profile',...(forPost?{}:{search:{tab:'meals'}})});
  const changeFoods=(next:MealFood[],change:{kind:'add'|'reorder'|'edit';name?:string})=>{setFoods(next);if(override)setChangedFood(c=>changedFoodAfterChange(c,change));};
- const submit=async()=>{if(!name.trim()||!foods.length||busy)return;setBusy(true);setError(null);try{const result=await save({data:{id:initial?.id??null,name,type,foods:foods.map(f=>({key:f.key,foodId:f.foodId,amount:f.amount,unit:f.unit,note:f.note})),override}});await qc.invalidateQueries({queryKey:['my-meals']});void qc.invalidateQueries({queryKey:['profile-meals']});void qc.invalidateQueries({queryKey:['meal']});if(forPost){setDraft({mealId:result.id});newToast('Saved to your meals');}else newToast(`${name.trim()} saved`);leave();}catch{setError("Couldn't save the meal. Try again.");setBusy(false);}};
+ const submit=async()=>{if(!name.trim()||!foods.length||busy)return;setBusy(true);setError(null);try{const result=await save({data:{id:initial?.id??null,name,type,foods:foods.map(f=>({key:f.key,foodId:f.foodId,amount:f.amount,unit:f.unit,note:f.note})),override}});await qc.invalidateQueries({queryKey:['my-meals']});void qc.invalidateQueries({queryKey:['profile-meals']});void qc.invalidateQueries({queryKey:['meal']});if(forPost){setDraft({mealId:result.id});newToast('Saved to your meals');}else newToast(`${name.trim()} saved`);afterSave();}catch{setError("Couldn't save the meal. Try again.");setBusy(false);}};
  const pick=(food:Food)=>{setSearch(false);setPicked(food);setEditing(null);};
  const editAmount=(f:MealFood)=>{setEditing(f);setPicked({id:f.foodId,name:f.name,portions:f.portions??[{unit:f.unit,grams:f.grams/f.amount},...(f.unit==='g'?[]:[{unit:'g',grams:1}]),...(f.unit==='oz'?[]:[{unit:'oz',grams:28.349523125}])],yours:f.foodId.startsWith('own:'),...(f.nutrition?{nutrition:f.nutrition}:{})});};
  return <div ref={scroll} className="redesign-step3 p6-page" data-scroll-root><header className="p6-header"><Button variant="ghost" className="p6-link p6-muted justify-start" onClick={()=>dirty?setDiscard(true):leave()}>Cancel</Button><h1>{initial?'Edit meal':'New meal'}</h1><Button variant="ghost" className="p6-link justify-end" disabled={!name.trim()||!foods.length||busy} onClick={()=>void submit()}>Save</Button></header><div className="p6-builder">

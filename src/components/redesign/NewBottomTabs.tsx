@@ -7,6 +7,7 @@ import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/l
 import { useToastAbove } from "@/lib/toast-offset";
 import { NewSheet, NewSheetRow, NewSheetIcon, NewSheetChevron } from "./NewSheet";
 import { NewAvatarFallback } from "./NewAvatarFallback";
+import { useMealBuilderNavigation } from "@/lib/use-meal-builder-navigation";
 import { resetDraft } from "@/lib/post-draft";
 
 const ACTIVE = "#6D28D9";
@@ -16,6 +17,7 @@ const PURPLE = "#7C3AED";
 /** Redesign bottom nav. Classic members keep BottomTabs untouched. */
 export function NewBottomTabs() {
   const navigate = useNavigate();
+  const { openMealBuilder } = useMealBuilderNavigation();
   const router = useRouter();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [createOpen, setCreateOpen] = useState(false);
@@ -67,7 +69,7 @@ export function NewBottomTabs() {
           <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
           <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
           <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
-          <CreateRow icon={<Utensils size={20} />} title="Build a meal" subtitle="One meal people can save and eat" tone="meal" onClick={() => { setCreateOpen(false); navigate({ to: "/meals/new", search: { forPost: false } }); }} />
+          <CreateRow icon={<Utensils size={20} />} title="Build a meal" subtitle="One meal people can save and eat" tone="meal" onClick={() => { setCreateOpen(false); void openMealBuilder(); }} />
         </div>
       </NewSheet>
     </>
