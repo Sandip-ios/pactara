@@ -158,7 +158,7 @@ export function RedesignCheckInCard({
       )}
 
       <AttachmentMealCard id={rawId} kind="checkin" isMine={item.isMe} />
-      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />
+      <FeedCardActions cheer={cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />
       {comments.sheet}
       {card && card.kind !== "health" && (
         <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} {...(workout.data ? { detail: workout.data } : {})} />

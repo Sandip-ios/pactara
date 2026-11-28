@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { SafetyActions } from "@/components/safety/SafetyActions";
 import { useHideBottomTabs } from "@/hooks/use-hide-bottom-tabs";
 import { getSocialPost, toggleSocialPostCheer } from "@/lib/posts.functions";
+import { socialCheerLine } from "@/lib/social-cheer-line";
 import { FeedCardActions, useLibraryFirstComment } from "../FeedCardActions";
 import { useFeedSave } from "../use-feed-save";
 import { clock } from "@/components/TimelineCard";
@@ -56,6 +57,8 @@ export function NewOwnPost({ postId }: { postId: string }) {
       setCheerOverride(null);
       void qc.invalidateQueries({ queryKey: ["home-social-posts"] });
       void qc.invalidateQueries({ queryKey: ["crew-social-posts"] });
+      void qc.invalidateQueries({ queryKey: ["my-social-posts"] });
+      void qc.invalidateQueries({ queryKey: ["member-social-posts"] });
     } catch { setCheerOverride(!next); newToast("Couldn't cheer. Try again."); }
   };
 
@@ -82,7 +85,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={null} />}
       {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}
       <div className="pt-1.5">
-        <FeedCardActions cheer={() => void toggleCheer()} cheered={cheered} cheers={cheerCount} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment}
+        <FeedCardActions cheer={() => void toggleCheer()} cheered={cheered} cheers={cheerCount} comments={post.comments} openComments={() => setComments(true)} cheerLine={socialCheerLine(post.reactors ?? [], cheered)} preview={preview} canComment={canComment}
           save={post.isMine ? { ...save, toggle: () => void save.toggle(), count: post.saves + Number(save.saved) - Number(post.savedByMe) } : { ...save, toggle: () => void save.toggle() }} />
       </div>
 

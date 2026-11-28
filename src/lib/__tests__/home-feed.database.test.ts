@@ -274,6 +274,18 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
       expect(social.saved).toBe(true);
       expect(social.comments[0]?.body).toBe("Good work");
     });
+    it("lets an owner cheer and uncheer their own social post without changing rewards", async () => {
+      const { a } = people();
+      const id = posts[0];
+      if (!id) throw Error("Post missing");
+      const rewards = () => admin<unknown[]>("/rest/v1/earned_badges?user_id=eq." + a.id);
+      const before = await rewards();
+      await req("/rest/v1/social_post_cheers", a.token, "POST", { post_id: id, user_id: a.id });
+      expect(await req<unknown[]>(`/rest/v1/social_post_cheers?post_id=eq.${id}&user_id=eq.${a.id}`, a.token)).toHaveLength(1);
+      expect(await rewards()).toEqual(before);
+      await req(`/rest/v1/social_post_cheers?post_id=eq.${id}&user_id=eq.${a.id}`, a.token, "DELETE");
+      expect(await req<unknown[]>(`/rest/v1/social_post_cheers?post_id=eq.${id}&user_id=eq.${a.id}`, a.token)).toEqual([]);
+    });
     it("reports public posts and rejects spoofed authors", async () => {
       const { v, a } = people();
       const id = posts[0];

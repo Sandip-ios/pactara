@@ -390,7 +390,7 @@ function MemberRow({ member, home, groupId, items, divider, onOpenMedia }: {
         {done && <div className="mt-0.5 truncate text-[13px]" style={{ color: MUTED }}>{checkedInSubline(checkIn?.workout?.title, member.streak)}</div>}
         {workingOut && <div className="mt-0.5 text-[13px]" style={{ color: MUTED }}>{elapsedLabel(member.workoutStartedAt) ?? "Started just now"}</div>}
       </div>
-      {done && !member.isYou && todayItem && checkIn && <CrewCheerButton item={todayItem} />}
+      {done && todayItem && checkIn && <CrewCheerButton item={todayItem} />}
       {canNudge && <NudgeButton groupId={groupId} member={member} variant="redesign" initialSent={home?.nudgedToday ?? false} />}
       {done && checkIn?.photoUrl && (
         <button

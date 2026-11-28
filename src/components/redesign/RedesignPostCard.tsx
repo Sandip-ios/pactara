@@ -104,7 +104,7 @@ export function RedesignPostCard(props: Props) {
 
       {caption && <p className="whitespace-pre-wrap break-words text-[15px]" style={{ padding: "10px 14px 0" }}>{caption}</p>}
 
-      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={item.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={first ? save : undefined} />
+      <FeedCardActions cheer={cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={item.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={first ? save : undefined} />
       {comments.sheet}
       {lightbox && <MediaLightbox src={lightbox.src} kind={lightbox.kind} onClose={() => setLightbox(null)} />}
     </article>

@@ -1,6 +1,7 @@
 // Server-only push fan-out helpers. Sends both Web Push (VAPID) and FCM
 // (native iOS/Android) to a set of users, honouring their notification
 // preferences, and prunes dead subscriptions/tokens.
+import { reactionNotifiesAuthor } from "./reaction-recipient";
 
 export type PushPayload = {
   title: string;
@@ -308,7 +309,7 @@ export async function notifyPostAuthor(
       .eq("id", postId)
       .maybeSingle();
     const authorId = post?.user_id as string | undefined;
-    if (!authorId || authorId === actorUserId) return;
+    if (!authorId || !reactionNotifiesAuthor(actorUserId, authorId)) return;
     const name = await displayName(actorUserId);
     const payload = build(name);
     const { withFeedGroup } = await import("@/lib/feed-deeplink");

@@ -55,7 +55,10 @@ export async function loadSocialPostsForViewer(
     supabase.from("group_members").select("group_id, groups!inner(name)").eq("user_id", userId),
     supabase.from("social_post_tags").select("post_id, user_id, created_at").in("post_id", ids).order("created_at"),
   ]);
-  const tagUserIds = [...new Set(((tagRows ?? []) as Row[]).map((t) => t["user_id"] as string))];
+  const tagUserIds = [...new Set([
+    ...((tagRows ?? []) as Row[]).map((t) => t["user_id"] as string),
+    ...((cheers ?? []) as Row[]).map((c) => c["user_id"] as string),
+  ])];
   const { supabaseAdmin: admin } = await import("@/integrations/supabase/client.server");
   const { blockedPairs } = await import("./safety.server");
   const [{ data: tagProfiles }, blocked] = tagUserIds.length
@@ -135,6 +138,12 @@ export async function loadSocialPostsForViewer(
       workoutSessionId: (r["workout_session_id"] as string | null) ?? null,
       pinnedAt: (r["pinned_at"] as string | null) ?? null,
       cheers: ((cheers ?? []) as Row[]).filter((c) => c["post_id"] === id).length,
+      reactors: ((cheers ?? []) as Row[])
+        .filter((c) => c["post_id"] === id && !blocked.has(c["user_id"] as string))
+        .map((c) => ({
+          firstName: ((tagProfile.get(c["user_id"] as string)?.["name"] as string | null) ?? "Member").split(" ")[0] || "Member",
+          isMe: c["user_id"] === userId,
+        })),
       cheeredByMe: ((cheers ?? []) as Row[]).some(
         (c) => c["post_id"] === id && c["user_id"] === userId,
       ),

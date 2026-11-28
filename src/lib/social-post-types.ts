@@ -45,6 +45,7 @@ export type SocialPostView = {
   workoutSessionId: string | null;
   pinnedAt: string | null;
   cheers: number;
+  reactors?: { firstName: string; isMe: boolean }[];
   cheeredByMe: boolean;
   comments: number;
   saves: number;

@@ -323,3 +323,8 @@
 ## Home meal Save return
 - [x] Successful Home Save restores origin URL and scroll, then shows the existing saved toast; other Save destinations unchanged.
 - [x] Extended return tests: full suite 1157 passed, typecheck/build clean. Verified Home /home at 120px → Save → /home at 120px, Oat bowl saved toast; saved meal reads back in Profile. Captured removed QA captures at 390px/2x. Temporary member, meals and foods removed.
+
+## Self-cheers
+- [x] Owner posts/check-ins cheer and uncheer on Home, Crews and post detail; Profile's real post tile opens the same verified detail. Classic cards and crew quick-cheer use the same owner-allowed writes. Shared count/line includes the owner; legacy NULL and multi-crew scopes tested.
+- [x] Push and Activity exclude self-reactions through a shared recipient rule; live Activity shows Primrose only. Existing badge/streak/freeze/profile progress calculations read check-ins, not reactions; regression checks confirm no reward/stat changes. No received-cheer reward/stat exists.
+- [x] Full suite 1241 tests across 133 files passed; typecheck/build clean. Saved public/qa/hc-home-own-cheered.png at 390×844/2× (780×1688), visibly showing flame 2 and “Primrose and you cheered”. All temporary members, posts, crews, workouts, exercises, reactions, comments and subscription rows removed. Unpublished.

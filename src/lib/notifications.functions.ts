@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { reactionNotifiesAuthor } from "./reaction-recipient";
 import { commentMediaKind, mediaOnlyCommentLine } from "@/lib/comment-media";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -254,7 +255,7 @@ async function collect(
     }
 
     for (const r of reactionRows) {
-      if (r.user_id === userId) continue;
+      if (!reactionNotifiesAuthor(r.user_id, postAuthor.get(r.post_id))) continue;
       if (postAuthor.get(r.post_id) !== userId) continue;
       items.push({
         key: `reaction:${r.id}`,

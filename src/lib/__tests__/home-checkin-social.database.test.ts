@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { checkInSocialFor } from "../checkin-social";
 import { cheeredByLine } from "../redesign-feed-view";
+import { profileStats } from "../profile-tabs";
 
 const base = "http://127.0.0.1:8001";
 type Account = { id: string; token: string; name: string };
@@ -188,5 +189,46 @@ describe.skipIf(!process.env["PGHOST"] || !process.env["SUPABASE_SERVICE_ROLE_KE
     const social = checkInSocialFor(checkInA, homeA.firstCheckInId, homeA.reactors, homeA.comments);
     expect(social.reactors).toEqual([]);
     expect(social.commentCount).toBe(0);
+  });
+
+  it("lets the owner cheer and uncheer each crew copy and later check-in through Home", async () => {
+    async function rewards() {
+      const checks = await req<{ checkin_date: string }[]>(`/rest/v1/check_ins?user_id=eq.${owner.id}&select=checkin_date`, owner.token);
+      const badges = await admin<unknown[]>(`/rest/v1/earned_badges?user_id=eq.${owner.id}`);
+      const freezes = await admin<unknown[]>(`/rest/v1/profiles?id=eq.${owner.id}&select=streak_freezes_available`);
+      return { badges, freezes, stats: profileStats({ joinedOn: "2026-11-23", today: "2026-11-27", checkIns: checks.map(c => c.checkin_date), covered: [], target: 3 }) };
+    }
+    const rewardsBefore = await rewards();
+    expect(rewardsBefore.stats.totalCheckIns).toBe(1);
+    expect(rewardsBefore.stats.best.count).toBe(1);
+    for (const id of [checkInA, checkInALater, checkInB]) {
+      const before = await rpc<{ cheers: number }>(owner, "get_home_checkin_social", { _id: id });
+      await rpc(owner, "home_checkin_action", { _id: id, _action: "cheer" });
+      const cheered = await rpc<{ cheers: number; cheered: boolean }>(owner, "get_home_checkin_social", { _id: id });
+      expect(cheered.cheered).toBe(true);
+      expect(cheered.cheers).toBe(before.cheers + 1);
+      expect(await rewards()).toEqual(rewardsBefore);
+      await rpc(owner, "home_checkin_action", { _id: id, _action: "cheer" });
+      const undone = await rpc<{ cheers: number; cheered: boolean }>(owner, "get_home_checkin_social", { _id: id });
+      expect(undone.cheered).toBe(false);
+      expect(undone.cheers).toBe(before.cheers);
+    }
+  });
+
+  it("allows owner reactions through the Crew/profile write path, including legacy NULL scope", async () => {
+    for (const scope of [null, checkInALater]) {
+      const [row] = await req<{ id: string }[]>("/rest/v1/post_reactions", owner.token, "POST", { post_id: dailyA, user_id: owner.id, emoji: "🔥", check_in_id: scope });
+      if (!row) throw Error("Owner reaction missing");
+      const id = scope ?? checkInA;
+      const social = await rpc<{ cheered: boolean }>(owner, "get_home_checkin_social", { _id: id });
+      expect(social.cheered).toBe(true);
+      const [home] = await rpc<HomeRow[]>(owner, "get_new_home_checkins", { _ids: [id] });
+      if (!home) throw Error("Owner check-in missing");
+      const reactors = checkInSocialFor(id, home.firstCheckInId, home.reactors, home.comments).reactors;
+      expect(reactors.filter(r => r.userId === owner.id)).toHaveLength(1);
+      expect(cheeredByLine(reactors.map(r => ({ firstName: r.name.split(" ")[0] || "Member", isMe: r.userId === owner.id })))).toBe(scope ? "Home and you cheered" : "Primrose and you cheered");
+      await req("/rest/v1/post_reactions?id=eq." + row.id, owner.token, "DELETE");
+      expect((await rpc<{ cheered: boolean }>(owner, "get_home_checkin_social", { _id: id })).cheered).toBe(false);
+    }
   });
 });

@@ -1,4 +1,5 @@
 import { mediaOnlyCommentLine } from "@/lib/comment-media";
+import { cheeredByLine } from "@/lib/redesign-feed-view";
 import {
   useEffect,
   useLayoutEffect,
@@ -224,10 +225,11 @@ function ActionRow({
   const own = item.isMe;
   const summary = cheerSummary(reactors, own);
   const ordered = orderReactors(reactors);
+  const selfCheerLine = own && reactors.some(r => r.isMe) ? cheeredByLine(reactors) : null;
 
   return (
     <div className="flex min-h-11 items-center gap-1 px-2 py-1.5 select-none" style={noSelectTouchStyle}>
-      {!own && <CheerButton myEmoji={myEmoji} onToggle={onToggle} onPick={onPick} />}
+      <CheerButton myEmoji={myEmoji} onToggle={onToggle} onPick={onPick} />
       <button
         type="button"
         aria-label={item.commentCount > 0 ? `Comments, ${item.commentCount}` : "Comment"}
@@ -247,14 +249,14 @@ function ActionRow({
           <button
             type="button"
             onClick={() => setCheersOpen(true)}
-            aria-label={`${cheerSentence(reactors, own)}. See who cheered`}
+            aria-label={`${selfCheerLine ?? cheerSentence(reactors, own)}. See who cheered`}
             className="flex h-11 min-w-0 items-center gap-1.5 rounded-full px-2 text-[13px] text-neutral-800 active:opacity-70"
           >
             <Faces reactors={ordered} />
             <span className="min-w-0 truncate">
               {summary.kind === "own" ? (
                 <>
-                  <b className="font-bold">{summary.count}</b> cheered you on
+                  {selfCheerLine ? <><b className="font-bold">{summary.count}</b> · {selfCheerLine}</> : <><b className="font-bold">{summary.count}</b> cheered you on</>}
                 </>
               ) : (
                 <>

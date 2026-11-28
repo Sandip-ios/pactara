@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQueryClient } from "@tanstack/react-query";
 import type { SocialPostView } from "@/lib/social-post-types";
 import { toggleSocialPostCheer } from "@/lib/posts.functions";
+import { socialCheerLine } from "@/lib/social-cheer-line";
 import { clock } from "@/components/TimelineCard";
 import { MemberProfileLink } from "@/components/profile/MemberProfileLink";
 import { SafetyActions } from "@/components/safety/SafetyActions";
@@ -24,7 +25,8 @@ import { MoreHorizontal } from "lucide-react";
 export function SocialPostCard({ post, groupId, showFollow = false }: { post: SocialPostView; groupId: string; showFollow?: boolean }) {
   const qc = useQueryClient();
   const cheerFn = useServerFn(toggleSocialPostCheer);
-  const [cheered, setCheered] = useState(post.cheeredByMe);
+  const [cheerOverride, setCheerOverride] = useState<boolean | null>(null);
+  const cheered = cheerOverride ?? post.cheeredByMe;
   const [comments, setComments] = useState(false);
   const [menu, setMenu] = useState(false);
   const canComment = post.commentsOn && post.audience !== "only_me";
@@ -35,8 +37,12 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
   const shown = remove.post;
   const cheer = async () => {
     const next = !cheered;
-    setCheered(next);
-    try { await cheerFn({ data: { id: post.id, on: next } }); void qc.invalidateQueries({ queryKey: ["crew-social-posts", groupId] }); } catch { setCheered(!next); }
+    setCheerOverride(next);
+    try {
+      await cheerFn({ data: { id: post.id, on: next } });
+      await Promise.all([["crew-social-posts"], ["home-social-posts"], ["social-post", post.id], ["my-social-posts"], ["member-social-posts"]].map(queryKey => qc.invalidateQueries({ queryKey })));
+      setCheerOverride(null);
+    } catch { setCheerOverride(!next); }
   };
   return (
     <article id={`social-${post.id}`} className="overflow-hidden rounded-[20px] bg-white" style={{ margin: "12px 12px 0", color: INK }}>
@@ -63,7 +69,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
       {post.caption && <p className="whitespace-pre-wrap break-words text-[14px]" style={{ padding: "10px 14px 0", lineHeight: 1.4 }}>{post.caption}</p>}
       {post.workout && <PostWorkoutCard workout={post.workout} isMine={post.isMine} postId={post.id} author={post.isMine ? null : { ...post.author, firstName, when: clock(post.createdAt) }} />}
       {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}
-      <FeedCardActions cheer={() => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} preview={preview} canComment={canComment} save={save} />
+      <FeedCardActions cheer={() => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} cheerLine={socialCheerLine(post.reactors ?? [], cheered)} preview={preview} canComment={canComment} save={save} />
       {post.isMine && <OwnPostMenu post={post} open={menu} onOpenChange={setMenu} />}
       <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />
     </article>

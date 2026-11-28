@@ -855,6 +855,13 @@
       "when": 1795848483678,
       "tag": "0121_home_checkin_social_parity",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1795849266204,
+      "tag": "0122_allow_owner_checkin_cheers",
+      "breakpoints": true
     }
   ]
 }
