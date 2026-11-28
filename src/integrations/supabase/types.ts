@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   public: {
     Tables: {
       account_deletions: {
@@ -942,6 +937,60 @@ export type Database = {
         }
         Relationships: []
       }
+      meal_food_warm_control: {
+        Row: {
+          id: boolean
+          lease_id: string | null
+          leased_until: string | null
+          token: string
+        }
+        Insert: {
+          id?: boolean
+          lease_id?: string | null
+          leased_until?: string | null
+          token?: string
+        }
+        Update: {
+          id?: boolean
+          lease_id?: string | null
+          leased_until?: string | null
+          token?: string
+        }
+        Relationships: []
+      }
+      meal_food_warm_terms: {
+        Row: {
+          attempted_at: string | null
+          last_error: string | null
+          lease_id: string | null
+          leased_until: string | null
+          ordinal: number
+          term: string
+          version: string
+          warmed_at: string | null
+        }
+        Insert: {
+          attempted_at?: string | null
+          last_error?: string | null
+          lease_id?: string | null
+          leased_until?: string | null
+          ordinal?: number
+          term: string
+          version?: string
+          warmed_at?: string | null
+        }
+        Update: {
+          attempted_at?: string | null
+          last_error?: string | null
+          lease_id?: string | null
+          leased_until?: string | null
+          ordinal?: number
+          term?: string
+          version?: string
+          warmed_at?: string | null
+        }
+        Relationships: []
+      }
       meal_foods: {
         Row: {
           fetched_at: string
@@ -970,6 +1019,21 @@ export type Database = {
         Relationships: []
       }
       meal_usda_budget: {
+        Row: {
+          hour: string
+          requests: number
+        }
+        Insert: {
+          hour: string
+          requests?: number
+        }
+        Update: {
+          hour?: string
+          requests?: number
+        }
+        Relationships: []
+      }
+      meal_usda_warm_budget: {
         Row: {
           hour: string
           requests: number
@@ -2695,8 +2759,20 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      claim_meal_food_warm_run: {
+        Args: { _terms: string[]; _token: string }
+        Returns: string
+      }
+      claim_meal_food_warm_term: {
+        Args: { _lease: string; _version: string }
+        Returns: string
+      }
       claim_meal_usda_request: { Args: never; Returns: boolean }
       claim_meal_usda_search: { Args: { _requests: number }; Returns: boolean }
+      claim_meal_usda_warm_search: {
+        Args: { _requests: number }
+        Returns: boolean
+      }
       claim_social_post_tag_pushes: {
         Args: { _post_id: string }
         Returns: string[]
@@ -2845,6 +2921,16 @@ export type Database = {
         Args: { _name: string; _primary: string[] }
         Returns: string[]
       }
+      finish_meal_food_warm_term: {
+        Args: {
+          _error: string
+          _lease: string
+          _success: boolean
+          _term: string
+          _version: string
+        }
+        Returns: undefined
+      }
       follow_user: { Args: { target: string }; Returns: Json }
       get_follow_profile_stats: { Args: { target: string }; Returns: Json }
       get_home_checkin_social: { Args: { _id: string }; Returns: Json }
@@ -2983,6 +3069,10 @@ export type Database = {
       prune_social_post_tags: { Args: { _post_id: string }; Returns: undefined }
       random_share_code: { Args: never; Returns: string }
       refresh_pactara_workouts: { Args: never; Returns: number }
+      release_meal_food_warm_run: {
+        Args: { _lease: string }
+        Returns: undefined
+      }
       remove_follower: { Args: { follower: string }; Returns: undefined }
       remove_me_from_social_post: {
         Args: { _post_id: string }
@@ -3225,3 +3315,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+

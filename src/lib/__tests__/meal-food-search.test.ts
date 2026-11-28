@@ -11,6 +11,11 @@ function adminMock(claimed=true,cachedFoods:Record<string,unknown>[]=[]){
  return {admin:{from,rpc} as unknown as SupabaseClient,rpc,writes};
 }
 describe('USDA search execution',()=>{
+ it('background warming uses its dedicated reservation without consuming the user-only budget path',async()=>{
+  const {admin,rpc}=adminMock();const warmClaim=vi.fn(async()=>false);const fetchMock=vi.fn();vi.stubGlobal('fetch',fetchMock);
+  expect(await remoteMealFoods(admin,'rice',false,new AbortController().signal,warmClaim)).toMatchObject({limited:true,incomplete:true});
+  expect(warmClaim).toHaveBeenCalledTimes(1);expect(rpc).not.toHaveBeenCalled();expect(fetchMock).not.toHaveBeenCalled();
+ });
  it('claims once for five calls, uses 200/50/6 searches, and fetches only 25 ranked details concurrently',async()=>{
   const {admin,rpc}=adminMock();vi.stubEnv('USDA_API_KEY','test-only');
   const sizes:number[]=[];let detailedIds=0;let active=0,max=0,searches=0,details=0;

@@ -105,6 +105,7 @@ import { Route as ApiPublicHooksEveningReminderRouteImport } from './routes/api/
 import { Route as ApiPublicHooksMorningRitualReminderRouteImport } from './routes/api/public/hooks/morning-ritual-reminder'
 import { Route as ApiPublicHooksRevenuecatRouteImport } from './routes/api/public/hooks/revenuecat'
 import { Route as ApiPublicHooksStreakRiskRouteImport } from './routes/api/public/hooks/streak-risk'
+import { Route as ApiPublicHooksWarmFoodsRouteImport } from './routes/api/public/hooks/warm-foods'
 import { Route as ApiPublicInviteClaimRouteImport } from './routes/api/public/invite/claim'
 import { Route as ApiPublicInviteDeferRouteImport } from './routes/api/public/invite/defer'
 import { Route as ApiPublicReferralInstallRouteImport } from './routes/api/public/referral/install'
@@ -640,6 +641,11 @@ const ApiPublicHooksStreakRiskRoute =
     path: '/api/public/hooks/streak-risk',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicHooksWarmFoodsRoute = ApiPublicHooksWarmFoodsRouteImport.update({
+  id: '/api/public/hooks/warm-foods',
+  path: '/api/public/hooks/warm-foods',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicInviteClaimRoute = ApiPublicInviteClaimRouteImport.update({
   id: '/api/public/invite/claim',
   path: '/api/public/invite/claim',
@@ -764,6 +770,7 @@ export interface FileRoutesByFullPath {
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
+  '/api/public/hooks/warm-foods': typeof ApiPublicHooksWarmFoodsRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
@@ -865,6 +872,7 @@ export interface FileRoutesByTo {
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
+  '/api/public/hooks/warm-foods': typeof ApiPublicHooksWarmFoodsRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
@@ -969,6 +977,7 @@ export interface FileRoutesById {
   '/api/public/hooks/morning-ritual-reminder': typeof ApiPublicHooksMorningRitualReminderRoute
   '/api/public/hooks/revenuecat': typeof ApiPublicHooksRevenuecatRoute
   '/api/public/hooks/streak-risk': typeof ApiPublicHooksStreakRiskRoute
+  '/api/public/hooks/warm-foods': typeof ApiPublicHooksWarmFoodsRoute
   '/api/public/invite/claim': typeof ApiPublicInviteClaimRoute
   '/api/public/invite/defer': typeof ApiPublicInviteDeferRoute
   '/api/public/referral/install': typeof ApiPublicReferralInstallRoute
@@ -1073,6 +1082,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/hooks/streak-risk'
+    | '/api/public/hooks/warm-foods'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/referral/install'
@@ -1174,6 +1184,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/hooks/streak-risk'
+    | '/api/public/hooks/warm-foods'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/referral/install'
@@ -1277,6 +1288,7 @@ export interface FileRouteTypes {
     | '/api/public/hooks/morning-ritual-reminder'
     | '/api/public/hooks/revenuecat'
     | '/api/public/hooks/streak-risk'
+    | '/api/public/hooks/warm-foods'
     | '/api/public/invite/claim'
     | '/api/public/invite/defer'
     | '/api/public/referral/install'
@@ -1309,6 +1321,7 @@ export interface RootRouteChildren {
   ApiPublicHooksMorningRitualReminderRoute: typeof ApiPublicHooksMorningRitualReminderRoute
   ApiPublicHooksRevenuecatRoute: typeof ApiPublicHooksRevenuecatRoute
   ApiPublicHooksStreakRiskRoute: typeof ApiPublicHooksStreakRiskRoute
+  ApiPublicHooksWarmFoodsRoute: typeof ApiPublicHooksWarmFoodsRoute
   ApiPublicInviteClaimRoute: typeof ApiPublicInviteClaimRoute
   ApiPublicInviteDeferRoute: typeof ApiPublicInviteDeferRoute
   ApiPublicReferralInstallRoute: typeof ApiPublicReferralInstallRoute
@@ -1990,6 +2003,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHooksStreakRiskRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/warm-foods': {
+      id: '/api/public/hooks/warm-foods'
+      path: '/api/public/hooks/warm-foods'
+      fullPath: '/api/public/hooks/warm-foods'
+      preLoaderRoute: typeof ApiPublicHooksWarmFoodsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/invite/claim': {
       id: '/api/public/invite/claim'
       path: '/api/public/invite/claim'
@@ -2240,6 +2260,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicHooksMorningRitualReminderRoute,
   ApiPublicHooksRevenuecatRoute: ApiPublicHooksRevenuecatRoute,
   ApiPublicHooksStreakRiskRoute: ApiPublicHooksStreakRiskRoute,
+  ApiPublicHooksWarmFoodsRoute: ApiPublicHooksWarmFoodsRoute,
   ApiPublicInviteClaimRoute: ApiPublicInviteClaimRoute,
   ApiPublicInviteDeferRoute: ApiPublicInviteDeferRoute,
   ApiPublicReferralInstallRoute: ApiPublicReferralInstallRoute,

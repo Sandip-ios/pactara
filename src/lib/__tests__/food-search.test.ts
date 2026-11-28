@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import warmTerms from '../../../scripts/common-meal-food-terms.json';
+import warmTerms from '../common-meal-food-terms.json';
 import fixtures from './fixtures/usda-common-searches.json';
 import { foodSearchLine, defaultPortion, initialAmount } from '../meals';
 import { capPerTier, distinctFoodNames, distinctCachedFoodNames, normalizeUsdaFood, rankUsdaRows } from '../usda-foods.server';

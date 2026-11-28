@@ -4,7 +4,8 @@
 - [x] Generic implied-qualifier duplicates: both calories/protein within 10%, higher tier and plain name; recorded/cache egg sequence verified, 1192 tests and typecheck pass. No data changes.
 - [x] Restore cooked/plain ranking and 200/50/6 retrieval, top-25 details; recorded rice/pasta/chicken tests.
 - [x] Four-second provider deadline, partial results and Retry; bounded resumable 300-term one-off warmer.
-- [ ] Complete remaining cache warming: 39/300 complete, 261 remaining; blocked by shared hourly USDA allowance (596/600 reserved) and incomplete provider responses. Job stopped, nothing continues after this turn.
+- [x] Replaced session warmer with private-token hook, versioned 300-term progress, SKIP LOCKED/global leases, atomic 300/600 background allowance and staged production activation SQL. Draft hook: 8/300 complete (5 new, 3 reused), 292 remaining, 41.534s; seven partial terms queued. 1210 tests/126 files passed, typecheck/build clean; temporary test terms removed, no owned food/account writes. Ranking/UI unchanged.
+- [ ] Activate production HTTP schedule after acceptance/publication: blocked because managed HTTP scheduling is unavailable in isolated drafts. Publishing alone does not start the job; requested activation SQL and operational instructions are committed.
 - [x] Full tests/checks: 1190 tests/124 files, typecheck and build clean. Viewed final rice/chicken 390×844/2× captures; first rows 348–374ms, complete warmed lists 365–396ms. Real timeout/Retry verified, temporary member removed; no publication.
 
 # Roadmap
