@@ -8,7 +8,6 @@ import { NewConfirm } from "../NewConfirm";
 import { newToast } from "../new-toast";
 import { WhoSeesIt, useComposeContext, SheetActions } from "./ComposeParts";
 import { WorkoutAttachment } from "./WorkoutAttachment";
-import { MealAttachment } from "../MealViews";
 import { audienceLabel, defaultAudience, type PostAudience } from "@/lib/post-audience";
 import type { PostWorkoutChoice, SocialPostView } from "@/lib/social-post-types";
 
@@ -96,7 +95,6 @@ export function OwnPostMenu({ post, open, onOpenChange, onDeleted }: { post: Soc
       <NewSheet open={editing} onOpenChange={setEditing} title="Edit caption and workout" compose>
         <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2200} rows={4} aria-label="Caption" className="w-full resize-none rounded-[14px] bg-[var(--new-control)] p-3 text-[16px] outline-none" />
         {ctx.data ? <WorkoutAttachment ctx={ctx.data} suggestions={[]} workout={workout} onChange={setWorkout} inset={false} /> : <div className="mt-3 h-14 animate-pulse rounded-[14px] bg-[var(--new-control)]" />}
-        {post.meal && <MealAttachment postId={post.id} inset={false} />}
         <NewSheetButton disabled={busy || !ctx.data} onClick={() => void saveContent()}>Save</NewSheetButton>
       </NewSheet>
       <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle compose>
