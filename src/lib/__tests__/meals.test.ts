@@ -21,3 +21,10 @@ describe('Meals rules',()=>{
  it('editing an added meal changes only its snapshot and drops credit when foods change',()=>{const original=buildSnapshot('Meal','Lunch',[rice],null);const copy=buildSnapshot('My meal','Lunch',[{...rice,amount:2,grams:316}],null);expect(original.foods[0]?.amount).toBe(1);expect(mealCopyCredit(original,copy,'Maya')).toBeNull();expect(mealCopyCredit(original,{...original,title:'Renamed'},'Maya')).toBe('Maya');});
  it('starts gram-only foods at 100 grams and uses usual serving first',()=>{const food={id:'rice',name:'Rice',portions:[{unit:'cup',grams:158},{unit:'g',grams:1},{unit:'oz',grams:28.349523125}],yours:false};expect(defaultPortion(food,'en-US').unit).toBe('cup');expect(defaultPortion(food,'en-GB').unit).toBe('cup');expect(initialAmount({unit:'g',grams:1},{...food,portions:food.portions.slice(1)})).toBe(100);});
 });
+import { changedFoodAfterRemoval } from '../meals';
+describe('totals warning after removing a food',()=>{
+ it('clears when the food that triggered it is removed, and stays for any other food',()=>{
+  expect(changedFoodAfterRemoval("Mom's pepper sauce","Mom's pepper sauce")).toBeNull();
+  expect(changedFoodAfterRemoval("Mom's pepper sauce",'Mixed salad greens, raw')).toBe("Mom's pepper sauce");
+ });
+});

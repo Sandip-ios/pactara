@@ -17,6 +17,8 @@ export function normalizeUsdaFood(row:Record<string,unknown>):Food {
 }
 const CATEGORY_PREFIXES=new Set(['cereals','cereals ready-to-eat','fish','spices','beverages','vegetables','fruits','nuts','seeds','poultry']);
 const FILLER=new Set(['regular','enriched','unenriched','meat only','skinless','boneless','broiler or fryers','broilers or fryers','without salt','fresh','nfs','not fortified','ns as to form']);
+/** Filler phrases inside a part, e.g. "cooked without salt" → "cooked". */
+const INNER_FILLER=/\s*\b(without|with) (added )?salt\b|\s*\b(un)?enriched\b/gi;
 const LEADING=new Set(['white','brown','wild','whole','atlantic','pink','sockeye','coho','chinook','rolled','steel cut','ground','sweet','red','green','black','jasmine','basmati']);
 const PARTS=new Set(['breast','thigh','wing','drumstick','leg','fillet','yolk','white','tenders']);
 /** Turns a USDA generic description into a natural name that keeps what sets the variant apart. */
@@ -27,7 +29,7 @@ export function cleanUsdaDescription(description:string,keepFiller=false) {
  if(t[0])t[0]=t[0].charAt(0).toLowerCase()+t[0].slice(1);
  const low=(x:string|undefined)=>x?.toLowerCase();
  if(t.length>1&&CATEGORY_PREFIXES.has(low(t[0])!))t=t.slice(1);
- if(!keepFiller)t=t.filter((x,i)=>i===0||!FILLER.has(x.toLowerCase()));
+ if(!keepFiller)t=t.map((x,i)=>i===0?x:x.replace(INNER_FILLER,'').trim()).filter((x,i)=>i===0||(x!==''&&!FILLER.has(x.toLowerCase())));
  const [head,next,...rest]=t;if(!head)return 'Food';
  let lead=head;let tail=next===undefined?[]:[next,...rest];
  if(next&&PARTS.has(low(next)!)&&(low(next)!=='white'||low(head)==='egg')){lead=`${head} ${next}`;tail=rest;}

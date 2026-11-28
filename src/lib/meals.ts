@@ -18,6 +18,8 @@ export function mealTotals(foods: MealFood[]): Nutrition {
 }
 export function missingCalorieWarning(foods: MealFood[]): string { const n = foods.filter(f => f.nutrition?.calories == null).length; return n ? `${n} ${n === 1 ? 'food has' : 'foods have'} no calories, so these may be low.` : ''; }
 export function switchFoodUnit(amount: number, fromGrams: number, toGrams: number) { return amount * fromGrams / toGrams; }
+/** Removing the food that triggered the totals warning clears it; removing any other food leaves it. */
+export function changedFoodAfterRemoval(changed: string | null, removed: string) { return changed === removed ? null : changed; }
 export function totalsWarning(override: Nutrition | null, changedFood: string | null) { return override && changedFood ? `Your totals don't include the ${changedFood} you just added. Reset to use your foods' numbers.` : ''; }
 export function effectiveTotals(foods: MealFood[], override: Nutrition | null): Nutrition { return override ? { ...override } : mealTotals(foods); }
 export function foodAmount(amount: number, unit: string) {
