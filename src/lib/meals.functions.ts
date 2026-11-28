@@ -27,7 +27,12 @@ export const searchMealFoods=createServerFn({method:'GET'}).middleware([requireS
  const {data:own}=await admin.from('meal_foods').select('*').eq('owner_id',context.userId).ilike('name',`%${data.q.replace(/[%_]/g,'')}%`).limit(30);
  const toFood=(r:Record<string,unknown>):Food=>({id:String(r['id']),name:String(r['name']),portions:r['portions'] as Food['portions'],nutrition:r['nutrition'] as Food['nutrition'],yours:!!r['owner_id']});
  let foods:Food[]=[];let error=false;
- if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));}
+ if(!data.q){const {data:recent}=await admin.from('meal_food_recent').select('food_id').eq('user_id',context.userId).order('used_at',{ascending:false}).limit(6);const ids=(recent??[]).map(r=>r.food_id);const {data:rows}=ids.length?await admin.from('meal_foods').select('*').in('id',ids):{data:[]};foods=(rows??[]).filter(r=>!r.owner_id||r.owner_id===context.userId).map(r=>toFood(r as unknown as Record<string,unknown>));
+  // Recent reads each USDA food's current cleaned name from its record and refreshes the stored one.
+  const usdaIds=foods.filter(f=>!f.yours&&f.id.startsWith('usda:')).map(f=>Number(f.id.slice(5))).filter(Number.isFinite);
+  if(usdaIds.length){try{const {fetchUsda,recentFoodName}=await import('./usda-foods.server');const res=await fetchUsda('foods',{fdcIds:usdaIds,format:'abridged'}) as unknown as Record<string,unknown>[];const byId=new Map((Array.isArray(res)?res:[]).map(r=>[`usda:${r['fdcId']}`,r]));
+   foods=await Promise.all(foods.map(async f=>{const name=recentFoodName(f.name,byId.get(f.id));if(name!==f.name)await admin.from('meal_foods').update({name}).eq('id',f.id);return {...f,name};}));}catch(e){console.error('USDA recent name refresh failed',e);}}
+  }
  else {
  // Versioned search cache refreshes older branded-only results and preserves ranked IDs.
  const key=`v10:${data.q.toLowerCase()}`;const {data:cache}=await admin.from('meal_food_searches').select('food_ids').eq('query',key).maybeSingle();

@@ -1,5 +1,5 @@
 import { describe,it,expect } from 'vitest';
-import { buildSnapshot,mealTotals,foodNutrition,switchFoodUnit,effectiveTotals,totalsWarning,missingCalorieWarning,mealForViewer,mealCopyCredit,mealInputSchema,defaultPortion,initialAmount,hasMealNutrition,fullMealLine,foodPortions,foodSearchLine,foodAmount,uniqueFoodResults,mealItems,type MealFood,type Nutrition } from '../meals';
+import { buildSnapshot,mealTotals,foodNutrition,switchFoodUnit,effectiveTotals,totalsWarning,missingCalorieWarning,mealForViewer,mealCopyCredit,mealInputSchema,defaultPortion,initialAmount,hasMealNutrition,fullMealLine,foodPortions,foodSearchLine,foodAmount,uniqueFoodResults,mealItems,type MealFood,type Nutrition, changedFoodAfterChange } from '../meals';
 const rice:MealFood={key:'rice-1',foodId:'rice',name:'White rice',amount:1,unit:'cup',grams:158,note:'',nutrition:{calories:129.7468,protein:2.5316,carbs:28.481,fat:0}};
 const chicken:MealFood={key:'chicken-1',foodId:'chicken',name:'Chicken',amount:8,unit:'oz',grams:226.796185,note:'',nutrition:{calories:165,protein:31,carbs:0,fat:3.6}};
 const custom:Nutrition={calories:640,protein:62,carbs:70,fat:12};
@@ -26,5 +26,13 @@ describe('totals warning after removing a food',()=>{
  it('clears when the food that triggered it is removed, and stays for any other food',()=>{
   expect(changedFoodAfterRemoval("Mom's pepper sauce","Mom's pepper sauce")).toBeNull();
   expect(changedFoodAfterRemoval("Mom's pepper sauce",'Mixed salad greens, raw')).toBe("Mom's pepper sauce");
+ });
+});
+describe('totals warning after food changes',()=>{
+ it('reordering or editing an amount never names a food; only an added food does',()=>{
+  expect(changedFoodAfterChange(null,{kind:'reorder'})).toBeNull();
+  expect(changedFoodAfterChange(null,{kind:'edit'})).toBeNull();
+  expect(changedFoodAfterChange('Greek yogurt',{kind:'reorder'})).toBe('Greek yogurt');
+  expect(changedFoodAfterChange(null,{kind:'add',name:'Greek yogurt'})).toBe('Greek yogurt');
  });
 });

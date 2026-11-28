@@ -20,6 +20,8 @@ export function missingCalorieWarning(foods: MealFood[]): string { const n = foo
 export function switchFoodUnit(amount: number, fromGrams: number, toGrams: number) { return amount * fromGrams / toGrams; }
 /** Removing the food that triggered the totals warning clears it; removing any other food leaves it. */
 export function changedFoodAfterRemoval(changed: string | null, removed: string) { return changed === removed ? null : changed; }
+/** Only a newly added food names the totals warning; reordering or editing an amount keeps the current one. */
+export function changedFoodAfterChange(changed: string | null, change: { kind: 'add' | 'reorder' | 'edit'; name?: string }) { return change.kind === 'add' && change.name ? change.name : changed; }
 export function totalsWarning(override: Nutrition | null, changedFood: string | null) { return override && changedFood ? `Your totals don't include the ${changedFood} you just added. Reset to use your foods' numbers.` : ''; }
 export function effectiveTotals(foods: MealFood[], override: Nutrition | null): Nutrition { return override ? { ...override } : mealTotals(foods); }
 export function foodAmount(amount: number, unit: string) {

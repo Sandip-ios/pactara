@@ -1,5 +1,5 @@
 import { afterEach,describe,it,expect,vi } from 'vitest';
-import { cleanUsdaDescription,distinctFoodNames,fetchUsda,normalizeUsdaFood,rankUsdaRows } from '../usda-foods.server';
+import { cleanUsdaDescription,distinctFoodNames,fetchUsda,normalizeUsdaFood,rankUsdaRows, recentFoodName } from '../usda-foods.server';
 afterEach(()=>{vi.unstubAllEnvs();vi.unstubAllGlobals();});
 describe('USDA server boundary',()=>{
  it('ranks Foundation, SR Legacy and Survey foods before branded foods',()=>{const rows=[{fdcId:4,dataType:'Branded'},{fdcId:1,dataType:'Foundation'},{fdcId:2,dataType:'SR Legacy'},{fdcId:3,dataType:'Survey (FNDDS)'}];expect(rankUsdaRows(rows).map(r=>r['fdcId'])).toEqual([1,2,3,4]);});
@@ -50,5 +50,12 @@ describe('filler inside a name part',()=>{
   expect(cleanUsdaDescription('Broccoli, cooked, boiled, drained, without salt')).toBe('Broccoli, cooked, boiled, drained');
   const make=(id:number,d:string)=>{const row={fdcId:id,description:d,dataType:'SR Legacy',foodNutrients:[{nutrient:{id:1008},amount:130}]};return {row,food:normalizeUsdaFood(row)};};
   expect(distinctFoodNames([make(1,'Rice, white, long-grain, regular, enriched, cooked'),make(2,'Rice, white, long-grain, regular, unenriched, cooked without salt')]).map(f=>f.name)).toEqual(['White rice, long-grain, cooked']);
+ });
+});
+describe('Recent food names',()=>{
+ it('reads the current cleaned name from the USDA record, not the old saved label',()=>{
+  expect(recentFoodName('Rice, white, long-grain, regular, enriched, cooked without salt',{fdcId:168878,dataType:'SR Legacy',description:'Rice, white, long-grain, regular, enriched, cooked, without salt'})).toBe('White rice, long-grain, cooked');
+  expect(recentFoodName('Chicken breast, cooked, braised (lab tested)',{fdcId:1,dataType:'Foundation',description:'Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised'})).toBe('Chicken breast, cooked, braised');
+  expect(recentFoodName("Mom's pepper sauce")).toBe("Mom's pepper sauce");
  });
 });

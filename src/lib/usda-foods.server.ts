@@ -44,6 +44,8 @@ export function usdaFoodName(row:Record<string,unknown>,keepFiller=false) {
  const brand=usdaCase(String(row['brandOwner']??row['brandName']??'').trim());
  return `${name}${branded&&brand?` · ${brand}`:''}`.slice(0,200);
 }
+/** Recent shows a USDA food under the name its current USDA record cleans to; custom foods and unavailable records keep the stored name. */
+export function recentFoodName(stored:string,row?:Record<string,unknown>) { return row?.['description']?usdaFoodName(row):stored; }
 const TIER:Record<string,number>={'Foundation':0,'SR Legacy':1,'Survey (FNDDS)':2};
 /** One name, one food: when cleaned names clash, generic foods keep the highest tier (Foundation, SR Legacy, Survey) and branded foods keep the first. */
 export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}[]):Food[] {
