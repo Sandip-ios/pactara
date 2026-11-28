@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import warmTerms from '../../../scripts/common-meal-food-terms.json';
 import fixtures from './fixtures/usda-common-searches.json';
+import { foodSearchLine, defaultPortion, initialAmount } from '../meals';
 import { capPerTier, distinctFoodNames, distinctCachedFoodNames, normalizeUsdaFood, rankUsdaRows } from '../usda-foods.server';
 import { foodRelevance, mergeFoodSearch } from '../food-search';
 import type { Food } from '../meals';
@@ -9,7 +10,7 @@ const expected:Record<string,string[]>={
  'pasta':['Pasta, whole-wheat, cooked', 'Pasta, cooked', 'Pasta, whole grain, cooked', 'Pasta, fresh-refrigerated, plain, cooked', 'Pasta, vegetable, cooked'],
  'eggs':['Egg white','Whole egg','Egg yolk','Whole egg, cooked, hard-boiled','Whole egg, cooked, scrambled'],
  'egg':['Egg white','Whole egg','Egg yolk','Whole egg, cooked, hard-boiled','Whole egg, cooked, scrambled'],
- 'chicken breast':['Chicken breast, cooked, braised', 'Chicken breast, cooked, fried', 'Chicken breast, cooked, stewed', 'Chicken breast, cooked, roasted', 'Chicken breast, cooked, grilled'],
+ 'chicken breast':['Chicken breast, cooked, grilled', 'Chicken breast, cooked, roasted', 'Chicken breast, cooked, braised', 'Chicken breast, cooked, stewed', 'Chicken breast, cooked, fried'],
  'rice':['White rice, long-grain, cooked', 'Brown rice, long-grain, cooked', 'White rice, short-grain, cooked', 'White rice, medium-grain, cooked', 'Brown rice, medium-grain, cooked'],
  'white rice':['White rice, long-grain, cooked', 'White rice, short-grain, cooked', 'White rice, medium-grain, cooked', 'White rice, glutinous, cooked', 'White rice, long-grain, parboiled, cooked'],
  'banana':['Banana, raw','Banana, baked','Banana, overripe, raw','Banana, ripe and slightly ripe, raw','Banana, dehydrated, or banana powder'],
@@ -43,7 +44,29 @@ describe('recorded USDA common queries',()=>{
   const make=(fdcId:number,name:string,dataType:string,calories:number|null,protein:number|null)=>({row:{fdcId,dataType},food:{id:String(fdcId),name,portions:[],yours:false,nutrition:{calories,protein,carbs:null,fat:null}}});
   const plain=make(1,'Food','SR Legacy',100,10);
   expect(distinctFoodNames([plain,make(2,'Food, raw','Foundation',110,11)]).map(f=>({id:f.id,name:f.name}))).toEqual([{id:'2',name:'Food'}]);
-  for(const other of [make(3,'Food, raw','Foundation',111,10),make(4,'Food, raw','Foundation',100,12),make(5,'Food, raw','Branded',100,10),make(6,'Food, cooked','Foundation',100,10),make(7,'Food, raw','Foundation',null,10)])expect(distinctFoodNames([plain,other])).toHaveLength(2);
+  for(const other of [make(3,'Food, raw','Foundation',112,10),make(4,'Food, raw','Foundation',100,12),make(5,'Food, raw','Branded',100,10),make(6,'Food, cooked','Foundation',100,10),make(7,'Food, raw','Foundation',null,10)])expect(distinctFoodNames([plain,other])).toHaveLength(2);
+ });
+ it('recorded rice collapses glutinous qualifier order and uses the real cup portion',()=>{
+  const f=fixtures.rice;
+  const foods=distinctFoodNames(capPerTier(rankUsdaRows(f.search,'rice')).slice(0,25).map(r=>{const row={...r,...f.details.find(d=>d.fdcId===r['fdcId'])};return{row,food:normalizeUsdaFood(row)};}));
+  const glutinous=foods.filter(f=>/glutinous/.test(f.name));expect(glutinous).toHaveLength(1);expect(glutinous[0]?.id).toBe('usda:169711');
+  const rice=foods.find(f=>f.name==='Rice, cooked');expect(rice).toBeDefined();if(!rice)throw Error('Missing recorded cooked rice');expect(defaultPortion(rice,'en-GB').unit).toBe('cup');expect(foodSearchLine(rice)).toMatch(/^1 cup/);
+ });
+ it('recorded chicken shows five plain cooked forms then raw and keeps real breast portions',()=>{
+  const f=fixtures['chicken breast'];
+  const foods=distinctFoodNames(capPerTier(rankUsdaRows(f.search,'chicken breast')).slice(0,25).map(r=>{const row={...r,...f.details.find(d=>d.fdcId===r['fdcId'])};return{row,food:normalizeUsdaFood(row)};}));
+  expect(foods.slice(0,6).map(f=>f.name)).toEqual(['Chicken breast, cooked, grilled','Chicken breast, cooked, roasted','Chicken breast, cooked, braised','Chicken breast, cooked, stewed','Chicken breast, cooked, fried','Chicken breast, raw']);
+  const fried=foods.find(f=>f.name==='Chicken breast, cooked, fried');if(!fried)throw Error('Missing fried chicken');expect(defaultPortion(fried,'en-GB').unit).toBe('breast');expect(foodSearchLine(fried)).toMatch(/^1 breast/);
+  const skin=f.details.filter(r=>r.description==='Chicken breast, stewed, skin eaten'||r.description==='Chicken, broilers or fryers, breast, meat and skin, cooked, stewed');expect(skin).toHaveLength(2);
+  expect(distinctFoodNames(skin.map(row=>({row,food:normalizeUsdaFood(row)}))).map(f=>({id:f.id,name:f.name}))).toEqual([{id:'usda:171076',name:'Chicken breast, meat and skin, cooked, stewed'}]);
+ });
+ it('equivalent qualifier sets and grain synonyms collapse without merging different nutrition or brands',()=>{
+  const make=(fdcId:number,name:string,dataType:string,calories=100,protein=3)=>({row:{fdcId,dataType},food:{id:String(fdcId),name,portions:[],yours:false,nutrition:{calories,protein,carbs:null,fat:null}}});
+  expect(distinctFoodNames([make(1,'White rice, cooked, glutinous','Survey (FNDDS)'),make(2,'White rice, glutinous, cooked','SR Legacy',97,3)]).map(f=>f.id)).toEqual(['2']);
+  expect(distinctFoodNames([make(1,'Pasta, cooked','Survey (FNDDS)'),make(2,'Pasta, prepared','SR Legacy')])).toHaveLength(1);
+  expect(distinctFoodNames([make(1,'Chicken breast, stewed, skin eaten','Survey (FNDDS)'),make(2,'Chicken breast, meat and skin, cooked, stewed','SR Legacy')])).toHaveLength(1);
+  expect(distinctFoodNames([make(1,'White rice, cooked, glutinous','Branded'),make(2,'White rice, glutinous, cooked','SR Legacy')])).toHaveLength(2);
+  expect(distinctFoodNames([make(1,'White rice, cooked, glutinous','Survey (FNDDS)'),make(2,'White rice, glutinous, cooked','SR Legacy',100,4)])).toHaveLength(2);
  });
  it('puts a primary food above mentions, niche food and an unrequested brand',()=>{
   const rank=rankUsdaRows([

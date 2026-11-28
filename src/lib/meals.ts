@@ -30,7 +30,8 @@ export function foodAmount(amount: number, unit: string) {
 }
 /** Starting-portion preference: whole items (sizes, piece, slice, whole), then cup, then tbsp, then other measures, then grams. Parts such as stalk or spear count as other measures. */
 const SIZE=/^(extra large|jumbo|large|medium|small)$/;
-export function portionPreference(unit:string) { const u=unit.toLowerCase().trim();if(SIZE.test(u)||/^(piece|slice|whole)s?\b/.test(u))return 0;if(/^cups?\b/.test(u))return 1;if(/^(tbsp|tablespoons?)\b/.test(u))return 2;if(u==='g'||u==='oz')return 5;if(u==='serving'||/\bracc\b/.test(u))return 4;return 3; }
+export const vaguePortion=(unit:string)=>/^(unit|each|serving|undetermined|quantity not specified)$/i.test(unit.trim());
+export function portionPreference(unit:string) { const u=unit.toLowerCase().trim();if(SIZE.test(u)||/^(piece|slice|whole|breast)s?\b/.test(u))return 0;if(/^cups?\b/.test(u))return 1;if(/^(tbsp|tablespoons?)\b/.test(u))return 2;if(u==='g'||u==='oz')return 5;if(vaguePortion(u)||/\bracc\b/.test(u))return 6;return 3; }
 /** Orders portions by preference; among whole-item sizes the middle size by weight comes first (egg: large, apple: medium). */
 function sortPortions(portions:Portion[]):Portion[] {
  const sizes=portions.filter(p=>SIZE.test(p.unit.toLowerCase().trim())).sort((a,b)=>a.grams-b.grams);const mid=sizes[Math.floor((sizes.length-1)/2)];
@@ -66,5 +67,5 @@ export function stripNutrition<T>(value: T): T {
 }
 export function mealForViewer<T>(value:T, under18:boolean):T { return under18 ? stripNutrition(value) : value; }
 export function mealCopyCredit(previous:MealSnapshot, next:MealSnapshot, name:string|null) { return JSON.stringify(previous.foods)!==JSON.stringify(next.foods) ? null : name; }
-export function defaultPortion(food:Food, region:string):Portion { const usual=sortPortions(food.portions.filter(p=>p.grams>0))[0]; if(usual && !['g','oz'].includes(usual.unit)) return usual; const imperial=/^(?:en-US|en-LR|en-MM)(?:$|-)/i.test(region); return food.portions.find(p=>p.unit===(imperial?'oz':'g')) ?? usual ?? {unit:'g',grams:1}; }
-export function initialAmount(portion:Portion,food:Food) { return portion.unit==='g' && food.portions.every(p=>['g','oz'].includes(p.unit)) ? 100 : 1; }
+export function defaultPortion(food:Food, region:string):Portion { const usable=food.portions.filter(p=>p.grams>0&&!vaguePortion(p.unit));const usual=sortPortions(usable)[0];if(!usable.some(p=>!['g','oz'].includes(p.unit)))return {unit:'g',grams:1}; if(usual && !['g','oz'].includes(usual.unit)) return usual; const imperial=/^(?:en-US|en-LR|en-MM)(?:$|-)/i.test(region); return food.portions.find(p=>p.unit===(imperial?'oz':'g')) ?? usual ?? {unit:'g',grams:1}; }
+export function initialAmount(portion:Portion,food:Food) { return portion.unit==='g' && food.portions.every(p=>['g','oz'].includes(p.unit)||vaguePortion(p.unit)) ? 100 : 1; }

@@ -36,3 +36,14 @@ describe('totals warning after food changes',()=>{
   expect(changedFoodAfterChange(null,{kind:'add',name:'Greek yogurt'})).toBe('Greek yogurt');
  });
 });
+
+describe('meaningful default portions',()=>{
+ it.each(['unit','each','serving'])('never defaults to bare %s; uses cup or 100g',unit=>{
+  const food={id:'x',name:'Food',yours:false,portions:[{unit,grams:52},{unit:'g',grams:1}],nutrition:{calories:100,protein:10,carbs:0,fat:0}};
+  expect(defaultPortion(food,'en-US')).toEqual({unit:'g',grams:1});expect(initialAmount(defaultPortion(food,'en-US'),food)).toBe(100);expect(foodSearchLine(food)).toBe('100 g · 100 cal · 10 g protein');
+  expect(defaultPortion({...food,portions:[...food.portions,{unit:'cup',grams:158}]},'en-GB').unit).toBe('cup');
+ });
+ it('preserves a described serving as a meaningful option',()=>{
+  expect(defaultPortion({id:'x',name:'Food',yours:false,portions:[{unit:'serving 2 slices',grams:60}]},'en-GB').unit).toBe('serving 2 slices');
+ });
+});

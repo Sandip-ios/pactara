@@ -1,5 +1,5 @@
 import type { Food, Nutrition, Portion } from './meals';
-import { foodRelevance, foodWords, preparedFoodScore, preparedFoodGroup } from './food-search';
+import { foodRelevance, foodWords, preparedFoodScore, preparedFoodGroup, meatPreparationOrder } from './food-search';
 const nutrient = (rows: Record<string, unknown>[], ids: number[]) => { const row=rows.find(n => ids.includes(Number(n['nutrientId'] ?? (n['nutrient'] as Record<string,unknown>|undefined)?.['id']))); const v=row?.['value'] ?? row?.['amount']; return typeof v==='number' ? v : null; };
 export function normalizeUsdaFood(row:Record<string,unknown>):Food {
  const nutrients=(row['foodNutrients'] ?? []) as Record<string,unknown>[];
@@ -8,7 +8,7 @@ export function normalizeUsdaFood(row:Record<string,unknown>):Food {
  const serving=Number(row['servingSize']); const servingUnit=String(row['servingSizeUnit'] ?? '').toLowerCase();
  const household=String(row['householdServingFullText']??'');const match=household.match(/^(\d+(?:\.\d+)?)\s+(cup|tbsp|tsp|piece|slice|scoop)s?\b/i);
  if(serving>0 && ['g','grm'].includes(servingUnit)) portions.push({unit:match?.[2]?.toLowerCase()??'serving',grams:serving/(Number(match?.[1])||1)});
- for(const p of (row['foodPortions'] ?? []) as Record<string,unknown>[]) { const weight=Number(p['gramWeight']);const amount=Number(p['amount'])||1; const measure=p['measureUnit'] as Record<string,unknown>|undefined; const unit=String(p['modifier']||measure?.['name']||p['portionDescription']||'serving').replace(/^\d+(?:\.\d+)?\s*/, '').replace(/\s*\([^)]*\)/g,'').trim().slice(0,50) || 'serving'; if(weight>0 && unit!=='undetermined' && !/^racc$/i.test(unit) && !portions.some(x=>x.unit===unit)) portions.push({unit,grams:weight/amount}); }
+ for(const p of (row['foodPortions'] ?? []) as Record<string,unknown>[]) { const weight=Number(p['gramWeight']);const amount=Number(p['amount'])||1; const measure=p['measureUnit'] as Record<string,unknown>|undefined; const unit=String(p['modifier']&&!/^\d+$/.test(String(p['modifier']))?p['modifier']:p['portionDescription']||measure?.['name']||'serving').replace(/^\d+(?:\.\d+)?\s*/, '').replace(/\s*\([^)]*\)/g,'').trim().slice(0,50) || 'serving'; if(weight>0 && unit!=='undetermined' && !/^racc$/i.test(unit) && !portions.some(x=>x.unit===unit)) portions.push({unit,grams:weight/amount}); }
  portions.sort((a,b)=>Number(a.unit==='serving')-Number(b.unit==='serving'));
  // Drop descriptors after the comma unless another portion shares the base unit.
  const base=(u:string)=>(u.split(',')[0]??'').trim();for(const p of portions){const b=base(p.unit);if(b!==p.unit&&portions.filter(x=>base(x.unit)===b).length===1)p.unit=b;}
@@ -61,16 +61,25 @@ export function distinctFoodNames(entries:{food:Food;row:Record<string,unknown>}
  const kept=new Map<string,{food:Food;row:Record<string,unknown>;i:number}>();
  entries.forEach((e,i)=>{const prev=kept.get(e.food.name.toLowerCase());if(!prev||tier(e)<tier(prev))kept.set(e.food.name.toLowerCase(),{...e,i:prev?prev.i:i});});
  const ordered=[...kept.values()].sort((a,b)=>a.i-b.i);
- const close=(a:number|null|undefined,b:number|null|undefined)=>typeof a==='number'&&typeof b==='number'&&Math.abs(a-b)<=Math.min(Math.abs(a),Math.abs(b))*.1;
+ const close=(a:number|null|undefined,b:number|null|undefined)=>typeof a==='number'&&typeof b==='number'&&Math.abs(a-b)<=Math.max(Math.abs(a),Math.abs(b))*.1;
  const base=(name:string)=>name.split(',').filter((part,i)=>i===0||! /^(raw|fresh|uncooked)$/i.test(part.trim())).join(',').trim();
+ const semantic=(name:string)=>{
+  const [head='',...parts]=base(name).toLowerCase().split(',').map(p=>p.trim());
+  const preparation=parts.some(p=>/^(grilled|roasted|baked|braised|stewed|fried|poached|scrambled|hard-boiled|omelet)$/.test(p));
+  const grain=/\b(grain|rice|pasta|noodle|spaghetti|macaroni|quinoa|barley|couscous)\b/.test(head);
+  const qualifiers=parts.map(p=>p==='skin eaten'?'meat and skin':grain&&p==='prepared'?'cooked':p).filter(p=>!(preparation&&p==='cooked'));
+  return `${head}|${[...new Set(qualifiers)].sort().join('|')}`;
+ };
  const collapsed=new Set<string>();
  for(let i=0;i<ordered.length;i++){
   const a=ordered[i];if(!a||a.row['dataType']==='Branded')continue;
   for(let j=i+1;j<ordered.length;j++){
-   const b=ordered[j];if(!b||b.row['dataType']==='Branded'||base(a.food.name).toLowerCase()!==base(b.food.name).toLowerCase()||a.food.name.toLowerCase()===b.food.name.toLowerCase())continue;
+   const b=ordered[j];if(!b||b.row['dataType']==='Branded'||semantic(a.food.name)!==semantic(b.food.name)||a.food.name.toLowerCase()===b.food.name.toLowerCase())continue;
    if(!close(a.food.nutrition?.calories,b.food.nutrition?.calories)||!close(a.food.nutrition?.protein,b.food.nutrition?.protein))continue;
-   const name=base(a.food.name);const winner=tier(b)<tier(a)?b:a;
-   a.food={...winner.food,name};a.row=winner.row;ordered.splice(j,1);j--;collapsed.add(name.toLowerCase());
+   const winner=tier(b)<tier(a)?b:a;
+   const clearer=tier(a)===tier(b)?(base(a.food.name).length<=base(b.food.name).length?a:b):winner;
+   const name=base(clearer.food.name);
+   a.food={...winner.food,name};a.row=winner.row;ordered.splice(j,1);j--;if(!name.includes(','))collapsed.add(name.toLowerCase());
   }
  }
  // Once an implied-form family collapses, put its plain form then its common
@@ -97,7 +106,14 @@ export function rankUsdaRows(rows:Record<string,unknown>[],query='') {
  const rank=(r:Record<string,unknown>)=>r['dataType']==='Foundation'?0:r['dataType']==='SR Legacy'?1:r['dataType']==='Survey (FNDDS)'?2:3;
  const relevance=(r:Record<string,unknown>)=>{const rel=foodRelevance(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??''));return query?preparedFoodScore(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??''))+(r['dataType']==='Branded'&&!rel.brandAsked?100:0):0;};
  const parts=(r:Record<string,unknown>)=>r['dataType']==='Branded'?0:cleanUsdaDescription(String(r['description']??'')).split(',').length;
- return rows.map((r,i)=>({r,i})).sort((a,b)=>relevance(a.r)-relevance(b.r)||((query&&preparedFoodGroup(query))?Number(b.r['add_count']??0)-Number(a.r['add_count']??0)||rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||cleanUsdaDescription(String(a.r['description']??'')).length-cleanUsdaDescription(String(b.r['description']??'')).length:rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r))||a.i-b.i).map(x=>x.r);
+ const meatRank=(r:Record<string,unknown>)=>meatPreparationOrder(String(r['description']??''),query);
+ const meatScore=(r:Record<string,unknown>)=>{
+  const rel=foodRelevance(String(r['description']??''),query,String(r['brandOwner']??''));
+  const name=cleanUsdaDescription(String(r['description']??''));const [head='',...parts]=name.toLowerCase().split(',').map(p=>p.trim());
+  const plain=foodWords(head).every(w=>foodWords(query).includes(w))&&parts.every(p=>/^(cooked|raw|grilled|roasted|baked|broiled|braised|stewed|fried|poached|boiled|steamed)$/.test(p));
+  return (rel.score>=20||r['dataType']==='Branded'?100:0)+(plain?0:10)+(meatRank(r)??0);
+ };
+ return rows.map((r,i)=>({r,i})).sort((a,b)=>(meatRank(a.r)!==null?meatScore(a.r)-meatScore(b.r):0)||relevance(a.r)-relevance(b.r)||((query&&preparedFoodGroup(query))?Number(b.r['add_count']??0)-Number(a.r['add_count']??0)||rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||cleanUsdaDescription(String(a.r['description']??'')).length-cleanUsdaDescription(String(b.r['description']??'')).length:rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r))||a.i-b.i).map(x=>x.r);
 }
 export async function fetchUsda(path:string,body?:unknown,signal?:AbortSignal):Promise<Record<string,unknown>> {
  const key=process.env['USDA_API_KEY']; if(!key) throw new Error('USDA credential unavailable');

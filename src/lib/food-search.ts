@@ -39,6 +39,21 @@ export function foodDishPenalty(description:string,query:string) {
  const dish=/\b(dressing|pilaf|casserole|dirty|mixture|with)\b/i.test(description.replace(/\b(?:cooked|prepared|made) with (?:water|milk)\b/gi,'cooked')) || (/\bfried\b/i.test(description)&&/\b(grain|rice|pasta|noodle)\b/i.test(description));
  return dish&&!/\b(dressing|pilaf|casserole|dirty|fried|with)\b/i.test(query)?10:0;
 }
+/** Meat preparation order is independent of provider tier; raw stays after plain cooked. */
+export function meatPreparationOrder(description:string,query:string) {
+ if(!/\b(meat|beef|veal|lamb|pork|poultry|chicken|turkey|duck|steak)\b/i.test(query))return null;
+ if(/\b(breaded|batter|coated|coating)\b/i.test(description))return 8;
+ if(/\b(sliced|deli|sandwich|oven-roasted|fat-free)\b/i.test(description))return 7;
+ const d=description.replace(/\bfrom raw\b/gi,'');
+ if(/\bgrilled\b/i.test(d))return 0;
+ if(/\b(roasted|baked|broiled)\b/i.test(d))return 1;
+ if(/\bbraised\b/i.test(d))return 2;
+ if(/\bstewed\b/i.test(d))return 3;
+ if(/\bfried\b/i.test(d))return 4;
+ if(/\b(cooked|prepared|boiled|poached|steamed)\b/i.test(d))return 4;
+ if(/\braw\b/i.test(d))return 5;
+ return 6;
+}
 export function preparedFoodScore(description:string,query:string,brand='') {
  const rel=foodRelevance(description,query,brand);
  return rel.score+(preparedFoodGroup(description)?foodDishPenalty(description,query)+preparedFoodOrder(description)*3+foodWords(description.split(',')[0]??'').filter(w=>!foodWords(query).includes(w)).length*.25:0);

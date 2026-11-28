@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { foodRelevance, foodWords, preparedFoodScore } from './food-search';
-import { mealForViewer, type Food } from './meals';
+import { mealForViewer, vaguePortion, type Food } from './meals';
 import { cleanUsdaDescription, fetchUsda, normalizeUsdaFood, rankUsdaRows, capPerTier, distinctFoodNames, distinctCachedFoodNames } from './usda-foods.server';
-export const FOOD_SEARCH_VERSION='v12';
+export const FOOD_SEARCH_VERSION='v13';
 export type MealFoodSearchResult={under18:boolean;foods:Food[];own:Food[];error:boolean;cached:boolean;incomplete?:boolean;limited?:boolean};
 const toFood=(r:Record<string,unknown>):Food=>({id:String(r['id']),name:String(r['name']),portions:r['portions'] as Food['portions'],nutrition:r['nutrition'] as Food['nutrition'],yours:!!r['owner_id']});
 export async function localMealFoods(admin:SupabaseClient,userId:string,q:string,under18:boolean,signal:AbortSignal):Promise<MealFoodSearchResult>{
@@ -39,7 +39,7 @@ export async function remoteMealFoods(admin:SupabaseClient,q:string,under18:bool
   const raw=capPerTier(rankUsdaRows(candidates.map(r=>({...r,add_count:adds.get(`usda:${r['fdcId']}`)??0})),q)).slice(0,25);
   signal.throwIfAborted();
   const cachedFoods=raw.length?await admin.from('meal_foods').select('*').in('id',raw.map(r=>`usda:${r['fdcId']}`)).is('owner_id',null).abortSignal(signal):{data:[]};
-  const byId=new Map((cachedFoods.data??[]).map(r=>[r.id,toFood(r)]));
+  const byId=new Map((cachedFoods.data??[]).filter(r=>{const f=toFood(r);return !f.portions.some(p=>vaguePortion(p.unit)||/^\d+$/.test(p.unit));}).map(r=>[r.id,toFood(r)]));
   const missing=raw.filter(r=>!byId.has(`usda:${r['fdcId']}`));
   const batches=[];for(let i=0;i<missing.length;i+=20)batches.push(missing.slice(i,i+20));
   const responsesDetail=await Promise.allSettled(batches.map(batch=>fetchUsda('foods',{fdcIds:batch.map(r=>r['fdcId']),format:'full',nutrients:[203,204,205,208,957,958]},providerSignal)));

@@ -1,2 +1,4 @@
 Recorded from USDA FoodData Central on 2026-11-28 using the fifteen named queries, requireAllWords, generic/Survey pageSize 50 and Branded pageSize 6. Details were fetched in 20-ID batches with full portions. Only description, type, brand, portions and the six relevant nutrient IDs are retained. These are provider records, not invented rows or user data. Tests do not call USDA.
 Rice, pasta and chicken breast were re-recorded on 2026-11-28 with combined Foundation/SR Legacy pageSize 200, Survey 50, Branded 6, and only the top 25 ranked detail records. Runtime requests use a four-second deadline; offline fixture recording allows longer to preserve complete provider source rows.
+
+The remaining rice/chicken detail records promoted by preparation ranking were completed from the earlier USDA recording or fetched on 2026-11-28. No invented food or portion values are used.

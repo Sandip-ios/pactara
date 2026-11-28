@@ -1,4 +1,6 @@
 # Food search follow-up
+- [x] Qualifier-set/synonym deduplication, meaningful portions, common meat preparations then raw; recorded tests and rice/chicken/eggs captures at 390×844/2× verified. Temporary member removed; no meal or popularity writes.
+- [x] Cache-warm status checked: 39/300 old v12 cached terms retained, 3/300 rebuilt v13 terms (rice/chicken/eggs). No independent scheduler exists and job is stopped; cannot claim it continues after session.
 - [x] Generic implied-qualifier duplicates: both calories/protein within 10%, higher tier and plain name; recorded/cache egg sequence verified, 1192 tests and typecheck pass. No data changes.
 - [x] Restore cooked/plain ranking and 200/50/6 retrieval, top-25 details; recorded rice/pasta/chicken tests.
 - [x] Four-second provider deadline, partial results and Retry; bounded resumable 300-term one-off warmer.

@@ -10496,6 +10496,44 @@
   ],
   "details": [
    {
+    "fdcId": 2646170,
+    "description": "Chicken, breast, boneless, skinless, raw",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 114,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 106.034
+     },
+     {
+      "nutrientId": 2048,
+      "value": 112.20227
+     },
+     {
+      "nutrientId": 1003,
+      "value": 22.525
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.934
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
     "fdcId": 331960,
     "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, cooked, braised",
     "dataType": "Foundation",
@@ -10531,6 +10569,99 @@
      {
       "nutrientId": 1004,
       "value": 3.24
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 2727569,
+    "description": "Chicken, breast, meat and skin, raw",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 114,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 126.905
+     },
+     {
+      "nutrientId": 2048,
+      "value": 132.8359
+     },
+     {
+      "nutrientId": 1003,
+      "value": 21.40625
+     },
+     {
+      "nutrientId": 1004,
+      "value": 4.777
+     },
+     {
+      "nutrientId": 1005,
+      "value": -0.42825
+     }
+    ]
+   },
+   {
+    "fdcId": 171077,
+    "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 113,
+      "amount": 4,
+      "modifier": "oz",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 926,
+      "amount": 1,
+      "modifier": "package",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 272,
+      "amount": 1,
+      "modifier": "piece",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 120
+     },
+     {
+      "nutrientId": 1003,
+      "value": 22.5
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.62
      },
      {
       "nutrientId": 1005,
@@ -10584,61 +10715,6 @@
     ]
    },
    {
-    "fdcId": 171478,
-    "description": "Chicken, broilers or fryers, breast, meat only, cooked, stewed",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 140,
-      "amount": 1,
-      "modifier": "cup, chopped or diced",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 95,
-      "amount": 0.5,
-      "modifier": "breast, bone and skin removed",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 57,
-      "amount": 1,
-      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 151
-     },
-     {
-      "nutrientId": 1003,
-      "value": 28.98
-     },
-     {
-      "nutrientId": 1004,
-      "value": 3.03
-     },
-     {
-      "nutrientId": 1005,
-      "value": 0
-     }
-    ]
-   },
-   {
     "fdcId": 171477,
     "description": "Chicken, broilers or fryers, breast, meat only, cooked, roasted",
     "dataType": "SR Legacy",
@@ -10686,6 +10762,61 @@
      {
       "nutrientId": 1004,
       "value": 3.57
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 171478,
+    "description": "Chicken, broilers or fryers, breast, meat only, cooked, stewed",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 140,
+      "amount": 1,
+      "modifier": "cup, chopped or diced",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 95,
+      "amount": 0.5,
+      "modifier": "breast, bone and skin removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 57,
+      "amount": 1,
+      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 151
+     },
+     {
+      "nutrientId": 1003,
+      "value": 28.98
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.03
      },
      {
       "nutrientId": 1005,
@@ -10780,6 +10911,746 @@
      {
       "nutrientId": 1005,
       "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 171474,
+    "description": "Chicken, broilers or fryers, breast, meat and skin, raw",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 87,
+      "amount": 0.5,
+      "modifier": "breast, bone removed (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 145,
+      "amount": 0.5,
+      "modifier": "breast, bone removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 172
+     },
+     {
+      "nutrientId": 1003,
+      "value": 20.85
+     },
+     {
+      "nutrientId": 1004,
+      "value": 9.25
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 172963,
+    "description": "Chicken breast, oven-roasted, fat-free, sliced",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 42,
+      "amount": 1,
+      "modifier": "serving 2 slices",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 79
+     },
+     {
+      "nutrientId": 1003,
+      "value": 16.79
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.39
+     },
+     {
+      "nutrientId": 1005,
+      "value": 2.17
+     }
+    ]
+   },
+   {
+    "fdcId": 171075,
+    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, roasted",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 98,
+      "amount": 0.5,
+      "modifier": "breast, bone removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 58,
+      "amount": 1,
+      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 140,
+      "amount": 1,
+      "modifier": "cup, chopped or diced",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 197
+     },
+     {
+      "nutrientId": 1003,
+      "value": 29.8
+     },
+     {
+      "nutrientId": 1004,
+      "value": 7.78
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 171076,
+    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, stewed",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 66,
+      "amount": 1,
+      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 110,
+      "amount": 0.5,
+      "modifier": "breast, bone removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 140,
+      "amount": 1,
+      "modifier": "cup, chopped or diced",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 184
+     },
+     {
+      "nutrientId": 1003,
+      "value": 27.39
+     },
+     {
+      "nutrientId": 1004,
+      "value": 7.42
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 172962,
+    "description": "Chicken breast, fat-free, mesquite flavor, sliced",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 42,
+      "amount": 1,
+      "modifier": "serving 2 slices",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 80
+     },
+     {
+      "nutrientId": 1003,
+      "value": 16.8
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.39
+     },
+     {
+      "nutrientId": 1005,
+      "value": 2.25
+     }
+    ]
+   },
+   {
+    "fdcId": 171475,
+    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, fried, batter",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 140,
+      "amount": 0,
+      "modifier": "breast, bone removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 85,
+      "amount": 3,
+      "modifier": "oz",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 84,
+      "amount": 0.5,
+      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 260
+     },
+     {
+      "nutrientId": 1003,
+      "value": 24.84
+     },
+     {
+      "nutrientId": 1004,
+      "value": 13.2
+     },
+     {
+      "nutrientId": 1005,
+      "value": 8.99
+     }
+    ]
+   },
+   {
+    "fdcId": 2705964,
+    "description": "Chicken breast, rotisserie, skin not eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 120,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64696",
+      "gramWeight": 120,
+      "portionDescription": "1 breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 28
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.57
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 144
+     }
+    ]
+   },
+   {
+    "fdcId": 2705963,
+    "description": "Chicken breast, rotisserie, skin eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64696",
+      "gramWeight": 130,
+      "portionDescription": "1 breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 26.4
+     },
+     {
+      "nutrientId": 1004,
+      "value": 7.67
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0.09
+     },
+     {
+      "nutrientId": 1008,
+      "value": 175
+     }
+    ]
+   },
+   {
+    "fdcId": 2705971,
+    "description": "Chicken breast, sauteed, skin eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64697",
+      "gramWeight": 130,
+      "portionDescription": "1 breast, NS as to size"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 110,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 145,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 130,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 25.7
+     },
+     {
+      "nutrientId": 1004,
+      "value": 10.6
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 206
+     }
+    ]
+   },
+   {
+    "fdcId": 2705972,
+    "description": "Chicken breast, sauteed, skin not eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64697",
+      "gramWeight": 120,
+      "portionDescription": "1 breast, NS as to size"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 135,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 120,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 120,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 105,
+      "portionDescription": "1 small breast"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 29.6
+     },
+     {
+      "nutrientId": 1004,
+      "value": 5.45
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 176
      }
     ]
    },
@@ -10909,151 +11780,6 @@
     ]
    },
    {
-    "fdcId": 171076,
-    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, stewed",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 66,
-      "amount": 1,
-      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 110,
-      "amount": 0.5,
-      "modifier": "breast, bone removed",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 140,
-      "amount": 1,
-      "modifier": "cup, chopped or diced",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 184
-     },
-     {
-      "nutrientId": 1003,
-      "value": 27.39
-     },
-     {
-      "nutrientId": 1004,
-      "value": 7.42
-     },
-     {
-      "nutrientId": 1005,
-      "value": 0
-     }
-    ]
-   },
-   {
-    "fdcId": 172963,
-    "description": "Chicken breast, oven-roasted, fat-free, sliced",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 42,
-      "amount": 1,
-      "modifier": "serving 2 slices",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 79
-     },
-     {
-      "nutrientId": 1003,
-      "value": 16.79
-     },
-     {
-      "nutrientId": 1004,
-      "value": 0.39
-     },
-     {
-      "nutrientId": 1005,
-      "value": 2.17
-     }
-    ]
-   },
-   {
-    "fdcId": 171075,
-    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, roasted",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 98,
-      "amount": 0.5,
-      "modifier": "breast, bone removed",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 58,
-      "amount": 1,
-      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 140,
-      "amount": 1,
-      "modifier": "cup, chopped or diced",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 197
-     },
-     {
-      "nutrientId": 1003,
-      "value": 29.8
-     },
-     {
-      "nutrientId": 1004,
-      "value": 7.78
-     },
-     {
-      "nutrientId": 1005,
-      "value": 0
-     }
-    ]
-   },
-   {
     "fdcId": 2705966,
     "description": "Chicken breast, stewed, skin not eaten",
     "dataType": "Survey (FNDDS)",
@@ -11179,57 +11905,212 @@
     ]
    },
    {
-    "fdcId": 171475,
-    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, fried, batter",
-    "dataType": "SR Legacy",
+    "fdcId": 2705953,
+    "description": "Chicken breast, NS as to cooking method, skin eaten",
+    "dataType": "Survey (FNDDS)",
     "foodPortions": [
      {
-      "gramWeight": 140,
-      "amount": 0,
-      "modifier": "breast, bone removed",
       "measureUnit": {
        "id": 9999,
        "name": "undetermined",
        "abbreviation": "undetermined"
-      }
+      },
+      "modifier": "64696",
+      "gramWeight": 130,
+      "portionDescription": "1 breast"
      },
      {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
       "gramWeight": 85,
-      "amount": 3,
-      "modifier": "oz",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 84,
-      "amount": 0.5,
-      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
+      "portionDescription": "1 large or thick slice"
      }
     ],
     "foodNutrients": [
      {
-      "nutrientId": 1008,
-      "value": 260
-     },
-     {
       "nutrientId": 1003,
-      "value": 24.84
+      "value": 26.4
      },
      {
       "nutrientId": 1004,
-      "value": 13.2
+      "value": 7.67
      },
      {
       "nutrientId": 1005,
-      "value": 8.99
+      "value": 0.09
+     },
+     {
+      "nutrientId": 1008,
+      "value": 175
+     }
+    ]
+   },
+   {
+    "fdcId": 2705954,
+    "description": "Chicken breast, NS as to cooking method, skin not eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64696",
+      "gramWeight": 120,
+      "portionDescription": "1 breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 120,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 28
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.57
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 144
      }
     ]
    },
@@ -11369,131 +12250,6 @@
     ]
    },
    {
-    "fdcId": 2705975,
-    "description": "Chicken breast, fried, coated, prepared skinless, coating eaten, from raw",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "61398",
-      "gramWeight": 60,
-      "portionDescription": "1 medium slice"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64700",
-      "gramWeight": 185,
-      "portionDescription": "1 large breast"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64698",
-      "gramWeight": 140,
-      "portionDescription": "1 small breast"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10049",
-      "gramWeight": 135,
-      "portionDescription": "1 cup, cooked, diced"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "40040",
-      "gramWeight": 28.35,
-      "portionDescription": "1 oz, cooked"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "60453",
-      "gramWeight": 155,
-      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "61039",
-      "gramWeight": 85,
-      "portionDescription": "1 large or thick slice"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 165,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64699",
-      "gramWeight": 165,
-      "portionDescription": "1 medium breast"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "62138",
-      "gramWeight": 30,
-      "portionDescription": "1 small or thin slice"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 24.6
-     },
-     {
-      "nutrientId": 1004,
-      "value": 9.99
-     },
-     {
-      "nutrientId": 1005,
-      "value": 6.01
-     },
-     {
-      "nutrientId": 1008,
-      "value": 219
-     }
-    ]
-   },
-   {
     "fdcId": 2705981,
     "description": "Chicken breast, baked, coated, skin / coating not eaten",
     "dataType": "Survey (FNDDS)",
@@ -11625,6 +12381,578 @@
      {
       "nutrientId": 1008,
       "value": 176
+     }
+    ]
+   },
+   {
+    "fdcId": 2705957,
+    "description": "Chicken breast, baked or broiled, skin eaten, from pre-cooked",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 145,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 130,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 110,
+      "portionDescription": "1 small breast"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 26.4
+     },
+     {
+      "nutrientId": 1004,
+      "value": 7.67
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0.09
+     },
+     {
+      "nutrientId": 1008,
+      "value": 175
+     }
+    ]
+   },
+   {
+    "fdcId": 2705958,
+    "description": "Chicken breast, baked or broiled, skin not eaten, from pre-cooked",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 120,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 135,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 120,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 105,
+      "portionDescription": "1 small breast"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 28
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.57
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 144
+     }
+    ]
+   },
+   {
+    "fdcId": 2759004,
+    "description": "Lunchmeat, chicken breast, sliced",
+    "dataType": "Foundation",
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 100.296
+     },
+     {
+      "nutrientId": 1003,
+      "value": 16.4375
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.46
+     },
+     {
+      "nutrientId": 1005,
+      "value": 3.1015
+     }
+    ]
+   },
+   {
+    "fdcId": 2187885,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 284,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "1 CHICKEN BREAST",
+    "brandName": "GIANT EAGLE",
+    "brandOwner": "Giant Eagle, Inc.",
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 165
+     },
+     {
+      "nutrientId": 1004,
+      "value": 8.1
+     },
+     {
+      "nutrientId": 1005,
+      "value": 1.06
+     },
+     {
+      "nutrientId": 1003,
+      "value": 20.42
+     }
+    ]
+   },
+   {
+    "fdcId": 2092152,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 28,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "1 SLICE",
+    "brandName": "TYSON",
+    "brandOwner": "Tyson Foods, Inc.",
+    "foodNutrients": [
+     {
+      "nutrientId": 1004,
+      "value": 8.93
+     },
+     {
+      "nutrientId": 1003,
+      "value": 14.29
+     },
+     {
+      "nutrientId": 1005,
+      "value": 3.57
+     },
+     {
+      "nutrientId": 1008,
+      "value": 143
+     }
+    ]
+   },
+   {
+    "fdcId": 2055943,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 56,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "2 ONZ",
+    "brandName": "BUTTERFIELD FARMS",
+    "brandOwner": "Tony Downs Foods Co",
+    "foodNutrients": [
+     {
+      "nutrientId": 1004,
+      "value": 1.79
+     },
+     {
+      "nutrientId": 1008,
+      "value": 107
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1003,
+      "value": 21.43
+     }
+    ]
+   },
+   {
+    "fdcId": 2125872,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 56,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "2 ONZ",
+    "brandName": "JENNIE-O",
+    "brandOwner": "Jennie-O Turkey Store, Inc.",
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 19.64
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.79
+     },
+     {
+      "nutrientId": 1005,
+      "value": 1.79
+     },
+     {
+      "nutrientId": 1008,
+      "value": 107
+     }
+    ]
+   },
+   {
+    "fdcId": 2096160,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 385,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "1 TRAY",
+    "brandName": "H-E-B",
+    "brandOwner": "H E Butt Grocery Company",
+    "foodNutrients": [
+     {
+      "nutrientId": 1005,
+      "value": 5.71
+     },
+     {
+      "nutrientId": 1004,
+      "value": 4.16
+     },
+     {
+      "nutrientId": 1008,
+      "value": 96
+     },
+     {
+      "nutrientId": 1003,
+      "value": 11.43
+     }
+    ]
+   },
+   {
+    "fdcId": 1935739,
+    "description": "CHICKEN BREAST",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 49,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "3 SLICES",
+    "brandName": "HILLSHIRE FARM",
+    "brandOwner": "The Hillshire Brands Company",
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 18.37
+     },
+     {
+      "nutrientId": 1005,
+      "value": 2.04
+     },
+     {
+      "nutrientId": 1008,
+      "value": 92
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.02
+     }
+    ]
+   },
+   {
+    "fdcId": 2705975,
+    "description": "Chicken breast, fried, coated, prepared skinless, coating eaten, from raw",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 185,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 140,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 165,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 165,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 24.6
+     },
+     {
+      "nutrientId": 1004,
+      "value": 9.99
+     },
+     {
+      "nutrientId": 1005,
+      "value": 6.01
+     },
+     {
+      "nutrientId": 1008,
+      "value": 219
      }
     ]
    },
@@ -11875,131 +13203,6 @@
      {
       "nutrientId": 1008,
       "value": 192
-     }
-    ]
-   },
-   {
-    "fdcId": 2705957,
-    "description": "Chicken breast, baked or broiled, skin eaten, from pre-cooked",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 130,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64700",
-      "gramWeight": 145,
-      "portionDescription": "1 large breast"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10049",
-      "gramWeight": 135,
-      "portionDescription": "1 cup, cooked, diced"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "40040",
-      "gramWeight": 28.35,
-      "portionDescription": "1 oz, cooked"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "61398",
-      "gramWeight": 60,
-      "portionDescription": "1 medium slice"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "60453",
-      "gramWeight": 155,
-      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64699",
-      "gramWeight": 130,
-      "portionDescription": "1 medium breast"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "61039",
-      "gramWeight": 85,
-      "portionDescription": "1 large or thick slice"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "62138",
-      "gramWeight": 30,
-      "portionDescription": "1 small or thin slice"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "64698",
-      "gramWeight": 110,
-      "portionDescription": "1 small breast"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 26.4
-     },
-     {
-      "nutrientId": 1004,
-      "value": 7.67
-     },
-     {
-      "nutrientId": 1005,
-      "value": 0.09
-     },
-     {
-      "nutrientId": 1008,
-      "value": 175
      }
     ]
    },
@@ -12379,10 +13582,30 @@
     ]
    },
    {
-    "fdcId": 2705958,
-    "description": "Chicken breast, baked or broiled, skin not eaten, from pre-cooked",
+    "fdcId": 2705967,
+    "description": "Chicken breast, grilled without sauce, skin eaten",
     "dataType": "Survey (FNDDS)",
     "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
+     },
      {
       "measureUnit": {
        "id": 9999,
@@ -12392,6 +13615,141 @@
       "modifier": "60453",
       "gramWeight": 155,
       "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 130,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 110,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 145,
+      "portionDescription": "1 large breast"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 25.7
+     },
+     {
+      "nutrientId": 1004,
+      "value": 10.6
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 206
+     }
+    ]
+   },
+   {
+    "fdcId": 2705968,
+    "description": "Chicken breast, grilled without sauce, skin not eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 120,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 105,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
      },
      {
       "measureUnit": {
@@ -12419,6 +13777,251 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 135,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 29.6
+     },
+     {
+      "nutrientId": 1004,
+      "value": 5.45
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     },
+     {
+      "nutrientId": 1008,
+      "value": 176
+     }
+    ]
+   },
+   {
+    "fdcId": 171536,
+    "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, with added solution, cooked, grilled",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 192,
+      "amount": 1,
+      "modifier": "piece",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 85,
+      "amount": 3,
+      "modifier": "oz",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 148
+     },
+     {
+      "nutrientId": 1003,
+      "value": 29.5
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.39
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 2705969,
+    "description": "Chicken breast, grilled with sauce, skin eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 175,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 150,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64697",
+      "gramWeight": 175,
+      "portionDescription": "1 breast, NS as to size"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 165,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 220,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 195,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 175,
+      "portionDescription": "1 medium breast"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 21.2
+     },
+     {
+      "nutrientId": 1004,
+      "value": 9.15
+     },
+     {
+      "nutrientId": 1005,
+      "value": 7.34
+     },
+     {
+      "nutrientId": 1008,
+      "value": 202
+     }
+    ]
+   },
+   {
+    "fdcId": 2705970,
+    "description": "Chicken breast, grilled with sauce, skin not eaten",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
       "modifier": "61398",
       "gramWeight": 60,
       "portionDescription": "1 medium slice"
@@ -12439,6 +14042,26 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       },
+      "modifier": "64699",
+      "gramWeight": 165,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 210,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
       "modifier": "61039",
       "gramWeight": 85,
       "portionDescription": "1 large or thick slice"
@@ -12449,8 +14072,18 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       },
+      "modifier": "64698",
+      "gramWeight": 140,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
       "modifier": "64700",
-      "gramWeight": 135,
+      "gramWeight": 185,
       "portionDescription": "1 large breast"
      },
      {
@@ -12459,9 +14092,134 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       },
+      "modifier": "10049",
+      "gramWeight": 165,
+      "portionDescription": "1 cup, cooked, diced"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64697",
+      "gramWeight": 165,
+      "portionDescription": "1 breast, NS as to size"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 165,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 24.3
+     },
+     {
+      "nutrientId": 1004,
+      "value": 4.93
+     },
+     {
+      "nutrientId": 1005,
+      "value": 7.34
+     },
+     {
+      "nutrientId": 1008,
+      "value": 178
+     }
+    ]
+   },
+   {
+    "fdcId": 2705961,
+    "description": "Chicken breast, baked, broiled, or roasted with marinade, skin eaten, from raw",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
       "modifier": "64699",
-      "gramWeight": 120,
+      "gramWeight": 130,
       "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64698",
+      "gramWeight": 110,
+      "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
      },
      {
       "measureUnit": {
@@ -12479,130 +14237,172 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       },
+      "modifier": "64700",
+      "gramWeight": 145,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 25.3
+     },
+     {
+      "nutrientId": 1004,
+      "value": 10.4
+     },
+     {
+      "nutrientId": 1005,
+      "value": 0.31
+     },
+     {
+      "nutrientId": 1008,
+      "value": 204
+     }
+    ]
+   },
+   {
+    "fdcId": 2705962,
+    "description": "Chicken breast, baked, broiled, or roasted with marinade, skin not eaten, from raw",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61039",
+      "gramWeight": 85,
+      "portionDescription": "1 large or thick slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64699",
+      "gramWeight": 120,
+      "portionDescription": "1 medium breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60453",
+      "gramWeight": 155,
+      "portionDescription": "1 breast quarter (yield after cooking, bone removed)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "62138",
+      "gramWeight": 30,
+      "portionDescription": "1 small or thin slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "64700",
+      "gramWeight": 135,
+      "portionDescription": "1 large breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
       "modifier": "64698",
       "gramWeight": 105,
       "portionDescription": "1 small breast"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "61398",
+      "gramWeight": 60,
+      "portionDescription": "1 medium slice"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40040",
+      "gramWeight": 28.35,
+      "portionDescription": "1 oz, cooked"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 120,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10049",
+      "gramWeight": 135,
+      "portionDescription": "1 cup, cooked, diced"
      }
     ],
     "foodNutrients": [
      {
       "nutrientId": 1003,
-      "value": 28
+      "value": 29.1
      },
      {
       "nutrientId": 1004,
-      "value": 3.57
+      "value": 5.38
      },
      {
       "nutrientId": 1005,
-      "value": 0
+      "value": 0.31
      },
      {
       "nutrientId": 1008,
-      "value": 144
+      "value": 175
      }
     ]
    },
    {
-    "fdcId": 172962,
-    "description": "Chicken breast, fat-free, mesquite flavor, sliced",
+    "fdcId": 171535,
+    "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, with added solution, cooked, braised",
     "dataType": "SR Legacy",
     "foodPortions": [
      {
-      "gramWeight": 42,
-      "amount": 1,
-      "modifier": "serving 2 slices",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 80
-     },
-     {
-      "nutrientId": 1003,
-      "value": 16.8
-     },
-     {
-      "nutrientId": 1004,
-      "value": 0.39
-     },
-     {
-      "nutrientId": 1005,
-      "value": 2.25
-     }
-    ]
-   },
-   {
-    "fdcId": 2646170,
-    "description": "Chicken, breast, boneless, skinless, raw",
-    "dataType": "Foundation",
-    "foodPortions": [
-     {
-      "gramWeight": 114,
-      "amount": 1,
-      "measureUnit": {
-       "id": 1121,
-       "name": "RACC",
-       "abbreviation": "RACC"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 2047,
-      "value": 106.034
-     },
-     {
-      "nutrientId": 2048,
-      "value": 112.20227
-     },
-     {
-      "nutrientId": 1003,
-      "value": 22.525
-     },
-     {
-      "nutrientId": 1004,
-      "value": 1.934
-     },
-     {
-      "nutrientId": 1005,
-      "value": 0
-     }
-    ]
-   },
-   {
-    "fdcId": 171077,
-    "description": "Chicken, broiler or fryers, breast, skinless, boneless, meat only, raw",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 113,
-      "amount": 4,
-      "modifier": "oz",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 926,
-      "amount": 1,
-      "modifier": "package",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     },
-     {
-      "gramWeight": 272,
+      "gramWeight": 195,
       "amount": 1,
       "modifier": "piece",
       "measureUnit": {
@@ -12610,24 +14410,79 @@
        "name": "undetermined",
        "abbreviation": "undetermined"
       }
+     },
+     {
+      "gramWeight": 85,
+      "amount": 3,
+      "modifier": "oz",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
      }
     ],
     "foodNutrients": [
      {
       "nutrientId": 1008,
-      "value": 120
+      "value": 145
      },
      {
       "nutrientId": 1003,
-      "value": 22.5
+      "value": 28.24
      },
      {
       "nutrientId": 1004,
-      "value": 2.62
+      "value": 3.61
      },
      {
       "nutrientId": 1005,
       "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 171476,
+    "description": "Chicken, broilers or fryers, breast, meat and skin, cooked, fried, flour",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 59,
+      "amount": 1,
+      "modifier": "unit (yield from 1 lb ready-to-cook chicken)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     },
+     {
+      "gramWeight": 98,
+      "amount": 0.5,
+      "modifier": "breast, bone removed",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 222
+     },
+     {
+      "nutrientId": 1003,
+      "value": 31.84
+     },
+     {
+      "nutrientId": 1004,
+      "value": 8.87
+     },
+     {
+      "nutrientId": 1005,
+      "value": 1.64
      }
     ]
    }
@@ -17332,6 +19187,82 @@
   ],
   "details": [
    {
+    "fdcId": 2710825,
+    "description": "Rice, black, unenriched, raw",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 45,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 369.97
+     },
+     {
+      "nutrientId": 2048,
+      "value": 360.53871
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.56875
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.438
+     },
+     {
+      "nutrientId": 1005,
+      "value": 77.18825
+     }
+    ]
+   },
+   {
+    "fdcId": 2710821,
+    "description": "Wild rice, dry, raw",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 45,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 369.164
+     },
+     {
+      "nutrientId": 2048,
+      "value": 358.55263
+     },
+     {
+      "nutrientId": 1003,
+      "value": 12.7875
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.704
+     },
+     {
+      "nutrientId": 1005,
+      "value": 75.6695
+     }
+    ]
+   },
+   {
     "fdcId": 168897,
     "description": "Wild rice, cooked",
     "dataType": "SR Legacy",
@@ -17363,6 +19294,86 @@
      {
       "nutrientId": 1005,
       "value": 21.34
+     }
+    ]
+   },
+   {
+    "fdcId": 169726,
+    "description": "Wild rice, raw",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 160,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 357
+     },
+     {
+      "nutrientId": 1003,
+      "value": 14.73
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.08
+     },
+     {
+      "nutrientId": 1005,
+      "value": 74.9
+     }
+    ]
+   },
+   {
+    "fdcId": 2708952,
+    "description": "Rice, fried, NFS",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 198,
+      "portionDescription": "1 cup"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 198,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 3.84
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.19
+     },
+     {
+      "nutrientId": 1005,
+      "value": 32.5
+     },
+     {
+      "nutrientId": 1008,
+      "value": 174
      }
     ]
    },
@@ -17408,6 +19419,1219 @@
      {
       "nutrientId": 1008,
       "value": 129
+     }
+    ]
+   },
+   {
+    "fdcId": 2708951,
+    "description": "Rice, fried, meatless",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 166,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 166,
+      "portionDescription": "1 cup"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 3.84
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.19
+     },
+     {
+      "nutrientId": 1005,
+      "value": 32.5
+     },
+     {
+      "nutrientId": 1008,
+      "value": 174
+     }
+    ]
+   },
+   {
+    "fdcId": 2708422,
+    "description": "Rice, white, cooked, glutinous",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 130,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10043",
+      "gramWeight": 174,
+      "portionDescription": "1 cup, cooked"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 2.01
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.19
+     },
+     {
+      "nutrientId": 1005,
+      "value": 21
+     },
+     {
+      "nutrientId": 1008,
+      "value": 96
+     }
+    ]
+   },
+   {
+    "fdcId": 2709078,
+    "description": "Dirty rice",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 148,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 198,
+      "portionDescription": "1 cup"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 5.12
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.25
+     },
+     {
+      "nutrientId": 1005,
+      "value": 17.2
+     },
+     {
+      "nutrientId": 1008,
+      "value": 112
+     }
+    ]
+   },
+   {
+    "fdcId": 2709089,
+    "description": "Rice dressing",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 125,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 167,
+      "portionDescription": "1 cup"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 1.98
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.29
+     },
+     {
+      "nutrientId": 1005,
+      "value": 17.6
+     },
+     {
+      "nutrientId": 1008,
+      "value": 110
+     }
+    ]
+   },
+   {
+    "fdcId": 2708166,
+    "description": "Rice paper",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "63691",
+      "gramWeight": 15,
+      "portionDescription": "1 medium paper (8-5/8\" dia)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "63692",
+      "gramWeight": 20,
+      "portionDescription": "1 large paper (12-3/8\" dia)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 18,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "63690",
+      "gramWeight": 5,
+      "portionDescription": "1 small paper (6-3/8\" dia)"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 5.91
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.11
+     },
+     {
+      "nutrientId": 1005,
+      "value": 72.3
+     },
+     {
+      "nutrientId": 1008,
+      "value": 323
+     }
+    ]
+   },
+   {
+    "fdcId": 2709077,
+    "description": "Rice pilaf",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 155,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 206,
+      "portionDescription": "1 cup"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 3.29
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.03
+     },
+     {
+      "nutrientId": 1005,
+      "value": 24.1
+     },
+     {
+      "nutrientId": 1008,
+      "value": 137
+     }
+    ]
+   },
+   {
+    "fdcId": 2709071,
+    "description": "Rice croquette",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "60638",
+      "gramWeight": 62,
+      "portionDescription": "1 croquette (1-1/2\" dia, 2\" high)"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 62,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 3.35
+     },
+     {
+      "nutrientId": 1004,
+      "value": 6.58
+     },
+     {
+      "nutrientId": 1005,
+      "value": 20.1
+     },
+     {
+      "nutrientId": 1008,
+      "value": 154
+     }
+    ]
+   },
+   {
+    "fdcId": 2705411,
+    "description": "Rice milk",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "30000",
+      "gramWeight": 30.5,
+      "portionDescription": "1 fl oz"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "63480",
+      "gramWeight": 2.5,
+      "portionDescription": "Guideline amount per fl oz of beverage"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 244,
+      "portionDescription": "1 cup"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "63546",
+      "gramWeight": 61,
+      "portionDescription": "Guideline amount per cup of hot cereal"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 244,
+      "portionDescription": "Quantity not specified"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 0.28
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.97
+     },
+     {
+      "nutrientId": 1005,
+      "value": 9.17
+     },
+     {
+      "nutrientId": 1008,
+      "value": 47
+     }
+    ]
+   },
+   {
+    "fdcId": 2709085,
+    "description": "Spanish rice, fat added",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 182,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10205",
+      "gramWeight": 243,
+      "portionDescription": "1 cup"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 2.87
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.6
+     },
+     {
+      "nutrientId": 1005,
+      "value": 19.6
+     },
+     {
+      "nutrientId": 1008,
+      "value": 115
+     }
+    ]
+   },
+   {
+    "fdcId": 173900,
+    "description": "Cereals, CREAM OF RICE, dry",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 45,
+      "amount": 0.25,
+      "modifier": "cup (1 NLEA serving)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 370
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.3
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.5
+     },
+     {
+      "nutrientId": 1005,
+      "value": 82.4
+     }
+    ]
+   },
+   {
+    "fdcId": 2708415,
+    "description": "Cream of rice",
+    "dataType": "Survey (FNDDS)",
+    "foodPortions": [
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "40049",
+      "gramWeight": 155,
+      "portionDescription": "1 oz, dry, yields"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10074",
+      "gramWeight": 815,
+      "portionDescription": "1 cup, dry, yields"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "90000",
+      "gramWeight": 240,
+      "portionDescription": "Quantity not specified"
+     },
+     {
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      },
+      "modifier": "10043",
+      "gramWeight": 240,
+      "portionDescription": "1 cup, cooked"
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 1.17
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.09
+     },
+     {
+      "nutrientId": 1005,
+      "value": 15.3
+     },
+     {
+      "nutrientId": 1008,
+      "value": 69
+     }
+    ]
+   },
+   {
+    "fdcId": 2779256,
+    "description": "Brown rice, puffed",
+    "dataType": "Foundation",
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 377.14
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.8125
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.76
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80.2625
+     }
+    ]
+   },
+   {
+    "fdcId": 2779250,
+    "description": "Rice, white, puffed",
+    "dataType": "Foundation",
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 370.83
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.9375
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.97
+     },
+     {
+      "nutrientId": 1005,
+      "value": 83.5875
+     }
+    ]
+   },
+   {
+    "fdcId": 2779248,
+    "description": "Brown rice, puffed, organic",
+    "dataType": "Foundation",
+    "foodNutrients": [
+     {
+      "nutrientId": 2047,
+      "value": 384.52
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.5
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.8
+     },
+     {
+      "nutrientId": 1005,
+      "value": 82.33
+     }
+    ]
+   },
+   {
+    "fdcId": 168898,
+    "description": "Rice flour, brown",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 158,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 363
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.23
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.78
+     },
+     {
+      "nutrientId": 1005,
+      "value": 76.48
+     }
+    ]
+   },
+   {
+    "fdcId": 169714,
+    "description": "Rice flour, white, unenriched",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 158,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 366
+     },
+     {
+      "nutrientId": 1003,
+      "value": 5.95
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.42
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80.13
+     }
+    ]
+   },
+   {
+    "fdcId": 173161,
+    "description": "Rice crackers",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 30,
+      "amount": 1,
+      "modifier": "serving",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 416
+     },
+     {
+      "nutrientId": 1003,
+      "value": 10
+     },
+     {
+      "nutrientId": 1004,
+      "value": 5
+     },
+     {
+      "nutrientId": 1005,
+      "value": 82.64
+     }
+    ]
+   },
+   {
+    "fdcId": 168914,
+    "description": "Rice noodles, cooked",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 176,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 108
+     },
+     {
+      "nutrientId": 1003,
+      "value": 1.79
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.2
+     },
+     {
+      "nutrientId": 1005,
+      "value": 24.01
+     }
+    ]
+   },
+   {
+    "fdcId": 169713,
+    "description": "Rice bran, crude",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 118,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 316
+     },
+     {
+      "nutrientId": 1003,
+      "value": 13.35
+     },
+     {
+      "nutrientId": 1004,
+      "value": 20.85
+     },
+     {
+      "nutrientId": 1005,
+      "value": 49.69
+     }
+    ]
+   },
+   {
+    "fdcId": 168107,
+    "description": "Rice cake, cracker (include hain mini rice cakes)",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 4.2,
+      "amount": 1,
+      "modifier": "cubic inch",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 392
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.1
+     },
+     {
+      "nutrientId": 1004,
+      "value": 4.3
+     },
+     {
+      "nutrientId": 1005,
+      "value": 81.1
+     }
+    ]
+   },
+   {
+    "fdcId": 169742,
+    "description": "Rice noodles, dry",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 57,
+      "amount": 2,
+      "modifier": "oz",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 364
+     },
+     {
+      "nutrientId": 1003,
+      "value": 5.95
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.56
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80.18
+     }
+    ]
+   },
+   {
+    "fdcId": 173006,
+    "description": "Rice and Wheat cereal bar",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 22,
+      "amount": 1,
+      "modifier": "bar",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 409
+     },
+     {
+      "nutrientId": 1003,
+      "value": 9.09
+     },
+     {
+      "nutrientId": 1004,
+      "value": 9.09
+     },
+     {
+      "nutrientId": 1005,
+      "value": 72.73
+     }
+    ]
+   },
+   {
+    "fdcId": 171942,
+    "description": "Beverages, rice milk, unsweetened",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 240,
+      "amount": 8,
+      "modifier": "fl oz (approximate weight, 1 serving)",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 47
+     },
+     {
+      "nutrientId": 1003,
+      "value": 0.28
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0.97
+     },
+     {
+      "nutrientId": 1005,
+      "value": 9.17
+     }
+    ]
+   },
+   {
+    "fdcId": 1104812,
+    "description": "Flour, rice, brown",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 30,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 365.25
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.19
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.85
+     },
+     {
+      "nutrientId": 1005,
+      "value": 75.5
+     }
+    ]
+   },
+   {
+    "fdcId": 1104867,
+    "description": "Flour, rice, glutinous",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 30,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 358
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.69
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.16
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80.1
+     }
+    ]
+   },
+   {
+    "fdcId": 790214,
+    "description": "Flour, rice, white, unenriched",
+    "dataType": "Foundation",
+    "foodPortions": [
+     {
+      "gramWeight": 30,
+      "amount": 1,
+      "measureUnit": {
+       "id": 1121,
+       "name": "RACC",
+       "abbreviation": "RACC"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 359
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.94
+     },
+     {
+      "nutrientId": 1004,
+      "value": 1.3
+     },
+     {
+      "nutrientId": 1005,
+      "value": 79.8
+     }
+    ]
+   },
+   {
+    "fdcId": 356554,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 144,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "1 cup",
+    "brandOwner": "FRESH & EASY",
+    "foodNutrients": [
+     {
+      "nutrientId": 1005,
+      "value": 26.39
+     },
+     {
+      "nutrientId": 1004,
+      "value": 2.43
+     },
+     {
+      "nutrientId": 1008,
+      "value": 139
+     },
+     {
+      "nutrientId": 1003,
+      "value": 3.47
+     }
+    ]
+   },
+   {
+    "fdcId": 2077766,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 45,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "0.25 cup",
+    "brandName": "WINDMILL RICE",
+    "brandOwner": "Windmill Rice Co., LLC",
+    "foodNutrients": [
+     {
+      "nutrientId": 1005,
+      "value": 77.78
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.67
+     },
+     {
+      "nutrientId": 1008,
+      "value": 356
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 356582,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 45,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "0.25 cup",
+    "brandOwner": "FRESH & EASY",
+    "foodNutrients": [
+     {
+      "nutrientId": 1004,
+      "value": 0
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.67
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80
+     },
+     {
+      "nutrientId": 1008,
+      "value": 356
+     }
+    ]
+   },
+   {
+    "fdcId": 1888780,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 45,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "0.25 cup",
+    "brandName": "TEXAS",
+    "brandOwner": "Gulf Rice Milling, Inc.",
+    "foodNutrients": [
+     {
+      "nutrientId": 1003,
+      "value": 6.67
+     },
+     {
+      "nutrientId": 1005,
+      "value": 80
+     },
+     {
+      "nutrientId": 1008,
+      "value": 356
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0
+     }
+    ]
+   },
+   {
+    "fdcId": 2021679,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 47,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "0.25 cup",
+    "brandName": "RICO",
+    "brandOwner": "Pan American Grain Mfg. Co. Inc,",
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 340
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.38
+     },
+     {
+      "nutrientId": 1004,
+      "value": 0
+     },
+     {
+      "nutrientId": 1005,
+      "value": 78.72
+     }
+    ]
+   },
+   {
+    "fdcId": 2116789,
+    "description": "RICE",
+    "dataType": "Branded",
+    "foodPortions": [],
+    "servingSize": 45,
+    "servingSizeUnit": "g",
+    "householdServingFullText": "1/4 cup",
+    "brandName": "RICESELECT",
+    "brandOwner": "Riviana Foods Inc.",
+    "foodNutrients": [
+     {
+      "nutrientId": 1004,
+      "value": 0
+     },
+     {
+      "nutrientId": 1003,
+      "value": 6.67
+     },
+     {
+      "nutrientId": 1008,
+      "value": 333
+     },
+     {
+      "nutrientId": 1005,
+      "value": 75.56
      }
     ]
    },
@@ -17622,51 +20846,6 @@
     ]
    },
    {
-    "fdcId": 2708422,
-    "description": "Rice, white, cooked, glutinous",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 130,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10043",
-      "gramWeight": 174,
-      "portionDescription": "1 cup, cooked"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 2.01
-     },
-     {
-      "nutrientId": 1004,
-      "value": 0.19
-     },
-     {
-      "nutrientId": 1005,
-      "value": 21
-     },
-     {
-      "nutrientId": 1008,
-      "value": 96
-     }
-    ]
-   },
-   {
     "fdcId": 169708,
     "description": "Rice, white, long-grain, parboiled, enriched, cooked",
     "dataType": "SR Legacy",
@@ -17768,309 +20947,6 @@
      {
       "nutrientId": 1005,
       "value": 31.33
-     }
-    ]
-   },
-   {
-    "fdcId": 2705411,
-    "description": "Rice milk",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "30000",
-      "gramWeight": 30.5,
-      "portionDescription": "1 fl oz"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "63480",
-      "gramWeight": 2.5,
-      "portionDescription": "Guideline amount per fl oz of beverage"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10205",
-      "gramWeight": 244,
-      "portionDescription": "1 cup"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "63546",
-      "gramWeight": 61,
-      "portionDescription": "Guideline amount per cup of hot cereal"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 244,
-      "portionDescription": "Quantity not specified"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 0.28
-     },
-     {
-      "nutrientId": 1004,
-      "value": 0.97
-     },
-     {
-      "nutrientId": 1005,
-      "value": 9.17
-     },
-     {
-      "nutrientId": 1008,
-      "value": 47
-     }
-    ]
-   },
-   {
-    "fdcId": 2708166,
-    "description": "Rice paper",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "63691",
-      "gramWeight": 15,
-      "portionDescription": "1 medium paper (8-5/8\" dia)"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "63692",
-      "gramWeight": 20,
-      "portionDescription": "1 large paper (12-3/8\" dia)"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 18,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "63690",
-      "gramWeight": 5,
-      "portionDescription": "1 small paper (6-3/8\" dia)"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 5.91
-     },
-     {
-      "nutrientId": 1004,
-      "value": 1.11
-     },
-     {
-      "nutrientId": 1005,
-      "value": 72.3
-     },
-     {
-      "nutrientId": 1008,
-      "value": 323
-     }
-    ]
-   },
-   {
-    "fdcId": 2709071,
-    "description": "Rice croquette",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "60638",
-      "gramWeight": 62,
-      "portionDescription": "1 croquette (1-1/2\" dia, 2\" high)"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 62,
-      "portionDescription": "Quantity not specified"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 3.35
-     },
-     {
-      "nutrientId": 1004,
-      "value": 6.58
-     },
-     {
-      "nutrientId": 1005,
-      "value": 20.1
-     },
-     {
-      "nutrientId": 1008,
-      "value": 154
-     }
-    ]
-   },
-   {
-    "fdcId": 2709085,
-    "description": "Spanish rice, fat added",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 182,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10205",
-      "gramWeight": 243,
-      "portionDescription": "1 cup"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 2.87
-     },
-     {
-      "nutrientId": 1004,
-      "value": 2.6
-     },
-     {
-      "nutrientId": 1005,
-      "value": 19.6
-     },
-     {
-      "nutrientId": 1008,
-      "value": 115
-     }
-    ]
-   },
-   {
-    "fdcId": 169726,
-    "description": "Wild rice, raw",
-    "dataType": "SR Legacy",
-    "foodPortions": [
-     {
-      "gramWeight": 160,
-      "amount": 1,
-      "modifier": "cup",
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1008,
-      "value": 357
-     },
-     {
-      "nutrientId": 1003,
-      "value": 14.73
-     },
-     {
-      "nutrientId": 1004,
-      "value": 1.08
-     },
-     {
-      "nutrientId": 1005,
-      "value": 74.9
-     }
-    ]
-   },
-   {
-    "fdcId": 2710821,
-    "description": "Wild rice, dry, raw",
-    "dataType": "Foundation",
-    "foodPortions": [
-     {
-      "gramWeight": 45,
-      "amount": 1,
-      "measureUnit": {
-       "id": 1121,
-       "name": "RACC",
-       "abbreviation": "RACC"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 2047,
-      "value": 369.164
-     },
-     {
-      "nutrientId": 2048,
-      "value": 358.55263
-     },
-     {
-      "nutrientId": 1003,
-      "value": 12.7875
-     },
-     {
-      "nutrientId": 1004,
-      "value": 1.704
-     },
-     {
-      "nutrientId": 1005,
-      "value": 75.6695
      }
     ]
    },
@@ -18186,44 +21062,6 @@
     ]
    },
    {
-    "fdcId": 2710825,
-    "description": "Rice, black, unenriched, raw",
-    "dataType": "Foundation",
-    "foodPortions": [
-     {
-      "gramWeight": 45,
-      "amount": 1,
-      "measureUnit": {
-       "id": 1121,
-       "name": "RACC",
-       "abbreviation": "RACC"
-      }
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 2047,
-      "value": 369.97
-     },
-     {
-      "nutrientId": 2048,
-      "value": 360.53871
-     },
-     {
-      "nutrientId": 1003,
-      "value": 7.56875
-     },
-     {
-      "nutrientId": 1004,
-      "value": 3.438
-     },
-     {
-      "nutrientId": 1005,
-      "value": 77.18825
-     }
-    ]
-   },
-   {
     "fdcId": 2710838,
     "description": "Rice, red, unenriched, dry, raw",
     "dataType": "Foundation",
@@ -18258,71 +21096,6 @@
      {
       "nutrientId": 1005,
       "value": 76.1545
-     }
-    ]
-   },
-   {
-    "fdcId": 2708415,
-    "description": "Cream of rice",
-    "dataType": "Survey (FNDDS)",
-    "foodPortions": [
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "40049",
-      "gramWeight": 155,
-      "portionDescription": "1 oz, dry, yields"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10074",
-      "gramWeight": 815,
-      "portionDescription": "1 cup, dry, yields"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "90000",
-      "gramWeight": 240,
-      "portionDescription": "Quantity not specified"
-     },
-     {
-      "measureUnit": {
-       "id": 9999,
-       "name": "undetermined",
-       "abbreviation": "undetermined"
-      },
-      "modifier": "10043",
-      "gramWeight": 240,
-      "portionDescription": "1 cup, cooked"
-     }
-    ],
-    "foodNutrients": [
-     {
-      "nutrientId": 1003,
-      "value": 1.17
-     },
-     {
-      "nutrientId": 1004,
-      "value": 0.09
-     },
-     {
-      "nutrientId": 1005,
-      "value": 15.3
-     },
-     {
-      "nutrientId": 1008,
-      "value": 69
      }
     ]
    },
@@ -18368,6 +21141,41 @@
      {
       "nutrientId": 1008,
       "value": 164
+     }
+    ]
+   },
+   {
+    "fdcId": 169703,
+    "description": "Rice, brown, long-grain, raw (Includes foods for USDA's Food Distribution Program)",
+    "dataType": "SR Legacy",
+    "foodPortions": [
+     {
+      "gramWeight": 185,
+      "amount": 1,
+      "modifier": "cup",
+      "measureUnit": {
+       "id": 9999,
+       "name": "undetermined",
+       "abbreviation": "undetermined"
+      }
+     }
+    ],
+    "foodNutrients": [
+     {
+      "nutrientId": 1008,
+      "value": 367
+     },
+     {
+      "nutrientId": 1003,
+      "value": 7.54
+     },
+     {
+      "nutrientId": 1004,
+      "value": 3.2
+     },
+     {
+      "nutrientId": 1005,
+      "value": 76.25
      }
     ]
    }

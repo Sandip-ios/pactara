@@ -3,11 +3,11 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { remoteMealFoods } from '../meal-food-search.server';
 
 afterEach(()=>{vi.useRealTimers();vi.unstubAllGlobals();vi.unstubAllEnvs();});
-function adminMock(claimed=true){
+function adminMock(claimed=true,cachedFoods:Record<string,unknown>[]=[]){
  const writes=vi.fn();
  const rpc=vi.fn(()=>builder({data:claimed,error:null}));
  function builder(result:unknown){const b:Record<string,unknown>={then:(resolve:(r:unknown)=>unknown)=>Promise.resolve(result).then(resolve)};for(const method of ['select','eq','in','is','abortSignal','maybeSingle','upsert'])b[method]=()=>b;return b;}
- const from=vi.fn((table:string)=>{const b=builder({data:table==='meal_food_searches'?null:[],error:null});b['upsert']=(value:unknown)=>{writes({table,value});return b;};return b;});
+ const from=vi.fn((table:string)=>{const b=builder({data:table==='meal_food_searches'?null:table==='meal_foods'?cachedFoods:[],error:null});b['upsert']=(value:unknown)=>{writes({table,value});return b;};return b;});
  return {admin:{from,rpc} as unknown as SupabaseClient,rpc,writes};
 }
 describe('USDA search execution',()=>{
@@ -28,6 +28,15 @@ describe('USDA search execution',()=>{
   expect(rpc.mock.calls).toEqual([['claim_meal_usda_search',{_requests:5}]]);
   expect(sizes).toEqual([200,50,6]);expect(searches).toBe(3);expect(details).toBe(2);expect(max).toBe(3);expect(detailedIds).toBe(25);
   expect(result.error).toBe(false);expect(result.foods.length).toBe(24);
+ });
+ it('refreshes cached vague portions rather than retaining the obsolete unit label',async()=>{
+  const {admin}=adminMock(true,[{id:'usda:1',name:'Rice, cooked',owner_id:null,portions:[{unit:'serving',grams:158}],nutrition:{calories:130,protein:3,carbs:28,fat:0}}]);vi.stubEnv('USDA_API_KEY','test-only');let details=0;
+  vi.stubGlobal('fetch',vi.fn(async(url:string)=>{
+   if(url.endsWith('foods/search'))return new Response(JSON.stringify({foods:[{fdcId:1,description:'Rice, cooked',dataType:'Survey (FNDDS)'}]}));
+   details++;return new Response(JSON.stringify([{fdcId:1,foodPortions:[{modifier:'10043',portionDescription:'1 cup, cooked',gramWeight:158}]}]));
+  }));
+  const result=await remoteMealFoods(admin,'rice',false,new AbortController().signal);
+  expect(details).toBe(1);expect(result.foods[0]?.portions[0]).toEqual({unit:'cup',grams:158});
  });
  it('a refused limiter does not call USDA and returns a non-error fallback for local results',async()=>{
   const {admin,rpc}=adminMock(false);const fetchMock=vi.fn();vi.stubGlobal('fetch',fetchMock);
