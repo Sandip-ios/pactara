@@ -9,9 +9,17 @@ import { newToast } from "../new-toast";
 import { WhoSeesIt, useComposeContext, SheetActions } from "./ComposeParts";
 import { WorkoutAttachment } from "./WorkoutAttachment";
 import { MealAttachment } from "../MealViews";
-import { editWorkoutChoice } from "@/lib/post-edit-attachment";
 import { audienceLabel, defaultAudience, type PostAudience } from "@/lib/post-audience";
 import type { PostWorkoutChoice, SocialPostView } from "@/lib/social-post-types";
+
+function editChoice(post: SocialPostView): PostWorkoutChoice {
+  const workout = post.workout;
+  if (!workout) return null;
+  if (workout.source === "caption") return { source: "caption", moves: workout.moves.map((m) => ({ exerciseId: m.exerciseId, name: m.name, imageStart: m.imageStart, sets: m.sets.length, reps: m.sets[0]?.reps ?? 10 })) };
+  if (workout.source === "session" && post.workoutSessionId) return { source: "session", id: post.workoutSessionId };
+  if (workout.source === "saved" && post.workoutId) return { source: "saved", id: post.workoutId };
+  return null;
+}
 
 const POST_LISTS = [["home-social-posts"], ["my-social-posts"], ["crew-social-posts"]] as const;
 
@@ -30,12 +38,10 @@ export function OwnPostMenu({ post, open, onOpenChange, onDeleted }: { post: Soc
   const [editing, setEditing] = useState(false);
   const [caption, setCaption] = useState("");
   const [workout, setWorkout] = useState<PostWorkoutChoice>(null);
-  const [workoutChanged, setWorkoutChanged] = useState(false);
-  const [mealId, setMealId] = useState<string | null | undefined>(undefined);
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const refreshLists = () => Promise.all([qc.invalidateQueries({ queryKey: ["social-post", post.id] }), qc.invalidateQueries({ queryKey: ["meal-attachment", "post", post.id] }), ...POST_LISTS.map((k) => qc.invalidateQueries({ queryKey: [...k] }))]);
+  const refreshLists = () => Promise.all([qc.invalidateQueries({ queryKey: ["social-post", post.id] }), ...POST_LISTS.map((k) => qc.invalidateQueries({ queryKey: [...k] }))]);
   const remove = async () => {
     setBusy(true);
     setErr(null);
@@ -51,15 +57,13 @@ export function OwnPostMenu({ post, open, onOpenChange, onDeleted }: { post: Soc
   const openEditor = () => {
     setMenu(false);
     setCaption(post.caption);
-    setWorkout(editWorkoutChoice(post));
-    setWorkoutChanged(false);
-    setMealId(undefined);
+    setWorkout(editChoice(post));
     setEditing(true);
   };
   const saveContent = async () => {
     setBusy(true);
     try {
-      await contentFn({ data: { id: post.id, caption, workout, keepWorkout: !workoutChanged, ...(mealId !== undefined ? { mealId } : {}) } });
+      await contentFn({ data: { id: post.id, caption, workout } });
       await refreshLists();
       setEditing(false);
     } catch { newToast("Couldn't save. Try again."); } finally { setBusy(false); }
@@ -91,8 +95,8 @@ export function OwnPostMenu({ post, open, onOpenChange, onDeleted }: { post: Soc
       </NewSheet>
       <NewSheet open={editing} onOpenChange={setEditing} title="Edit caption and workout" compose>
         <textarea value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={2200} rows={4} aria-label="Caption" className="w-full resize-none rounded-[14px] bg-[var(--new-control)] p-3 text-[16px] outline-none" />
-        {ctx.data ? <WorkoutAttachment ctx={ctx.data} suggestions={[]} workout={workout} snapshot={workoutChanged ? null : post.workout} inset={false} onChange={w => { setWorkout(w); setWorkoutChanged(true); }} /> : <div className="mt-3 h-14 animate-pulse rounded-[14px] bg-[var(--new-control)]" />}
-        {(post.meal || mealId !== undefined) && <MealAttachment postId={post.id} mealId={mealId} onChange={setMealId} inset={false} />}
+        {ctx.data ? <WorkoutAttachment ctx={ctx.data} suggestions={[]} workout={workout} onChange={setWorkout} inset={false} /> : <div className="mt-3 h-14 animate-pulse rounded-[14px] bg-[var(--new-control)]" />}
+        {post.meal && <MealAttachment postId={post.id} inset={false} />}
         <NewSheetButton disabled={busy || !ctx.data} onClick={() => void saveContent()}>Save</NewSheetButton>
       </NewSheet>
       <NewSheet open={audienceOpen} onOpenChange={setAudienceOpen} title="Who sees it" hideTitle compose>

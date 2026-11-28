@@ -7,7 +7,6 @@ import {
   postExerciseDose,
   postSectionCanSave,
   postWorkoutDetail,
-  postWorkoutSummary,
   sectionPreview,
   type PostMeal,
 } from "@/lib/post-sections";
@@ -32,7 +31,7 @@ export function PostWorkoutCard({
 }) {
   const [open, setOpen] = useState(false);
   const preview = sectionPreview(workout.moves);
-  const line = checkIn?.card.line || postWorkoutSummary(workout);
+  const line = checkIn?.card.line || `${workout.moves.length} exercises · ${workout.sets} sets${workout.minutes > 0 ? ` · ${workout.minutes} min` : ""}`;
   const action = postSectionCanSave(isMine) ? (
     <PostAttachmentSave postId={postId} kind="workout" checkIn={!!checkIn} />
   ) : null;

@@ -65,24 +65,3 @@ export async function attachmentSnapshot(context:Context,kind:'post'|'checkin',i
  const {data}=await admin.from('meal_attachments').select('snapshot').eq('kind',kind).eq('content_id',id).maybeSingle();
  return data?mealForViewer(normalizeMealSnapshot(data.snapshot as unknown as MealSnapshot),under18):null;
 }
-
-/** Edit only the caller's post; keep protected numbers in the attachment store. */
-export async function updatePostMealAttachment(context:Context,postId:string,mealId:string|null) {
- const {data:post,error}=await context.supabase.from('social_posts').select('id').eq('id',postId).eq('user_id',context.userId).single();
- if(error||!post) throw new Error('Post unavailable');
- const {admin}=await mealAccess(context);
- if(mealId===null){
-  const removed=await admin.from('meal_attachments').delete().eq('kind','post').eq('content_id',postId).eq('owner_id',context.userId);
-  if(removed.error) throw new Error('Could not remove meal');
-  const updated=await admin.from('social_posts').update({meal:null}).eq('id',postId).eq('user_id',context.userId);
-  if(updated.error) throw new Error('Could not remove meal');
-  return;
- }
- const {data:meal,error:mealError}=await admin.from('meals').select('id,snapshot,source_name').eq('id',mealId).eq('user_id',context.userId).single();
- if(mealError||!meal) throw new Error('Meal unavailable');
- const snapshot={...normalizeMealSnapshot(meal.snapshot as unknown as MealSnapshot),mealId:meal.id,fromName:meal.source_name};
- const stored=await admin.from('meal_attachments').upsert({kind:'post',content_id:postId,owner_id:context.userId,snapshot:JSON.parse(JSON.stringify(snapshot))});
- if(stored.error) throw new Error('Could not change meal');
- const updated=await admin.from('social_posts').update({meal:JSON.parse(JSON.stringify(mealForViewer(snapshot,true)))}).eq('id',postId).eq('user_id',context.userId);
- if(updated.error) throw new Error('Could not change meal');
-}

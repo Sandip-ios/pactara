@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { createClient,type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll,beforeAll,describe,it,expect } from 'vitest';
-import { loadMeals,saveMealServer,attachmentSnapshot,updatePostMealAttachment } from '../meals.server';
+import { loadMeals,saveMealServer,attachmentSnapshot } from '../meals.server';
 import type { MealFood,MealSnapshot } from '../meals';
 const base='http://127.0.0.1:8001';
 const accounts:{id:string;client:SupabaseClient}[]=[];const foodId=`test:${randomUUID()}`;let mealId='';let postId='';
@@ -23,15 +23,4 @@ describe.skipIf(!process.env['PGHOST']||!process.env['SUPABASE_SERVICE_ROLE_KEY'
  it('direct client reads cannot obtain meals or food nutrition',async()=>{const meals=await context(2).supabase.from('meals').select('snapshot');expect(meals.error).not.toBeNull();const foods=await context(2).supabase.from('meal_foods').select('nutrition');expect(foods.data ?? []).toEqual([]);});
  it('editing an added meal changes only the copy and drops from credit',async()=>{const admin=adminClient();const original=await admin.from('meals').select('snapshot').eq('id',mealId).single();const result=await admin.from('meals').insert({user_id:context(1).userId,name:'Added rice',snapshot:original.data?.snapshot??{},source_meal_id:mealId,source_user_id:context(0).userId,source_name:'Maya'}).select('id').single();const copyId=result.data?.id;if(!copyId)throw new Error('Copy unavailable');await saveMealServer(context(1),input(copyId,'Changed copy',2));const copy=await admin.from('meals').select('snapshot,source_name').eq('id',copyId).single();expect(copy.data?.source_name).toBeNull();expect((copy.data?.snapshot as unknown as MealSnapshot).foods[0]?.amount).toBe(2);const unchanged=await admin.from('meals').select('snapshot').eq('id',mealId).single();expect((unchanged.data?.snapshot as unknown as MealSnapshot).foods[0]?.amount).toBe(1);});
  it('posting snapshots meal numbers and deleting the saved meal keeps the post copy',async()=>{const {data,error}=await context(0).supabase.rpc('create_library_meal_post',{_meal_id:mealId,_caption:'Temporary meal post',_audience:'everyone',_group_ids:[],_items:[],_workout:null,_workout_session_id:null,_workout_id:null,_credit_user_id:null,_comments_on:true,_tags:[],_skip_discover:false});expect(error).toBeNull();postId=data;expect((await attachmentSnapshot(context(1),'post',postId))?.calories).toBe(205.4);await adminClient().from('meals').delete().eq('id',mealId);expect((await attachmentSnapshot(context(1),'post',postId))?.calories).toBe(205.4);expect(JSON.stringify(await attachmentSnapshot(context(2),'post',postId))).not.toMatch(/"calories":/);const direct=await context(2).supabase.from('social_posts').select('meal').eq('id',postId).maybeSingle();expect(JSON.stringify(direct.data)).not.toMatch(/"(calories|protein|carbs|fat|nutrition|totals)":/);});
- it('only the owner can change or remove an attached meal and protected numbers stay off the post row',async()=>{
-  const next=(await saveMealServer(context(0),input(null,'Replacement rice',2))).id;
-  await expect(updatePostMealAttachment(context(1),postId,next)).rejects.toThrow('Post unavailable');
-  await updatePostMealAttachment(context(0),postId,next);
-  expect((await attachmentSnapshot(context(0),'post',postId))?.calories).toBe(410.8);
-  expect(JSON.stringify((await context(0).supabase.from('social_posts').select('meal').eq('id',postId).single()).data)).not.toMatch(/"(calories|protein|carbs|fat|nutrition|totals)":/);
-  await updatePostMealAttachment(context(0),postId,null);
-  expect(await attachmentSnapshot(context(0),'post',postId)).toBeNull();
-  expect((await context(0).supabase.from('social_posts').select('meal').eq('id',postId).single()).data?.meal).toBeNull();
- });
-
 });

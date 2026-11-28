@@ -276,6 +276,7 @@
 - [x] 18 phone captures in public/qa at 390×844; real Follow/Unfollow/request cancellation, workout sheet/add/remove, plan start and retry/reset verified; Classic and legacy links checked; all temporary accounts/data removed and original version choices restored. Full suite 1054 passed across 112 files; automatic typecheck/build clean; unpublished. One focused test failed once: discover-page.test.ts / names the approved core kettlebell under-15 filters, then corrected and passed.
 - [x] Compared uploaded Discover references; aligned card padding, match tags and kettlebell/under-15 empty state. Example numbers/content were not copied.
 
-## Edit caption attachment fix
-- [x] Share composer attachment layout and immutable feed snapshot summaries for workout and meal edits; caption saves preserve snapshots.
-- [x] Full suite 1153 tests / 120 files passed; typecheck clean. Three 390×844/2× captures in public/qa; painted cards, caption and Save share edges x=16/374 (358px width). Verified caption save/reload, meal Change/removal. Temporary account and all example rows removed; unpublished.
+## Edit caption attachment fix (layout only)
+- [x] Restore original workout/meal summary helpers, picker counts, wording and save behavior; remove count-equality and added meal mutation tests.
+- [x] Keep shared full-width attachment surfaces without nested wrappers for workout and meal.
+- [x] Refreshed all three captures at 390×844/2×; one-exercise edit retains "1 exercises · 1 sets". Painted edges x=16/374 (358px), exactly matching caption and edit Save. Full suite 1149 tests / 120 files passed; typecheck clean. Temporary member and all example rows removed; unpublished.
