@@ -8,7 +8,7 @@ import { INK, MUTED, PURPLE } from "./PostBits";
 export function PostCommentsSheet({ postId, open, onOpenChange, canComment }: { postId: string; open: boolean; onOpenChange: (o: boolean) => void; canComment: boolean }) {
   const qc = useQueryClient();
   const key = ["social-post-comments", postId];
-  const list = useQuery({ queryKey: key, queryFn: () => getSocialPostComments({ data: { id: postId } }), enabled: open });
+  const list = useQuery({ queryKey: key, queryFn: () => getSocialPostComments({ data: { id: postId } }), enabled: open && canComment });
   const addFn = useServerFn(addSocialPostComment);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -19,7 +19,7 @@ export function PostCommentsSheet({ postId, open, onOpenChange, canComment }: { 
     finally { setBusy(false); }
   };
   return (
-    <NewSheet open={open} onOpenChange={onOpenChange} title="Comments">
+    <NewSheet open={open && canComment} onOpenChange={onOpenChange} title="Comments">
       <div style={{ color: INK }}>
         {list.isLoading ? <div className="h-16 animate-pulse rounded-[12px] bg-[var(--new-control)]" /> : (list.data ?? []).length === 0 ? (
           <p className="py-2 text-[14px]" style={{ color: MUTED }}>No comments yet.</p>

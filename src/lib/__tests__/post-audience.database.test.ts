@@ -61,13 +61,44 @@ describe.skipIf(!process.env['PGHOST'] || !process.env['SUPABASE_SERVICE_ROLE_KE
     const id=await post('crews',crews.slice(1)); const {viewer}=pair();
     expect(await rows('social_posts',`id=eq.${id}`,viewer.token)).toEqual([]);
   });
-  it('Only me ignores crew links, suppresses comments and is unreadable to others',async()=>{
+  it('Only me ignores crew links, rejects comments and lets only the owner cheer',async()=>{
     const id=await post('only_me'); const {author,viewer}=pair();
     expect(await rows('social_post_crews',`post_id=eq.${id}`)).toEqual([]);
     expect(await rows('social_posts',`id=eq.${id}`,viewer.token)).toEqual([]);
     expect((await rows('social_posts',`id=eq.${id}`,author.token))[0]?.['comments_on']).toBe(false);
     await expect(request('/rest/v1/social_post_cheers',viewer.token,'POST',{post_id:id,user_id:viewer.id})).rejects.toThrow();
     await expect(request('/rest/v1/social_post_comments',viewer.token,'POST',{post_id:id,user_id:viewer.id,body:'Hidden'})).rejects.toThrow();
+    await expect(request('/rest/v1/social_post_comments',author.token,'POST',{post_id:id,user_id:author.id,body:'Hidden'})).rejects.toThrow();
+    await request('/rest/v1/social_post_cheers',author.token,'POST',{post_id:id,user_id:author.id});
+    expect(await rows('social_post_cheers',`post_id=eq.${id}&user_id=eq.${author.id}`,author.token)).toHaveLength(1);
+  });
+  it('Only me hides existing comments and counts without deleting them; Everyone restores them',async()=>{
+    const {author,viewer}=pair(); const id=await post('everyone');
+    await request('/rest/v1/social_post_comments',author.token,'POST',{post_id:id,user_id:author.id,body:'Owner comment'});
+    await request('/rest/v1/social_post_comments',viewer.token,'POST',{post_id:id,user_id:viewer.id,body:'Crew comment'});
+    expect(await rows('social_post_comments',`post_id=eq.${id}`,author.token)).toHaveLength(2);
+    await rpc(author,'set_social_post_audience',{_post_id:id,_audience:'only_me',_group_ids:[]});
+    expect((await rows('social_posts',`id=eq.${id}`,author.token))[0]?.['comments_on']).toBe(false);
+    expect(await rows('social_post_comments',`post_id=eq.${id}`,author.token)).toEqual([]);
+    expect(await rows('social_post_comments',`post_id=eq.${id}`,viewer.token)).toEqual([]);
+    expect(await rows('social_post_comments',`post_id=eq.${id}`)).toHaveLength(2);
+    expect(await rpc(author,'can_read_library_comment',{_post_id:id,_author_id:author.id})).toBe(false);
+    await rpc(author,'set_social_post_audience',{_post_id:id,_audience:'everyone',_group_ids:[]});
+    expect((await rows('social_posts',`id=eq.${id}`,author.token))[0]?.['comments_on']).toBe(true);
+    expect((await rows('social_post_comments',`post_id=eq.${id}&order=created_at.asc`,author.token)).map(r=>r['body'])).toEqual(['Owner comment','Crew comment']);
+    expect(await rows('social_post_comments',`post_id=eq.${id}`,viewer.token)).toHaveLength(2);
+    await request('/rest/v1/social_post_comments',viewer.token,'POST',{post_id:id,user_id:viewer.id,body:'Visible again'});
+    expect(await rows('social_post_comments',`post_id=eq.${id}`)).toHaveLength(3);
+  });
+  it('Only me to Crews turns comments on and brings the same comments back',async()=>{
+    const {author,viewer}=pair(); const id=await post('everyone');
+    await request('/rest/v1/social_post_comments',viewer.token,'POST',{post_id:id,user_id:viewer.id,body:'Keep me'});
+    await rpc(author,'set_social_post_audience',{_post_id:id,_audience:'only_me',_group_ids:[]});
+    expect(await rows('social_post_comments',`post_id=eq.${id}`,author.token)).toEqual([]);
+    await rpc(author,'set_social_post_audience',{_post_id:id,_audience:'crews',_group_ids:crews.slice(0,1)});
+    expect((await rows('social_posts',`id=eq.${id}`,author.token))[0]?.['comments_on']).toBe(true);
+    expect((await rows('social_post_comments',`post_id=eq.${id}`,author.token)).map(r=>r['body'])).toEqual(['Keep me']);
+    expect((await rows('social_post_comments',`post_id=eq.${id}`,viewer.token)).map(r=>r['body'])).toEqual(['Keep me']);
   });
   it('Private Everyone allows approved followers but not strangers outside crews',async()=>{
     const {author,viewer}=pair();

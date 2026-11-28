@@ -1,6 +1,6 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { audienceIsValid, audienceOptions, canSeePost, defaultAudience, reachesFollowers, reachesDiscover, selectAudience } from "../post-audience";
+import { audienceIsValid, audienceOptions, canSeePost, defaultAudience, postCommentsVisible, reachesFollowers, reachesDiscover, selectAudience } from "../post-audience";
 import { fileTooBigMessage, videoLengthError, composerIsDirty, creditLine, moveItem, selectionNumber, shareWorkoutStats, skipsDiscover, toggleSelection, trimLabel } from "../post-composer";
 import { bestExerciseMatch, foundLabel, parseCaptionMoves, setsRepsLine } from "../caption-workout";
 import { jobProgress } from "../posting-queue";
@@ -69,6 +69,20 @@ describe("who sees a post", () => {
     const p = post({kind:"everyone",crewIds:["c1"]});
     expect(canSeePost(p,{...viewer,blockedEitherWay:true})).toBe(false);
     expect(canSeePost({...p,live:false},viewer)).toBe(false);
+  });
+});
+
+describe("Only me comment controls", () => {
+  it("hides comments on Only me even for legacy rows whose comments flag is true", () => {
+    expect(postCommentsVisible({ audience: "only_me", commentsOn: true })).toBe(false);
+  });
+  it("shows comments on Everyone and Crews when comments are enabled", () => {
+    expect(postCommentsVisible({ audience: "everyone", commentsOn: true })).toBe(true);
+    expect(postCommentsVisible({ audience: "crews", commentsOn: true })).toBe(true);
+  });
+  it("keeps the existing comments-off choice on shared posts", () => {
+    expect(postCommentsVisible({ audience: "everyone", commentsOn: false })).toBe(false);
+    expect(postCommentsVisible({ audience: "crews", commentsOn: false })).toBe(false);
   });
 });
 

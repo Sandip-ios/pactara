@@ -32,6 +32,10 @@ export function canSeePost(
   if (!post.live || post.kind === 'only_me' || viewer.blockedEitherWay) return false;
   return post.crewIds.some(id => viewer.crewIds.includes(id)) || (post.kind === 'everyone' && (!post.authorPrivate || viewer.followsAuthor));
 }
+/** Only shared posts expose comment controls, previews, counts or threads. Cheers are independent. */
+export function postCommentsVisible(post: { audience: AudienceKind; commentsOn: boolean }): boolean {
+  return post.audience !== 'only_me' && post.commentsOn;
+}
 export function reachesFollowers(post: { kind: AudienceKind }): boolean { return post.kind === 'everyone'; }
 export function reachesDiscover(post: { kind: AudienceKind; authorPrivate: boolean; skipDiscover: boolean }): boolean {
   return post.kind === 'everyone' && !post.authorPrivate && !post.skipDiscover;

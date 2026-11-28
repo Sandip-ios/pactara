@@ -862,6 +862,13 @@
       "when": 1795849266204,
       "tag": "0122_allow_owner_checkin_cheers",
       "breakpoints": true
+    },
+    {
+      "idx": 123,
+      "version": "7",
+      "when": 1795850607673,
+      "tag": "0123_only_me_comment_visibility",
+      "breakpoints": true
     }
   ]
 }

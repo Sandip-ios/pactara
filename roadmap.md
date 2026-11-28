@@ -1,3 +1,8 @@
+# Only me comments and cheers
+- [x] Audited current Only me UI/RPC/RLS behavior: owner cheers already worked; comments were hidden/rejected, but old comments remained owner-readable and leaving Only me did not re-enable comments. Check-ins have no Only me audience state and were left unchanged.
+- [x] Kept cheers independent; hid Only me comment controls/previews/threads, enforced read/write RLS, restored comments on Everyone/Crews transitions and preserved all stored comments without count leaks.
+- [x] Added focused pure/database tests; captured and viewed om-only-me.png, om-everyone.png and om-only-me-again.png at 390x844/2x through real audience switches with no browser errors. Full suite 1246 tests across 133 files and typecheck pass; temporary member, post, comment, cheer and subscription removed.
+
 # Home check-in workout PR badge order
 - [x] Put New PR directly after the shared workout exercise rows/See all and keep Add to my workouts last on Home, Crews, social posts and the own-post page through their shared card.
 - [x] Full suite 1230 tests across 130 files and typecheck pass; recaptured hc-home-other.png and added hc-crew-other.png at 390x844 2x with measured exercise/PR/save ordering and no browser errors; temporary data removed.

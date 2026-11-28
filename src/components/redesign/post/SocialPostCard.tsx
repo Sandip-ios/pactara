@@ -15,6 +15,7 @@ import { PostCarousel, PostWorkoutCard, INK, MUTED } from "./PostBits";
 import { PostCommentsSheet } from "./PostComments";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { postCommentsVisible } from "@/lib/post-audience";
 import { PostSubline } from "./PostTags";
 import { useRemoveMe } from "./use-remove-me";
 import { PostMealCard } from "./PostSections";
@@ -29,7 +30,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
   const cheered = cheerOverride ?? post.cheeredByMe;
   const [comments, setComments] = useState(false);
   const [menu, setMenu] = useState(false);
-  const canComment = post.commentsOn && post.audience !== "only_me";
+  const canComment = postCommentsVisible(post);
   const preview = useLibraryFirstComment(post.id, post.comments, canComment);
   const save = useFeedSave("post", post.id, post.savedByMe);
   const firstName = post.author.name.split(" ")[0] || "Member";
@@ -71,7 +72,7 @@ export function SocialPostCard({ post, groupId, showFollow = false }: { post: So
       {post.meal && <PostMealCard meal={post.meal} isMine={post.isMine} postId={post.id} />}
       <FeedCardActions cheer={() => void cheer()} cheered={cheered} cheers={Math.max(0, post.cheers + Number(cheered) - Number(post.cheeredByMe))} comments={post.comments} openComments={() => setComments(true)} cheerLine={socialCheerLine(post.reactors ?? [], cheered)} preview={preview} canComment={canComment} save={save} />
       {post.isMine && <OwnPostMenu post={post} open={menu} onOpenChange={setMenu} />}
-      <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />
+      <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={canComment} />
     </article>
   );
 }

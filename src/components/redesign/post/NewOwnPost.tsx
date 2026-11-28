@@ -16,6 +16,7 @@ import { CrewAvatar } from "../CrewAvatars";
 import { PostCarousel, PostWorkoutCard, INK, MUTED, PostTopBar } from "./PostBits";
 import { OwnPostMenu } from "./OwnPostMenu";
 import { postSubline } from "@/lib/social-post-subline";
+import { postCommentsVisible } from "@/lib/post-audience";
 import { PostSubline } from "./PostTags";
 import { useRemoveMe } from "./use-remove-me";
 import { PostMealCard } from "./PostSections";
@@ -32,7 +33,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
   const [cheerOverride, setCheerOverride] = useState<boolean | null>(null);
   const [menu, setMenu] = useState(false);
   const [comments, setComments] = useState(false);
-  const canComment = !!post && post.commentsOn && post.audience !== "only_me";
+  const canComment = !!post && postCommentsVisible(post);
   const preview = useLibraryFirstComment(postId, post?.comments ?? 0, canComment);
   const save = useFeedSave("post", postId, post?.savedByMe);
   const remove = useRemoveMe(post ?? null);
@@ -90,7 +91,7 @@ export function NewOwnPost({ postId }: { postId: string }) {
       </div>
 
       {post.isMine && <OwnPostMenu post={post} open={menu} onOpenChange={setMenu} onDeleted={back} />}
-      <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={post.commentsOn} />
+      <PostCommentsSheet postId={post.id} open={comments} onOpenChange={setComments} canComment={canComment} />
     </div>
   );
 }
