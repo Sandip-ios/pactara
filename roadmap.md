@@ -1,3 +1,7 @@
+# Create sheet crew label
+- [x] Use the shared active-crew query and a pure tested label rule without changing the other row details or navigation.
+- [x] Captured and viewed public/qa/cs-one-crew.png and cs-two-crews.png at 390x844; removed all temporary accounts, crews and subscription rows. Full suite: 1255 tests across 135 files passed; typecheck clean.
+
 # Only me comments and cheers
 - [x] Audited current Only me UI/RPC/RLS behavior: owner cheers already worked; comments were hidden/rejected, but old comments remained owner-readable and leaving Only me did not re-enable comments. Check-ins have no Only me audience state and were left unchanged.
 - [x] Kept cheers independent; hid Only me comment controls/previews/threads, enforced read/write RLS, restored comments on Everyone/Crews transitions and preserved all stored comments without count leaks.

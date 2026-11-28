@@ -2,7 +2,8 @@ import { useNavigate, useRouter, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useRef, useState, type ReactNode } from "react";
 import { Home, Compass, Users, Plus, Zap, Camera, Dumbbell, Utensils } from "lucide-react";
-import { getMyGroupStatus } from "@/lib/groups.functions";
+import { getMyGroupStatus, listMyGroups } from "@/lib/groups.functions";
+import { createCheckInLabel } from "@/lib/create-check-in-label";
 import { checkInSkipsStartScreen, getActiveWorkout, markCameraDirect } from "@/lib/active-workout";
 import { useToastAbove } from "@/lib/toast-offset";
 import { NewSheet, NewSheetRow, NewSheetIcon, NewSheetChevron } from "./NewSheet";
@@ -22,6 +23,7 @@ export function NewBottomTabs() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [createOpen, setCreateOpen] = useState(false);
   const { data: status } = useQuery({ queryKey: ["my-group-status"], queryFn: () => getMyGroupStatus(), staleTime: 60_000 });
+  const { data: crews } = useQuery({ queryKey: ["my-groups"], queryFn: () => listMyGroups(), staleTime: 60_000 });
   const navRef = useRef<HTMLElement>(null);
   useToastAbove(navRef);
   const isProfile = pathname === "/profile";
@@ -66,7 +68,7 @@ export function NewBottomTabs() {
       </nav>
       <NewSheet open={createOpen} onOpenChange={setCreateOpen} title="Create" description="Pick what to create">
         <div>
-          <CreateRow icon={<Zap size={20} />} title={`Check in to ${crewName}`} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
+          <CreateRow icon={<Zap size={20} />} title={createCheckInLabel(crews?.groups.length, crewName)} subtitle="5 seconds, live camera. Keeps your streak." onClick={checkIn} tone="primary" />
           <CreateRow icon={<Camera size={20} />} title="New post" subtitle="Photo or video, with a workout or meal if you want" onClick={() => { setCreateOpen(false); resetDraft(); navigate({ to: "/post/new" }); }} />
           <CreateRow icon={<Dumbbell size={20} />} title="Build a workout" subtitle="One session people can save and do" onClick={() => { setCreateOpen(false); navigate({ to: "/workouts/new" }); }} />
           <CreateRow icon={<Utensils size={20} />} title="Build a meal" subtitle="One meal people can save and eat" tone="meal" onClick={() => { setCreateOpen(false); void openMealBuilder(); }} />
