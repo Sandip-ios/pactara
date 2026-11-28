@@ -1,3 +1,9 @@
+# Food search follow-up
+- [x] Restore cooked/plain ranking and 200/50/6 retrieval, top-25 details; recorded rice/pasta/chicken tests.
+- [x] Four-second provider deadline, partial results and Retry; bounded resumable 300-term one-off warmer.
+- [ ] Complete remaining cache warming: 39/300 complete, 261 remaining; blocked by shared hourly USDA allowance (596/600 reserved) and incomplete provider responses. Job stopped, nothing continues after this turn.
+- [x] Full tests/checks: 1190 tests/124 files, typecheck and build clean. Viewed final rice/chicken 390×844/2× captures; first rows 348–374ms, complete warmed lists 365–396ms. Real timeout/Retry verified, temporary member removed; no publication.
+
 # Roadmap
 - [x] Food search speed/quality: local-first stable results, parallel USDA with one six-call budget reservation, cancellation, v11, recorded top-five tests for 15 queries; four 390px/2x captures viewed. Local 331–369ms, cache 365–395ms, refreshed search with cached details 1.3–3.2s; fully uncached provider calls 2.4–18.2s, so cold 2–3s target is not guaranteed. 1180 tests and typecheck passed; temporary member removed, provider cache retained, unpublished.
 - [x] Empty meal-builder spacing: omit empty list/drag containers and empty Add food top margin, like workout builder. Painted label-bottom to button/card-top gaps both 10px (was 22px empty); verified add/remove and post builder. Retook/viewed 76a/77b at 390px/2x; all 1149 tests and typecheck passed, build OK, no failures. Temporary adult account/recent rows removed; no meal saved or add counts changed; removed QA captures kept, unpublished.

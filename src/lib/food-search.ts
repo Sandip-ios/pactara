@@ -23,6 +23,26 @@ export function foodRelevance(description: string, query: string, brand = '') {
   const modifiers=foodWords(parts.slice(1).join(' ')).filter(w=>!words.includes(w)&&!basic.has(w)&&!/^\d+$/.test(w)).length;
   return {match,brandAsked,score:(brandAsked?-100:0)+(primary?0:20)+extraHead*2+modifiers*.25+(niche&&!asksNiche?40:0)+(mixed&&!words.some(w=>/^(cereal|bread|sauce|salad|sandwich|pizza|soup|cookie|shake|nugget|tender|cracker|noodle|bran|cake|chip|nectar|pudding|yogurt)$/.test(w))?10:0)+(processed?8:0)};
 }
+/** Broad food-group vocabulary, not per-query exceptions or preferred variety lists. */
+export function preparedFoodGroup(description:string) {
+ const parts=description.split(',');
+ const words=foodWords(/^(fish|poultry|cereals)$/i.test(parts[0]?.trim()??'')?parts[1]??'':parts[0]??'');
+ if(words.includes('egg'))return false;
+ return words.some(w=>/^(grain|rice|pasta|spaghetti|macaroni|noodle|couscous|quinoa|barley|legume|bean|lentil|chickpea|pea|meat|beef|veal|lamb|pork|poultry|chicken|turkey|duck|fish|salmon|tuna|cod|trout|shrimp)$/.test(w));
+}
+export function preparedFoodOrder(description:string) {
+ if(!preparedFoodGroup(description))return 1;
+ return /\b(cooked|boiled|steamed|roasted|baked|grilled|braised|poached|prepared|stewed|fried)\b/i.test(description)?0:/\b(raw|dry|uncooked|flour)\b/i.test(description)?2:1;
+}
+/** Dish words penalize assembled dishes, not the requested dish or an ordinary meat preparation. */
+export function foodDishPenalty(description:string,query:string) {
+ const dish=/\b(dressing|pilaf|casserole|dirty|mixture|with)\b/i.test(description.replace(/\b(?:cooked|prepared|made) with (?:water|milk)\b/gi,'cooked')) || (/\bfried\b/i.test(description)&&/\b(grain|rice|pasta|noodle)\b/i.test(description));
+ return dish&&!/\b(dressing|pilaf|casserole|dirty|fried|with)\b/i.test(query)?10:0;
+}
+export function preparedFoodScore(description:string,query:string,brand='') {
+ const rel=foodRelevance(description,query,brand);
+ return rel.score+(preparedFoodGroup(description)?foodDishPenalty(description,query)+preparedFoodOrder(description)*3+foodWords(description.split(',')[0]??'').filter(w=>!foodWords(query).includes(w)).length*.25:0);
+}
 /** Local hits retain their positions; remote data refreshes matching IDs and appends new IDs. */
 export function mergeFoodSearch(local: Food[], remote: Food[]) {
   const updated=new Map(remote.map(f=>[f.id,f]));

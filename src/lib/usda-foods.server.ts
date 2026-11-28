@@ -1,5 +1,5 @@
 import type { Food, Nutrition, Portion } from './meals';
-import { foodRelevance, foodWords } from './food-search';
+import { foodRelevance, foodWords, preparedFoodScore, preparedFoodGroup } from './food-search';
 const nutrient = (rows: Record<string, unknown>[], ids: number[]) => { const row=rows.find(n => ids.includes(Number(n['nutrientId'] ?? (n['nutrient'] as Record<string,unknown>|undefined)?.['id']))); const v=row?.['value'] ?? row?.['amount']; return typeof v==='number' ? v : null; };
 export function normalizeUsdaFood(row:Record<string,unknown>):Food {
  const nutrients=(row['foodNutrients'] ?? []) as Record<string,unknown>[];
@@ -70,12 +70,12 @@ export function capPerTier(rows:Record<string,unknown>[],limit=12) { const seen=
 export function rankUsdaRows(rows:Record<string,unknown>[],query='') {
  rows=rows.filter(r=>!query||foodRelevance(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??'')).match);
  const rank=(r:Record<string,unknown>)=>r['dataType']==='Foundation'?0:r['dataType']==='SR Legacy'?1:r['dataType']==='Survey (FNDDS)'?2:3;
- const relevance=(r:Record<string,unknown>)=>{const rel=foodRelevance(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??''));return query?rel.score+(r['dataType']==='Branded'&&!rel.brandAsked?100:0):0;};
+ const relevance=(r:Record<string,unknown>)=>{const rel=foodRelevance(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??''));return query?preparedFoodScore(String(r['description']??''),query,String(r['brandOwner']??r['brandName']??''))+(r['dataType']==='Branded'&&!rel.brandAsked?100:0):0;};
  const parts=(r:Record<string,unknown>)=>r['dataType']==='Branded'?0:cleanUsdaDescription(String(r['description']??'')).split(',').length;
- return rows.map((r,i)=>({r,i})).sort((a,b)=>relevance(a.r)-relevance(b.r)||rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r)||a.i-b.i).map(x=>x.r);
+ return rows.map((r,i)=>({r,i})).sort((a,b)=>relevance(a.r)-relevance(b.r)||((query&&preparedFoodGroup(query))?Number(b.r['add_count']??0)-Number(a.r['add_count']??0)||rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||cleanUsdaDescription(String(a.r['description']??'')).length-cleanUsdaDescription(String(b.r['description']??'')).length:rank(a.r)-rank(b.r)||parts(a.r)-parts(b.r)||preparedOrder(a.r)-preparedOrder(b.r))||a.i-b.i).map(x=>x.r);
 }
 export async function fetchUsda(path:string,body?:unknown,signal?:AbortSignal):Promise<Record<string,unknown>> {
  const key=process.env['USDA_API_KEY']; if(!key) throw new Error('USDA credential unavailable');
- const response=await fetch(`https://api.nal.usda.gov/fdc/v1/${path}`,{method:body?'POST':'GET',headers:{'X-Api-Key':key,'Content-Type':'application/json'},...(body ? {body:JSON.stringify(body)} : {}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(20000)]):AbortSignal.timeout(20000),redirect:'manual'});
+ const response=await fetch(`https://api.nal.usda.gov/fdc/v1/${path}`,{method:body?'POST':'GET',headers:{'X-Api-Key':key,'Content-Type':'application/json'},...(body ? {body:JSON.stringify(body)} : {}),signal:signal?AbortSignal.any([signal,AbortSignal.timeout(4000)]):AbortSignal.timeout(4000),redirect:'manual'});
  if(!response.ok) throw new Error(`USDA request status ${response.status}`);return await response.json() as Record<string,unknown>;
 }
