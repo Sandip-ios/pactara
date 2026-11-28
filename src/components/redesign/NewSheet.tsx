@@ -7,22 +7,24 @@ import { cn } from "@/lib/utils";
 import { CrewAvatarOverlap, type RedesignCrewAvatarMember } from "./CrewAvatars";
 
 /** All redesign sheets share this surface; classic DrawerContent stays untouched. */
-export function NewSheet({ open, onOpenChange, title, subtitle, description, hideTitle = false, large = false, compact = false, compose = false, children }: {
+export function NewSheet({ open, onOpenChange, title, subtitle, description, hideTitle = false, large = false, compact = false, compose = false, children, contentClassName, contentStyle, childrenClassName, repositionInputs = true }: {
   /** Feed detail sheets: 16px sides, 30px bottom. */
   compact?: boolean;
   /** Compose canvas: 16px sides, 30px bottom and a 12px handle gap. */
   compose?: boolean;
   large?: boolean; open: boolean; onOpenChange: (open: boolean) => void; title: string; hideTitle?: boolean;
   subtitle?: string; description?: string; children: ReactNode;
+  contentClassName?: string; contentStyle?: ComponentProps<typeof DrawerPrimitive.Content>['style']; childrenClassName?: string;
+  repositionInputs?: boolean;
 }) {
-  return <Drawer open={open} onOpenChange={onOpenChange}>
+  return <Drawer open={open} onOpenChange={onOpenChange} repositionInputs={repositionInputs}>
     <DrawerPortal>
       <DrawerOverlay className="new-sheet bg-[var(--new-sheet-overlay)]" />
-      <DrawerPrimitive.Content className={`new-sheet fixed inset-x-0 bottom-0 z-[70] flex max-h-[calc(100dvh-60px)] flex-col overflow-y-auto rounded-t-[24px] border-0 bg-[var(--new-white)] pt-[10px] ${compact || compose ? "px-4 pb-[calc(30px+env(safe-area-inset-bottom))]" : "px-5 pb-[calc(40px+env(safe-area-inset-bottom))]"} text-[var(--new-ink)] outline-none`}>
+      <DrawerPrimitive.Content style={contentStyle} className={cn(`new-sheet fixed inset-x-0 bottom-0 z-[70] flex max-h-[calc(100dvh-60px)] flex-col overflow-y-auto rounded-t-[24px] border-0 bg-[var(--new-white)] pt-[10px] ${compact || compose ? "px-4 pb-[calc(30px+env(safe-area-inset-bottom))]" : "px-5 pb-[calc(40px+env(safe-area-inset-bottom))]"} text-[var(--new-ink)] outline-none`, contentClassName)}>
         <div className={`mx-auto h-[5px] w-9 shrink-0 rounded-[3px] bg-[var(--new-handle)] ${compose ? "mb-3" : "mb-[14px]"}`} aria-hidden />
         <DrawerTitle className={hideTitle ? "sr-only" : (large ? "m-0 text-[22px]" : "m-0 text-[20px]") + " font-extrabold text-[var(--new-ink)] tracking-normal"}>{title}</DrawerTitle>
         <DrawerDescription className={subtitle ? "mt-1 text-[14px] text-[var(--new-muted)]" : "sr-only"}>{subtitle ?? description ?? title}</DrawerDescription>
-        <div className={hideTitle ? undefined : "mt-[10px]"}>{children}</div>
+        <div className={cn(!hideTitle && "mt-[10px]", childrenClassName)}>{children}</div>
       </DrawerPrimitive.Content>
     </DrawerPortal>
   </Drawer>;
