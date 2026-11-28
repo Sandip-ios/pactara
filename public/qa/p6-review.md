@@ -58,3 +58,9 @@ Cleanup verified: both temporary members restored then deleted; crew, meals/copi
 - Unit labels drop the descriptor after the comma unless two portions share the base unit.
 - Foods that share a name but differ in numbers now get the source note before falling back to a fuller name.
 - All 43 p6 captures retaken.
+
+## November 28 composer spacing only
+- Attached meal now matches attached workout: white section has 16px left/right and 10px top/bottom inset, 20px outside radius; inner card has 14px radius and matching 12px top/bottom, 14px left, 8px right padding. The extra 10px top margin is removed only on the composer card. Empty meal section and all other screens unchanged.
+- Signed-in browser measurements matched exactly with and without an attached workout. Retook only p6-65u.png and p6-77e.png at 390×1080/2×; 77e was saved through the meal builder with its existing single-cup example and save toast. Both screenshots visually reviewed; zero browser page errors.
+- Full suite: 1149 passed across 120 files, no failures or skips. Typecheck passed; preview build OK. Capture setup initially rejected a hyphenated temporary username; corrected before capture, not a test failure.
+- Temporary adult account, meals, workout and recent rows deleted; only the single rice add created by this capture was subtracted, no unrelated food counts cleared. Temporary example-data script removed. public/qa retained; nothing published.
