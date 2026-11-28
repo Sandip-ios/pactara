@@ -21,6 +21,7 @@ import { activityLabelFor, postShareNumbers, shareMediaKind, type ShareMediaKind
 import { healthWorkoutSchema, healthVideoRequired, type HealthWorkout } from './health-workouts';
 import { visibleTo, visiblePost } from './safety-rules';
 import { activityOpenUrl } from "./activity-deeplink";
+import { checkInSocialFor } from "./checkin-social";
 
 /** Returns today's local date (YYYY-MM-DD) for the given IANA timezone. */
 export function localDateFor(timezone: string, when: Date = new Date()): string {
@@ -586,11 +587,6 @@ async function workoutsForCheckIns(supabase: SupabaseClient, checkInIds: string[
 }
 
 
-function dedupeReactors<T extends { user_id: string }>(rows: T[]): T[] {
-  const seen = new Set<string>();
-  return rows.filter((r) => (seen.has(r.user_id) ? false : (seen.add(r.user_id), true)));
-}
-
 /** Plan day titles ("Push") for plan-tagged check-ins, keyed by check-in id. */
 async function planDayNamesFor(
   supabase: SupabaseClient,
@@ -974,10 +970,10 @@ export const getGroupFeed = createServerFn({ method: "GET" })
         .sort((a, b) => a.created_at.localeCompare(b.created_at));
       const countedId = countedCheckInId(myCheckIns);
       const firstCheckInId = myCheckIns[0]?.id ?? null;
-      const scopeOf = (id: string | null) => id ?? firstCheckInId;
-      const postReactors = (reactorsByPostCheckIn.get(p.id) ?? []);
-      const postComments = commentsByPost.get(p.id) ?? [];
+      const postReactors = (reactorsByPostCheckIn.get(p.id) ?? []).map((r) => ({ checkInId: r.check_in_id, userId: r.user_id, emoji: r.emoji }));
+      const postComments = (commentsByPost.get(p.id) ?? []).map((checkInId) => ({ checkInId }));
       for (const c of myCheckIns) {
+        const social = checkInSocialFor(c.id, firstCheckInId, postReactors, postComments);
         nodes.push({
           kind: "check_in",
           id: `c-${c.id}`,
@@ -989,8 +985,8 @@ export const getGroupFeed = createServerFn({ method: "GET" })
           note: c.note,
           isCounted: c.id === countedId,
           social: {
-            reactors: dedupeReactors(postReactors.filter((r) => scopeOf(r.check_in_id) === c.id)).map(toReactor),
-            commentCount: postComments.filter((x) => scopeOf(x) === c.id).length,
+            reactors: social.reactors.map((r) => toReactor({ user_id: r.userId, emoji: r.emoji })),
+            commentCount: social.commentCount,
           },
           photoUrl: c.photo_url ?? null,
           posterUrl: c.poster_url ?? null,

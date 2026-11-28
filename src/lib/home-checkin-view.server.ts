@@ -3,6 +3,17 @@ import type { HomeEntry, HomeRef } from "./home-feed";
 import type { CheckInNode } from "./feed-days";
 import type { FeedItem } from "./daily-posts.functions";
 import { signAvatarThumbs, signFeedMedia, signVideoPosters } from "./media-urls";
+import { checkInSocialFor } from "./checkin-social";
+import type { Reactor } from "./feed-view";
+
+type HomeReaction = {
+  checkInId: string | null;
+  userId: string;
+  emoji: string;
+  name: string | null;
+  avatarUrl: string | null;
+  avatarColor: string | null;
+};
 type Row = {
   id: string;
   userId: string;
@@ -18,6 +29,9 @@ type Row = {
   avatarUrl: string | null;
   avatarColor: string | null;
   postId: string | null;
+  firstCheckInId: string | null;
+  reactors: HomeReaction[];
+  comments: { checkInId: string | null }[];
   workout: CheckInNode["workout"];
 };
 export async function loadHomeCheckIns(
@@ -34,7 +48,7 @@ export async function loadHomeCheckIns(
   const [avatars, media, posters] = await Promise.all([
     signAvatarThumbs(
       supabaseAdmin,
-      rows.map((r) => r.avatarUrl),
+      rows.flatMap((r) => [r.avatarUrl, ...(r.reactors ?? []).map((reactor) => reactor.avatarUrl)]),
     ),
     signFeedMedia(
       supabaseAdmin,
@@ -49,6 +63,23 @@ export async function loadHomeCheckIns(
   return refs.flatMap((ref): HomeEntry[] => {
     const c = byId.get(ref.id);
     if (!c) return [];
+    const toReactor = (r: HomeReaction): Reactor => {
+      const name = r.name?.trim() || "Member";
+      return {
+        userId: r.userId,
+        name,
+        firstName: name.split(" ")[0] || "Member",
+        avatarUrl: r.avatarUrl
+          ? r.avatarUrl.startsWith("http")
+            ? r.avatarUrl
+            : (avatars.get(r.avatarUrl) ?? null)
+          : null,
+        avatarColor: r.avatarColor || "#22C55E",
+        emoji: r.emoji,
+        isMe: r.userId === userId,
+      };
+    };
+    const social = checkInSocialFor(c.id, c.firstCheckInId, c.reactors ?? [], c.comments ?? []);
     const checkIn: CheckInNode = {
       kind: "check_in",
       id: `c-${c.id}`,
@@ -57,8 +88,8 @@ export async function loadHomeCheckIns(
       workout: c.workout,
       health: c.health,
       note: c.note,
-      isCounted: true,
-      social: { reactors: [], commentCount: 0 },
+      isCounted: c.firstCheckInId === c.id,
+      social: { reactors: social.reactors.map(toReactor), commentCount: social.commentCount },
       photoUrl: c.photoUrl
         ? c.photoUrl.startsWith("http")
           ? c.photoUrl
@@ -83,8 +114,8 @@ export async function loadHomeCheckIns(
       updatedAt: c.createdAt,
       nodes: [checkIn],
       reactions: [],
-      reactors: [],
-      commentCount: 0,
+      reactors: (c.reactors ?? []).map(toReactor),
+      commentCount: (c.comments ?? []).length,
       lastCommentAt: null,
       latestComment: null,
       dayNumber: 0,
@@ -98,6 +129,7 @@ export async function loadHomeCheckIns(
         checkIn,
         crewName: ref.crew_name,
         canInteract: !!c.postId,
+        includeUnscoped: c.firstCheckInId === c.id,
       },
     ];
   });

@@ -20,6 +20,8 @@ export type HomeEntry =
       checkIn: CheckInNode;
       crewName: string | null;
       canInteract: boolean;
+      /** Legacy unscoped reactions/comments belong to this check-in only when it is the day's first. */
+      includeUnscoped: boolean;
     };
 export const HOME_PAGE_SIZE = 20;
 export const HOME_INITIAL_TAB: HomeTab = "following";

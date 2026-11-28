@@ -50,6 +50,7 @@ export function NewCheckInPost({ id }: { id: string }) {
           checkIn={post.data.checkIn}
           viewerToday={localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone, new Date())}
           homeFeed
+          homeIncludeUnscoped={post.data.includeUnscoped}
         />
       ) : (
         <p className="px-6 py-10 text-center text-[15px] text-[var(--new-muted)]">

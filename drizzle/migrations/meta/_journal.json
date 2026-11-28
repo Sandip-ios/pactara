@@ -848,6 +848,13 @@
       "when": 1795841953925,
       "tag": "0120_durable_meal_food_warming",
       "breakpoints": true
+    },
+    {
+      "idx": 121,
+      "version": "7",
+      "when": 1795848483678,
+      "tag": "0121_home_checkin_social_parity",
+      "breakpoints": true
     }
   ]
 }

@@ -285,6 +285,8 @@ function CommentThread({
       clearPending();
       queryClient.invalidateQueries({ queryKey: ["post-comments", postId] });
       queryClient.invalidateQueries({ queryKey: ["group-feed"] });
+      queryClient.invalidateQueries({ queryKey: ["home-social-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["new-checkin-post"] });
     },
   });
 

@@ -191,6 +191,7 @@ export function HomeSocialFeed({ tab = "for-you" }: { tab?: HomeTab }) {
             homeCrewName={entry.crewName}
             showFollow={tab === "for-you"}
             homeFeed
+            homeIncludeUnscoped={entry.includeUnscoped}
           />
         ),
       )}

@@ -294,7 +294,11 @@ export function useCheers(item: Pick<FeedItem, "id" | "reactors">, checkInId: st
     isMe: true,
   };
   const reactors = myEmoji ? [{ ...self, emoji: myEmoji }, ...others] : others;
-  const settle = () => queryClient.invalidateQueries({ queryKey: ["group-feed"] }).then(() => setOverride(null));
+  const settle = () => Promise.all([
+    queryClient.invalidateQueries({ queryKey: ["group-feed"] }),
+    queryClient.invalidateQueries({ queryKey: ["home-social-posts"] }),
+    queryClient.invalidateQueries({ queryKey: ["new-checkin-post"] }),
+  ]).then(() => setOverride(null));
   const toggleM = useMutation({
     mutationFn: (emoji: string) => togglePostReaction({ data: { postId: item.id, emoji, ...(checkInId ? { checkInId } : {}) } }),
     onSettled: settle,

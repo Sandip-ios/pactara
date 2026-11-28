@@ -1,3 +1,8 @@
+# Home check-in social parity
+- [x] Reused the Crews check-in social source on Home for cheer names/counts, comments and workout PR flags, including legacy NULL-check-in reactions and multi-crew posts; verified cheer updates in both directions in the browser.
+- [x] Added focused pure/database parity tests; all 1229 tests across 129 files and typecheck pass.
+- [x] Captured hc-home-own.png, hc-crew-own.png and hc-home-other.png at 390x844 2x in public/qa, viewed them, and removed all temporary accounts and data.
+
 # Following Home default and warming test setup
 - [x] Made Following the initial Home tab without adding or changing session tab memory; fresh Home and Home-tab return browser-verified.
 - [x] Food-warming database tests create their own missing control row and remove it afterward.

@@ -3,8 +3,6 @@ import { FeedCardActions, useCheckInFirstComment } from "./FeedCardActions";
 import { useFeedSave } from "./use-feed-save";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { getHomeCheckInSocial } from "@/lib/home-checkin.functions";
-import { HomeCheckInActions } from "./HomeCheckInActions";
 import { FollowPill } from "./FollowPill";
 import { useEffect, useState } from "react";
 import { Check, ChevronRight } from "lucide-react";
@@ -44,6 +42,7 @@ export function RedesignCheckInCard({
   homeCrewName,
   showFollow = false,
   homeFeed = false,
+  homeIncludeUnscoped = false,
 }: {
   item: FeedItem;
   checkIn: CheckInNode;
@@ -53,12 +52,11 @@ export function RedesignCheckInCard({
   homeCrewName?: string | null;
   showFollow?: boolean;
   homeFeed?: boolean;
+  homeIncludeUnscoped?: boolean;
 }) {
   const rawId = checkIn.id.replace(/^c-/, "");
-  const homeSocialFn = useServerFn(getHomeCheckInSocial);
-  const homeSocial = useQuery({ queryKey: ["home-checkin-social", rawId], queryFn: () => homeSocialFn({ data: { id: rawId } }), enabled: homeFeed, staleTime: 30_000 });
   const firstId = item.nodes.find((n) => n.kind === "check_in")?.id ?? checkIn.id;
-  const isFirst = firstId === checkIn.id;
+  const isFirst = homeFeed ? homeIncludeUnscoped : firstId === checkIn.id;
   const preview = useCheckInFirstComment(item.id, checkIn.social?.commentCount ?? item.commentCount, { checkInId: rawId, includeUnscoped: isFirst });
   const social = checkIn.social ?? { reactors: item.reactors, commentCount: item.commentCount };
   const scoped = { id: item.id, reactors: social.reactors };
@@ -160,10 +158,10 @@ export function RedesignCheckInCard({
       )}
 
       <AttachmentMealCard id={rawId} kind="checkin" isMine={item.isMe} />
-      {homeFeed ? <HomeCheckInActions id={rawId} isMine={item.isMe} /> : <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />}
+      <FeedCardActions cheer={item.isMe ? undefined : cheers.toggle} cheered={cheered} cheers={cheers.reactors.length} comments={social.commentCount} openComments={comments.openSheet} prefetchComments={comments.prefetch} cheerLine={cheerLine} preview={preview} save={save} />
       {comments.sheet}
       {card && card.kind !== "health" && (
-        <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} {...(homeFeed && homeSocial.data?.workoutDetail ? { detail: homeSocial.data.workoutDetail } : {})} />
+        <RedesignWorkoutSheet open={sheetOpen} onOpenChange={setSheetOpen} checkInId={rawId} card={card} author={author} isMine={item.isMe} planSlug={checkIn.plan?.slug ?? null} {...(workout.data ? { detail: workout.data } : {})} />
       )}
       {card?.kind === "health" && checkIn.health && (
         <RedesignHealthSheet open={sheetOpen} onOpenChange={setSheetOpen} health={checkIn.health} unit={unit} author={author} isMine={item.isMe} />
