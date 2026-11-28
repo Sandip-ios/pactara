@@ -19,4 +19,4 @@
 - Server: feed loader returns per-check-in cheer/reply counts and reactors (rows with empty id assigned to the post's first check-in); cheer/comment functions accept optional `checkInId`. `CommentsSheet` scoped by check-in in redesign only.
 - Pure helpers with tests in `src/lib/redesign-feed-view.ts`: split ordering, meta line ("6:12 am · Workout", "Yesterday · Run", no tag), attached-card label/title/line per kind, Health stat picks, sheet set line ("3 sets · 10, 8, 8 reps" / "0:45, 0:45, 0:30"), PR visibility (check-in always; post only own), weights note rule.
 - New components: `RedesignAttachedCard`, `RedesignWorkoutSheet`, `RedesignHealthSheet` under `src/components/redesign/`.
-- QA: the nine 390x844 screenshots into `public/qa/` with `p5-1d-` prefix, draft data only, temporary rows removed; full tests incl. database tests, typecheck, commit. No em dashes. Not published.
+- QA: the nine 390x844 screenshots into the QA capture folder (since removed) with `p5-1d-` prefix, draft data only, temporary rows removed; full tests incl. database tests, typecheck, commit. No em dashes. Not published.

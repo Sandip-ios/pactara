@@ -27,4 +27,4 @@
 - Full suite + typecheck.
 
 ## QA after approval
-390x844 screenshots into `public/qa/`: camera idle; page with workout and 2 crews; followers on; no crew selected; upload error. Real UI on this draft's data only, temporary rows deleted afterwards, nothing added to repo data files.
+390x844 screenshots into the QA capture folder (since removed): camera idle; page with workout and 2 crews; followers on; no crew selected; upload error. Real UI on this draft's data only, temporary rows deleted afterwards, nothing added to repo data files.
